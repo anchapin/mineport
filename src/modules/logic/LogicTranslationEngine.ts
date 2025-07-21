@@ -12,116 +12,34 @@ import { APIMapping } from './APIMapping';
 import { LLMTranslationService } from './LLMTranslationService';
 import { ProgramStateAlignmentValidator } from './ProgramStateAlignmentValidator';
 import { JavaScriptGenerator } from './JavaScriptGenerator';
-import { logger } from '../../utils/logger';
+import { CompromiseStrategyEngine, CompromiseStrategyResult } from '../compromise/CompromiseStrategyEngine';
+import { Feature, FeatureType } from '../../types/compromise';
+import { createLogger } from '../../utils/logger';
+import { ErrorHandler, globalErrorCollector } from '../../utils/errorHandler';
+import { JavaSourceFile } from '../../types/base';
+import { 
+  LogicConversionNote, 
+  ErrorType, 
+  ErrorSeverity, 
+  createErrorCode,
+  noteToConversionError,
+  CompromiseNote
+} from '../../types/errors';
+import { APIMapping as APIMapType } from '../../types/api';
+import { 
+  LogicTranslationInput, 
+  LogicTranslationOutput, 
+  JavaScriptFile, 
+  StubFunction, 
+  MMIRContext, 
+  MMIRNode, 
+  MMIRRelationship, 
+  MMIRMetadata,
+  LogicFeature
+} from '../../types/modules';
 
-/**
- * Input for the logic translation process
- */
-export interface LogicTranslationInput {
-  javaSourceFiles: JavaSourceFile[];
-  mmirContext?: MMIRContext;
-  apiMappingDictionary?: APIMapping[];
-}
-
-/**
- * Output from the logic translation process
- */
-export interface LogicTranslationOutput {
-  javascriptFiles: JavaScriptFile[];
-  stubFunctions: StubFunction[];
-  conversionNotes: LogicConversionNote[];
-}
-
-/**
- * Represents a Java source file
- */
-export interface JavaSourceFile {
-  path: string;
-  content: string;
-  modLoader: 'forge' | 'fabric';
-}
-
-/**
- * Represents a JavaScript output file
- */
-export interface JavaScriptFile {
-  path: string;
-  content: string;
-  sourceMap?: string;
-}
-
-/**
- * Represents a stub function for features that couldn't be fully translated
- */
-export interface StubFunction {
-  name: string;
-  originalJavaCode: string;
-  javascriptStub: string;
-  reason: string;
-  suggestedAlternatives?: string[];
-}
-
-/**
- * Represents a note about the conversion process
- */
-export interface LogicConversionNote {
-  type: 'info' | 'warning' | 'error';
-  message: string;
-  sourceLocation?: {
-    file: string;
-    line: number;
-    column: number;
-  };
-  code?: string;
-}
-
-/**
- * Represents the Minecraft Modding Intermediate Representation context
- */
-export interface MMIRContext {
-  nodes: MMIRNode[];
-  relationships: MMIRRelationship[];
-  metadata: MMIRMetadata;
-}
-
-/**
- * Represents a node in the MMIR
- */
-export interface MMIRNode {
-  id: string;
-  type: string;
-  sourceLocation: {
-    file: string;
-    startLine: number;
-    startColumn: number;
-    endLine: number;
-    endColumn: number;
-  };
-  properties: Record<string, any>;
-  children: string[];
-}
-
-/**
- * Represents a relationship between MMIR nodes
- */
-export interface MMIRRelationship {
-  id: string;
-  type: string;
-  sourceNodeId: string;
-  targetNodeId: string;
-  properties: Record<string, any>;
-}
-
-/**
- * Represents metadata for the MMIR
- */
-export interface MMIRMetadata {
-  modId: string;
-  modName: string;
-  modVersion: string;
-  modLoader: 'forge' | 'fabric';
-  minecraftVersion: string;
-}
+const logger = createLogger('LogicTranslationEngine');
+const MODULE_ID = 'LOGIC';
 
 /**
  * Main class for the Logic Translation Engine
@@ -223,15 +141,40 @@ export class LogicTranslationEngine {
 
       // Collect stub functions and conversion notes
       output.stubFunctions = this.collectStubFunctions(llmTranslations, validationResults);
-      output.conversionNotes = this.collectConversionNotes(validationResults);
+      const conversionNotes = this.collectConversionNotes(validationResults);
+      output.conversionNotes = conversionNotes;
+      
+      // Add conversion notes to global error collector
+      conversionNotes.forEach(note => {
+        globalErrorCollector.addError(
+          noteToConversionError(note, MODULE_ID, ErrorType.LOGIC)
+        );
+      });
 
       logger.info('Logic translation process completed successfully');
     } catch (error) {
-      logger.error('Error during logic translation process', error);
-      output.conversionNotes.push({
-        type: 'error',
-        message: `Logic translation failed: ${error.message}`
-      });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error during logic translation process: ${errorMessage}`, { error });
+      
+      // Create standardized error note
+      const errorNote: LogicConversionNote = {
+        type: ErrorSeverity.ERROR,
+        message: `Logic translation failed: ${errorMessage}`,
+        code: createErrorCode(MODULE_ID, 'TRANS', 1),
+        details: { originalError: error }
+      };
+      
+      // Add to local notes collection
+      output.conversionNotes.push(errorNote);
+      
+      // Add to global error collector
+      ErrorHandler.logicError(
+        `Logic translation failed: ${errorMessage}`,
+        MODULE_ID,
+        { originalError: error },
+        ErrorSeverity.ERROR,
+        createErrorCode(MODULE_ID, 'TRANS', 1)
+      );
     }
 
     return output;
@@ -252,12 +195,29 @@ export class LogicTranslationEngine {
   ): Promise<any[]> {
     logger.debug(`Refining ${invalidTranslations.length} invalid translations`);
     
-    // Use the LLM service to refine the translations with feedback
-    return await this.llmTranslationService.refineWithFeedback(
-      invalidTranslations,
-      mmirContext,
-      javaSourceFiles
-    );
+    try {
+      // Use the LLM service to refine the translations with feedback
+      return await this.llmTranslationService.refineWithFeedback(
+        invalidTranslations,
+        mmirContext,
+        javaSourceFiles
+      );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error refining translations: ${errorMessage}`, { error });
+      
+      // Add to global error collector
+      ErrorHandler.logicError(
+        `Translation refinement failed: ${errorMessage}`,
+        MODULE_ID,
+        { originalError: error },
+        ErrorSeverity.ERROR,
+        createErrorCode(MODULE_ID, 'REFINE', 1)
+      );
+      
+      // Return original translations if refinement fails
+      return invalidTranslations;
+    }
   }
 
   /**
@@ -270,22 +230,66 @@ export class LogicTranslationEngine {
   private collectStubFunctions(llmTranslations: any[], validationResults: any): StubFunction[] {
     const stubFunctions: StubFunction[] = [];
     
-    // Collect stub functions from LLM translations
-    for (const translation of llmTranslations) {
-      if (translation.isStub) {
-        stubFunctions.push({
-          name: translation.name,
-          originalJavaCode: translation.originalCode,
-          javascriptStub: translation.stubCode,
-          reason: translation.stubReason,
-          suggestedAlternatives: translation.alternatives
+    try {
+      // Collect stub functions from LLM translations
+      for (const translation of llmTranslations) {
+        if (translation.isStub) {
+          const stubFunction = {
+            name: translation.name,
+            originalJavaCode: translation.originalCode,
+            javascriptStub: translation.stubCode,
+            reason: translation.stubReason,
+            suggestedAlternatives: translation.alternatives
+          };
+          
+          stubFunctions.push(stubFunction);
+          
+          // Add stub function as a compromise note to the global error collector
+          ErrorHandler.compromiseError(
+            `Function '${translation.name}' could not be fully translated: ${translation.stubReason}`,
+            MODULE_ID,
+            {
+              originalCode: translation.originalCode,
+              stubCode: translation.stubCode,
+              alternatives: translation.alternatives
+            },
+            ErrorSeverity.WARNING,
+            createErrorCode(MODULE_ID, 'STUB', stubFunctions.length)
+          );
+        }
+      }
+      
+      // Collect stub functions from validation results
+      if (validationResults.stubFunctions) {
+        validationResults.stubFunctions.forEach((stubFunction: StubFunction, index: number) => {
+          stubFunctions.push(stubFunction);
+          
+          // Add stub function as a compromise note to the global error collector
+          ErrorHandler.compromiseError(
+            `Function '${stubFunction.name}' could not be fully translated: ${stubFunction.reason}`,
+            MODULE_ID,
+            {
+              originalCode: stubFunction.originalJavaCode,
+              stubCode: stubFunction.javascriptStub,
+              alternatives: stubFunction.suggestedAlternatives
+            },
+            ErrorSeverity.WARNING,
+            createErrorCode(MODULE_ID, 'STUB', stubFunctions.length)
+          );
         });
       }
-    }
-    
-    // Collect stub functions from validation results
-    if (validationResults.stubFunctions) {
-      stubFunctions.push(...validationResults.stubFunctions);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error collecting stub functions: ${errorMessage}`, { error });
+      
+      // Add to global error collector
+      ErrorHandler.logicError(
+        `Failed to collect stub functions: ${errorMessage}`,
+        MODULE_ID,
+        { originalError: error },
+        ErrorSeverity.WARNING,
+        createErrorCode(MODULE_ID, 'STUB_COLLECT', 1)
+      );
     }
     
     return stubFunctions;
@@ -300,9 +304,40 @@ export class LogicTranslationEngine {
   private collectConversionNotes(validationResults: any): LogicConversionNote[] {
     const conversionNotes: LogicConversionNote[] = [];
     
-    // Collect notes from validation results
-    if (validationResults.notes) {
-      conversionNotes.push(...validationResults.notes);
+    try {
+      // Collect notes from validation results
+      if (validationResults.notes) {
+        validationResults.notes.forEach((note: any, index: number) => {
+          const logicNote: LogicConversionNote = {
+            type: note.type || ErrorSeverity.INFO,
+            message: note.message,
+            sourceLocation: note.sourceLocation,
+            code: note.code || createErrorCode(MODULE_ID, 'NOTE', index + 1),
+            details: note.details || {}
+          };
+          
+          conversionNotes.push(logicNote);
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error collecting conversion notes: ${errorMessage}`, { error });
+      
+      // Add to global error collector
+      ErrorHandler.logicError(
+        `Failed to collect conversion notes: ${errorMessage}`,
+        MODULE_ID,
+        { originalError: error },
+        ErrorSeverity.WARNING,
+        createErrorCode(MODULE_ID, 'NOTE_COLLECT', 1)
+      );
+      
+      // Add a note about the failure
+      conversionNotes.push({
+        type: ErrorSeverity.WARNING,
+        message: `Failed to collect all conversion notes: ${errorMessage}`,
+        code: createErrorCode(MODULE_ID, 'NOTE_COLLECT', 1)
+      });
     }
     
     return conversionNotes;

@@ -1,3 +1,8 @@
+import { ConfigurationService } from './ConfigurationService';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('CacheService');
+
 /**
  * CacheService provides a Redis-based caching system for intermediate results
  * Implements requirement 7.4: Maintain reasonable performance and resource usage
@@ -17,25 +22,67 @@ export class CacheService {
     'asset_conversion': 7200, // 2 hours
     'default': 1800, // 30 minutes
   };
+  private configService?: ConfigurationService;
 
   /**
    * Initialize the cache service
    * In a real implementation, this would connect to Redis
    */
   constructor(options: CacheOptions = {}) {
+    this.configService = options.configService;
+    
+    if (this.configService) {
+      // Use configuration service if available
+      this.enabled = this.configService.get('cache.enabled', options.enabled !== undefined ? options.enabled : true);
+      
+      // Get TTL defaults from configuration
+      const configTtlDefaults = this.configService.get('cache.ttlDefaults', {});
+      this.ttlDefaults = { ...this.ttlDefaults, ...configTtlDefaults };
+      
+      // Listen for configuration changes
+      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
+      
+      logger.info('CacheService initialized with ConfigurationService', { 
+        enabled: this.enabled,
+        ttlDefaults: this.ttlDefaults
+      });
+    } else {
+      // Apply options directly
+      if (options.enabled !== undefined) {
+        this.enabled = options.enabled;
+      }
+      
+      if (options.ttlDefaults) {
+        this.ttlDefaults = { ...this.ttlDefaults, ...options.ttlDefaults };
+      }
+      
+      logger.info('CacheService initialized with default options', { 
+        enabled: this.enabled
+      });
+    }
+    
     // In a real implementation, we would initialize the Redis client here
     this.client = this.createMockRedisClient();
-    
-    // Apply options
-    if (options.enabled !== undefined) {
-      this.enabled = options.enabled;
+  }
+  
+  /**
+   * Handle configuration updates
+   */
+  private handleConfigUpdate(update: { key: string; value: any }): void {
+    if (update.key === 'cache.enabled') {
+      this.enabled = update.value;
+      logger.info('Updated cache enabled status from configuration', { enabled: this.enabled });
+    } else if (update.key === 'cache.ttlDefaults') {
+      this.ttlDefaults = { ...this.ttlDefaults, ...update.value };
+      logger.info('Updated TTL defaults from configuration', { ttlDefaults: this.ttlDefaults });
+    } else if (update.key.startsWith('cache.ttlDefaults.')) {
+      const ttlKey = update.key.replace('cache.ttlDefaults.', '');
+      this.ttlDefaults[ttlKey] = update.value;
+      logger.info(`Updated TTL default for ${ttlKey} from configuration`, { 
+        key: ttlKey, 
+        value: update.value 
+      });
     }
-    
-    if (options.ttlDefaults) {
-      this.ttlDefaults = { ...this.ttlDefaults, ...options.ttlDefaults };
-    }
-    
-    console.log('Cache service initialized');
   }
 
   /**
@@ -220,6 +267,7 @@ export class CacheService {
 export interface CacheOptions {
   enabled?: boolean;
   ttlDefaults?: Record<string, number>;
+  configService?: ConfigurationService;
 }
 
 export interface SetOptions {

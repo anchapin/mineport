@@ -1,5 +1,9 @@
 import { EventEmitter } from 'events';
 import { CacheService, CacheInvalidationStrategy } from './CacheService';
+import { ConfigurationService } from './ConfigurationService';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('UpdateService');
 
 /**
  * UpdateService provides functionality for updating API mappings and other data
@@ -11,38 +15,100 @@ export class UpdateService extends EventEmitter {
   private updateIntervals: Record<string, NodeJS.Timeout> = {};
   private cacheService?: CacheService;
   private cacheInvalidationStrategy?: CacheInvalidationStrategy;
+  private configService?: ConfigurationService;
   private updateInProgress: boolean = false;
+  private defaultCheckInterval: number = 3600000; // 1 hour
 
   constructor(options: UpdateServiceOptions = {}) {
     super();
+    
+    this.configService = options.configService;
     
     if (options.cacheService) {
       this.cacheService = options.cacheService;
       this.cacheInvalidationStrategy = new CacheInvalidationStrategy(options.cacheService);
     }
     
-    // Initialize with default versions
-    this.apiMappingVersions = {
-      'minecraft_java': '1.19.0',
-      'minecraft_bedrock': '1.19.50',
-      'forge': '43.1.1',
-      'fabric': '0.14.9',
-    };
+    if (this.configService) {
+      // Get default versions from configuration
+      this.apiMappingVersions = this.configService.get('updates.apiMappingVersions', {
+        'minecraft_java': '1.19.0',
+        'minecraft_bedrock': '1.19.50',
+        'forge': '43.1.1',
+        'fabric': '0.14.9',
+      });
+      
+      // Get default check interval from configuration
+      this.defaultCheckInterval = this.configService.get('updates.checkInterval', 3600000);
+      
+      // Listen for configuration changes
+      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
+      
+      logger.info('UpdateService initialized with ConfigurationService', { 
+        apiMappingVersions: this.apiMappingVersions,
+        defaultCheckInterval: this.defaultCheckInterval
+      });
+    } else {
+      // Initialize with default versions
+      this.apiMappingVersions = {
+        'minecraft_java': '1.19.0',
+        'minecraft_bedrock': '1.19.50',
+        'forge': '43.1.1',
+        'fabric': '0.14.9',
+      };
+      
+      logger.info('UpdateService initialized with default options');
+    }
+  }
+  
+  /**
+   * Handle configuration updates
+   */
+  private handleConfigUpdate(update: { key: string; value: any }): void {
+    if (update.key === 'updates.apiMappingVersions') {
+      this.apiMappingVersions = { ...this.apiMappingVersions, ...update.value };
+      logger.info('Updated API mapping versions from configuration', { 
+        apiMappingVersions: this.apiMappingVersions 
+      });
+    } else if (update.key.startsWith('updates.apiMappingVersions.')) {
+      const versionKey = update.key.replace('updates.apiMappingVersions.', '');
+      this.apiMappingVersions[versionKey] = update.value;
+      logger.info(`Updated API mapping version for ${versionKey} from configuration`, { 
+        key: versionKey, 
+        value: update.value 
+      });
+    } else if (update.key === 'updates.checkInterval') {
+      this.defaultCheckInterval = update.value;
+      logger.info('Updated default check interval from configuration', { 
+        defaultCheckInterval: this.defaultCheckInterval 
+      });
+      
+      // Restart automatic updates if they're running
+      if (Object.keys(this.updateIntervals).length > 0) {
+        this.stopAutomaticUpdates();
+        this.startAutomaticUpdates(this.defaultCheckInterval);
+      }
+    }
   }
 
   /**
    * Start automatic update checks
    */
-  public startAutomaticUpdates(checkIntervalMs: number = 3600000): void {
+  public startAutomaticUpdates(checkIntervalMs?: number): void {
     // Clear any existing intervals
     this.stopAutomaticUpdates();
+    
+    // Use provided interval or default from configuration
+    const interval = checkIntervalMs || this.defaultCheckInterval;
     
     // Set up new interval for API mappings
     this.updateIntervals['api_mappings'] = setInterval(() => {
       this.checkForApiMappingUpdates();
-    }, checkIntervalMs);
+    }, interval);
     
-    console.log(`Automatic updates scheduled every ${checkIntervalMs / 1000} seconds`);
+    logger.info(`Automatic updates scheduled`, { 
+      intervalSeconds: interval / 1000 
+    });
   }
 
   /**
@@ -189,6 +255,7 @@ export class UpdateService extends EventEmitter {
 
 export interface UpdateServiceOptions {
   cacheService?: CacheService;
+  configService?: ConfigurationService;
 }
 
 /**

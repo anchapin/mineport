@@ -1,5 +1,9 @@
 import { EventEmitter } from 'events';
 import { Job, JobQueue } from './JobQueue';
+import { ConfigurationService } from './ConfigurationService';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('WorkerPool');
 
 export interface Worker {
   id: string;
@@ -16,6 +20,7 @@ export interface Worker {
 export interface WorkerPoolOptions {
   maxWorkers?: number;
   jobQueue?: JobQueue;
+  configService?: ConfigurationService;
 }
 
 /**
@@ -26,10 +31,27 @@ export class WorkerPool extends EventEmitter {
   private workers: Worker[] = [];
   private maxWorkers: number;
   private jobQueue: JobQueue;
+  private configService?: ConfigurationService;
 
   constructor(options: WorkerPoolOptions = {}) {
     super();
-    this.maxWorkers = options.maxWorkers || 5;
+    this.configService = options.configService;
+    
+    if (this.configService) {
+      // Use configuration service if available
+      this.maxWorkers = this.configService.get('workers.maxWorkers', options.maxWorkers || 5);
+      
+      // Listen for configuration changes
+      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
+      
+      logger.info('WorkerPool initialized with ConfigurationService', { maxWorkers: this.maxWorkers });
+    } else {
+      // Use provided options or defaults
+      this.maxWorkers = options.maxWorkers || 5;
+      
+      logger.info('WorkerPool initialized with default options', { maxWorkers: this.maxWorkers });
+    }
+    
     this.jobQueue = options.jobQueue || new JobQueue();
     
     // Initialize the worker pool
@@ -37,6 +59,22 @@ export class WorkerPool extends EventEmitter {
     
     // Listen for job queue events
     this.setupJobQueueListeners();
+  }
+  
+  /**
+   * Handle configuration updates
+   */
+  private handleConfigUpdate(update: { key: string; value: any }): void {
+    if (update.key === 'workers.maxWorkers') {
+      const newMaxWorkers = update.value;
+      logger.info('Updated maxWorkers from configuration', { 
+        oldValue: this.maxWorkers, 
+        newValue: newMaxWorkers 
+      });
+      
+      // Scale the worker pool to the new size
+      this.scalePool(newMaxWorkers);
+    }
   }
 
   /**

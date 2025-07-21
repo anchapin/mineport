@@ -1,7 +1,7 @@
 // UI Type definitions
 
 export interface ConversionProgress {
-  stage: 'uploading' | 'analyzing' | 'converting' | 'packaging' | 'complete';
+  stage: 'uploading' | 'validating' | 'analyzing' | 'assets' | 'config' | 'logic' | 'packaging' | 'complete';
   percentage: number;
   currentTask?: string;
   error?: string;

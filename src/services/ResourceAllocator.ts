@@ -1,5 +1,9 @@
 import { WorkerPool } from './WorkerPool';
 import { JobQueue } from './JobQueue';
+import { ConfigurationService } from './ConfigurationService';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ResourceAllocator');
 
 export interface SystemResources {
   cpu: {
@@ -20,9 +24,11 @@ export interface ResourceAllocationStrategy {
 export interface ResourceAllocatorOptions {
   workerPool: WorkerPool;
   jobQueue: JobQueue;
+  configService?: ConfigurationService;
   checkInterval?: number; // milliseconds
   minWorkers?: number;
   maxWorkers?: number;
+  strategyName?: string;
 }
 
 /**
@@ -32,21 +38,114 @@ export interface ResourceAllocatorOptions {
 export class ResourceAllocator {
   private workerPool: WorkerPool;
   private jobQueue: JobQueue;
+  private configService?: ConfigurationService;
   private checkInterval: number;
   private minWorkers: number;
   private maxWorkers: number;
   private intervalId?: NodeJS.Timeout;
   private strategy: ResourceAllocationStrategy;
+  private strategies: Map<string, ResourceAllocationStrategy> = new Map();
 
   constructor(options: ResourceAllocatorOptions) {
     this.workerPool = options.workerPool;
     this.jobQueue = options.jobQueue;
-    this.checkInterval = options.checkInterval || 30000; // 30 seconds default
-    this.minWorkers = options.minWorkers || 1;
-    this.maxWorkers = options.maxWorkers || 10;
+    this.configService = options.configService;
     
-    // Default strategy
-    this.strategy = new AdaptiveAllocationStrategy();
+    // Register available strategies
+    this.registerStrategies();
+    
+    if (this.configService) {
+      // Use configuration service if available
+      this.checkInterval = this.configService.get('resources.checkInterval', options.checkInterval || 30000);
+      this.minWorkers = this.configService.get('resources.minWorkers', options.minWorkers || 1);
+      this.maxWorkers = this.configService.get('resources.maxWorkers', options.maxWorkers || 10);
+      
+      // Get strategy from configuration or options
+      const strategyName = this.configService.get('resources.strategy', options.strategyName || 'adaptive');
+      this.strategy = this.getStrategy(strategyName);
+      
+      // Listen for configuration changes
+      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
+      
+      logger.info('ResourceAllocator initialized with ConfigurationService', {
+        checkInterval: this.checkInterval,
+        minWorkers: this.minWorkers,
+        maxWorkers: this.maxWorkers,
+        strategy: this.strategy.name
+      });
+    } else {
+      // Use provided options or defaults
+      this.checkInterval = options.checkInterval || 30000; // 30 seconds default
+      this.minWorkers = options.minWorkers || 1;
+      this.maxWorkers = options.maxWorkers || 10;
+      
+      // Default strategy
+      this.strategy = this.getStrategy(options.strategyName || 'adaptive');
+      
+      logger.info('ResourceAllocator initialized with default options', {
+        checkInterval: this.checkInterval,
+        minWorkers: this.minWorkers,
+        maxWorkers: this.maxWorkers,
+        strategy: this.strategy.name
+      });
+    }
+  }
+  
+  /**
+   * Register available allocation strategies
+   */
+  private registerStrategies(): void {
+    this.strategies.set('adaptive', new AdaptiveAllocationStrategy());
+    this.strategies.set('conservative', new ConservativeAllocationStrategy());
+    this.strategies.set('aggressive', new AggressiveAllocationStrategy());
+  }
+  
+  /**
+   * Get a strategy by name
+   */
+  private getStrategy(name: string): ResourceAllocationStrategy {
+    const strategy = this.strategies.get(name.toLowerCase());
+    if (!strategy) {
+      logger.warn(`Strategy "${name}" not found, using adaptive strategy`);
+      return this.strategies.get('adaptive')!;
+    }
+    return strategy;
+  }
+  
+  /**
+   * Handle configuration updates
+   */
+  private handleConfigUpdate(update: { key: string; value: any }): void {
+    switch (update.key) {
+      case 'resources.checkInterval':
+        this.checkInterval = update.value;
+        logger.info('Updated checkInterval from configuration', { checkInterval: this.checkInterval });
+        
+        // Restart interval if running
+        if (this.intervalId) {
+          this.stop();
+          this.start();
+        }
+        break;
+        
+      case 'resources.minWorkers':
+        this.minWorkers = update.value;
+        logger.info('Updated minWorkers from configuration', { minWorkers: this.minWorkers });
+        this.allocateResources();
+        break;
+        
+      case 'resources.maxWorkers':
+        this.maxWorkers = update.value;
+        logger.info('Updated maxWorkers from configuration', { maxWorkers: this.maxWorkers });
+        this.allocateResources();
+        break;
+        
+      case 'resources.strategy':
+        this.strategy = this.getStrategy(update.value);
+        logger.info('Updated strategy from configuration', { strategy: this.strategy.name });
+        this.allocateResources();
+        break;
+    }
   }
 
   /**

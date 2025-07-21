@@ -1,188 +1,235 @@
-import { useState, useCallback } from 'react';
-import { ConversionProgress, UploadState } from '../types';
+/**
+ * useConversion Hook
+ * 
+ * This hook provides functionality for the conversion process using the ConversionContext.
+ */
+
+import { useCallback, useEffect } from 'react';
+import { ConversionAPIServiceImpl } from '../services';
+import { UserPreferences } from '../types';
+import { useConversionContext } from '../context/ConversionContext';
 
 export const useConversion = () => {
-  const [uploadState, setUploadState] = useState<UploadState>({
-    isUploading: false,
-    progress: 0
-  });
+  const {
+    state,
+    setFile,
+    setSourceRepo,
+    setUploadState,
+    setConversionProgress,
+    setConversionJob,
+    setConversionResult,
+    setUserPreferences,
+    resetState
+  } = useConversionContext();
   
-  const [conversionProgress, setConversionProgress] = useState<ConversionProgress | undefined>();
-
+  const { uploadState, conversionProgress, conversionJob, userPreferences } = state;
+  
+  // Create API service instance
+  const apiService = useCallback(() => {
+    return new ConversionAPIServiceImpl({
+      baseUrl: process.env.REACT_APP_API_URL || '',
+      useMockData: process.env.NODE_ENV === 'development'
+    });
+  }, []);
+  
   const handleFileSelected = useCallback((file: File) => {
-    setUploadState(prev => ({
-      ...prev,
-      file,
-      error: undefined
-    }));
-  }, []);
-
+    setFile(file);
+  }, [setFile]);
+  
   const handleSourceRepoChange = useCallback((repo: string) => {
-    setUploadState(prev => ({
-      ...prev,
-      sourceRepo: repo
-    }));
-  }, []);
-
+    setSourceRepo(repo);
+  }, [setSourceRepo]);
+  
+  const handlePreferencesChange = useCallback((preferences: UserPreferences) => {
+    setUserPreferences(preferences);
+  }, [setUserPreferences]);
+  
   const startConversion = useCallback(async () => {
     if (!uploadState.file) {
       return;
     }
-
+    
     try {
       // Set uploading state
-      setUploadState(prev => ({
-        ...prev,
+      setUploadState({
         isUploading: true,
         error: undefined
-      }));
-
+      });
+      
       setConversionProgress({
         stage: 'uploading',
         percentage: 0,
         currentTask: 'Uploading mod file'
       });
-
-      // Create form data for file upload
-      const formData = new FormData();
-      formData.append('modFile', uploadState.file);
       
-      if (uploadState.sourceRepo) {
-        formData.append('sourceRepo', uploadState.sourceRepo);
-      }
-
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/convert', {
-      //   method: 'POST',
-      //   body: formData
-      // });
+      // Prepare conversion input
+      const input = {
+        modFile: uploadState.file,
+        sourceRepo: uploadState.sourceRepo,
+        preferences: userPreferences ? {
+          compromiseStrategies: userPreferences.compromiseStrategies.map(strategy => ({
+            id: strategy.id,
+            isEnabled: strategy.isEnabled,
+            options: strategy.options?.map(option => ({
+              id: option.id,
+              value: option.value
+            }))
+          })),
+          conversionOptions: userPreferences.conversionOptions
+        } : undefined
+      };
       
-      // if (!response.ok) {
-      //   throw new Error('Failed to upload file');
-      // }
-      
-      // const conversionId = await response.json();
+      // Start conversion using API service
+      const job = await apiService().startConversion(input);
+      setConversionJob(job);
       
       // Start polling for conversion status
-      // pollConversionStatus(conversionId);
-      
-      // For now, simulate the conversion process
-      simulateConversion();
+      pollConversionStatus(job.jobId);
       
     } catch (error) {
-      setUploadState(prev => ({
-        ...prev,
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload file. Please try again.';
+      
+      setUploadState({
         isUploading: false,
-        error: 'Failed to upload file. Please try again.'
-      }));
+        error: errorMessage
+      });
       
-      setConversionProgress(prev => prev ? {
-        ...prev,
-        error: 'Upload failed'
-      } : undefined);
+      setConversionProgress({
+        stage: 'uploading',
+        percentage: 0,
+        currentTask: 'Upload failed',
+        error: errorMessage
+      });
     }
-  }, [uploadState.file, uploadState.sourceRepo]);
-
-  // Simulate the conversion process for development
-  const simulateConversion = useCallback(() => {
-    // Simulate file upload progress
-    let uploadProgress = 0;
-    const uploadInterval = setInterval(() => {
-      uploadProgress += 10;
-      
-      setUploadState(prev => ({
-        ...prev,
-        progress: Math.min(uploadProgress, 100)
-      }));
-      
-      setConversionProgress(prev => prev ? {
-        ...prev,
-        percentage: Math.min(uploadProgress, 100)
-      } : undefined);
-      
-      if (uploadProgress >= 100) {
-        clearInterval(uploadInterval);
-        
-        setUploadState(prev => ({
-          ...prev,
-          isUploading: false
-        }));
-        
-        // Move to analysis stage
-        setTimeout(() => {
-          setConversionProgress({
-            stage: 'analyzing',
-            percentage: 0,
-            currentTask: 'Analyzing mod structure'
-          });
-          
-          simulateStage('analyzing', 'Converting assets', 'converting');
-        }, 500);
-      }
-    }, 300);
-  }, []);
-
-  // Helper function to simulate a conversion stage
-  const simulateStage = useCallback((
-    currentStage: ConversionProgress['stage'], 
-    nextTask: string, 
-    nextStage: ConversionProgress['stage']
-  ) => {
-    let progress = 0;
-    
-    const interval = setInterval(() => {
-      progress += 5;
-      
-      setConversionProgress(prev => prev ? {
-        ...prev,
-        percentage: Math.min(progress, 100)
-      } : undefined);
-      
-      if (progress >= 100) {
-        clearInterval(interval);
-        
-        // Move to next stage
-        setTimeout(() => {
-          setConversionProgress({
-            stage: nextStage,
-            percentage: 0,
-            currentTask: nextTask
-          });
-          
-          if (nextStage === 'converting') {
-            simulateStage('converting', 'Packaging addon files', 'packaging');
-          } else if (nextStage === 'packaging') {
-            simulateStage('packaging', 'Finalizing conversion', 'complete');
-          }
-        }, 500);
-      }
-    }, 200);
-  }, []);
-
+  }, [
+    uploadState.file, 
+    uploadState.sourceRepo, 
+    userPreferences, 
+    apiService, 
+    setUploadState, 
+    setConversionProgress, 
+    setConversionJob
+  ]);
+  
   // Function to poll conversion status from the server
-  // const pollConversionStatus = useCallback((conversionId: string) => {
-  //   const interval = setInterval(async () => {
-  //     try {
-  //       const response = await fetch(`/api/conversion/${conversionId}/status`);
-  //       const status = await response.json();
-  //       
-  //       setConversionProgress(status);
-  //       
-  //       if (status.stage === 'complete' || status.error) {
-  //         clearInterval(interval);
-  //       }
-  //     } catch (error) {
-  //       console.error('Failed to fetch conversion status', error);
-  //     }
-  //   }, 1000);
-  // }, []);
-
+  const pollConversionStatus = useCallback((jobId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const status = await apiService().getConversionStatus(jobId);
+        
+        // Update upload state if still uploading
+        if (status.progress.stage === 'uploading') {
+          setUploadState({
+            progress: status.progress.percentage,
+            isUploading: status.progress.percentage < 100
+          });
+        } else if (uploadState.isUploading) {
+          // If we've moved past uploading stage, update upload state
+          setUploadState({
+            progress: 100,
+            isUploading: false
+          });
+        }
+        
+        // Update conversion progress
+        setConversionProgress(status.progress);
+        
+        // If conversion is complete or failed, stop polling
+        if (status.status === 'completed' || status.status === 'failed' || status.progress.error) {
+          clearInterval(interval);
+          
+          // If completed, fetch the result
+          if (status.status === 'completed') {
+            try {
+              const result = await apiService().getConversionResult(jobId);
+              setConversionResult(result);
+            } catch (resultError) {
+              console.error('Failed to fetch conversion result', resultError);
+              
+              setConversionProgress({
+                ...status.progress,
+                error: 'Failed to fetch conversion result. Please try again.'
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch conversion status', error);
+        
+        // Update error state
+        setConversionProgress(conversionProgress ? {
+          ...conversionProgress,
+          error: 'Failed to fetch conversion status. Please try again.'
+        } : {
+          stage: 'uploading',
+          percentage: 0,
+          error: 'Failed to fetch conversion status. Please try again.'
+        });
+        
+        // Stop polling on error
+        clearInterval(interval);
+      }
+    }, 2000); // Poll every 2 seconds
+    
+    // Clean up interval on unmount
+    return () => clearInterval(interval);
+  }, [
+    apiService, 
+    uploadState.isUploading, 
+    conversionProgress, 
+    setUploadState, 
+    setConversionProgress, 
+    setConversionResult
+  ]);
+  
+  // Cancel a conversion
+  const cancelConversion = useCallback(async () => {
+    if (!conversionJob) {
+      return;
+    }
+    
+    try {
+      const success = await apiService().cancelConversion(conversionJob.jobId);
+      
+      if (success) {
+        setConversionProgress(conversionProgress ? {
+          ...conversionProgress,
+          error: 'Conversion cancelled by user.'
+        } : {
+          stage: 'uploading',
+          percentage: 0,
+          error: 'Conversion cancelled by user.'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to cancel conversion', error);
+      
+      setConversionProgress(conversionProgress ? {
+        ...conversionProgress,
+        error: 'Failed to cancel conversion. Please try again.'
+      } : {
+        stage: 'uploading',
+        percentage: 0,
+        error: 'Failed to cancel conversion. Please try again.'
+      });
+    }
+  }, [conversionJob, conversionProgress, apiService, setConversionProgress]);
+  
+  // Reset the conversion state
+  const resetConversion = useCallback(() => {
+    resetState();
+  }, [resetState]);
+  
   return {
     uploadState,
     conversionProgress,
+    conversionJob,
     handleFileSelected,
     handleSourceRepoChange,
-    startConversion
+    handlePreferencesChange,
+    startConversion,
+    cancelConversion,
+    resetConversion
   };
 };
 

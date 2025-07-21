@@ -8,8 +8,11 @@ interface ProgressTrackerProps {
 export const ProgressTracker: React.FC<ProgressTrackerProps> = ({ progress }) => {
   const stages = [
     { id: 'uploading', label: 'Upload' },
+    { id: 'validating', label: 'Validation' },
     { id: 'analyzing', label: 'Analysis' },
-    { id: 'converting', label: 'Conversion' },
+    { id: 'assets', label: 'Assets' },
+    { id: 'config', label: 'Config' },
+    { id: 'logic', label: 'Logic' },
     { id: 'packaging', label: 'Packaging' },
     { id: 'complete', label: 'Complete' }
   ];

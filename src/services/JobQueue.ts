@@ -1,4 +1,8 @@
 import { EventEmitter } from 'events';
+import { ConfigurationService } from './ConfigurationService';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('JobQueue');
 
 export interface Job {
   id: string;
@@ -6,7 +10,7 @@ export interface Job {
   data: any;
   priority: number;
   createdAt: Date;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   result?: any;
   error?: Error;
 }
@@ -14,6 +18,7 @@ export interface Job {
 export interface JobQueueOptions {
   maxConcurrent?: number;
   defaultPriority?: number;
+  configService?: ConfigurationService;
 }
 
 /**
@@ -25,11 +30,47 @@ export class JobQueue extends EventEmitter {
   private processing: Set<string> = new Set();
   private maxConcurrent: number;
   private defaultPriority: number;
+  private configService?: ConfigurationService;
 
   constructor(options: JobQueueOptions = {}) {
     super();
-    this.maxConcurrent = options.maxConcurrent || 5;
-    this.defaultPriority = options.defaultPriority || 1;
+    this.configService = options.configService;
+    
+    // Use configuration service if available, otherwise use provided options or defaults
+    if (this.configService) {
+      this.maxConcurrent = this.configService.get('processing.maxConcurrent', options.maxConcurrent || 5);
+      this.defaultPriority = this.configService.get('processing.defaultPriority', options.defaultPriority || 1);
+      
+      // Listen for configuration changes
+      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
+      
+      logger.info('JobQueue initialized with ConfigurationService', { 
+        maxConcurrent: this.maxConcurrent, 
+        defaultPriority: this.defaultPriority 
+      });
+    } else {
+      this.maxConcurrent = options.maxConcurrent || 5;
+      this.defaultPriority = options.defaultPriority || 1;
+      
+      logger.info('JobQueue initialized with default options', { 
+        maxConcurrent: this.maxConcurrent, 
+        defaultPriority: this.defaultPriority 
+      });
+    }
+  }
+  
+  /**
+   * Handle configuration updates
+   */
+  private handleConfigUpdate(update: { key: string; value: any }): void {
+    if (update.key === 'processing.maxConcurrent') {
+      this.maxConcurrent = update.value;
+      logger.info('Updated maxConcurrent from configuration', { maxConcurrent: this.maxConcurrent });
+      this.processNextJobs();
+    } else if (update.key === 'processing.defaultPriority') {
+      this.defaultPriority = update.value;
+      logger.info('Updated defaultPriority from configuration', { defaultPriority: this.defaultPriority });
+    }
   }
 
   /**
@@ -157,12 +198,59 @@ export class JobQueue extends EventEmitter {
   /**
    * Get current queue statistics
    */
-  public getStats(): { pending: number; processing: number; completed: number; failed: number } {
+  public getStats(): { pending: number; processing: number; completed: number; failed: number; cancelled: number } {
     return {
       pending: this.queue.filter(job => job.status === 'pending').length,
       processing: this.processing.size,
       completed: this.queue.filter(job => job.status === 'completed').length,
       failed: this.queue.filter(job => job.status === 'failed').length,
+      cancelled: this.queue.filter(job => job.status === 'cancelled').length,
     };
+  }
+  
+  /**
+   * Update job priority
+   * 
+   * @param id Job ID
+   * @param priority New priority (higher number = higher priority)
+   * @returns True if job priority was updated, false otherwise
+   */
+  public updateJobPriority(id: string, priority: number): boolean {
+    const job = this.getJob(id);
+    if (!job || job.status !== 'pending') return false;
+    
+    job.priority = priority;
+    this.sortQueue();
+    
+    // Emit event for priority update
+    this.emit('job:priority', job);
+    
+    return true;
+  }
+  
+  /**
+   * Cancel a job
+   * 
+   * @param id Job ID
+   * @returns True if job was cancelled, false otherwise
+   */
+  public cancelJob(id: string): boolean {
+    const job = this.getJob(id);
+    if (!job || (job.status !== 'pending' && job.status !== 'processing')) return false;
+    
+    // If job is processing, remove from processing set
+    if (job.status === 'processing') {
+      this.processing.delete(id);
+    }
+    
+    job.status = 'cancelled';
+    
+    // Emit event for job cancellation
+    this.emit('job:cancelled', job);
+    
+    // Process next jobs if we freed up a processing slot
+    this.processNextJobs();
+    
+    return true;
   }
 }

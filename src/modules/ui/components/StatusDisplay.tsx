@@ -10,10 +10,16 @@ export const StatusDisplay: React.FC<StatusDisplayProps> = ({ progress }) => {
     switch (progress.stage) {
       case 'uploading':
         return 'Uploading your mod file...';
+      case 'validating':
+        return 'Validating mod structure and contents...';
       case 'analyzing':
-        return 'Analyzing mod structure and compatibility...';
-      case 'converting':
-        return 'Converting mod components to Bedrock format...';
+        return 'Analyzing feature compatibility...';
+      case 'assets':
+        return 'Converting textures, models, and sounds...';
+      case 'config':
+        return 'Converting configuration files and manifests...';
+      case 'logic':
+        return 'Translating Java code to JavaScript...';
       case 'packaging':
         return 'Packaging addon files...';
       case 'complete':

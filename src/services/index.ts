@@ -3,3 +3,8 @@ export * from './WorkerPool';
 export * from './ResourceAllocator';
 export * from './CacheService';
 export * from './UpdateService';
+export * from './ErrorCollector';
+export * from './ConversionPipeline';
+export * from './ConversionService';
+export * from './ConfigurationService';
+export * from './ConfigurationAdminService';
