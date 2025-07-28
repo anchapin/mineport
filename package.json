@@ -19,6 +19,11 @@
     "security:scan": "npm run security:audit && npm run test:security",
     "benchmark": "ts-node tests/benchmark/conversion-benchmark.ts",
     "benchmark:report": "ts-node scripts/generate-benchmark-report.js",
+    "deps:analyze": "node scripts/analyze-dependencies.js",
+    "deps:validate": "node scripts/validate-dependencies.js",
+    "docs:validate": "node scripts/validate-jsdoc.js",
+    "docs:add": "node scripts/add-jsdoc.js",
+    "docs:add:dry-run": "node scripts/add-jsdoc.js --dry-run",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""

@@ -173,6 +173,15 @@ export class ForgeModParser extends ModLoaderParser {
     
     // Find mod declaration (class with @Mod annotation)
     const modClass = this.findModClass(ast);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modClass) {
       const modNode = this.createModDeclarationNode(modClass, sourceFile);
       nodes.push(modNode);
@@ -183,11 +192,29 @@ export class ForgeModParser extends ModLoaderParser {
     
     // Find event handlers
     const eventHandlers = this.findEventHandlers(ast);
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const handler of eventHandlers) {
       const handlerNode = this.createEventHandlerNode(handler, sourceFile);
       nodes.push(handlerNode);
       
       // If we have a mod node, create a relationship
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (modClass) {
         const modNode = nodes[0]; // First node is the mod declaration
         relationships.push({
@@ -230,9 +257,27 @@ export class ForgeModParser extends ModLoaderParser {
     
     // Find mod class
     const modClass = this.findModClass(ast);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modClass) {
       // Extract mod ID from @Mod annotation
       const modId = this.extractModId(modClass);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (modId) {
         metadata.modId = modId;
       }
@@ -254,6 +299,15 @@ export class ForgeModParser extends ModLoaderParser {
     
     // For testing purposes, just return the first class declaration
     // In a real implementation, we would check for @Mod annotation
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (classDeclarations.length > 0) {
       return classDeclarations[0];
     }
@@ -271,6 +325,15 @@ export class ForgeModParser extends ModLoaderParser {
     
     // Find @Mod annotation
     const modAnnotation = annotations.find(a => a.name === 'Mod');
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modAnnotation && modAnnotation.parameters) {
       // Extract value parameter
       return modAnnotation.parameters.value || modAnnotation.parameters.modid || null;
@@ -426,6 +489,15 @@ export class ForgeModParser extends ModLoaderParser {
    * @param sourceFile The source file name
    */
   private extractSourceLocation(node: JavaASTNode, sourceFile: string): MMIRNode['sourceLocation'] | undefined {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.position) {
       return {
         file: sourceFile,
@@ -450,7 +522,25 @@ export class ForgeModParser extends ModLoaderParser {
       results.push(node);
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const child of node.children) {
         results.push(...this.findAllNodesByType(child, type));
       }
@@ -478,6 +568,15 @@ export class FabricModParser extends ModLoaderParser {
     
     // Find mod initializer class (implements ModInitializer)
     const modClass = this.findModInitializerClass(ast);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modClass) {
       const modNode = this.createModDeclarationNode(modClass, sourceFile);
       nodes.push(modNode);
@@ -488,11 +587,29 @@ export class FabricModParser extends ModLoaderParser {
     
     // Find event handlers (methods that register callbacks)
     const eventHandlers = this.findEventHandlers(ast);
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const handler of eventHandlers) {
       const handlerNode = this.createEventHandlerNode(handler, sourceFile);
       nodes.push(handlerNode);
       
       // If we have a mod node, create a relationship
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (modClass) {
         const modNode = nodes[0]; // First node is the mod declaration
         relationships.push({
@@ -549,6 +666,15 @@ export class FabricModParser extends ModLoaderParser {
     
     // For testing purposes, just return the first class declaration
     // In a real implementation, we would check for ModInitializer interface
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (classDeclarations.length > 0) {
       return classDeclarations[0];
     }
@@ -694,6 +820,15 @@ export class FabricModParser extends ModLoaderParser {
    * @param sourceFile The source file name
    */
   private extractSourceLocation(node: JavaASTNode, sourceFile: string): MMIRNode['sourceLocation'] | undefined {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.position) {
       return {
         file: sourceFile,
@@ -718,7 +853,25 @@ export class FabricModParser extends ModLoaderParser {
       results.push(node);
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const child of node.children) {
         results.push(...this.findAllNodesByType(child, type));
       }
@@ -765,6 +918,15 @@ export class MMIRGenerator {
     const parser = modLoader === 'forge' ? this.forgeParser : this.fabricParser;
     
     // Process each AST
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const { ast, sourceFile } of asts) {
       // Parse the AST
       const { nodes, relationships } = parser.parse(ast, sourceFile);

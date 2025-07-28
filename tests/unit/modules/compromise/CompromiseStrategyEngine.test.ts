@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CompromiseStrategyEngine } from '../../../../src/modules/compromise/CompromiseStrategyEngine';
 import { Feature, CompromiseStrategy, FeatureType } from '../../../../src/types/compromise';
-import { Logger } from '../../../../src/utils/logger';
 
 // Mock logger
 const mockLogger = {
@@ -9,7 +8,7 @@ const mockLogger = {
   info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn()
-} as unknown as Logger;
+};
 
 describe('CompromiseStrategyEngine', () => {
   let engine: CompromiseStrategyEngine;
@@ -183,5 +182,94 @@ describe('CompromiseStrategyEngine', () => {
     expect(mockLogger.warn).toHaveBeenCalledWith(
       'No compromise strategies registered for feature type: unknown'
     );
+  });
+
+  it('should accept and process strategy feedback', () => {
+    const dimensionFeature: Feature = {
+      id: 'test-dimension',
+      name: 'Test Dimension',
+      description: 'A test dimension',
+      type: 'dimension',
+      compatibilityTier: 3,
+      sourceFiles: ['TestDimension.java'],
+      sourceLineNumbers: [[10, 20]]
+    };
+    
+    // Apply a strategy first
+    const result = engine.applyStrategy(dimensionFeature);
+    expect(result).toBeDefined();
+    
+    // Provide feedback
+    const feedback = {
+      strategyId: 'teleportation-simulation',
+      featureId: 'test-dimension',
+      effectiveness: {
+        rating: 'good' as const,
+        userSatisfaction: 8,
+        technicalSuccess: true,
+        issues: ['Limited visual effects'],
+        suggestions: ['Add more particle effects'],
+        timestamp: new Date()
+      },
+      context: {
+        featureType: 'dimension',
+        compatibilityTier: 3,
+        sourceComplexity: 'medium' as const
+      }
+    };
+    
+    // This should not throw
+    expect(() => {
+      engine.provideFeedback(feedback);
+    }).not.toThrow();
+    
+    // Verify feedback was recorded
+    const strategyFeedback = engine.getStrategyFeedback('teleportation-simulation');
+    expect(strategyFeedback).toHaveLength(1);
+    expect(strategyFeedback[0].effectiveness.rating).toBe('good');
+  });
+
+  it('should track strategy metrics', () => {
+    const dimensionFeature: Feature = {
+      id: 'test-dimension',
+      name: 'Test Dimension',
+      description: 'A test dimension',
+      type: 'dimension',
+      compatibilityTier: 3,
+      sourceFiles: ['TestDimension.java'],
+      sourceLineNumbers: [[10, 20]]
+    };
+    
+    // Apply a strategy
+    engine.applyStrategy(dimensionFeature);
+    
+    // Check metrics were created
+    const metrics = engine.getStrategyMetrics('teleportation-simulation');
+    expect(metrics).toBeDefined();
+    expect(metrics?.totalApplications).toBe(1);
+    expect(metrics?.successfulApplications).toBe(1);
+  });
+
+  it('should generate strategy performance report', () => {
+    const dimensionFeature: Feature = {
+      id: 'test-dimension',
+      name: 'Test Dimension',
+      description: 'A test dimension',
+      type: 'dimension',
+      compatibilityTier: 3,
+      sourceFiles: ['TestDimension.java'],
+      sourceLineNumbers: [[10, 20]]
+    };
+    
+    // Apply a strategy
+    engine.applyStrategy(dimensionFeature);
+    
+    // Get performance report
+    const report = engine.getStrategyPerformanceReport();
+    
+    expect(report).toBeDefined();
+    expect(report.totalStrategies).toBeGreaterThan(0);
+    expect(report.strategies).toHaveLength(1);
+    expect(report.generatedAt).toBeInstanceOf(Date);
   });
 });

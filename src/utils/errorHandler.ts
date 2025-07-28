@@ -21,6 +21,15 @@ export class ErrorHandler {
    */
   static handleError(error: Error | ConversionError, moduleId?: string): ConversionError {
     // If it's already a ConversionError, just log it
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.isConversionError(error)) {
       logger.error(error.message, { error, moduleId: moduleId || error.moduleOrigin });
       globalErrorCollector.addError(error);
@@ -256,6 +265,15 @@ export class ErrorHandler {
    * Create a user-friendly error response for API endpoints
    */
   static createErrorResponse(error: Error | ConversionError): ErrorResponse {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.isConversionError(error)) {
       return {
         success: false,
@@ -282,6 +300,15 @@ export class ErrorHandler {
    * Type guard to check if an error is a ConversionError
    */
   static isConversionError(error: any): error is ConversionError {
+    /**
+     * return method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     return (
       error &&
       typeof error === 'object' &&

@@ -152,6 +152,15 @@ export class ConversionPipeline {
     this.resourceAllocator = options?.resourceAllocator;
     
     // Apply configuration if provided
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (options?.configService) {
       this.applyConfiguration(options.configService);
     }
@@ -193,6 +202,15 @@ export class ConversionPipeline {
       const modValidator = new ModValidator();
       const validationResult = await modValidator.validate(input.inputPath);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!validationResult.valid) {
         logger.error('Mod validation failed', { errors: validationResult.errors });
         
@@ -202,6 +220,15 @@ export class ConversionPipeline {
             error.message,
             'ModValidator',
             error.details,
+            /**
+             * createErrorCode method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             createErrorCode('INGEST', 'VAL', validationResult.errors.indexOf(error) + 1)
           );
         });
@@ -225,6 +252,15 @@ export class ConversionPipeline {
           'FeatureAnalyzer',
           { feature: note.feature, compatibility: note.type },
           severity,
+          /**
+           * createErrorCode method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           createErrorCode('INGEST', 'COMPAT', index + 1)
         );
       });
@@ -313,6 +349,15 @@ export class ConversionPipeline {
       const scriptsPath = path.join(behaviorPackPath, 'scripts');
       await fs.mkdir(scriptsPath, { recursive: true });
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const jsFile of logicResult.javascriptFiles) {
         const filePath = path.join(scriptsPath, jsFile.path);
         await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -330,12 +375,30 @@ export class ConversionPipeline {
           error.message,
           'AddonValidator',
           error.details,
+          /**
+           * createErrorCode method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           createErrorCode('PKG', 'VAL', addonValidationResult.errors.indexOf(error) + 1)
         );
       });
       
       // Step 8: Generate report if requested
       let reportPath: string | undefined;
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (input.generateReport) {
         logger.info('Generating conversion report');
         const reportGenerator = new ConversionReportGenerator();
@@ -354,6 +417,15 @@ export class ConversionPipeline {
       
       // Step 9: Package addon if requested
       let addonPath: string | undefined;
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (input.packageAddon) {
         logger.info('Packaging addon');
         const addonPackager = new AddonPackager();
@@ -389,6 +461,15 @@ export class ConversionPipeline {
         MODULE_ID,
         { originalError: error },
         ErrorSeverity.CRITICAL,
+        /**
+         * createErrorCode method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         createErrorCode(MODULE_ID, 'FAIL', 1)
       );
       
@@ -454,6 +535,15 @@ export class ConversionPipeline {
    * Set up job queue event listeners
    */
   private setupJobQueueListeners(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue) return;
     
     // Listen for job processing events
@@ -491,6 +581,15 @@ export class ConversionPipeline {
    * @returns True if started processing, false if already processing or no queue
    */
   public startProcessingJobs(): boolean {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue || this.isProcessingJobs) {
       return false;
     }
@@ -507,6 +606,15 @@ export class ConversionPipeline {
    * @returns True if stopped processing, false if not processing or no queue
    */
   public stopProcessingJobs(): boolean {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue || !this.isProcessingJobs) {
       return false;
     }
@@ -525,6 +633,15 @@ export class ConversionPipeline {
    * @returns Job ID if queued, undefined if no queue
    */
   public queueConversion(input: ConversionPipelineInput, priority?: number): string | undefined {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue) {
       logger.warn('Cannot queue conversion: no job queue set');
       return undefined;
@@ -549,11 +666,29 @@ export class ConversionPipeline {
    * @returns Job status or undefined if job not found or no queue
    */
   public getJobStatus(jobId: string): { status: string; progress?: number } | undefined {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue) {
       return undefined;
     }
     
     const job = this.jobQueue.getJob(jobId);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!job) {
       return undefined;
     }
@@ -571,11 +706,29 @@ export class ConversionPipeline {
    * @returns True if job was cancelled, false otherwise
    */
   public cancelJob(jobId: string): boolean {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue) {
       return false;
     }
     
     const job = this.jobQueue.getJob(jobId);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!job) {
       return false;
     }

@@ -29,6 +29,9 @@ jobs:
     - name: Lint
       run: npm run lint
     
+    - name: Validate JSDoc Documentation
+      run: npm run docs:validate
+    
     - name: Build
       run: npm run build
     

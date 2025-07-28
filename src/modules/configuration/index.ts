@@ -37,6 +37,13 @@ import {
   LicenseEmbeddingNote
 } from './LicenseEmbedder';
 
+/**
+ * ConfigMappingInput interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ConfigMappingInput {
   javaManifest: JavaModMetadata;
   javaRegistrations?: JavaRegistrationCode[];
@@ -46,6 +53,13 @@ export interface ConfigMappingInput {
   attributionInfo?: AttributionInfo;
 }
 
+/**
+ * ConfigMappingOutput interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ConfigMappingOutput {
   bedrockManifests: {
     behaviorPack: BedrockManifest;
@@ -61,6 +75,13 @@ export interface ConfigMappingOutput {
   conversionNotes: ConfigConversionNote[];
 }
 
+/**
+ * ConfigConversionNote interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ConfigConversionNote {
   type: 'info' | 'warning' | 'error';
   component: 'manifest' | 'block' | 'item' | 'recipe' | 'loot_table' | 'license';
@@ -97,6 +118,13 @@ export {
   LicenseEmbeddingNote
 };
 
+/**
+ * ConfigurationModule class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class ConfigurationModule {
   private manifestGenerator: ManifestGenerator;
   private blockItemConverter: BlockItemDefinitionConverter;
@@ -104,6 +132,15 @@ export class ConfigurationModule {
   private lootTableConverter: LootTableConverter;
   private licenseEmbedder: LicenseEmbedder;
   
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor() {
     this.manifestGenerator = new ManifestGenerator();
     this.blockItemConverter = new BlockItemDefinitionConverter();
@@ -112,12 +149,30 @@ export class ConfigurationModule {
     this.licenseEmbedder = new LicenseEmbedder();
   }
   
+  /**
+   * processConfigMapping method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
   async processConfigMapping(input: ConfigMappingInput, outputPath: string): Promise<ConfigMappingOutput> {
     const conversionNotes: ConfigConversionNote[] = [];
     
     // Generate manifests
     const manifestResult = this.manifestGenerator.generateManifests(input.javaManifest);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!manifestResult.success || !manifestResult.behaviorPackManifest || !manifestResult.resourcePackManifest) {
       const errors = manifestResult.errors || ['Unknown error generating manifests'];
       errors.forEach(error => {
@@ -141,6 +196,15 @@ export class ConfigurationModule {
       resourcePackDir
     );
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!writeResult) {
       conversionNotes.push({
         type: 'error',
@@ -161,6 +225,15 @@ export class ConfigurationModule {
     // Process block and item definitions if registrations are provided
     let bedrockDefinitions = undefined;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (input.javaRegistrations && input.javaRegistrations.length > 0) {
       try {
         // Convert the registrations to Bedrock format
@@ -168,6 +241,15 @@ export class ConfigurationModule {
           input.javaRegistrations
         );
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (registrationResult.success) {
           // Write the definitions to the output directory
           const writeDefResult = await this.blockItemConverter.writeDefinitions(
@@ -175,6 +257,15 @@ export class ConfigurationModule {
             behaviorPackDir
           );
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (writeDefResult) {
             bedrockDefinitions = {
               blocks: registrationResult.blocks,
@@ -225,6 +316,15 @@ export class ConfigurationModule {
     // Process recipes if provided
     let bedrockRecipes = undefined;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (input.javaRecipes && input.javaRecipes.length > 0) {
       try {
         // Convert the recipes to Bedrock format
@@ -233,6 +333,15 @@ export class ConfigurationModule {
           input.javaManifest.id
         );
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (recipeResult.success) {
           // Write the recipes to the output directory
           const writeRecipeResult = await this.recipeConverter.writeRecipes(
@@ -240,6 +349,15 @@ export class ConfigurationModule {
             behaviorPackDir
           );
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (writeRecipeResult) {
             bedrockRecipes = recipeResult.recipes;
             
@@ -287,6 +405,15 @@ export class ConfigurationModule {
     // Process loot tables if provided
     let bedrockLootTables = undefined;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (input.javaLootTables && input.javaLootTables.length > 0) {
       try {
         // Convert the loot tables to Bedrock format
@@ -295,6 +422,15 @@ export class ConfigurationModule {
           input.javaManifest.id
         );
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (lootTableResult.success) {
           // Write the loot tables to the output directory
           const writeLootTableResult = await this.lootTableConverter.writeLootTables(
@@ -302,6 +438,15 @@ export class ConfigurationModule {
             behaviorPackDir
           );
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (writeLootTableResult) {
             bedrockLootTables = lootTableResult.lootTables;
             
@@ -349,6 +494,15 @@ export class ConfigurationModule {
     // Embed license information if provided
     let licensedFiles = undefined;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (input.licenseInfo && input.attributionInfo) {
       try {
         // Embed license information in output files
@@ -358,6 +512,15 @@ export class ConfigurationModule {
           outputPath
         );
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (licenseResult.success) {
           licensedFiles = licenseResult.embeddedFiles;
           
@@ -377,6 +540,15 @@ export class ConfigurationModule {
             input.licenseInfo
           );
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (!validationResult.valid) {
             validationResult.errors.forEach(error => {
               conversionNotes.push({

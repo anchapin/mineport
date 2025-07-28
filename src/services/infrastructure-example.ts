@@ -70,11 +70,29 @@ function calculateModComplexity(modData: any): number {
   let complexity = 1; // Base complexity
   
   // Add complexity based on mod size
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if (modData.sizeInMB) {
     complexity += modData.sizeInMB / 10; // 10MB = +1 complexity
   }
   
   // Add complexity based on number of features
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if (modData.features) {
     complexity += modData.features.length * 0.2;
   }

@@ -60,6 +60,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
    * @returns Promise resolving to array of jobs
    */
   public async getJobs(filter?: AdminJobFilter): Promise<ConversionJob[]> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockGetJobs(filter);
     }
@@ -68,18 +77,54 @@ export class AdminAPIServiceImpl implements AdminAPIService {
       // Build query string from filter
       const queryParams = new URLSearchParams();
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter?.status) {
         queryParams.append('status', filter.status);
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter?.type) {
         queryParams.append('type', filter.type);
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter?.createdAfter) {
         queryParams.append('createdAfter', filter.createdAfter.toISOString());
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter?.createdBefore) {
         queryParams.append('createdBefore', filter.createdBefore.toISOString());
       }
@@ -94,6 +139,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
         },
       });
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -105,6 +159,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
       
       return await response.json();
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -123,6 +186,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
    * @returns Promise resolving to job statistics
    */
   public async getJobStatistics(): Promise<JobStatistics> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockGetJobStatistics();
     }
@@ -138,6 +210,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -149,6 +230,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
       
       return await response.json();
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -167,6 +257,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
    * @returns Promise resolving to system resource usage
    */
   public async getSystemResourceUsage(): Promise<SystemResourceUsage> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockGetSystemResourceUsage();
     }
@@ -182,6 +281,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -193,6 +301,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
       
       return await response.json();
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -213,6 +330,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
    * @returns Promise resolving to boolean indicating success
    */
   public async updateJobPriority(jobId: string, priority: number): Promise<boolean> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockUpdateJobPriority(jobId, priority);
     }
@@ -229,6 +355,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -241,6 +376,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
       const result = await response.json();
       return result.success === true;
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -260,6 +404,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
    * @returns Promise resolving to boolean indicating success
    */
   public async cancelJob(jobId: string): Promise<boolean> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockCancelJob(jobId);
     }
@@ -275,6 +428,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -287,6 +449,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
       const result = await response.json();
       return result.success === true;
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -321,6 +492,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
       
       return response;
     } finally {
+      /**
+       * clearTimeout method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       clearTimeout(timeoutId);
     }
   }
@@ -438,14 +618,41 @@ export class AdminAPIServiceImpl implements AdminAPIService {
     // Apply filters if provided
     let filteredJobs = [...mockJobs];
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (filter?.status) {
       filteredJobs = filteredJobs.filter(job => job.status === filter.status);
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (filter?.createdAfter) {
       filteredJobs = filteredJobs.filter(job => job.createdAt >= filter.createdAfter);
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (filter?.createdBefore) {
       filteredJobs = filteredJobs.filter(job => job.createdAt <= filter.createdBefore);
     }
@@ -502,6 +709,15 @@ export class AdminAPIServiceImpl implements AdminAPIService {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     // Validate priority
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (priority < 1 || priority > 10) {
       throw new APIError('Invalid priority value', 400, 'INVALID_PRIORITY');
     }

@@ -22,6 +22,13 @@ const RECIPE_TYPE_MAPPINGS: Record<string, string> = {
   'minecraft:smithing': 'smithing_table'
 };
 
+/**
+ * JavaRecipe interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaRecipe {
   type: string;
   pattern?: string[];
@@ -35,6 +42,13 @@ export interface JavaRecipe {
   sourceFile: string;
 }
 
+/**
+ * BedrockRecipe interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockRecipe {
   format_version: string;
   'minecraft:recipe_shaped'?: {
@@ -73,6 +87,13 @@ export interface BedrockRecipe {
   };
 }
 
+/**
+ * RecipeConversionResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface RecipeConversionResult {
   success: boolean;
   recipes: BedrockRecipe[];
@@ -80,6 +101,13 @@ export interface RecipeConversionResult {
   conversionNotes: RecipeConversionNote[];
 }
 
+/**
+ * RecipeConversionNote interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface RecipeConversionNote {
   type: 'info' | 'warning' | 'error';
   component: 'recipe';
@@ -88,6 +116,13 @@ export interface RecipeConversionNote {
   sourceFile?: string;
 }
 
+/**
+ * RecipeConverter class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class RecipeConverter {
   /**
    * Parses Java recipe JSON files from a directory
@@ -102,6 +137,15 @@ export class RecipeConverter {
       
       logger.info(`Found ${recipeFiles.length} recipe files to parse`);
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of recipeFiles) {
         try {
           const content = await fs.readFile(file, 'utf-8');
@@ -111,6 +155,15 @@ export class RecipeConverter {
           recipe.sourceFile = file;
           
           // Only process recipes with valid types
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (recipe.type && Object.keys(RECIPE_TYPE_MAPPINGS).includes(recipe.type)) {
             recipes.push(recipe);
             logger.info(`Parsed recipe from ${file}`);
@@ -141,12 +194,30 @@ export class RecipeConverter {
       const conversionNotes: RecipeConversionNote[] = [];
       const errors: string[] = [];
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const recipe of recipes) {
         try {
           // Generate a unique identifier for the recipe
           const recipeId = this.generateRecipeId(recipe, modId);
           
           // Convert based on recipe type
+          /**
+           * switch method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           switch (recipe.type) {
             case 'minecraft:crafting_shaped':
               bedrockRecipes.push(this.convertShapedRecipe(recipe, recipeId));
@@ -231,6 +302,15 @@ export class RecipeConverter {
     behaviorPackDir: string
   ): Promise<boolean> {
     try {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!result.success) {
         logger.error('Cannot write invalid recipes', { result });
         return false;
@@ -241,11 +321,29 @@ export class RecipeConverter {
       await fs.mkdir(recipesDir, { recursive: true });
       
       // Write recipe files
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const recipe of result.recipes) {
         // Determine recipe type and identifier
         let recipeType: string;
         let identifier: string;
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (recipe['minecraft:recipe_shaped']) {
           recipeType = 'shaped';
           identifier = recipe['minecraft:recipe_shaped'].description.identifier;
@@ -290,6 +388,15 @@ export class RecipeConverter {
     const errors: string[] = [];
     
     // Check format version
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!recipe.format_version) {
       errors.push('Missing format_version');
     }
@@ -304,14 +411,41 @@ export class RecipeConverter {
     
     const hasValidType = recipeTypes.some(type => recipe[type as keyof BedrockRecipe]);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!hasValidType) {
       errors.push('Recipe must have one of the valid recipe types');
     }
     
     // Validate shaped recipe
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (recipe['minecraft:recipe_shaped']) {
       const shaped = recipe['minecraft:recipe_shaped'];
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!shaped.description || !shaped.description.identifier) {
         errors.push('Shaped recipe missing identifier');
       }
@@ -328,15 +462,42 @@ export class RecipeConverter {
         errors.push('Shaped recipe missing key');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!shaped.result || !shaped.result.item) {
         errors.push('Shaped recipe missing result');
       }
     }
     
     // Validate shapeless recipe
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (recipe['minecraft:recipe_shapeless']) {
       const shapeless = recipe['minecraft:recipe_shapeless'];
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!shapeless.description || !shapeless.description.identifier) {
         errors.push('Shapeless recipe missing identifier');
       }
@@ -349,15 +510,42 @@ export class RecipeConverter {
         errors.push('Shapeless recipe missing ingredients');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!shapeless.result || !shapeless.result.item) {
         errors.push('Shapeless recipe missing result');
       }
     }
     
     // Validate furnace recipe
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (recipe['minecraft:recipe_furnace']) {
       const furnace = recipe['minecraft:recipe_furnace'];
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!furnace.description || !furnace.description.identifier) {
         errors.push('Furnace recipe missing identifier');
       }
@@ -366,19 +554,55 @@ export class RecipeConverter {
         errors.push('Furnace recipe missing tags');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!furnace.input || !furnace.input.item) {
         errors.push('Furnace recipe missing input');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!furnace.output || !furnace.output.item) {
         errors.push('Furnace recipe missing output');
       }
     }
     
     // Validate brewing recipe
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (recipe['minecraft:recipe_brewing_mix']) {
       const brewing = recipe['minecraft:recipe_brewing_mix'];
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!brewing.description || !brewing.description.identifier) {
         errors.push('Brewing recipe missing identifier');
       }
@@ -387,14 +611,41 @@ export class RecipeConverter {
         errors.push('Brewing recipe missing tags');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!brewing.input || !brewing.input.item) {
         errors.push('Brewing recipe missing input');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!brewing.reagent || !brewing.reagent.item) {
         errors.push('Brewing recipe missing reagent');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!brewing.output || !brewing.output.item) {
         errors.push('Brewing recipe missing output');
       }
@@ -418,9 +669,27 @@ export class RecipeConverter {
       try {
         const entries = await fs.readdir(currentDir, { withFileTypes: true });
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const entry of entries) {
           const fullPath = path.join(currentDir, entry.name);
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (entry.isDirectory()) {
             await scanDir(fullPath);
           } else if (entry.isFile() && entry.name.endsWith('.json')) {
@@ -463,6 +732,15 @@ export class RecipeConverter {
    */
   private convertItemId(javaItem: string): string {
     // If it's already a namespaced ID, return as is
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (javaItem.includes(':')) {
       return javaItem;
     }
@@ -478,6 +756,15 @@ export class RecipeConverter {
    * @returns BedrockRecipe in shaped format
    */
   private convertShapedRecipe(recipe: JavaRecipe, recipeId: string): BedrockRecipe {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!recipe.pattern || !recipe.key) {
       throw new Error('Shaped recipe missing pattern or key');
     }
@@ -485,7 +772,25 @@ export class RecipeConverter {
     // Convert the key to Bedrock format
     const bedrockKey: Record<string, { item: string }> = {};
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [keyChar, keyValue] of Object.entries(recipe.key)) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if ('item' in keyValue) {
         bedrockKey[keyChar] = { item: this.convertItemId(keyValue.item) };
       } else if ('tag' in keyValue) {
@@ -519,6 +824,15 @@ export class RecipeConverter {
    * @returns BedrockRecipe in shapeless format
    */
   private convertShapelessRecipe(recipe: JavaRecipe, recipeId: string): BedrockRecipe {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!recipe.ingredients) {
       throw new Error('Shapeless recipe missing ingredients');
     }
@@ -526,12 +840,48 @@ export class RecipeConverter {
     // Convert ingredients to Bedrock format
     const bedrockIngredients: Array<{ item: string; count?: number }> = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const ingredient of recipe.ingredients) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (Array.isArray(ingredient)) {
         // For ingredient groups (alternatives), we'll use the first one
         // In a real implementation, we would need to handle this more robustly
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (ingredient.length > 0) {
           const firstIngredient = ingredient[0];
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if ('item' in firstIngredient) {
             bedrockIngredients.push({ item: this.convertItemId(firstIngredient.item) });
           } else if ('tag' in firstIngredient) {
@@ -568,6 +918,15 @@ export class RecipeConverter {
    * @returns BedrockRecipe in furnace format
    */
   private convertFurnaceRecipe(recipe: JavaRecipe, recipeId: string): BedrockRecipe {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!recipe.ingredients) {
       throw new Error('Furnace recipe missing ingredient');
     }
@@ -575,12 +934,39 @@ export class RecipeConverter {
     // Determine the input item
     let inputItem: string;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (recipe.ingredients) {
       // For smelting recipes, the ingredient is usually a single item or an array
       const ingredient = Array.isArray(recipe.ingredients) ? recipe.ingredients[0] : recipe.ingredients;
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (Array.isArray(ingredient)) {
         // Use the first alternative
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (ingredient.length > 0 && 'item' in ingredient[0]) {
           inputItem = this.convertItemId(ingredient[0].item);
         } else {
@@ -623,6 +1009,15 @@ export class RecipeConverter {
    * @returns BedrockRecipe in furnace format (Bedrock uses furnace format for stonecutting)
    */
   private convertStonecuttingRecipe(recipe: JavaRecipe, recipeId: string): BedrockRecipe {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!recipe.ingredients) {
       throw new Error('Stonecutting recipe missing ingredient');
     }
@@ -630,11 +1025,38 @@ export class RecipeConverter {
     // Determine the input item
     let inputItem: string;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (Array.isArray(recipe.ingredients)) {
       const ingredient = recipe.ingredients[0];
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (Array.isArray(ingredient)) {
         // Use the first alternative
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (ingredient.length > 0 && 'item' in ingredient[0]) {
           inputItem = this.convertItemId(ingredient[0].item);
         } else {
@@ -678,12 +1100,30 @@ export class RecipeConverter {
    * @returns BedrockRecipe in brewing format (closest Bedrock equivalent)
    */
   private convertSmithingRecipe(recipe: JavaRecipe, recipeId: string): BedrockRecipe {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!recipe.base || !recipe.addition) {
       throw new Error('Smithing recipe missing base or addition');
     }
     
     // Determine the base item
     let baseItem: string;
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if ('item' in recipe.base) {
       baseItem = this.convertItemId(recipe.base.item);
     } else if ('tag' in recipe.base) {
@@ -694,6 +1134,15 @@ export class RecipeConverter {
     
     // Determine the addition item
     let additionItem: string;
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if ('item' in recipe.addition) {
       additionItem = this.convertItemId(recipe.addition.item);
     } else if ('tag' in recipe.addition) {
@@ -726,10 +1175,46 @@ export class RecipeConverter {
   private checkForTagUsage(recipes: JavaRecipe[]): RecipeConversionNote[] {
     const notes: RecipeConversionNote[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const recipe of recipes) {
       // Check for tags in shaped recipe keys
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (recipe.key) {
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const [keyChar, keyValue] of Object.entries(recipe.key)) {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if ('tag' in keyValue) {
             notes.push({
               type: 'warning',
@@ -743,12 +1228,57 @@ export class RecipeConverter {
       }
       
       // Check for tags in ingredients
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (recipe.ingredients) {
         const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [recipe.ingredients];
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const ingredient of ingredients) {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (Array.isArray(ingredient)) {
+            /**
+             * for method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             for (const option of ingredient) {
+              /**
+               * if method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               if ('tag' in option) {
                 notes.push({
                   type: 'warning',
@@ -772,6 +1302,15 @@ export class RecipeConverter {
       }
       
       // Check for tags in base and addition
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (recipe.base && 'tag' in recipe.base) {
         notes.push({
           type: 'warning',
@@ -782,6 +1321,15 @@ export class RecipeConverter {
         });
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (recipe.addition && 'tag' in recipe.addition) {
         notes.push({
           type: 'warning',

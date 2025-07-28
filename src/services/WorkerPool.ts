@@ -5,6 +5,13 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('WorkerPool');
 
+/**
+ * Worker interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface Worker {
   id: string;
   status: 'idle' | 'busy';
@@ -17,6 +24,13 @@ export interface Worker {
   };
 }
 
+/**
+ * WorkerPoolOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface WorkerPoolOptions {
   maxWorkers?: number;
   jobQueue?: JobQueue;
@@ -33,10 +47,36 @@ export class WorkerPool extends EventEmitter {
   private jobQueue: JobQueue;
   private configService?: ConfigurationService;
 
+  /**
+   * Creates a new instance.
+   * 
+   * TODO: Add detailed description of constructor behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @since 1.0.0
+   */
   constructor(options: WorkerPoolOptions = {}) {
+    /**
+     * super method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     super();
     this.configService = options.configService;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.configService) {
       // Use configuration service if available
       this.maxWorkers = this.configService.get('workers.maxWorkers', options.maxWorkers || 5);
@@ -125,6 +165,15 @@ export class WorkerPool extends EventEmitter {
       (worker.capabilities.includes('*') || worker.capabilities.includes(job.type))
     );
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!availableWorker) {
       // No available worker, put job back in queue
       job.status = 'pending';
@@ -155,6 +204,15 @@ export class WorkerPool extends EventEmitter {
       
       try {
         // Simulate successful job completion 90% of the time
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (Math.random() > 0.1) {
           // Update worker stats
           worker.performance.completedJobs++;
@@ -222,6 +280,15 @@ export class WorkerPool extends EventEmitter {
    * Get all workers with optional filtering
    */
   public getWorkers(filter?: { status?: Worker['status'] }): Worker[] {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!filter) return [...this.workers];
     
     return this.workers.filter(worker => {
@@ -249,6 +316,15 @@ export class WorkerPool extends EventEmitter {
     
     const currentSize = this.workers.length;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (targetSize > currentSize) {
       // Scale up
       for (let i = currentSize; i < targetSize; i++) {

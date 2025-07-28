@@ -51,6 +51,13 @@ const LOOT_CONDITION_MAPPINGS: Record<string, string> = {
   'minecraft:table_bonus': 'table_bonus'
 };
 
+/**
+ * JavaLootTable interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaLootTable {
   type: string;
   pools?: JavaLootPool[];
@@ -58,6 +65,13 @@ export interface JavaLootTable {
   sourceFile: string;
 }
 
+/**
+ * JavaLootPool interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaLootPool {
   rolls: number | { min: number; max: number };
   bonus_rolls?: number | { min: number; max: number };
@@ -66,6 +80,13 @@ export interface JavaLootPool {
   functions?: JavaLootFunction[];
 }
 
+/**
+ * JavaLootEntry interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaLootEntry {
   type: string;
   name?: string;
@@ -83,6 +104,13 @@ export interface JavaLootEntry {
   table?: string;
 }
 
+/**
+ * JavaLootFunction interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaLootFunction {
   function: string;
   count?: number | { min: number; max: number };
@@ -126,6 +154,13 @@ export interface JavaLootFunction {
   skip_existing_chunks?: boolean;
 }
 
+/**
+ * JavaLootCondition interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaLootCondition {
   condition: string;
   chance?: number;
@@ -140,16 +175,37 @@ export interface JavaLootCondition {
   value?: { min?: number; max?: number };
 }
 
+/**
+ * BedrockLootTable interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockLootTable {
   pools: BedrockLootPool[];
 }
 
+/**
+ * BedrockLootPool interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockLootPool {
   rolls: number | { min: number; max: number };
   entries: BedrockLootEntry[];
   conditions?: BedrockLootCondition[];
 }
 
+/**
+ * BedrockLootEntry interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockLootEntry {
   type: string;
   name?: string;
@@ -165,6 +221,13 @@ export interface BedrockLootEntry {
   empty?: boolean;
 }
 
+/**
+ * BedrockLootFunction interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockLootFunction {
   function: string;
   count?: number | { min: number; max: number };
@@ -208,6 +271,13 @@ export interface BedrockLootFunction {
   skip_existing_chunks?: boolean;
 }
 
+/**
+ * BedrockLootCondition interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockLootCondition {
   condition: string;
   chance?: number;
@@ -221,6 +291,13 @@ export interface BedrockLootCondition {
   value?: { min?: number; max?: number };
 }
 
+/**
+ * LootTableConversionResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LootTableConversionResult {
   success: boolean;
   lootTables: Record<string, BedrockLootTable>;
@@ -228,6 +305,13 @@ export interface LootTableConversionResult {
   conversionNotes: LootTableConversionNote[];
 }
 
+/**
+ * LootTableConversionNote interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LootTableConversionNote {
   type: 'info' | 'warning' | 'error';
   component: 'loot_table';
@@ -236,6 +320,13 @@ export interface LootTableConversionNote {
   sourceFile?: string;
 }
 
+/**
+ * LootTableConverter class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class LootTableConverter {
   /**
    * Parses Java loot table JSON files from a directory
@@ -249,6 +340,15 @@ export class LootTableConverter {
       
       logger.info(`Found ${lootTableFiles.length} loot table files to parse`);
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of lootTableFiles) {
         try {
           const content = await fs.readFile(file, 'utf-8');
@@ -258,6 +358,15 @@ export class LootTableConverter {
           lootTable.sourceFile = file;
           
           // Only process loot tables with valid types
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (lootTable.type) {
             lootTables.push(lootTable);
             logger.info(`Parsed loot table from ${file}`);
@@ -288,6 +397,15 @@ export class LootTableConverter {
       const conversionNotes: LootTableConversionNote[] = [];
       const errors: string[] = [];
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const lootTable of lootTables) {
         try {
           // Generate a unique identifier for the loot table
@@ -354,6 +472,15 @@ export class LootTableConverter {
     behaviorPackDir: string
   ): Promise<boolean> {
     try {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!result.success) {
         logger.error('Cannot write invalid loot tables', { result });
         return false;
@@ -364,6 +491,15 @@ export class LootTableConverter {
       await fs.mkdir(lootTablesDir, { recursive: true });
       
       // Write loot table files
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const [lootTableId, lootTable] of Object.entries(result.lootTables)) {
         // Create subdirectories based on the loot table ID
         const [namespace, ...pathParts] = lootTableId.split(':');
@@ -415,6 +551,15 @@ export class LootTableConverter {
           // Validate each entry
           pool.entries.forEach((entry, entryIndex) => {
             // Check for type
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (!entry.type) {
               errors.push(`Entry ${entryIndex} in pool ${poolIndex} is missing type`);
             }
@@ -427,8 +572,26 @@ export class LootTableConverter {
             }
             
             // Validate functions if present
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (entry.functions && Array.isArray(entry.functions)) {
               entry.functions.forEach((func, funcIndex) => {
+                /**
+                 * if method.
+                 * 
+                 * TODO: Add detailed description of the method's purpose and behavior.
+                 * 
+                 * @param param - TODO: Document parameters
+                 * @returns result - TODO: Document return value
+                 * @since 1.0.0
+                 */
                 if (!func.function) {
                   errors.push(`Function ${funcIndex} in entry ${entryIndex}, pool ${poolIndex} is missing function name`);
                 }
@@ -436,8 +599,26 @@ export class LootTableConverter {
             }
             
             // Validate conditions if present
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (entry.conditions && Array.isArray(entry.conditions)) {
               entry.conditions.forEach((condition, condIndex) => {
+                /**
+                 * if method.
+                 * 
+                 * TODO: Add detailed description of the method's purpose and behavior.
+                 * 
+                 * @param param - TODO: Document parameters
+                 * @returns result - TODO: Document return value
+                 * @since 1.0.0
+                 */
                 if (!condition.condition) {
                   errors.push(`Condition ${condIndex} in entry ${entryIndex}, pool ${poolIndex} is missing condition name`);
                 }
@@ -447,8 +628,26 @@ export class LootTableConverter {
         }
         
         // Validate pool conditions if present
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (pool.conditions && Array.isArray(pool.conditions)) {
           pool.conditions.forEach((condition, condIndex) => {
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (!condition.condition) {
               errors.push(`Condition ${condIndex} in pool ${poolIndex} is missing condition name`);
             }
@@ -475,9 +674,27 @@ export class LootTableConverter {
       try {
         const entries = await fs.readdir(currentDir, { withFileTypes: true });
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const entry of entries) {
           const fullPath = path.join(currentDir, entry.name);
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (entry.isDirectory()) {
             await scanDir(fullPath);
           } else if (entry.isFile() && entry.name.endsWith('.json')) {
@@ -506,6 +723,15 @@ export class LootTableConverter {
     // Determine the loot table type based on the directory structure
     let lootTableType = 'blocks';
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (lootTable.sourceFile.includes('entities')) {
       lootTableType = 'entities';
     } else if (lootTable.sourceFile.includes('chests')) {
@@ -524,6 +750,15 @@ export class LootTableConverter {
    */
   private convertItemId(javaItem: string): string {
     // If it's already a namespaced ID, return as is
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (javaItem.includes(':')) {
       return javaItem;
     }
@@ -544,16 +779,61 @@ export class LootTableConverter {
     };
     
     // Convert pools if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (lootTable.pools && Array.isArray(lootTable.pools)) {
       bedrockLootTable.pools = lootTable.pools.map(pool => this.convertLootPool(pool));
     }
     
     // Apply any top-level functions to all pools
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (lootTable.functions && Array.isArray(lootTable.functions) && lootTable.functions.length > 0) {
       // In Bedrock, functions are applied at the entry level, not the table level
       // So we need to apply these functions to all entries in all pools
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const pool of bedrockLootTable.pools) {
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const entry of pool.entries) {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (!entry.functions) {
             entry.functions = [];
           }
@@ -578,19 +858,64 @@ export class LootTableConverter {
     };
     
     // Convert entries
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (pool.entries && Array.isArray(pool.entries)) {
       bedrockPool.entries = pool.entries.map(entry => this.convertLootEntry(entry));
     }
     
     // Convert conditions if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (pool.conditions && Array.isArray(pool.conditions) && pool.conditions.length > 0) {
       bedrockPool.conditions = pool.conditions.map(condition => this.convertLootCondition(condition));
     }
     
     // Apply pool-level functions to all entries
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (pool.functions && Array.isArray(pool.functions) && pool.functions.length > 0) {
       // In Bedrock, functions are applied at the entry level, not the pool level
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const entry of bedrockPool.entries) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!entry.functions) {
           entry.functions = [];
         }
@@ -611,8 +936,26 @@ export class LootTableConverter {
     let bedrockEntry: BedrockLootEntry;
     
     // Convert based on entry type
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (entry.type) {
       case 'minecraft:item':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!entry.item) {
           throw new Error('Item entry missing item name');
         }
@@ -638,6 +981,15 @@ export class LootTableConverter {
         break;
         
       case 'minecraft:loot_table':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!entry.table) {
           throw new Error('Loot table entry missing table reference');
         }
@@ -681,11 +1033,29 @@ export class LootTableConverter {
     }
     
     // Convert functions if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (entry.functions && Array.isArray(entry.functions) && entry.functions.length > 0) {
       bedrockEntry.functions = entry.functions.map(func => this.convertLootFunction(func));
     }
     
     // Convert conditions if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (entry.conditions && Array.isArray(entry.conditions) && entry.conditions.length > 0) {
       bedrockEntry.conditions = entry.conditions.map(condition => this.convertLootCondition(condition));
     }
@@ -707,6 +1077,15 @@ export class LootTableConverter {
     };
     
     // Convert function-specific properties
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (func.function) {
       case 'minecraft:set_count':
         bedrockFunction.count = func.count;
@@ -730,6 +1109,15 @@ export class LootTableConverter {
         break;
         
       case 'minecraft:enchant_randomly':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (func.enchantments) {
           bedrockFunction.enchants = func.enchantments.map(enchant => ({
             id: enchant.name,
@@ -754,6 +1142,15 @@ export class LootTableConverter {
         break;
         
       case 'minecraft:set_attributes':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (func.modifiers) {
           bedrockFunction.modifiers = func.modifiers.map(modifier => ({
             name: modifier.name,
@@ -767,6 +1164,15 @@ export class LootTableConverter {
         break;
         
       case 'minecraft:set_contents':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (func.entries) {
           // Convert entries to Bedrock format
           const convertedEntries = func.entries.map(entry => this.convertLootEntry(entry));
@@ -813,6 +1219,15 @@ export class LootTableConverter {
     }
     
     // Convert conditions if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (func.conditions && Array.isArray(func.conditions) && func.conditions.length > 0) {
       bedrockFunction.conditions = func.conditions.map(condition => this.convertLootCondition(condition));
     }
@@ -834,6 +1249,15 @@ export class LootTableConverter {
     };
     
     // Convert condition-specific properties
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (condition.condition) {
       case 'minecraft:random_chance':
         bedrockCondition.chance = condition.chance;
@@ -857,6 +1281,15 @@ export class LootTableConverter {
         break;
         
       case 'minecraft:match_tool':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.item) {
           bedrockCondition.item = {
             items: condition.item.items?.map(item => this.convertItemId(item))
@@ -875,6 +1308,15 @@ export class LootTableConverter {
         
       case 'minecraft:inverted':
         // Handle inverted conditions by recursively converting the term
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.term) {
           const invertedCondition = this.convertLootCondition(condition.term as unknown as JavaLootCondition);
           bedrockCondition.term = invertedCondition;
@@ -885,6 +1327,15 @@ export class LootTableConverter {
         
       case 'minecraft:alternative':
         // Handle alternative conditions by recursively converting each term
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.terms && Array.isArray(condition.terms)) {
           bedrockCondition.terms = condition.terms.map(term => 
             this.convertLootCondition(term as unknown as JavaLootCondition)
@@ -896,6 +1347,15 @@ export class LootTableConverter {
         
       case 'minecraft:reference':
         // Handle reference conditions
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.name) {
           bedrockCondition.name = condition.name as unknown as string;
         } else {
@@ -905,6 +1365,15 @@ export class LootTableConverter {
         
       case 'minecraft:block_state_property':
         // Convert block state properties
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.block) {
           bedrockCondition.block = condition.block as unknown as string;
           bedrockCondition.properties = condition.properties as unknown as Record<string, string>;
@@ -915,6 +1384,15 @@ export class LootTableConverter {
         
       case 'minecraft:damage_source_properties':
         // Convert damage source properties
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.predicate) {
           bedrockCondition.predicate = condition.predicate;
         } else {
@@ -924,6 +1402,15 @@ export class LootTableConverter {
         
       case 'minecraft:location_check':
         // Convert location check
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.predicate) {
           bedrockCondition.predicate = condition.predicate;
         } else {
@@ -937,6 +1424,15 @@ export class LootTableConverter {
         
       case 'minecraft:table_bonus':
         // Convert table bonus
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (condition.enchantment && condition.chances && Array.isArray(condition.chances)) {
           bedrockCondition.enchantment = condition.enchantment as unknown as string;
           bedrockCondition.chances = condition.chances as unknown as number[];
@@ -991,8 +1487,26 @@ export class LootTableConverter {
       'minecraft:exploration_map'
     ];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const lootTable of lootTables) {
       // Check top-level functions
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (lootTable.functions) {
         this.checkFunctionsForComplexity(lootTable.functions, complexFunctions, notes, lootTable.sourceFile);
         this.checkFunctionsForUnsupported(lootTable.functions, unsupportedFunctions, notes, lootTable.sourceFile);
@@ -1000,8 +1514,35 @@ export class LootTableConverter {
       }
       
       // Check pool-level functions
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (lootTable.pools) {
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const pool of lootTable.pools) {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (pool.functions) {
             this.checkFunctionsForComplexity(pool.functions, complexFunctions, notes, lootTable.sourceFile);
             this.checkFunctionsForUnsupported(pool.functions, unsupportedFunctions, notes, lootTable.sourceFile);
@@ -1009,8 +1550,35 @@ export class LootTableConverter {
           }
           
           // Check entry-level functions
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (pool.entries) {
+            /**
+             * for method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             for (const entry of pool.entries) {
+              /**
+               * if method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               if (entry.functions) {
                 this.checkFunctionsForComplexity(entry.functions, complexFunctions, notes, lootTable.sourceFile);
                 this.checkFunctionsForUnsupported(entry.functions, unsupportedFunctions, notes, lootTable.sourceFile);
@@ -1038,7 +1606,25 @@ export class LootTableConverter {
     notes: LootTableConversionNote[],
     sourceFile?: string
   ): void {
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const func of functions) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (unsupportedFunctions.includes(func.function)) {
         notes.push({
           type: 'error',
@@ -1064,11 +1650,38 @@ export class LootTableConverter {
     notes: LootTableConversionNote[],
     sourceFile?: string
   ): void {
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const func of functions) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (specialHandlingFunctions.includes(func.function)) {
         let details = '';
         
         // Provide specific guidance based on function type
+        /**
+         * switch method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         switch (func.function) {
           case 'minecraft:apply_bonus':
             details = `The apply_bonus function may behave differently in Bedrock. Verify the formula and parameters after conversion.`;
@@ -1107,7 +1720,25 @@ export class LootTableConverter {
     notes: LootTableConversionNote[],
     sourceFile?: string
   ): void {
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const func of functions) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (complexFunctions.includes(func.function)) {
         notes.push({
           type: 'warning',

@@ -18,11 +18,25 @@ import path from 'path';
 import logger from '../../utils/logger';
 import { Feature, FeatureCompatibilityReport, CompromiseStrategy } from './index';
 
+/**
+ * FeatureAnalysisResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface FeatureAnalysisResult {
   compatibilityReport: FeatureCompatibilityReport;
   errors?: string[];
 }
 
+/**
+ * FeatureDefinition interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface FeatureDefinition {
   id: string;
   name: string;
@@ -36,6 +50,13 @@ export interface FeatureDefinition {
   defaultCompromiseStrategy?: CompromiseStrategy;
 }
 
+/**
+ * FeatureCompatibilityAnalyzer class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class FeatureCompatibilityAnalyzer {
   // Known feature definitions with their compatibility tiers
   private featureDefinitions: FeatureDefinition[] = [
@@ -517,6 +538,15 @@ export class FeatureCompatibilityAnalyzer {
       const assetFiles = await this.findFiles(extractedModPath, ['.png', '.ogg', '.lang']);
 
       // Analyze each feature definition against the mod files
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const featureDef of this.featureDefinitions) {
         const detectedFeature = await this.detectFeature(
           featureDef,
@@ -527,8 +557,26 @@ export class FeatureCompatibilityAnalyzer {
           modLoader
         );
 
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (detectedFeature) {
           // Add the feature to the appropriate tier list
+          /**
+           * switch method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           switch (detectedFeature.compatibilityTier) {
             case 1:
               result.compatibilityReport.tier1Features.push(detectedFeature);
@@ -587,14 +635,50 @@ export class FeatureCompatibilityAnalyzer {
       let isDetected = false;
 
       // Check file patterns (against all files)
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (detectionPatterns.filePatterns && detectionPatterns.filePatterns.length > 0) {
         const allFiles = [...javaFiles, ...jsonFiles, ...assetFiles];
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const pattern of detectionPatterns.filePatterns) {
           const regex = new RegExp(pattern);
           
+          /**
+           * for method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           for (const file of allFiles) {
             const relativePath = path.relative(extractedModPath, file);
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (regex.test(relativePath)) {
               sourceFiles.push(relativePath);
               sourceLineNumbers.push([0]); // For file pattern matches, we don't have specific line numbers
@@ -605,12 +689,30 @@ export class FeatureCompatibilityAnalyzer {
       }
 
       // Check code patterns and import patterns (against Java files only)
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if ((detectionPatterns.codePatterns && detectionPatterns.codePatterns.length > 0) ||
           (detectionPatterns.importPatterns && detectionPatterns.importPatterns.length > 0)) {
         
         // Only check a reasonable number of files to avoid excessive processing
         const filesToCheck = javaFiles.slice(0, 50);
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const file of filesToCheck) {
           try {
             const content = await fs.readFile(file, 'utf-8');
@@ -618,11 +720,38 @@ export class FeatureCompatibilityAnalyzer {
             const matchedLines: number[] = [];
             
             // Check code patterns
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (detectionPatterns.codePatterns) {
+              /**
+               * for method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               for (const pattern of detectionPatterns.codePatterns) {
                 const regex = new RegExp(pattern);
                 
                 for (let i = 0; i < lines.length; i++) {
+                  /**
+                   * if method.
+                   * 
+                   * TODO: Add detailed description of the method's purpose and behavior.
+                   * 
+                   * @param param - TODO: Document parameters
+                   * @returns result - TODO: Document return value
+                   * @since 1.0.0
+                   */
                   if (regex.test(lines[i])) {
                     matchedLines.push(i + 1); // Line numbers are 1-based
                   }
@@ -631,11 +760,38 @@ export class FeatureCompatibilityAnalyzer {
             }
             
             // Check import patterns
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (detectionPatterns.importPatterns) {
+              /**
+               * for method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               for (const pattern of detectionPatterns.importPatterns) {
                 const regex = new RegExp(`import\\s+${pattern}`);
                 
                 for (let i = 0; i < lines.length; i++) {
+                  /**
+                   * if method.
+                   * 
+                   * TODO: Add detailed description of the method's purpose and behavior.
+                   * 
+                   * @param param - TODO: Document parameters
+                   * @returns result - TODO: Document return value
+                   * @since 1.0.0
+                   */
                   if (regex.test(lines[i])) {
                     matchedLines.push(i + 1); // Line numbers are 1-based
                   }
@@ -644,6 +800,15 @@ export class FeatureCompatibilityAnalyzer {
             }
             
             // If we found matches in this file, add it to the sources
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (matchedLines.length > 0) {
               const relativePath = path.relative(extractedModPath, file);
               sourceFiles.push(relativePath);
@@ -659,6 +824,15 @@ export class FeatureCompatibilityAnalyzer {
       }
 
       // If the feature was detected, create a Feature object
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (isDetected) {
         const feature: Feature = {
           id: featureDef.id,
@@ -670,6 +844,15 @@ export class FeatureCompatibilityAnalyzer {
         };
 
         // Add compromise strategy if available
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (featureDef.defaultCompromiseStrategy) {
           feature.compromiseStrategy = featureDef.defaultCompromiseStrategy;
         }
@@ -696,9 +879,27 @@ export class FeatureCompatibilityAnalyzer {
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (entry.isDirectory()) {
           // Skip certain directories that are unlikely to contain relevant files
           if (entry.name === 'node_modules' || 
@@ -714,6 +915,15 @@ export class FeatureCompatibilityAnalyzer {
         } else if (entry.isFile()) {
           // Check if the file has one of the specified extensions
           const ext = path.extname(entry.name).toLowerCase();
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (extensions.includes(ext)) {
             result.push(fullPath);
           }
@@ -756,6 +966,15 @@ export class FeatureCompatibilityAnalyzer {
     
     // Calculate overall conversion feasibility
     let feasibilityScore = 0;
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (totalFeatures > 0) {
       feasibilityScore = Math.round(
         ((report.tier1Features.length * 1.0) + 

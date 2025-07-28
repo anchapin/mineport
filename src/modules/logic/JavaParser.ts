@@ -131,14 +131,41 @@ export class JavaParser {
     };
     
     // Process the CST
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (cst && cst.children) {
       // Process package declaration if present
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (cst.children.packageDeclaration) {
         const packageNode = this.processPackageDeclaration(cst.children.packageDeclaration[0]);
         ast.children!.push(packageNode);
       }
       
       // Process import declarations if present
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (cst.children.importDeclaration) {
         cst.children.importDeclaration.forEach((importDecl: any) => {
           const importNode = this.processImportDeclaration(importDecl);
@@ -147,6 +174,15 @@ export class JavaParser {
       }
       
       // Process type declarations (classes, interfaces, etc.)
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (cst.children.typeDeclaration) {
         cst.children.typeDeclaration.forEach((typeDecl: any) => {
           const typeNode = this.processTypeDeclaration(typeDecl);
@@ -167,6 +203,15 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children && node.children.name && node.children.name[0]) {
       const nameNode = this.processQualifiedName(node.children.name[0]);
       packageNode.children!.push(nameNode);
@@ -184,8 +229,26 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process static keyword if present
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.Static && node.children.Static[0]) {
         importNode.children!.push({
           type: 'keyword',
@@ -194,6 +257,15 @@ export class JavaParser {
       }
       
       // Process the name being imported
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.name && node.children.name[0]) {
         const nameNode = this.processQualifiedName(node.children.name[0]);
         importNode.children!.push(nameNode);
@@ -212,6 +284,15 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children && node.children.identifier) {
       node.children.identifier.forEach((id: any) => {
         nameNode.children!.push({
@@ -233,18 +314,54 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process class declaration
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.classDeclaration && node.children.classDeclaration[0]) {
         typeNode.children!.push(this.processClassDeclaration(node.children.classDeclaration[0]));
       }
       
       // Process interface declaration
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.interfaceDeclaration && node.children.interfaceDeclaration[0]) {
         typeNode.children!.push(this.processInterfaceDeclaration(node.children.interfaceDeclaration[0]));
       }
       
       // Process enum declaration
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.enumDeclaration && node.children.enumDeclaration[0]) {
         typeNode.children!.push(this.processEnumDeclaration(node.children.enumDeclaration[0]));
       }
@@ -262,8 +379,26 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process modifiers (public, private, etc.)
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.classModifier) {
         node.children.classModifier.forEach((modifier: any) => {
           classNode.children!.push({
@@ -280,6 +415,15 @@ export class JavaParser {
       }
       
       // Process class name
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.identifier && node.children.identifier[0]) {
         classNode.children!.push({
           type: 'identifier',
@@ -288,6 +432,15 @@ export class JavaParser {
       }
       
       // Process class body
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.classBody && node.children.classBody[0]) {
         classNode.children!.push(this.processClassBody(node.children.classBody[0]));
       }
@@ -305,8 +458,26 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process modifiers
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.interfaceModifier) {
         node.children.interfaceModifier.forEach((modifier: any) => {
           interfaceNode.children!.push({
@@ -321,6 +492,15 @@ export class JavaParser {
       }
       
       // Process interface name
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.identifier && node.children.identifier[0]) {
         interfaceNode.children!.push({
           type: 'identifier',
@@ -329,6 +509,15 @@ export class JavaParser {
       }
       
       // Process interface body
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.interfaceBody && node.children.interfaceBody[0]) {
         interfaceNode.children!.push(this.processInterfaceBody(node.children.interfaceBody[0]));
       }
@@ -346,8 +535,26 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process modifiers
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.enumModifier) {
         node.children.enumModifier.forEach((modifier: any) => {
           enumNode.children!.push({
@@ -360,6 +567,15 @@ export class JavaParser {
       }
       
       // Process enum name
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.identifier && node.children.identifier[0]) {
         enumNode.children!.push({
           type: 'identifier',
@@ -380,23 +596,68 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children && node.children.classBodyDeclaration) {
       node.children.classBodyDeclaration.forEach((decl: any) => {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (decl.children.classMemberDeclaration) {
           const memberDecl = decl.children.classMemberDeclaration[0];
           
           // Process field declaration
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (memberDecl.children.fieldDeclaration) {
             bodyNode.children!.push(this.processFieldDeclaration(memberDecl.children.fieldDeclaration[0]));
           }
           
           // Process method declaration
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (memberDecl.children.methodDeclaration) {
             bodyNode.children!.push(this.processMethodDeclaration(memberDecl.children.methodDeclaration[0]));
           }
         }
         
         // Process constructor declaration
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (decl.children.constructorDeclaration) {
           bodyNode.children!.push(this.processConstructorDeclaration(decl.children.constructorDeclaration[0]));
         }
@@ -415,9 +676,27 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children && node.children.interfaceMemberDeclaration) {
       node.children.interfaceMemberDeclaration.forEach((decl: any) => {
         // Process interface method declaration
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (decl.children.interfaceMethodDeclaration) {
           bodyNode.children!.push(this.processInterfaceMethodDeclaration(decl.children.interfaceMethodDeclaration[0]));
         }
@@ -436,8 +715,26 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process field modifiers
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.fieldModifier) {
         node.children.fieldModifier.forEach((modifier: any) => {
           fieldNode.children!.push({
@@ -452,11 +749,29 @@ export class JavaParser {
       }
       
       // Process field type
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.unannType && node.children.unannType[0]) {
         fieldNode.children!.push(this.processType(node.children.unannType[0]));
       }
       
       // Process variable declarators
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.variableDeclaratorList && node.children.variableDeclaratorList[0]) {
         fieldNode.children!.push(this.processVariableDeclaratorList(node.children.variableDeclaratorList[0]));
       }
@@ -474,8 +789,26 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process method modifiers
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.methodModifier) {
         node.children.methodModifier.forEach((modifier: any) => {
           methodNode.children!.push({
@@ -491,10 +824,37 @@ export class JavaParser {
       }
       
       // Process return type
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.methodHeader && node.children.methodHeader[0]) {
         const header = node.children.methodHeader[0];
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (header.children.result && header.children.result[0]) {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (header.children.result[0].children.unannType) {
             methodNode.children!.push(this.processType(header.children.result[0].children.unannType[0]));
           } else if (header.children.result[0].children.Void) {
@@ -506,6 +866,15 @@ export class JavaParser {
         }
         
         // Process method name
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (header.children.identifier && header.children.identifier[0]) {
           methodNode.children!.push({
             type: 'identifier',
@@ -515,6 +884,15 @@ export class JavaParser {
         }
         
         // Process parameters
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (header.children.formalParameterList && header.children.formalParameterList[0]) {
           methodNode.children!.push({
             type: 'formalParameters',
@@ -524,6 +902,15 @@ export class JavaParser {
       }
       
       // Process method body
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.methodBody && node.children.methodBody[0]) {
         methodNode.children!.push(this.processMethodBody(node.children.methodBody[0]));
       }
@@ -541,8 +928,26 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process method modifiers
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.interfaceMethodModifier) {
         node.children.interfaceMethodModifier.forEach((modifier: any) => {
           methodNode.children!.push({
@@ -587,14 +992,50 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
       // Process primitive type
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.primitiveType) {
         const primitiveType = node.children.primitiveType[0];
         let typeName = 'unknown';
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (primitiveType.children.numericType) {
           const numericType = primitiveType.children.numericType[0];
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (numericType.children.integralType) {
             const integralType = numericType.children.integralType[0];
             typeName = integralType.children.Byte ? 'byte' :
@@ -615,12 +1056,39 @@ export class JavaParser {
       }
       
       // Process reference type (class, interface, etc.)
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (node.children.referenceType) {
         const refType = node.children.referenceType[0];
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (refType.children.classOrInterfaceType) {
           const classType = refType.children.classOrInterfaceType[0];
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (classType.children.identifier) {
             typeNode.name = classType.children.identifier[0].image;
           }
@@ -637,6 +1105,15 @@ export class JavaParser {
   private processFormalParameters(node: any): JavaASTNode[] {
     const params: JavaASTNode[] = [];
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children && node.children.formalParameter) {
       node.children.formalParameter.forEach((param: any) => {
         const paramNode: JavaASTNode = {
@@ -645,13 +1122,40 @@ export class JavaParser {
         };
         
         // Process parameter type
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (param.children.unannType && param.children.unannType[0]) {
           paramNode.children!.push(this.processType(param.children.unannType[0]));
         }
         
         // Process parameter name
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (param.children.variableDeclaratorId && param.children.variableDeclaratorId[0]) {
           const varId = param.children.variableDeclaratorId[0];
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (varId.children.identifier && varId.children.identifier[0]) {
             paramNode.children!.push({
               type: 'identifier',
@@ -692,6 +1196,15 @@ export class JavaParser {
       children: []
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children && node.children.variableDeclarator) {
       node.children.variableDeclarator.forEach((declarator: any) => {
         const declaratorNode: JavaASTNode = {
@@ -700,8 +1213,26 @@ export class JavaParser {
         };
         
         // Process variable name
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (declarator.children.variableDeclaratorId && declarator.children.variableDeclaratorId[0]) {
           const varId = declarator.children.variableDeclaratorId[0];
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (varId.children.identifier && varId.children.identifier[0]) {
             declaratorNode.children!.push({
               type: 'identifier',
@@ -711,6 +1242,15 @@ export class JavaParser {
         }
         
         // Process initializer if present
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (declarator.children.variableInitializer) {
           // Process initializer (simplified for brevity)
         }
@@ -729,6 +1269,15 @@ export class JavaParser {
    * @returns Converted AST node
    */
   private processNode(node: any): JavaASTNode {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!node) return { type: 'UNKNOWN' };
 
     // Extract basic information
@@ -737,6 +1286,15 @@ export class JavaParser {
     };
 
     // Add position information if available and requested
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.options.includePositions && node.location) {
       result.position = {
         startLine: node.location.startLine,
@@ -782,13 +1340,49 @@ export class JavaParser {
     featureChecks: Array<(node: JavaASTNode) => Error | null>
   ): void {
     // Check current node
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const check of featureChecks) {
       const error = check(node);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error) errors.push(error);
     }
     
     // Check children recursively
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.children) {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const child of node.children) {
         this.findUnsupportedFeatures(child, errors, featureChecks);
       }
@@ -805,6 +1399,15 @@ export class JavaParser {
           child.type === 'modifier' && child.name === 'private'
         );
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (hasPrivateModifier) {
           return new Error('Private interface methods are not supported in Java 8');
         }
@@ -838,6 +1441,15 @@ export class JavaParser {
           child.type === 'modifier' && child.name === 'sealed'
         );
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (hasSealedModifier) {
           return new Error('Sealed classes are not supported in Java 11');
         }

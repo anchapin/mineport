@@ -67,6 +67,15 @@ export class ModelConverter {
     const convertedModels: BedrockModelFile[] = [];
     const conversionNotes: ModelConversionNote[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const javaModel of javaModels) {
       try {
         const bedrockModel = await this.convertSingleModel(javaModel);
@@ -101,6 +110,15 @@ export class ModelConverter {
     let modelData: any;
     let metadata: any = {};
     
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (javaModel.type) {
       case 'block':
         const blockResult = this.convertBlockModel(javaModel);
@@ -146,6 +164,15 @@ export class ModelConverter {
     
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === 'models' && i + 1 < parts.length) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (i + 2 < parts.length) {
           fileName = parts.slice(i + 2).join('/');
         }
@@ -154,11 +181,29 @@ export class ModelConverter {
     }
     
     // Remove .json extension if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (fileName.endsWith('.json')) {
       fileName = fileName.substring(0, fileName.length - 5);
     }
     
     // Map to appropriate Bedrock path based on model type
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (modelType) {
       case 'block':
         return `models/blocks/${modId}_${fileName}.geo.json`;
@@ -265,8 +310,35 @@ export class ModelConverter {
       // Convert UV mappings
       const uv: any = {};
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (element.faces) {
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const [face, faceData] of Object.entries(element.faces)) {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (faceData) {
             const uvData = (faceData as any).uv || [0, 0, 16, 16];
             uv[face] = {
@@ -398,6 +470,15 @@ export class ModelConverter {
     // In a real implementation, this would need to handle different entity model formats
     
     // If the model has a defined structure, try to convert it
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modelData.elements) {
       return [{
         name: 'body',
@@ -407,6 +488,15 @@ export class ModelConverter {
     }
     
     // If the model has bones/parts defined in a custom format
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modelData.bones || modelData.parts) {
       const sourceBones = modelData.bones || modelData.parts || [];
       return sourceBones.map((bone: any) => {
@@ -465,6 +555,15 @@ export class ModelConverter {
     }
     
     // Remove .json extension if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modelName.endsWith('.json')) {
       modelName = modelName.substring(0, modelName.length - 5);
     }
@@ -485,10 +584,28 @@ export class ModelConverter {
     if (typeof model.data === 'object' && model.data !== null) {
       const modelData = model.data as any;
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!modelData.format_version) {
         issues.push('Missing format_version');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!modelData['minecraft:geometry']) {
         issues.push('Missing minecraft:geometry section');
       } else if (!Array.isArray(modelData['minecraft:geometry']) || modelData['minecraft:geometry'].length === 0) {
@@ -497,13 +614,40 @@ export class ModelConverter {
         const geometry = modelData['minecraft:geometry'][0];
         
         // Check for required geometry properties
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!geometry.description) {
           issues.push('Missing geometry description');
         } else {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (!geometry.description.identifier) {
             issues.push('Missing geometry identifier');
           }
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (!geometry.description.texture_width || !geometry.description.texture_height) {
             issues.push('Missing texture dimensions');
           }
@@ -515,6 +659,15 @@ export class ModelConverter {
         } else {
           // Validate each bone
           geometry.bones.forEach((bone: any, index: number) => {
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (!bone.name) {
               issues.push(`Bone at index ${index} is missing a name`);
             }
@@ -554,6 +707,15 @@ export class ModelConverter {
   ): Promise<void> {
     logger.info(`Organizing ${convertedModels.length} models in ${outputDir}`);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const model of convertedModels) {
       const outputPath = path.join(outputDir, model.path);
       const outputDirPath = path.dirname(outputPath);
@@ -569,6 +731,15 @@ export class ModelConverter {
       }
       
       // Generate any additional required files (like material definitions)
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (model.metadata && model.metadata.materials) {
         await this.createMaterialDefinition(model, outputDirPath);
       }
@@ -585,6 +756,15 @@ export class ModelConverter {
     model: BedrockModelFile,
     outputDir: string
   ): Promise<void> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!model.metadata?.materials) return;
     
     // Extract the base name without extension

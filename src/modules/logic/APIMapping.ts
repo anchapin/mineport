@@ -176,7 +176,25 @@ export class APIMappingDatabase {
   public findMappings(partialSignature: string): APIMapping[] {
     const results: APIMapping[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [signature, mapping] of this.mappings.entries()) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (signature.includes(partialSignature)) {
         results.push(mapping);
       }
@@ -193,7 +211,25 @@ export class APIMappingDatabase {
   public getMappingsForModLoader(modLoader: 'forge' | 'fabric'): APIMapping[] {
     const results: APIMapping[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const mapping of this.mappings.values()) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!mapping.modLoaders || mapping.modLoaders.includes(modLoader)) {
         results.push(mapping);
       }
@@ -210,7 +246,25 @@ export class APIMappingDatabase {
   public getMappingsForVersion(version: string): APIMapping[] {
     const results: APIMapping[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const mapping of this.mappings.values()) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!mapping.minecraftVersions || mapping.minecraftVersions.includes(version)) {
         results.push(mapping);
       }
@@ -227,6 +281,15 @@ export class APIMappingDatabase {
   public getMappingsByType(conversionType: 'direct' | 'wrapper' | 'complex' | 'impossible'): APIMapping[] {
     const results: APIMapping[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const mapping of this.mappings.values()) {
       if (mapping.conversionType === conversionType) {
         results.push(mapping);

@@ -74,6 +74,15 @@ export class ConfigurationAdminService extends EventEmitter {
    * @param options Options for the configuration admin service
    */
   constructor(options: ConfigurationAdminServiceOptions) {
+    /**
+     * super method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     super();
     this.configService = options.configService;
     this.versionsPath = options.versionsPath || path.resolve(__dirname, '../../config/versions');
@@ -159,6 +168,15 @@ export class ConfigurationAdminService extends EventEmitter {
    */
   public async applyVersion(id: string): Promise<boolean> {
     const version = this.getVersion(id);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!version) {
       logger.warn('Version not found', { id });
       return false;
@@ -200,6 +218,15 @@ export class ConfigurationAdminService extends EventEmitter {
       
       // Delete version file
       const versionPath = path.join(this.versionsPath, `${version.id}.json`);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (fs.existsSync(versionPath)) {
         fs.unlinkSync(versionPath);
       }
@@ -226,6 +253,15 @@ export class ConfigurationAdminService extends EventEmitter {
     const version1 = this.getVersion(id1);
     const version2 = this.getVersion(id2);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!version1 || !version2) {
       throw new Error('One or both versions not found');
     }
@@ -251,10 +287,28 @@ export class ConfigurationAdminService extends EventEmitter {
     // Get all keys from both objects
     const keys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const key of keys) {
       const currentPath = path ? `${path}.${key}` : key;
       
       // Check if key exists in both objects
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!(key in obj1)) {
         // Key only in obj2
         differences[currentPath] = { before: undefined, after: obj2[key] };
@@ -281,6 +335,15 @@ export class ConfigurationAdminService extends EventEmitter {
    * Ensure versions directory exists
    */
   private ensureVersionsDirectory(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!fs.existsSync(this.versionsPath)) {
       fs.mkdirSync(this.versionsPath, { recursive: true });
       logger.info('Created versions directory', { path: this.versionsPath });
@@ -297,6 +360,15 @@ export class ConfigurationAdminService extends EventEmitter {
         .filter(file => file.endsWith('.json'));
       
       // Load each version
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of files) {
         try {
           const filePath = path.join(this.versionsPath, file);
@@ -349,9 +421,27 @@ export class ConfigurationAdminService extends EventEmitter {
     const versionsToDelete = this.versions.slice(this.maxVersions);
     
     // Delete each version
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const version of versionsToDelete) {
       try {
         const filePath = path.join(this.versionsPath, `${version.id}.json`);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }

@@ -1,50 +1,92 @@
 /**
  * Service-related type definitions
  * 
- * This file contains interfaces related to application services
- * like job queues, resource allocation, and caching.
+ * This file contains interfaces and types related to application services
+ * including job queues, resource allocation, caching, and conversion orchestration.
+ * These types define the contracts between different service components.
+ * 
+ * @since 1.0.0
  */
 
 /**
- * Job status types
+ * Job status enumeration representing the lifecycle states of a conversion job.
+ * 
+ * - pending: Job is queued but not yet started
+ * - processing: Job is currently being processed
+ * - completed: Job finished successfully
+ * - failed: Job encountered an error and failed
+ * - cancelled: Job was cancelled by user or system
+ * 
+ * @since 1.0.0
  */
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
 /**
- * Interface for conversion job
+ * Represents a conversion job in the system.
  * 
- * This interface represents a job in the conversion queue.
+ * This interface defines the structure of a conversion job, including its
+ * input parameters, current status, progress tracking, and results.
+ * 
+ * @since 1.0.0
  */
 export interface ConversionJob {
+  /** Unique identifier for the job */
   id: string;
+  /** Input parameters for the conversion */
   input: ConversionInput;
+  /** Current status of the job */
   status: JobStatus;
+  /** Progress percentage (0-100) */
   progress: number;
+  /** Job priority (higher number = higher priority) */
   priority?: number;
+  /** Conversion result (available when status is 'completed') */
   result?: ConversionResult;
+  /** Error message (available when status is 'failed') */
   error?: string;
+  /** Timestamp when job was created */
   createdAt: Date;
+  /** Timestamp when job was last updated */
   updatedAt: Date;
+  /** Timestamp when job was completed (success or failure) */
   completedAt?: Date;
 }
 
 /**
- * Interface for conversion input
+ * Input parameters for a conversion job.
+ * 
+ * Defines the required information to start a mod conversion process,
+ * including source file, output location, and conversion options.
+ * 
+ * @since 1.0.0
  */
 export interface ConversionInput {
+  /** Path to the Java mod file to convert */
   modFile: string;
+  /** Output directory for the converted Bedrock addon */
   outputPath: string;
+  /** Configuration options for the conversion process */
   options: ConversionOptions;
 }
 
 /**
- * Interface for conversion options
+ * Configuration options for the conversion process.
+ * 
+ * These options control various aspects of how the conversion is performed,
+ * including target version, compromise strategies, and optimization settings.
+ * 
+ * @since 1.0.0
  */
 export interface ConversionOptions {
+  /** Target Minecraft Bedrock version for the conversion */
   targetMinecraftVersion: string;
+  /** Strategy for handling unmappable features */
   compromiseStrategy: 'conservative' | 'balanced' | 'aggressive';
+  /** Whether to include documentation in the output */
   includeDocumentation: boolean;
+  /** Whether to optimize assets during conversion */
   optimizeAssets: boolean;
+  /** Custom API mappings to override defaults */
   customMappings?: Record<string, string>;
 }
 
@@ -80,9 +122,45 @@ export interface ConversionResult {
  * This interface aligns with the design document's ConversionOrchestrator specification.
  */
 export interface ConversionOrchestrator {
+  /**
+   * queueConversion method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   queueConversion(input: any): Promise<string>; // Returns job ID
+  /**
+   * processNextJob method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   processNextJob(): Promise<void>;
+  /**
+   * getJobStatus method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getJobStatus(jobId: string): JobStatus;
+  /**
+   * cancelJob method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   cancelJob(jobId: string): Promise<boolean>;
 }
 

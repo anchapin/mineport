@@ -12,11 +12,25 @@ import { ModLoaderDetector, ModLoaderType, ModLoaderDetectionResult } from './Mo
 import { LicenseParser, LicenseInfo as LicenseInfoType, LicenseParseResult } from './LicenseParser';
 import { FeatureCompatibilityAnalyzer, FeatureAnalysisResult } from './FeatureCompatibilityAnalyzer';
 
+/**
+ * ModInput interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ModInput {
   jarFile: Buffer;
   sourceCodeRepo?: string;
 }
 
+/**
+ * AnalysisResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface AnalysisResult {
   modId: string;
   modName: string;
@@ -26,6 +40,13 @@ export interface AnalysisResult {
   compatibilityReport: FeatureCompatibilityReport;
 }
 
+/**
+ * LicenseInfo interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LicenseInfo {
   type: string;
   text: string;
@@ -34,6 +55,13 @@ export interface LicenseInfo {
   conditions: string[];
 }
 
+/**
+ * FeatureCompatibilityReport interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface FeatureCompatibilityReport {
   tier1Features: Feature[]; // Fully Translatable
   tier2Features: Feature[]; // Approximation Possible
@@ -41,6 +69,13 @@ export interface FeatureCompatibilityReport {
   tier4Features: Feature[]; // Unanalyzable
 }
 
+/**
+ * Feature interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface Feature {
   id: string;
   name: string;
@@ -51,6 +86,13 @@ export interface Feature {
   compromiseStrategy?: CompromiseStrategy;
 }
 
+/**
+ * CompromiseStrategy interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface CompromiseStrategy {
   type: 'simulation' | 'stubbing' | 'approximation';
   description: string;
@@ -65,6 +107,13 @@ export { ModLoaderDetector, ModLoaderType, ModLoaderDetectionResult };
 export { LicenseParser, LicenseInfoType as LicenseParseInfo, LicenseParseResult };
 export { FeatureCompatibilityAnalyzer, FeatureAnalysisResult };
 
+/**
+ * IngestionModule class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class IngestionModule {
   private modValidator: ModValidator;
   private sourceCodeFetcher: SourceCodeFetcher;
@@ -72,6 +121,15 @@ export class IngestionModule {
   private licenseParser: LicenseParser;
   private featureAnalyzer: FeatureCompatibilityAnalyzer;
   
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(tempDir?: string) {
     this.modValidator = new ModValidator(tempDir);
     this.sourceCodeFetcher = new SourceCodeFetcher();
@@ -80,22 +138,58 @@ export class IngestionModule {
     this.featureAnalyzer = new FeatureCompatibilityAnalyzer();
   }
   
+  /**
+   * processModInput method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
   async processModInput(input: ModInput): Promise<AnalysisResult> {
     // Validate the mod file
     const validationResult = await this.modValidator.validateMod(input.jarFile);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!validationResult.isValid) {
       throw new Error(`Invalid mod file: ${validationResult.errors?.join(', ')}`);
     }
     
     // Extract source code if repository is provided
     let sourceCodePath = validationResult.extractedPath;
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (input.sourceCodeRepo) {
       const sourceCodeResult = await this.sourceCodeFetcher.fetchSourceCode({
         repoUrl: input.sourceCodeRepo,
         modId: validationResult.modInfo?.modId || '',
       });
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (sourceCodeResult.success) {
         sourceCodePath = sourceCodeResult.sourcePath;
       }

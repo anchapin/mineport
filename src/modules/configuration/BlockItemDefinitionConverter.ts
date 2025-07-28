@@ -66,6 +66,13 @@ const ITEM_PROPERTY_MAPPINGS = {
   'Rarity.EPIC': { rarity: 'epic' }
 };
 
+/**
+ * JavaRegistrationCode interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaRegistrationCode {
   type: 'block' | 'item';
   modId: string;
@@ -76,6 +83,13 @@ export interface JavaRegistrationCode {
   lineNumber: number;
 }
 
+/**
+ * BedrockBlockDefinition interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockBlockDefinition {
   format_version: string;
   'minecraft:block': {
@@ -88,6 +102,13 @@ export interface BedrockBlockDefinition {
   };
 }
 
+/**
+ * BedrockItemDefinition interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockItemDefinition {
   format_version: string;
   'minecraft:item': {
@@ -101,6 +122,13 @@ export interface BedrockItemDefinition {
   };
 }
 
+/**
+ * BlockItemConversionResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BlockItemConversionResult {
   success: boolean;
   blocks: BedrockBlockDefinition[];
@@ -109,6 +137,13 @@ export interface BlockItemConversionResult {
   conversionNotes: BlockItemConversionNote[];
 }
 
+/**
+ * BlockItemConversionNote interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BlockItemConversionNote {
   type: 'info' | 'warning' | 'error';
   component: 'block' | 'item';
@@ -118,6 +153,13 @@ export interface BlockItemConversionNote {
   lineNumber?: number;
 }
 
+/**
+ * BlockItemDefinitionConverter class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class BlockItemDefinitionConverter {
   /**
    * Analyzes Java source files to extract block and item registrations
@@ -132,6 +174,15 @@ export class BlockItemDefinitionConverter {
       
       logger.info(`Found ${javaFiles.length} Java files to analyze for registrations`);
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of javaFiles) {
         const content = await fs.readFile(file, 'utf-8');
         const lines = content.split('\n');
@@ -141,13 +192,40 @@ export class BlockItemDefinitionConverter {
           const line = lines[i];
           
           // Check for block registrations
+          /**
+           * for method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           for (const pattern of BLOCK_REGISTRATION_PATTERNS) {
             const matches = [...line.matchAll(pattern)];
+            /**
+             * for method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             for (const match of matches) {
               let name: string;
               let className: string;
               
               // Different patterns have different group structures
+              /**
+               * if method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               if (match[2] && !match[2].includes('ResourceLocation')) {
                 name = match[2];
                 className = match[3] || '';
@@ -174,13 +252,40 @@ export class BlockItemDefinitionConverter {
           }
           
           // Check for item registrations
+          /**
+           * for method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           for (const pattern of ITEM_REGISTRATION_PATTERNS) {
             const matches = [...line.matchAll(pattern)];
+            /**
+             * for method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             for (const match of matches) {
               let name: string;
               let className: string;
               
               // Different patterns have different group structures
+              /**
+               * if method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               if (match[2] && !match[2].includes('ResourceLocation')) {
                 name = match[2];
                 className = match[3] || '';
@@ -328,6 +433,15 @@ export class BlockItemDefinitionConverter {
       const items = this.convertItemDefinitions(registrations);
       
       // Generate conversion notes
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const reg of registrations) {
         conversionNotes.push({
           type: 'info',
@@ -375,6 +489,15 @@ export class BlockItemDefinitionConverter {
     behaviorPackDir: string
   ): Promise<boolean> {
     try {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!result.success) {
         logger.error('Cannot write invalid definitions', { result });
         return false;
@@ -388,6 +511,15 @@ export class BlockItemDefinitionConverter {
       await fs.mkdir(itemsDir, { recursive: true });
       
       // Write block definitions
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const block of result.blocks) {
         const identifier = block['minecraft:block'].description.identifier;
         const fileName = identifier.replace(':', '_') + '.json';
@@ -401,6 +533,15 @@ export class BlockItemDefinitionConverter {
       }
       
       // Write item definitions
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const item of result.items) {
         const identifier = item['minecraft:item'].description.identifier;
         const fileName = identifier.replace(':', '_') + '.json';
@@ -436,9 +577,27 @@ export class BlockItemDefinitionConverter {
     async function scanDir(currentDir: string) {
       const entries = await fs.readdir(currentDir, { withFileTypes: true });
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const entry of entries) {
         const fullPath = path.join(currentDir, entry.name);
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (entry.isDirectory()) {
           await scanDir(fullPath);
         } else if (entry.isFile() && entry.name.endsWith('.java')) {
@@ -465,6 +624,15 @@ export class BlockItemDefinitionConverter {
     // Look for block class definition
     let classStart = -1;
     for (let i = Math.max(0, lineIndex - 50); i < Math.min(lines.length, lineIndex + 50); i++) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (classPattern.test(lines[i])) {
         classStart = i;
         break;
@@ -477,6 +645,15 @@ export class BlockItemDefinitionConverter {
         const line = lines[i];
         const matches = [...line.matchAll(propertyPattern)];
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const match of matches) {
           const propertyName = match[1];
           const propertyValue = match[2].trim();
@@ -484,36 +661,126 @@ export class BlockItemDefinitionConverter {
         }
         
         // Look for specific property patterns
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('setHardness') || line.includes('hardnessAndResistance')) {
           const hardnessMatch = line.match(/(?:setHardness|hardnessAndResistance)\(([^,)]+)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (hardnessMatch) {
             properties['hardness'] = hardnessMatch[1].trim();
           }
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('setResistance')) {
           const resistanceMatch = line.match(/setResistance\(([^)]+)\)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (resistanceMatch) {
             properties['resistance'] = resistanceMatch[1].trim();
           }
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('setLightValue')) {
           const lightMatch = line.match(/setLightValue\(([^)]+)\)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (lightMatch) {
             properties['lightValue'] = lightMatch[1].trim();
           }
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('setSoundType')) {
           const soundMatch = line.match(/setSoundType\(([^)]+)\)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (soundMatch) {
             properties['soundType'] = soundMatch[1].trim();
           }
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('setSlipperiness')) {
           const slipMatch = line.match(/setSlipperiness\(([^)]+)\)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (slipMatch) {
             properties['slipperiness'] = slipMatch[1].trim();
           }
@@ -538,6 +805,15 @@ export class BlockItemDefinitionConverter {
     // Look for item class definition
     let classStart = -1;
     for (let i = Math.max(0, lineIndex - 50); i < Math.min(lines.length, lineIndex + 50); i++) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (classPattern.test(lines[i])) {
         classStart = i;
         break;
@@ -550,6 +826,15 @@ export class BlockItemDefinitionConverter {
         const line = lines[i];
         const matches = [...line.matchAll(propertyPattern)];
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const match of matches) {
           const propertyName = match[1];
           const propertyValue = match[2].trim();
@@ -557,22 +842,76 @@ export class BlockItemDefinitionConverter {
         }
         
         // Look for specific property patterns
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('maxStackSize')) {
           const stackMatch = line.match(/maxStackSize\s*=\s*(\d+)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (stackMatch) {
             properties['maxStackSize'] = stackMatch[1].trim();
           }
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('maxDamage')) {
           const damageMatch = line.match(/maxDamage\((\d+)\)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (damageMatch) {
             properties['maxDamage'] = damageMatch[1].trim();
           }
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (line.includes('rarity')) {
           const rarityMatch = line.match(/rarity\(([^)]+)\)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (rarityMatch) {
             properties['rarity'] = rarityMatch[1].trim();
           }
@@ -592,8 +931,26 @@ export class BlockItemDefinitionConverter {
     const components = blockDef['minecraft:block'].components;
     
     // Map hardness to destroy_time
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['hardness']) {
       const hardness = parseFloat(properties['hardness']);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!isNaN(hardness)) {
         components['minecraft:destructible_by_mining'] = {
           seconds_to_destroy: Number(hardness) // Ensure it's a number
@@ -602,8 +959,26 @@ export class BlockItemDefinitionConverter {
     }
     
     // Map light value
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['lightValue']) {
       const lightValue = parseInt(properties['lightValue']);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!isNaN(lightValue) && lightValue > 0) {
         // Force conversion to number with unary plus operator
         components['minecraft:light_emission'] = +lightValue;
@@ -611,17 +986,53 @@ export class BlockItemDefinitionConverter {
     }
     
     // Map slipperiness to friction
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['slipperiness']) {
       const friction = parseFloat(properties['slipperiness']);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!isNaN(friction)) {
         components['minecraft:friction'] = Number(friction); // Ensure it's a number
       }
     }
     
     // Map sound type
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['soundType']) {
       const soundType = properties['soundType'];
       const mappedSound = BLOCK_PROPERTY_MAPPINGS[soundType];
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (mappedSound && mappedSound.sound) {
         components['minecraft:block_sounds'] = {
           sound: mappedSound.sound
@@ -630,6 +1041,15 @@ export class BlockItemDefinitionConverter {
     }
     
     // Map material properties
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [javaProperty, bedrockProperty] of Object.entries(BLOCK_PROPERTY_MAPPINGS)) {
       if (properties[javaProperty] || properties[javaProperty] === javaProperty) {
         if (typeof bedrockProperty === 'string') {
@@ -663,16 +1083,52 @@ export class BlockItemDefinitionConverter {
     const components = itemDef['minecraft:item'].components;
     
     // Map max stack size
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['maxStackSize']) {
       const stackSize = parseInt(properties['maxStackSize']);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!isNaN(stackSize)) {
         components['minecraft:max_stack_size'] = Number(stackSize); // Force conversion to number
       }
     }
     
     // Map max damage
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['maxDamage']) {
       const maxDamage = parseInt(properties['maxDamage']);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!isNaN(maxDamage) && maxDamage > 0) {
         components['minecraft:durability'] = {
           max_durability: Number(maxDamage) // Force conversion to number
@@ -681,9 +1137,27 @@ export class BlockItemDefinitionConverter {
     }
     
     // Map rarity to custom data
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['rarity']) {
       const rarity = properties['rarity'];
       const mappedRarity = ITEM_PROPERTY_MAPPINGS[rarity];
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (mappedRarity && mappedRarity.rarity) {
         // Store rarity as custom data since Bedrock doesn't have direct rarity
         components['minecraft:custom_data'] = {
@@ -693,6 +1167,15 @@ export class BlockItemDefinitionConverter {
     }
     
     // Map other properties
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [javaProperty, bedrockProperty] of Object.entries(ITEM_PROPERTY_MAPPINGS)) {
       if (properties[javaProperty] || properties[javaProperty] === javaProperty) {
         if (typeof bedrockProperty === 'string') {
@@ -713,19 +1196,64 @@ export class BlockItemDefinitionConverter {
     }
     
     // Check for tool properties
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (properties['efficiency'] || properties['attackDamage']) {
       // This is likely a tool
       components['minecraft:hand_equipped'] = true;
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (properties['efficiency']) {
         const efficiency = parseFloat(properties['efficiency']);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!isNaN(efficiency)) {
           components['minecraft:mining_speed'] = efficiency;
         }
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (properties['attackDamage']) {
         const damage = parseFloat(properties['attackDamage']);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!isNaN(damage)) {
           components['minecraft:damage'] = damage;
         }
@@ -762,6 +1290,15 @@ export class BlockItemDefinitionConverter {
   private checkForMissingTextures(registrations: JavaRegistrationCode[]): BlockItemConversionNote[] {
     const notes: BlockItemConversionNote[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const reg of registrations) {
       // In a real implementation, we would check if texture files exist
       // For now, just add a note about texture requirements

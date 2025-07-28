@@ -46,6 +46,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
    * @param options Options for the configuration service
    */
   constructor(options: ConfigurationServiceOptions = {}) {
+    /**
+     * super method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     super();
     this.options = {
       environment: process.env.NODE_ENV || 'development',
@@ -60,6 +69,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     this.loadEnvironmentConfig();
     
     // Set up file watchers if enabled
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.options.watchForChanges) {
       this.setupConfigWatchers();
     }
@@ -131,16 +149,52 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     const invalidValues: { key: string; value: any; reason: string }[] = [];
     
     // Validate each section
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [sectionName, section] of Object.entries(this.sections)) {
       // Validate each value in the section
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const [key, configValue] of Object.entries(section.values)) {
         const fullKey = `${sectionName}.${key}`;
         const currentValue = this.get(fullKey, configValue.defaultValue);
         
         // Skip validation if no validation function is defined
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!configValue.validation) continue;
         
         // Validate the value
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!configValue.validation(currentValue)) {
           invalidValues.push({
             key: fullKey,
@@ -190,6 +244,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
       
       // Ensure directory exists
       const dir = path.dirname(filePath);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
@@ -230,6 +293,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
         // Import from file
         const filePath = filePathOrConfig;
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!fs.existsSync(filePath)) {
           throw new Error(`Configuration file not found: ${filePath}`);
         }
@@ -266,6 +338,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
    * @param prefix Key prefix for nested objects
    */
   private emitUpdateEvents(importedConfig: Record<string, any>, prefix: string = ''): void {
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [key, value] of Object.entries(importedConfig)) {
       const fullKey = prefix ? `${prefix}.${key}` : key;
       
@@ -285,6 +366,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
    * @returns Path to environment-specific configuration file
    */
   private getEnvironmentConfigPath(): string {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.options.envConfigPath) {
       return this.options.envConfigPath;
     }
@@ -301,6 +391,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     
     try {
       // Check if environment-specific configuration exists
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (fs.existsSync(envConfigPath)) {
         // In a real implementation, we would use dynamic import
         // For now, we'll simulate loading the environment config
@@ -324,6 +423,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     
     try {
       // Watch environment-specific configuration file if it exists
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (fs.existsSync(envConfigPath)) {
         this.watcher = fs.watch(envConfigPath, () => {
           logger.info('Configuration file changed, reloading');
@@ -347,6 +455,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     const parts = path.split('.');
     let current: any = this.config;
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const part of parts) {
       if (current === undefined || current === null) {
         return undefined;
@@ -368,6 +485,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     const parts = path.split('.');
     const lastPart = parts.pop();
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!lastPart) {
       return;
     }
@@ -375,6 +501,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     let current: any = this.config;
     
     // Navigate to the parent object
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const part of parts) {
       if (current[part] === undefined || current[part] === null) {
         current[part] = {};
@@ -407,7 +542,25 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
   private deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
     const result = { ...target };
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const key of Object.keys(source)) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (source[key] instanceof Object && key in target && target[key] instanceof Object) {
         result[key] = this.deepMerge(target[key], source[key]);
       } else {
@@ -429,8 +582,35 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
     
     // Recursively search for sensitive keys
     const maskSensitiveValues = (obj: Record<string, any>) => {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const key of Object.keys(obj)) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (obj[key] instanceof Object) {
+          /**
+           * maskSensitiveValues method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           maskSensitiveValues(obj[key]);
         } else if (sensitiveKeys.some(sensitiveKey => key.toLowerCase().includes(sensitiveKey))) {
           obj[key] = '********';
@@ -438,6 +618,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
       }
     };
     
+    /**
+     * maskSensitiveValues method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     maskSensitiveValues(config);
   }
 
@@ -445,6 +634,15 @@ export class ConfigurationService extends EventEmitter implements IConfiguration
    * Clean up resources when service is no longer needed
    */
   public dispose(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.watcher) {
       this.watcher.close();
       this.watcher = undefined;

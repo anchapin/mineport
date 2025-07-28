@@ -2,11 +2,30 @@
  * Conversion Service
  * 
  * This service connects the JobQueue with the conversion pipeline components,
- * providing job creation, tracking, and management capabilities.
+ * providing job creation, tracking, and management capabilities. It orchestrates
+ * the entire conversion process from job creation to completion, managing resources
+ * and providing real-time status updates.
+ * 
+ * The service acts as the main entry point for conversion operations, handling
+ * job lifecycle management, resource allocation, and status reporting.
  * 
  * Implements requirements:
  * - 7.2: Process multiple conversion requests in parallel
  * - 7.4: Provide real-time status updates for conversion jobs
+ * 
+ * @example
+ * ```typescript
+ * const service = new ConversionService({
+ *   jobQueue: new JobQueue(),
+ *   resourceAllocator: new ResourceAllocator()
+ * });
+ * 
+ * service.start();
+ * const job = service.createConversionJob(input);
+ * const status = service.getJobStatus(job.id);
+ * ```
+ * 
+ * @since 1.0.0
  */
 
 import { EventEmitter } from 'events';
@@ -29,6 +48,13 @@ import { ErrorSeverity, createErrorCode, createConversionError } from '../types/
 const logger = createLogger('ConversionService');
 const MODULE_ID = 'CONVERSION';
 
+/**
+ * ConversionServiceOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ConversionServiceOptions {
   jobQueue: JobQueue;
   resourceAllocator?: ResourceAllocator;
@@ -38,9 +64,13 @@ export interface ConversionServiceOptions {
 }
 
 /**
- * Service to connect JobQueue with pipeline components
+ * Service implementation that connects JobQueue with pipeline components.
  * 
- * Implements the ConversionService interface
+ * This class implements the ConversionService interface and provides
+ * the core functionality for managing conversion jobs, including creation,
+ * monitoring, and lifecycle management.
+ * 
+ * @since 1.0.0
  */
 export class ConversionService extends EventEmitter implements IConversionService {
   private jobQueue: JobQueue;
@@ -57,11 +87,25 @@ export class ConversionService extends EventEmitter implements IConversionServic
   private statusIntervalId?: NodeJS.Timeout;
 
   /**
-   * Creates a new instance of the ConversionService
+   * Creates a new instance of the ConversionService.
    * 
-   * @param options Options for the conversion service
+   * Initializes the service with the provided options, sets up the conversion
+   * pipeline, and configures event listeners for job queue events.
+   * 
+   * @param options - Configuration options for the conversion service
+   * @throws {Error} When required options are missing or invalid
+   * @since 1.0.0
    */
   constructor(options: ConversionServiceOptions) {
+    /**
+     * super method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     super();
     this.jobQueue = options.jobQueue;
     this.resourceAllocator = options.resourceAllocator;
@@ -76,6 +120,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
       configService: this.configService
     });
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.configService) {
       // Get status update interval from configuration
       this.statusUpdateInterval = this.configService.get(
@@ -103,7 +156,13 @@ export class ConversionService extends EventEmitter implements IConversionServic
   }
   
   /**
-   * Handle configuration updates
+   * Handle configuration updates from the ConfigurationService.
+   * 
+   * Updates service settings when configuration changes are detected,
+   * particularly for status update intervals and other runtime settings.
+   * 
+   * @param update - Configuration update object containing key and new value
+   * @since 1.0.0
    */
   private handleConfigUpdate(update: { key: string; value: any }): void {
     if (update.key === 'conversion.statusUpdateInterval') {
@@ -113,6 +172,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
       });
       
       // Restart status updates if they're running
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (this.statusIntervalId) {
         this.stopStatusUpdates();
         this.startStatusUpdates();
@@ -121,12 +189,27 @@ export class ConversionService extends EventEmitter implements IConversionServic
   }
 
   /**
-   * Start the conversion service
+   * Start the conversion service.
+   * 
+   * Initializes all service components, starts the resource allocator,
+   * begins job processing, and starts status update intervals.
+   * 
+   * @throws {Error} When service fails to start
+   * @since 1.0.0
    */
   public start(): void {
     logger.info('Starting conversion service');
     
     // Start the resource allocator if provided
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.resourceAllocator) {
       this.resourceAllocator.start();
     }
@@ -142,12 +225,26 @@ export class ConversionService extends EventEmitter implements IConversionServic
   }
 
   /**
-   * Stop the conversion service
+   * Stop the conversion service.
+   * 
+   * Gracefully shuts down all service components, stops job processing,
+   * and cleans up resources.
+   * 
+   * @since 1.0.0
    */
   public stop(): void {
     logger.info('Stopping conversion service');
     
     // Stop the resource allocator if provided
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.resourceAllocator) {
       this.resourceAllocator.stop();
     }
@@ -163,10 +260,27 @@ export class ConversionService extends EventEmitter implements IConversionServic
   }
 
   /**
-   * Create a new conversion job
+   * Create a new conversion job.
    * 
-   * @param input Conversion input
-   * @returns Created conversion job
+   * Creates a new conversion job from the provided input, queues it for processing,
+   * and returns the job details. The job will be processed asynchronously by the
+   * conversion pipeline.
+   * 
+   * @param input - Conversion input containing mod file and options
+   * @returns Created conversion job with ID and initial status
+   * @throws {Error} When job creation fails or queue is unavailable
+   * 
+   * @example
+   * ```typescript
+   * const job = service.createConversionJob({
+   *   modFile: '/path/to/mod.jar',
+   *   outputPath: '/path/to/output',
+   *   options: { targetMinecraftVersion: '1.20' }
+   * });
+   * console.log(`Created job: ${job.id}`);
+   * ```
+   * 
+   * @since 1.0.0
    */
   public createConversionJob(input: ConversionInput): ConversionJob {
     logger.info('Creating conversion job', { modFile: input.modFile });
@@ -187,6 +301,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
     // Queue the conversion job using the pipeline
     const jobId = this.pipeline.queueConversion(pipelineInput);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!jobId) {
       throw new Error('Failed to queue conversion job');
     }
@@ -194,6 +317,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
     // Get the job from the queue
     const job = this.jobQueue.getJob(jobId);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!job) {
       throw new Error(`Job not found after queueing: ${jobId}`);
     }
@@ -237,12 +369,30 @@ export class ConversionService extends EventEmitter implements IConversionServic
    */
   public getJobStatus(jobId: string): ConversionStatus | undefined {
     const activeJob = this.activeJobs.get(jobId);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (activeJob) {
       return activeJob.status;
     }
     
     // Check if job exists in queue but not in active jobs
     const job = this.jobQueue.getJob(jobId);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (job) {
       return {
         jobId: job.id,
@@ -296,6 +446,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
     // Use the pipeline to cancel the job
     const cancelled = this.pipeline.cancelJob(jobId);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (cancelled) {
       // Emit job cancelled event
       this.emit('job:cancelled', { jobId });
@@ -315,6 +474,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
     logger.info('Updating job priority', { jobId, priority });
     
     // Validate priority value
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (priority < 1 || priority > 10) {
       logger.warn('Invalid priority value', { jobId, priority });
       return false;
@@ -323,6 +491,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
     // Update job priority in the queue
     const updated = this.jobQueue.updateJobPriority(jobId, priority);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (updated) {
       // Emit job priority updated event
       this.emit('job:priority', { jobId, priority });
@@ -350,6 +527,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * Set up job queue event listeners
    */
   private setupJobQueueListeners(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue) return;
     
     // Listen for job completed events
@@ -358,6 +544,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
       
       // Update active job status
       const activeJob = this.activeJobs.get(job.id);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (activeJob) {
         activeJob.status.status = 'completed';
         activeJob.status.progress = 100;
@@ -382,6 +577,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
       
       // Update active job status
       const activeJob = this.activeJobs.get(job.id);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (activeJob) {
         activeJob.status.status = 'failed';
         activeJob.status.currentStage = 'failed';
@@ -404,20 +608,56 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * Update job statuses
    */
   private updateJobStatuses(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.jobQueue) return;
     
     // Get all processing jobs
     const processingJobs = this.jobQueue.getJobs({ status: 'processing' });
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const job of processingJobs) {
       if (job.type !== 'conversion') continue;
       
       const activeJob = this.activeJobs.get(job.id);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!activeJob) continue;
       
       // Get job status from pipeline
       const pipelineStatus = this.pipeline.getJobStatus(job.id);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (pipelineStatus) {
         // Update active job status with pipeline status
         activeJob.status.status = pipelineStatus.status as JobStatus;
@@ -435,6 +675,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * Start status update interval
    */
   private startStatusUpdates(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.statusIntervalId) return;
     
     this.statusIntervalId = setInterval(() => {
@@ -446,7 +695,25 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * Stop status update interval
    */
   private stopStatusUpdates(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.statusIntervalId) {
+      /**
+       * clearInterval method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       clearInterval(this.statusIntervalId);
       this.statusIntervalId = undefined;
     }
@@ -459,6 +726,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
     // This is a simplified implementation
     // In a real system, we would query the actual progress of each job
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [jobId, activeJob] of this.activeJobs.entries()) {
       if (activeJob.job.status === 'processing') {
         // Emit status update event

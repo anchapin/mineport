@@ -15,6 +15,13 @@ import logger from '../../utils/logger';
 import { randomUUID } from 'crypto';
 import config from '../../../config/default';
 
+/**
+ * SourceCodeFetchOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface SourceCodeFetchOptions {
   /**
    * GitHub repository URL in format: 'owner/repo' or 'https://github.com/owner/repo'
@@ -32,12 +39,26 @@ export interface SourceCodeFetchOptions {
   path?: string;
 }
 
+/**
+ * SourceCodeFetchResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface SourceCodeFetchResult {
   success: boolean;
   extractedPath?: string;
   errors?: string[];
 }
 
+/**
+ * SourceCodeFetcher class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class SourceCodeFetcher {
   private octokit: Octokit;
   private tempDir: string;
@@ -81,6 +102,15 @@ export class SourceCodeFetcher {
     try {
       // Parse repository owner and name from URL
       const { owner, repo } = this.parseRepoUrl(options.repoUrl);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!owner || !repo) {
         result.errors?.push('Invalid repository URL format. Expected format: owner/repo or https://github.com/owner/repo');
         return result;
@@ -90,6 +120,15 @@ export class SourceCodeFetcher {
       await this.updateRateLimitInfo();
       
       // Check rate limit before making API calls
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!this.checkRateLimit()) {
         const resetDate = new Date(this.rateLimitReset * 1000);
         result.errors?.push(`GitHub API rate limit exceeded. Resets at ${resetDate.toLocaleString()}`);
@@ -121,8 +160,26 @@ export class SourceCodeFetcher {
       const sourceDir = await this.findSourceDirectory(extractPath);
       
       // If a specific path within the repo was requested, only keep that part
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (options.path) {
         const specificPath = path.join(sourceDir, options.path);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (await this.pathExists(specificPath)) {
           // Create a new directory for the specific path
           const specificDir = path.join(extractPath, 'specific');
@@ -163,6 +220,15 @@ export class SourceCodeFetcher {
    */
   private parseRepoUrl(repoUrl: string): { owner: string | null; repo: string | null } {
     // Handle URLs in format: owner/repo
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (repoUrl.indexOf('/') > 0 && !repoUrl.includes('://')) {
       const [owner, repo] = repoUrl.split('/');
       return { owner, repo };
@@ -224,10 +290,28 @@ export class SourceCodeFetcher {
     let attempts = 0;
     let lastError: Error | null = null;
     
+    /**
+     * while method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     while (attempts < this.retryLimit) {
       try {
         const response = await fetch(url);
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!response.ok) {
           throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
         }
@@ -243,6 +327,15 @@ export class SourceCodeFetcher {
         logger.warn(`Download attempt ${attempts + 1} failed`, { error, url });
         attempts++;
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (attempts < this.retryLimit) {
           // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempts));
@@ -262,7 +355,25 @@ export class SourceCodeFetcher {
   private async extractZip(zipPath: string, extractPath: string): Promise<void> {
     try {
       await pipeline(
+        /**
+         * createReadStream method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         createReadStream(zipPath),
+        /**
+         * Extract method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         Extract({ path: extractPath })
       );
       
@@ -283,7 +394,25 @@ export class SourceCodeFetcher {
       const entries = await fs.readdir(extractPath, { withFileTypes: true });
       
       // Find the first directory in the extracted path
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const entry of entries) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (entry.isDirectory()) {
           return path.join(extractPath, entry.name);
         }
@@ -366,6 +495,15 @@ export class SourceCodeFetcher {
     try {
       await this.updateRateLimitInfo();
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!this.checkRateLimit()) {
         throw new Error(`GitHub API rate limit exceeded. Resets at ${new Date(this.rateLimitReset * 1000).toLocaleString()}`);
       }
@@ -392,6 +530,15 @@ export class SourceCodeFetcher {
     try {
       await this.updateRateLimitInfo();
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!this.checkRateLimit()) {
         throw new Error(`GitHub API rate limit exceeded. Resets at ${new Date(this.rateLimitReset * 1000).toLocaleString()}`);
       }

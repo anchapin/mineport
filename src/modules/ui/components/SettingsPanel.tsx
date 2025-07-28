@@ -1,19 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CompromiseStrategy, UserPreferences } from '../types';
+import { CompromisePreferencesService, StrategyPreview } from '../services/CompromisePreferencesService';
+import { StrategyPreviewPanel } from './StrategyPreviewPanel';
+import { Feature } from '../../../types/compromise';
 
 interface SettingsPanelProps {
   preferences: UserPreferences;
   onSave: (preferences: UserPreferences) => void;
   onCancel: () => void;
+  preferencesService?: CompromisePreferencesService;
+  sampleFeatures?: Feature[];
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   preferences,
   onSave,
-  onCancel
+  onCancel,
+  preferencesService,
+  sampleFeatures = []
 }) => {
   const [currentPreferences, setCurrentPreferences] = useState<UserPreferences>({...preferences});
-  const [activeTab, setActiveTab] = useState<'general' | 'compromise' | 'advanced'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'compromise' | 'preview' | 'advanced'>('general');
+  const [strategyPreviews, setStrategyPreviews] = useState<StrategyPreview[]>([]);
+
+  // Update previews when preferences change
+  useEffect(() => {
+    if (preferencesService && sampleFeatures.length > 0) {
+      preferencesService.updatePreferences(currentPreferences);
+      const previews = preferencesService.previewStrategyEffects(sampleFeatures);
+      setStrategyPreviews(previews);
+    }
+  }, [currentPreferences, preferencesService, sampleFeatures]);
 
   const handleCompromiseStrategyToggle = (strategyId: string) => {
     setCurrentPreferences(prev => ({
@@ -62,7 +79,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const handleSave = () => {
+    // Update the preferences service with final preferences
+    if (preferencesService) {
+      preferencesService.updatePreferences(currentPreferences);
+    }
     onSave(currentPreferences);
+  };
+
+  const handlePreviewUpdate = (featureId: string) => {
+    if (preferencesService && sampleFeatures.length > 0) {
+      const previews = preferencesService.previewStrategyEffects(sampleFeatures);
+      setStrategyPreviews(previews);
+    }
   };
 
   const renderCompromiseStrategies = () => {
@@ -173,6 +201,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           Compromise Strategies
         </button>
         <button 
+          className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('preview')}
+        >
+          Strategy Preview
+        </button>
+        <button 
           className={`tab ${activeTab === 'advanced' ? 'active' : ''}`}
           onClick={() => setActiveTab('advanced')}
         >
@@ -257,6 +291,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             <div className="compromise-list">
               {renderCompromiseStrategies()}
             </div>
+          </div>
+        )}
+        
+        {activeTab === 'preview' && (
+          <div className="preview-settings">
+            <div className="preview-explanation">
+              <h3>Strategy Preview</h3>
+              <p>
+                See how your compromise strategy preferences will affect feature conversion.
+                This preview shows the expected behavior for each strategy based on your current settings.
+              </p>
+            </div>
+            
+            <StrategyPreviewPanel 
+              previews={strategyPreviews}
+              onPreviewUpdate={handlePreviewUpdate}
+            />
           </div>
         )}
         

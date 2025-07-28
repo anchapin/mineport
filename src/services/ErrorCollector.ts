@@ -43,6 +43,15 @@ export class ErrorCollector implements IErrorCollector {
    */
   public addError(error: ConversionError): void {
     // Check if we should filter out duplicates
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.options.filterDuplicates && this.isDuplicate(error)) {
       return;
     }
@@ -75,42 +84,141 @@ export class ErrorCollector implements IErrorCollector {
    * @returns Filtered errors
    */
   public getErrors(filter?: ErrorFilter): ConversionError[] {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!filter) {
       return [...this.errors];
     }
     
     return this.errors.filter(error => {
       // Filter by types
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter.types && filter.types.length > 0) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!filter.types.includes(error.type as ErrorType)) {
           return false;
         }
       }
       
       // Filter by severities
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter.severities && filter.severities.length > 0) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!filter.severities.includes(error.severity as ErrorSeverity)) {
           return false;
         }
       }
       
       // Filter by modules
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter.modules && filter.modules.length > 0) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!filter.modules.includes(error.moduleOrigin)) {
           return false;
         }
       }
       
       // Filter by codes
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter.codes && filter.codes.length > 0) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!filter.codes.includes(error.code)) {
           return false;
         }
       }
       
       // Filter by search term
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (filter.search) {
         const searchTerm = filter.search.toLowerCase();
+        /**
+         * return method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         return (
           error.message.toLowerCase().includes(searchTerm) ||
           error.moduleOrigin.toLowerCase().includes(searchTerm) ||
@@ -208,6 +316,15 @@ export class ErrorCollector implements IErrorCollector {
    * @returns True if there are errors of the specified severity
    */
   public hasErrors(severity?: ErrorSeverity | string): boolean {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!severity) {
       return this.errors.length > 0;
     }
@@ -251,6 +368,15 @@ export class ErrorCollector implements IErrorCollector {
     let leastSeverity = this.errors[0].severity;
     
     for (let i = 1; i < this.errors.length; i++) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (this.compareSeverity(leastSeverity, this.errors[i].severity) > 0) {
         leastSevereIndex = i;
         leastSeverity = this.errors[i].severity;

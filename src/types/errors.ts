@@ -149,14 +149,95 @@ export interface ErrorCollectorOptions {
  * This interface aligns with the design document's ErrorCollector specification.
  */
 export interface ErrorCollector {
+  /**
+   * addError method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   addError(error: ConversionError): void;
+  /**
+   * addErrors method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   addErrors(errors: ConversionError[]): void;
+  /**
+   * getErrors method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getErrors(filter?: ErrorFilter): ConversionError[];
+  /**
+   * getErrorSummary method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getErrorSummary(): ErrorSummary;
+  /**
+   * getErrorsByModule method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getErrorsByModule(moduleId: string): ConversionError[];
+  /**
+   * getErrorsByType method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getErrorsByType(type: ErrorType | string): ConversionError[];
+  /**
+   * getErrorsBySeverity method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getErrorsBySeverity(severity: ErrorSeverity | string): ConversionError[];
+  /**
+   * hasErrors method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   hasErrors(severity?: ErrorSeverity | string): boolean;
+  /**
+   * clear method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   clear(): void;
 }
 
@@ -212,6 +293,15 @@ export function noteToConversionError(
   const severity = typeof note.type === 'string' ? note.type : ErrorSeverity.INFO;
   
   let sourceLocation: SourceLocation | undefined;
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if ('sourceLocation' in note && note.sourceLocation) {
     sourceLocation = {
       file: note.sourceLocation.file,
@@ -235,12 +325,39 @@ export function noteToConversionError(
   let details: Record<string, any> = note.details || {};
   
   // Add component-specific details
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if ('component' in note) {
     details.component = note.component;
   }
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if ('configType' in note) {
     details.configType = note.configType;
   }
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if ('strategyApplied' in note) {
     details.strategyApplied = note.strategyApplied;
     details.originalFeature = note.originalFeature;

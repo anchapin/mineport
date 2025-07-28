@@ -173,6 +173,15 @@ export class JavaScriptGenerator {
       ? ' '.repeat(mergedOptions.indent) 
       : '\t';
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const node of ast) {
       code += this.generateNodeCode(node, 0, indent, mergedOptions) + '\n\n';
     }
@@ -198,6 +207,15 @@ export class JavaScriptGenerator {
     const nextIndent = indent.repeat(depth + 1);
     const semicolon = options.useSemicolons ? ';' : '';
     
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (node.type) {
       case 'Program':
         return node.body.map(bodyNode => 
@@ -205,10 +223,28 @@ export class JavaScriptGenerator {
         ).join('\n\n');
       
       case 'CommentBlock':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!options.includeComments) return '';
         return `${currentIndent}/*${node.value}*/`;
       
       case 'CommentLine':
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!options.includeComments) return '';
         return `${currentIndent}//${node.value}`;
       
@@ -370,6 +406,15 @@ export class JavaScriptGenerator {
     code = code.replace(/\n{3,}/g, '\n\n');
     
     // Minify if requested
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (options.minify) {
       // Remove all comments
       code = code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
@@ -439,12 +484,39 @@ export class JavaScriptGenerator {
     };
     
     // Add imports for LLM-generated files
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (llmTranslations.size > 0) {
       const imports: string[] = [];
       
       // For each unmappable node that has an LLM translation, add an import
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const node of unmappableNodes) {
         const translation = llmTranslations.get(node.id);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (translation) {
           const moduleName = this.getModuleNameForNode(node);
           imports.push(`import { ${moduleName} } from './${moduleName}';`);
@@ -452,6 +524,15 @@ export class JavaScriptGenerator {
       }
       
       // Add imports to the top of the file
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (imports.length > 0) {
         mainFile.code = imports.join('\n') + '\n\n' + mainFile.code;
         mainFile.source = 'integrated';
@@ -461,8 +542,26 @@ export class JavaScriptGenerator {
     integratedFiles.push(mainFile);
     
     // Create separate files for LLM translations
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const node of unmappableNodes) {
       const translation = llmTranslations.get(node.id);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (translation) {
         const moduleName = this.getModuleNameForNode(node);
         const filePath = `${moduleName}.js`;
@@ -497,6 +596,15 @@ export class JavaScriptGenerator {
     // Use the node type and properties to generate a meaningful name
     let baseName = '';
     
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (node.type) {
       case 'BlockDefinition':
       case 'BlockRegistration':
@@ -546,6 +654,15 @@ export class JavaScriptGenerator {
     
     // Remove imports from the code
     let codeWithoutImports = code;
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const importStatement of imports) {
       codeWithoutImports = codeWithoutImports.replace(importStatement, '');
     }
@@ -582,6 +699,15 @@ export const ${moduleName} = {
    * @returns The optimized code
    */
   public optimizeCode(code: string, options: { minify: boolean } = { minify: false }): string {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (options.minify) {
       return this.minifyCode(code);
     }

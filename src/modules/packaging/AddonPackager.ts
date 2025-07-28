@@ -5,10 +5,55 @@ import { createWriteStream } from 'fs';
 // Interface for zip archiver
 interface Archiver {
   on(event: string, callback: (err?: Error) => void): Archiver;
+  /**
+   * pipe method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   pipe(destination: NodeJS.WritableStream): Archiver;
+  /**
+   * directory method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   directory(localPath: string, destPath: string): Archiver;
+  /**
+   * file method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   file(localPath: string, destPath: string): Archiver;
+  /**
+   * append method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   append(data: string | Buffer, options: { name: string }): Archiver;
+  /**
+   * finalize method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   finalize(): void;
 }
 
@@ -219,6 +264,15 @@ export class AddonPackager {
    * @param directory The directory path to ensure
    */
   private async ensureDirectoryExists(directory: string): Promise<void> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!fs.existsSync(directory)) {
       fs.mkdirSync(directory, { recursive: true });
     }
@@ -240,6 +294,15 @@ export class AddonPackager {
     const scriptsDir = path.join(directory, 'scripts');
     await this.ensureDirectoryExists(scriptsDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const script of input.bedrockScripts) {
       const scriptPath = path.join(scriptsDir, script.path);
       await this.ensureDirectoryExists(path.dirname(scriptPath));
@@ -250,6 +313,15 @@ export class AddonPackager {
     const blocksDir = path.join(directory, 'blocks');
     await this.ensureDirectoryExists(blocksDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const block of input.bedrockConfigs.definitions.blocks) {
       const blockPath = path.join(blocksDir, block.path);
       await this.ensureDirectoryExists(path.dirname(blockPath));
@@ -260,6 +332,15 @@ export class AddonPackager {
     const itemsDir = path.join(directory, 'items');
     await this.ensureDirectoryExists(itemsDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const item of input.bedrockConfigs.definitions.items) {
       const itemPath = path.join(itemsDir, item.path);
       await this.ensureDirectoryExists(path.dirname(itemPath));
@@ -270,6 +351,15 @@ export class AddonPackager {
     const recipesDir = path.join(directory, 'recipes');
     await this.ensureDirectoryExists(recipesDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const recipe of input.bedrockConfigs.recipes) {
       const recipePath = path.join(recipesDir, recipe.path);
       await this.ensureDirectoryExists(path.dirname(recipePath));
@@ -280,6 +370,15 @@ export class AddonPackager {
     const lootTablesDir = path.join(directory, 'loot_tables');
     await this.ensureDirectoryExists(lootTablesDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const lootTable of input.bedrockConfigs.lootTables) {
       const lootTablePath = path.join(lootTablesDir, lootTable.path);
       await this.ensureDirectoryExists(path.dirname(lootTablePath));
@@ -303,6 +402,15 @@ export class AddonPackager {
     const texturesDir = path.join(directory, 'textures');
     await this.ensureDirectoryExists(texturesDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const texture of input.bedrockAssets.textures) {
       const texturePath = path.join(texturesDir, texture.path);
       await this.ensureDirectoryExists(path.dirname(texturePath));
@@ -313,6 +421,15 @@ export class AddonPackager {
     const modelsDir = path.join(directory, 'models');
     await this.ensureDirectoryExists(modelsDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const model of input.bedrockAssets.models) {
       const modelPath = path.join(modelsDir, model.path);
       await this.ensureDirectoryExists(path.dirname(modelPath));
@@ -323,6 +440,15 @@ export class AddonPackager {
     const soundsDir = path.join(directory, 'sounds');
     await this.ensureDirectoryExists(soundsDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const sound of input.bedrockAssets.sounds) {
       const soundPath = path.join(soundsDir, sound.path);
       await this.ensureDirectoryExists(path.dirname(soundPath));
@@ -333,6 +459,15 @@ export class AddonPackager {
     const particlesDir = path.join(directory, 'particles');
     await this.ensureDirectoryExists(particlesDir);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const particle of input.bedrockAssets.particles) {
       const particlePath = path.join(particlesDir, particle.path);
       await this.ensureDirectoryExists(path.dirname(particlePath));
@@ -356,10 +491,28 @@ export class AddonPackager {
       });
       
       output.on('close', () => {
+        /**
+         * resolve method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         resolve();
       });
       
       archive.on('error', (err) => {
+        /**
+         * reject method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         reject(err);
       });
       
@@ -374,6 +527,15 @@ export class AddonPackager {
       
       // Add metadata.json to the root of the archive
       const metadataPath = path.join(tempDir, 'metadata.json');
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (fs.existsSync(metadataPath)) {
         archive.file(metadataPath, { name: 'metadata.json' });
       }
@@ -439,6 +601,15 @@ export class AddonPackager {
     const warningNotes = input.conversionNotes.filter(note => note.severity === 'warning');
     const errorNotes = input.conversionNotes.filter(note => note.severity === 'error');
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (infoNotes.length > 0) {
       readmeContent += `### Information\n\n`;
       infoNotes.forEach(note => {
@@ -447,6 +618,15 @@ export class AddonPackager {
       readmeContent += `\n`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (warningNotes.length > 0) {
       readmeContent += `### Warnings\n\n`;
       warningNotes.forEach(note => {
@@ -455,6 +635,15 @@ export class AddonPackager {
       readmeContent += `\n`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (errorNotes.length > 0) {
       readmeContent += `### Errors\n\n`;
       errorNotes.forEach(note => {

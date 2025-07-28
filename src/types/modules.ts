@@ -1,173 +1,591 @@
 /**
- * Interface definitions for module inputs and outputs
+ * Module System Types
  * 
- * This file contains shared interfaces used across different modules
- * to ensure consistent data structures throughout the application.
- */
-import { JavaSourceFile } from './base';
-import { LogicConversionNote, AssetConversionNote } from './errors';
-import { APIMapping } from './api';
-import { 
-  JavaTextureFile, BedrockTextureFile, TextureConversionResult,
-  JavaModelFile, BedrockModelFile, ModelConversionResult,
-  JavaSoundFile, BedrockSoundFile, SoundConversionResult,
-  JavaParticleDefinition, BedrockParticleDefinition, ParticleConversionResult
-} from './assets';
-
-/**
- * Logic Translation Module Types
+ * This file defines the interfaces and types for the standardized module system
+ * including initialization, lifecycle management, and dependency injection.
  */
 
 /**
- * Input for the logic translation process
+ * Base interface for all modules
  */
-export interface LogicTranslationInput {
-  javaSourceFiles: JavaSourceFile[];
-  mmirContext?: MMIRContext;
-  apiMappingDictionary?: APIMapping[];
+export interface Module {
+  /** Unique identifier for the module */
+  readonly id: string;
+  
+  /** Human-readable name of the module */
+  readonly name: string;
+  
+  /** Current lifecycle state of the module */
+  readonly state: ModuleState;
+  
+  /** Dependencies required by this module */
+  readonly dependencies: string[];
+  
+  /** Initialize the module with its dependencies */
+  initialize(dependencies: DependencyContainer): Promise<void>;
+  
+  /** Start the module (called after initialization) */
+  start(): Promise<void>;
+  
+  /** Stop the module gracefully */
+  stop(): Promise<void>;
+  
+  /** Clean up resources */
+  destroy(): Promise<void>;
+  
+  /** Get module health status */
+  getHealth(): ModuleHealth;
 }
 
 /**
- * Output from the logic translation process
+ * Module lifecycle states
+ */
+export enum ModuleState {
+  UNINITIALIZED = 'uninitialized',
+  INITIALIZING = 'initializing',
+  INITIALIZED = 'initialized',
+  STARTING = 'starting',
+  RUNNING = 'running',
+  STOPPING = 'stopping',
+  STOPPED = 'stopped',
+  ERROR = 'error',
+  DESTROYED = 'destroyed'
+}
+
+/**
+ * Module health status
+ */
+export interface ModuleHealth {
+  /** Overall health status */
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  
+  /** Detailed health information */
+  details: {
+    uptime: number;
+    lastError?: Error;
+    metrics?: Record<string, any>;
+  };
+}
+
+/**
+ * Dependency container interface
+ */
+export interface DependencyContainer {
+  /** Get a dependency by its identifier */
+  get<T>(identifier: string): T;
+  
+  /** Check if a dependency is available */
+  has(identifier: string): boolean;
+  
+  /** Register a dependency */
+  register<T>(identifier: string, instance: T): void;
+  
+  /** Register a factory function for lazy initialization */
+  registerFactory<T>(identifier: string, factory: () => T): void;
+}
+
+/**
+ * Module configuration interface
+ */
+export interface ModuleConfig {
+  /** Module identifier */
+  id: string;
+  
+  /** Module name */
+  name: string;
+  
+  /** Module dependencies */
+  dependencies?: string[];
+  
+  /** Module-specific configuration */
+  config?: Record<string, any>;
+  
+  /** Whether the module should start automatically */
+  autoStart?: boolean;
+}
+
+/**
+ * Module registry interface
+ */
+export interface ModuleRegistry {
+  /** Register a module */
+  register(moduleClass: ModuleConstructor, config: ModuleConfig): void;
+  
+  /** Get a module by its identifier */
+  get(id: string): Module | undefined;
+  
+  /** Get all registered modules */
+  getAll(): Module[];
+  
+  /** Initialize all modules */
+  initializeAll(): Promise<void>;
+  
+  /** Start all modules */
+  startAll(): Promise<void>;
+  
+  /** Stop all modules */
+  stopAll(): Promise<void>;
+  
+  /** Destroy all modules */
+  destroyAll(): Promise<void>;
+}
+
+/**
+ * Module constructor type
+ */
+export type ModuleConstructor = new (config: ModuleConfig, dependencies: DependencyContainer) => Module;
+
+/**
+ * Base abstract class for modules
+ */
+export abstract class BaseModule implements Module {
+  public readonly id: string;
+  public readonly name: string;
+  public readonly dependencies: string[];
+  
+  protected _state: ModuleState = ModuleState.UNINITIALIZED;
+  protected _config: Record<string, any>;
+  protected _dependencies: DependencyContainer | null = null;
+  protected _startTime: number = 0;
+  protected _lastError: Error | undefined;
+  
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
+  constructor(config: ModuleConfig, dependencies: DependencyContainer) {
+    this.id = config.id;
+    this.name = config.name;
+    this.dependencies = config.dependencies || [];
+    this._config = config.config || {};
+    this._dependencies = dependencies;
+  }
+  
+  public get state(): ModuleState {
+    return this._state;
+  }
+  
+  /**
+   * initialize method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
+  public async initialize(dependencies: DependencyContainer): Promise<void> {
+    if (this._state !== ModuleState.UNINITIALIZED) {
+      throw new Error(`Module ${this.id} is already initialized`);
+    }
+    
+    this._state = ModuleState.INITIALIZING;
+    this._dependencies = dependencies;
+    
+    try {
+      // Validate dependencies
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
+      for (const dep of this.dependencies) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
+        if (!dependencies.has(dep)) {
+          throw new Error(`Missing dependency: ${dep}`);
+        }
+      }
+      
+      await this.onInitialize();
+      this._state = ModuleState.INITIALIZED;
+    } catch (error) {
+      this._state = ModuleState.ERROR;
+      this._lastError = error as Error;
+      throw error;
+    }
+  }
+  
+  /**
+   * start method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
+  public async start(): Promise<void> {
+    if (this._state !== ModuleState.INITIALIZED) {
+      throw new Error(`Module ${this.id} must be initialized before starting`);
+    }
+    
+    this._state = ModuleState.STARTING;
+    
+    try {
+      await this.onStart();
+      this._state = ModuleState.RUNNING;
+      this._startTime = Date.now();
+    } catch (error) {
+      this._state = ModuleState.ERROR;
+      this._lastError = error as Error;
+      throw error;
+    }
+  }
+  
+  /**
+   * stop method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
+  public async stop(): Promise<void> {
+    if (this._state !== ModuleState.RUNNING) {
+      return; // Already stopped or not running
+    }
+    
+    this._state = ModuleState.STOPPING;
+    
+    try {
+      await this.onStop();
+      this._state = ModuleState.STOPPED;
+    } catch (error) {
+      this._state = ModuleState.ERROR;
+      this._lastError = error as Error;
+      throw error;
+    }
+  }
+  
+  /**
+   * destroy method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
+  public async destroy(): Promise<void> {
+    if (this._state === ModuleState.RUNNING) {
+      await this.stop();
+    }
+    
+    try {
+      await this.onDestroy();
+      this._state = ModuleState.DESTROYED;
+    } catch (error) {
+      this._state = ModuleState.ERROR;
+      this._lastError = error as Error;
+      throw error;
+    }
+  }
+  
+  /**
+   * getHealth method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
+  public getHealth(): ModuleHealth {
+    const uptime = this._startTime > 0 ? Date.now() - this._startTime : 0;
+    
+    let status: 'healthy' | 'degraded' | 'unhealthy';
+    
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
+    switch (this._state) {
+      case ModuleState.RUNNING:
+        status = 'healthy';
+        break;
+      case ModuleState.INITIALIZED:
+      case ModuleState.STOPPED:
+        status = 'degraded';
+        break;
+      default:
+        status = 'unhealthy';
+    }
+    
+    return {
+      status,
+      details: {
+        uptime,
+        lastError: this._lastError,
+        metrics: this.getMetrics()
+      }
+    };
+  }
+  
+  /** Get dependency by identifier */
+  protected getDependency<T>(identifier: string): T {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
+    if (!this._dependencies) {
+      throw new Error(`Module ${this.id} is not initialized`);
+    }
+    return this._dependencies.get<T>(identifier);
+  }
+  
+  /** Get configuration value */
+  protected getConfig<T>(key: string, defaultValue?: T): T {
+    return this._config[key] ?? defaultValue;
+  }
+  
+  // Abstract methods to be implemented by concrete modules
+  protected abstract onInitialize(): Promise<void>;
+  protected abstract onStart(): Promise<void>;
+  protected abstract onStop(): Promise<void>;
+  protected abstract onDestroy(): Promise<void>;
+  protected abstract getMetrics(): Record<string, any>;
+}
+//
+ Logic Translation Module Types
+
+import { JavaSourceFile } from './base';
+import { APIMapping } from './api';
+
+/**
+ * Input for the Logic Translation Engine
+ */
+export interface LogicTranslationInput {
+  /** Java source files to translate */
+  javaSourceFiles: JavaSourceFile[];
+  
+  /** Optional MMIR context for advanced translation */
+  mmirContext?: MMIRContext;
+  
+  /** Optional API mapping dictionary (if not provided, service will be used) */
+  apiMappingDictionary?: Record<string, APIMapping>;
+}
+
+/**
+ * Output from the Logic Translation Engine
  */
 export interface LogicTranslationOutput {
+  /** Generated JavaScript files */
   javascriptFiles: JavaScriptFile[];
+  
+  /** Functions that could not be fully translated */
   stubFunctions: StubFunction[];
+  
+  /** Notes and warnings from the conversion process */
   conversionNotes: LogicConversionNote[];
 }
 
 /**
- * Represents a JavaScript output file
+ * JavaScript file generated from Java source
  */
 export interface JavaScriptFile {
+  /** File path for the generated JavaScript */
   path: string;
+  
+  /** Generated JavaScript content */
   content: string;
+  
+  /** Source map for debugging */
   sourceMap?: string;
+  
+  /** Original Java file that generated this JavaScript */
+  originalJavaFile: string;
 }
 
 /**
- * Represents a stub function for features that couldn't be fully translated
+ * Function that could not be fully translated
  */
 export interface StubFunction {
+  /** Function name */
   name: string;
+  
+  /** Original Java code */
   originalJavaCode: string;
+  
+  /** JavaScript stub implementation */
   javascriptStub: string;
+  
+  /** Reason why full translation was not possible */
   reason: string;
+  
+  /** Suggested alternatives or workarounds */
   suggestedAlternatives?: string[];
+  
+  /** Feature ID if related to a specific feature */
   featureId?: string;
+  
+  /** Compromise strategy that was applied */
   strategyApplied?: string;
 }
 
 /**
- * Represents a feature that needs a compromise strategy
- */
-export interface LogicFeature {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  compatibilityTier: 1 | 2 | 3 | 4;
-  sourceFiles: string[];
-  sourceLineNumbers: number[][];
-  originalCode: string;
-  context?: string;
-}
-
-/**
- * Represents the Minecraft Modding Intermediate Representation context
+ * MMIR (Minecraft Mod Intermediate Representation) Context
  */
 export interface MMIRContext {
+  /** MMIR nodes representing code structures */
   nodes: MMIRNode[];
+  
+  /** Relationships between nodes */
   relationships: MMIRRelationship[];
+  
+  /** Metadata about the MMIR */
   metadata: MMIRMetadata;
 }
 
 /**
- * Represents a node in the MMIR
+ * MMIR Node representing a code structure
  */
 export interface MMIRNode {
+  /** Unique identifier for the node */
   id: string;
+  
+  /** Type of the node (class, method, field, etc.) */
   type: string;
-  sourceLocation: {
-    file: string;
-    startLine: number;
-    startColumn: number;
-    endLine: number;
-    endColumn: number;
-  };
-  properties: Record<string, any>;
+  
+  /** Name of the code element */
+  name: string;
+  
+  /** Source location information */
+  sourceLocation?: SourceLocation;
+  
+  /** Child node IDs */
   children: string[];
+  
+  /** Node-specific properties */
+  properties: Record<string, any>;
 }
 
 /**
- * Represents a relationship between MMIR nodes
+ * Relationship between MMIR nodes
  */
 export interface MMIRRelationship {
-  id: string;
-  type: string;
-  sourceNodeId: string;
-  targetNodeId: string;
-  properties: Record<string, any>;
+  /** Source node ID */
+  from: string;
+  
+  /** Target node ID */
+  to: string;
+  
+  /** Type of relationship */
+  type: 'extends' | 'implements' | 'calls' | 'references' | 'contains';
+  
+  /** Additional relationship properties */
+  properties?: Record<string, any>;
 }
 
 /**
- * Represents metadata for the MMIR
+ * MMIR metadata
  */
 export interface MMIRMetadata {
-  modId: string;
-  modName: string;
-  modVersion: string;
+  /** Version of MMIR format */
+  version: string;
+  
+  /** Timestamp when MMIR was generated */
+  generatedAt: Date;
+  
+  /** Source files that contributed to this MMIR */
+  sourceFiles: string[];
+  
+  /** Mod loader information */
   modLoader: 'forge' | 'fabric';
-  minecraftVersion: string;
+  
+  /** Additional metadata */
+  properties?: Record<string, any>;
 }
 
 /**
- * Asset Translation Module Types
+ * Source location information
  */
-
-/**
- * Interface for Java assets collection
- * 
- * This interface follows the naming convention guidelines for asset collections.
- */
-export interface JavaAssetCollection {
-  textures: JavaTextureFile[];
-  models: JavaModelFile[];
-  sounds: JavaSoundFile[];
-  particles: JavaParticleDefinition[];
+export interface SourceLocation {
+  /** File path */
+  file: string;
+  
+  /** Starting line number */
+  startLine: number;
+  
+  /** Ending line number */
+  endLine: number;
+  
+  /** Starting column number */
+  startColumn?: number;
+  
+  /** Ending column number */
+  endColumn?: number;
 }
 
 /**
- * Interface for Bedrock assets collection
- * 
- * This interface follows the naming convention guidelines for asset collections.
+ * Logic conversion note
  */
-export interface BedrockAssetCollection {
-  textures: BedrockTextureFile[];
-  models: BedrockModelFile[];
-  sounds: BedrockSoundFile[];
-  particles: BedrockParticleDefinition[];
-  soundsJson: object;
+export interface LogicConversionNote {
+  /** Type/severity of the note */
+  type: 'info' | 'warning' | 'error' | 'critical';
+  
+  /** Note message */
+  message: string;
+  
+  /** Source location if applicable */
+  sourceLocation?: SourceLocation;
+  
+  /** Error/note code for categorization */
+  code?: string;
+  
+  /** Additional details */
+  details?: Record<string, any>;
 }
 
 /**
- * Alias for JavaAssetCollection to maintain backward compatibility
- * @deprecated Use JavaAssetCollection instead
+ * Logic feature information
  */
-export interface JavaAssets extends JavaAssetCollection {}
-
-/**
- * Alias for BedrockAssetCollection to maintain backward compatibility
- * @deprecated Use BedrockAssetCollection instead
- */
-export interface BedrockAssets extends BedrockAssetCollection {}
-
-/**
- * Interface for asset translation result
- * 
- * This interface follows the naming convention guidelines for translation results.
- */
-export interface AssetTranslationResult {
-  bedrockAssets: BedrockAssetCollection;
-  conversionNotes: AssetConversionNote[];
+export interface LogicFeature {
+  /** Feature identifier */
+  id: string;
+  
+  /** Feature name */
+  name: string;
+  
+  /** Feature description */
+  description: string;
+  
+  /** Feature type */
+  type: string;
+  
+  /** Compatibility tier */
+  compatibilityTier: 1 | 2 | 3 | 4;
+  
+  /** Source files containing this feature */
+  sourceFiles: string[];
+  
+  /** Line numbers where feature is used */
+  sourceLineNumbers: number[][];
 }

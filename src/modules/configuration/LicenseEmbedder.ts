@@ -10,6 +10,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import logger from '../../utils/logger.js';
 
+/**
+ * LicenseInfo interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LicenseInfo {
   type: string;
   text: string;
@@ -19,6 +26,13 @@ export interface LicenseInfo {
   sourceFile?: string;
 }
 
+/**
+ * AttributionInfo interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface AttributionInfo {
   modName: string;
   modVersion: string;
@@ -27,6 +41,13 @@ export interface AttributionInfo {
   licenseUrl?: string;
 }
 
+/**
+ * LicenseEmbedResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LicenseEmbedResult {
   success: boolean;
   embeddedFiles: string[];
@@ -34,6 +55,13 @@ export interface LicenseEmbedResult {
   conversionNotes: LicenseEmbeddingNote[];
 }
 
+/**
+ * LicenseEmbeddingNote interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LicenseEmbeddingNote {
   type: 'info' | 'warning' | 'error';
   component: 'license';
@@ -42,6 +70,13 @@ export interface LicenseEmbeddingNote {
   file?: string;
 }
 
+/**
+ * LicenseEmbedder class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class LicenseEmbedder {
   /**
    * Embeds license information in output files
@@ -71,6 +106,15 @@ export class LicenseEmbedder {
       // Embed license headers in JavaScript files
       const jsFiles = await this.findJavaScriptFiles(outputDir);
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of jsFiles) {
         try {
           await this.embedLicenseHeader(file, licenseInfo, attributionInfo);
@@ -91,6 +135,15 @@ export class LicenseEmbedder {
       // Embed license information in manifest files
       const manifestFiles = await this.findManifestFiles(outputDir);
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of manifestFiles) {
         try {
           await this.embedLicenseInManifest(file, licenseInfo, attributionInfo);
@@ -177,11 +230,29 @@ export class LicenseEmbedder {
       // Check JavaScript files for license headers
       const jsFiles = await this.findJavaScriptFiles(outputDir);
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of jsFiles) {
         try {
           const content = await fs.readFile(file, 'utf-8');
           
           // Check if the file has a license header
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (!content.includes('License:') || !content.includes(licenseInfo.type)) {
             errors.push(`JavaScript file ${file} is missing proper license header`);
           }
@@ -193,6 +264,15 @@ export class LicenseEmbedder {
       // Check manifest files for license information
       const manifestFiles = await this.findManifestFiles(outputDir);
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const file of manifestFiles) {
         try {
           const content = await fs.readFile(file, 'utf-8');
@@ -305,6 +385,15 @@ export class LicenseEmbedder {
       const licenseHeader = this.createJavaScriptLicenseHeader(licenseInfo, attributionInfo);
       
       // Check if the file already has a license header
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (content.includes('License:') && content.includes(licenseInfo.type)) {
         logger.info(`File ${filePath} already has a license header`);
         return;
@@ -341,6 +430,15 @@ export class LicenseEmbedder {
       const manifest = JSON.parse(content);
       
       // Add license information to the manifest
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!manifest.metadata) {
         manifest.metadata = {};
       }
@@ -424,9 +522,27 @@ export class LicenseEmbedder {
       try {
         const entries = await fs.readdir(currentDir, { withFileTypes: true });
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const entry of entries) {
           const fullPath = path.join(currentDir, entry.name);
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (entry.isDirectory()) {
             await scanDir(fullPath);
           } else if (entry.isFile() && (entry.name.endsWith('.js') || entry.name.endsWith('.ts'))) {
@@ -454,9 +570,27 @@ export class LicenseEmbedder {
       try {
         const entries = await fs.readdir(currentDir, { withFileTypes: true });
         
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const entry of entries) {
           const fullPath = path.join(currentDir, entry.name);
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (entry.isDirectory()) {
             await scanDir(fullPath);
           } else if (entry.isFile() && entry.name === 'manifest.json') {

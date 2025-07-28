@@ -8,6 +8,15 @@ import { Logger } from '../../utils/logger';
 export class DimensionSimulator {
   private logger: Logger;
 
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(logger: Logger) {
     this.logger = logger;
   }
@@ -76,6 +85,15 @@ export class DimensionSimulator {
  */
 export function teleportPlayer(player, entering) {
   // Store the player's previous location when entering the dimension
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if (entering) {
     // Save current position before teleporting
     const currentPos = player.location;
@@ -98,6 +116,15 @@ export function teleportPlayer(player, entering) {
     );
     
     // Apply initial effects
+    /**
+     * applyDimensionEffects method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     applyDimensionEffects(player);
   } else {
     // Retrieve saved position
@@ -122,6 +149,15 @@ export function teleportPlayer(player, entering) {
       player.setDynamicProperty("${dimensionName}:inDimension", false);
       
       // Remove dimension effects
+      /**
+       * removeDimensionEffects method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       removeDimensionEffects(player);
     } else {
       console.warn(\`Failed to return player from ${dimensionName}: Previous location not found\`);
@@ -142,12 +178,30 @@ export function teleportPlayer(player, entering) {
     
     let effectsCode = '';
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('fog')) {
       effectsCode += `
   // Apply fog effect
   player.runCommand("fog @s push ${dimensionName}_fog ${dimensionName}");`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('particles')) {
       effectsCode += `
   // Apply ambient particles
@@ -167,6 +221,15 @@ export function teleportPlayer(player, entering) {
   player.setDynamicProperty("${dimensionName}:particleInterval", particleInterval);`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('skybox')) {
       effectsCode += `
   // Apply custom skybox
@@ -174,6 +237,15 @@ export function teleportPlayer(player, entering) {
   player.runCommand("skybox ${dimensionName}_sky");`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('sound')) {
       effectsCode += `
   // Apply ambient sounds
@@ -185,12 +257,30 @@ export function teleportPlayer(player, entering) {
     
     let removeEffectsCode = '';
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('fog')) {
       removeEffectsCode += `
   // Remove fog effect
   player.runCommand("fog @s pop ${dimensionName}_fog");`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('particles')) {
       removeEffectsCode += `
   // Stop particle effects
@@ -201,6 +291,15 @@ export function teleportPlayer(player, entering) {
   }`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('skybox')) {
       removeEffectsCode += `
   // Remove custom skybox
@@ -208,6 +307,15 @@ export function teleportPlayer(player, entering) {
   player.runCommand("skybox reset");`;
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (visualEffects.includes('sound')) {
       removeEffectsCode += `
   // Stop ambient sounds
@@ -320,6 +428,15 @@ export function setupDimensionBoundaries() {
   
   // Check player positions every second
   system.runInterval(() => {
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const player of world.getAllPlayers()) {
       const inDimension = player.getDynamicProperty("${dimensionName}:inDimension");
       
@@ -335,6 +452,15 @@ export function setupDimensionBoundaries() {
       // If player is in dimension but outside boundary, teleport them back
       if (inDimension === true && distance > boundaryRadius) {
         // Player is leaving the dimension area
+        /**
+         * teleportPlayer method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         teleportPlayer(player, false);
       }
     }
@@ -373,9 +499,27 @@ export function initialize${dimensionName.replace(/[^a-zA-Z0-9]/g, '')}Dimension
   console.log("Initializing ${dimensionName} dimension simulation");
   
   // Generate all structures for the dimension
+  /**
+   * generateStructures method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   generateStructures();
   
   // Set up boundary detection
+  /**
+   * setupDimensionBoundaries method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   setupDimensionBoundaries();
   
   // Register dimension portal interaction
@@ -401,6 +545,15 @@ ${structureGenerationCode}
 ${dimensionDetectionCode}
 
 // Export a function to check if a player is in this dimension
+/**
+ * isPlayerIn function.
+ * 
+ * TODO: Add detailed description of the function's purpose and behavior.
+ * 
+ * @param param - TODO: Document parameters
+ * @returns result - TODO: Document return value
+ * @since 1.0.0
+ */
 export function isPlayerIn${dimensionName.replace(/[^a-zA-Z0-9]/g, '')}Dimension(player) {
   return player.getDynamicProperty("${dimensionName}:inDimension") === true;
 }

@@ -19,16 +19,51 @@ export class UpdateService extends EventEmitter {
   private updateInProgress: boolean = false;
   private defaultCheckInterval: number = 3600000; // 1 hour
 
+  /**
+   * Creates a new instance.
+   * 
+   * TODO: Add detailed description of constructor behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @since 1.0.0
+   */
   constructor(options: UpdateServiceOptions = {}) {
+    /**
+     * super method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     super();
     
     this.configService = options.configService;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (options.cacheService) {
       this.cacheService = options.cacheService;
       this.cacheInvalidationStrategy = new CacheInvalidationStrategy(options.cacheService);
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.configService) {
       // Get default versions from configuration
       this.apiMappingVersions = this.configService.get('updates.apiMappingVersions', {
@@ -84,6 +119,15 @@ export class UpdateService extends EventEmitter {
       });
       
       // Restart automatic updates if they're running
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (Object.keys(this.updateIntervals).length > 0) {
         this.stopAutomaticUpdates();
         this.startAutomaticUpdates(this.defaultCheckInterval);
@@ -116,6 +160,15 @@ export class UpdateService extends EventEmitter {
    */
   public stopAutomaticUpdates(): void {
     Object.values(this.updateIntervals).forEach(interval => {
+      /**
+       * clearInterval method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       clearInterval(interval);
     });
     this.updateIntervals = {};
@@ -125,6 +178,15 @@ export class UpdateService extends EventEmitter {
    * Check for updates to API mappings
    */
   public async checkForApiMappingUpdates(): Promise<boolean> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.updateInProgress) {
       console.log('Update already in progress, skipping check');
       return false;
@@ -141,6 +203,15 @@ export class UpdateService extends EventEmitter {
       // For this example, we'll simulate finding an update
       const hasUpdate = Math.random() > 0.7; // 30% chance of finding an update
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (hasUpdate) {
         console.log('API mapping updates found, downloading...');
         
@@ -205,6 +276,15 @@ export class UpdateService extends EventEmitter {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Invalidate caches if cache service is available
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.cacheInvalidationStrategy) {
       // Invalidate API mapping caches for updated Minecraft versions
       if (newVersions['minecraft_java'] !== this.apiMappingVersions['minecraft_java']) {
@@ -253,6 +333,13 @@ export class UpdateService extends EventEmitter {
   }
 }
 
+/**
+ * UpdateServiceOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface UpdateServiceOptions {
   cacheService?: CacheService;
   configService?: ConfigurationService;
@@ -290,6 +377,15 @@ export class ApiMappingVersionControl {
    */
   public isCompatible(mappingId: string, minecraftVersion: string): boolean {
     const mapping = this.mappingVersions[mappingId];
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!mapping) return false;
     
     return this.compareVersions(minecraftVersion, mapping.minMinecraftVersion) >= 0 &&
@@ -320,6 +416,13 @@ export class ApiMappingVersionControl {
   }
 }
 
+/**
+ * MappingVersion interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface MappingVersion {
   version: string;
   releaseDate: string;

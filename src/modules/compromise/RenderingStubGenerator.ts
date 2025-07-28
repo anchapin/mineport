@@ -10,6 +10,15 @@ export class RenderingStubGenerator {
   private renderingPatterns: RenderingPattern[];
   private alternativeRecommendations: Map<string, string[]>;
 
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(logger: Logger) {
     this.logger = logger;
     this.renderingPatterns = this.initializeRenderingPatterns();
@@ -153,6 +162,15 @@ export class RenderingStubGenerator {
     this.renderingPatterns.forEach(pattern => {
       const matches = sourceCode.match(pattern.detectionRegex);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (matches && matches.length > 0) {
         this.logger.debug(`Detected rendering pattern: ${pattern.name}`);
         
@@ -260,6 +278,15 @@ ${recommendations.map(rec => `        "${rec}"`).join(',\n')}
 }
 
 // Export a factory function to create the stub
+/**
+ * create function.
+ * 
+ * TODO: Add detailed description of the function's purpose and behavior.
+ * 
+ * @param param - TODO: Document parameters
+ * @returns result - TODO: Document return value
+ * @since 1.0.0
+ */
 export function create${className}Stub() {
   return new ${className}Stub();
 }
@@ -289,6 +316,15 @@ export function create${className}Stub() {
    * @returns A suitable method name for the stub
    */
   private generateMethodName(detectedPattern: DetectedRenderingPattern): string {
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (detectedPattern.category) {
       case 'model-rendering':
         return 'renderModel(entity, partialTicks, matrixStack)';

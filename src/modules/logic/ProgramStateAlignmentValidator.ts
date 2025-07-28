@@ -119,6 +119,15 @@ class StateTracker {
         snapshot.put("lineNumber", lineNumber);
         
         JSONObject vars = new JSONObject();
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (Map.Entry<String, Object> entry : variables.entrySet()) {
             vars.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
@@ -189,6 +198,15 @@ static {
       /(\s*)(public|private|protected)?\s*\w+\s+(\w+)\s*\((.*?)\)\s*\{/g,
       (match, space, visibility, methodName, params) => {
         // Skip excluded functions
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (this.config.excludedFunctions.includes(methodName)) {
           return match;
         }
@@ -210,6 +228,15 @@ ${space}    StateTracker.captureState("${methodName}", ${this.getLineNumber(matc
         const methodName = this.extractMethodNameFromContext(match, javaCode) || "unknownMethod";
         
         // Skip excluded functions
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (this.config.excludedFunctions.includes(methodName)) {
           return match;
         }
@@ -296,6 +323,15 @@ ${jsCode}
       /(function\s+)(\w+)(\s*\()(.*?)(\)\s*\{)/g,
       (match, funcKeyword, funcName, openParen, params, closeParen) => {
         // Skip excluded functions
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (this.config.excludedFunctions.includes(funcName)) {
           return match;
         }
@@ -314,6 +350,15 @@ ${jsCode}
       /(\s*const\s+)(\w+)(\s*=\s*\()(.*?)(\)\s*=>\s*\{)/g,
       (match, constKeyword, funcName, openParen, params, closeParen) => {
         // Skip excluded functions
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (this.config.excludedFunctions.includes(funcName)) {
           return match;
         }
@@ -335,6 +380,15 @@ ${jsCode}
         const funcName = this.extractFunctionNameFromContext(match, jsCode) || "unknownFunction";
         
         // Skip excluded functions
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (this.config.excludedFunctions.includes(funcName)) {
           return match;
         }
@@ -358,6 +412,15 @@ ${jsCode}
    * @returns Java code to capture variables
    */
   private generateJavaVariableCapture(params: string): string {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!params.trim()) {
       return '';
     }
@@ -372,6 +435,15 @@ ${jsCode}
    * @returns JavaScript code to capture variables
    */
   private generateJsVariableCapture(params: string): string {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!params.trim()) {
       return '';
     }
@@ -437,12 +509,30 @@ ${jsCode}
     
     // Try to match function declaration
     let funcMatch = /function\s+(\w+)\s*\([^)]*\)\s*\{[^{]*$/g.exec(codeBefore);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (funcMatch) {
       return funcMatch[1];
     }
     
     // Try to match arrow function
     funcMatch = /const\s+(\w+)\s*=\s*\([^)]*\)\s*=>\s*\{[^{]*$/g.exec(codeBefore);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (funcMatch) {
       return funcMatch[1];
     }
@@ -460,6 +550,15 @@ ${jsCode}
       const trace = JSON.parse(traceJson);
       
       // Validate the trace structure
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!trace.language || !Array.isArray(trace.snapshots) || !trace.metadata) {
         throw new Error('Invalid trace format');
       }
@@ -527,7 +626,25 @@ ${jsCode}
     
     // Check for Java functions that don't have a mapping
     const javaFunctions = new Set(javaTrace.snapshots.map(snapshot => snapshot.functionName));
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const javaFunc of javaFunctions) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!functionMap.has(javaFunc)) {
         divergencePoints.push({
           javaSnapshot: javaSnapshotsByFunction.get(javaFunc)?.[0] || { timestamp: 0, functionName: javaFunc, lineNumber: 0, variables: new Map(), callStack: [] },
@@ -541,6 +658,15 @@ ${jsCode}
     }
     
     // Compare function by function
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [javaFunc, jsFunc] of functionMap.entries()) {
       const javaSnapshots = javaSnapshotsByFunction.get(javaFunc) || [];
       const jsSnapshots = jsSnapshotsByFunction.get(jsFunc) || [];
@@ -597,8 +723,26 @@ ${jsCode}
     const jsFunctions = new Set(jsTrace.snapshots.map(snapshot => snapshot.functionName));
     
     // Simple mapping based on name similarity
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const javaFunc of javaFunctions) {
       // Try exact match first
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (jsFunctions.has(javaFunc)) {
         functionMap.set(javaFunc, javaFunc);
         continue;
@@ -606,6 +750,15 @@ ${jsCode}
       
       // Try camelCase to camelCase conversion
       const javaFuncCamelCase = javaFunc.charAt(0).toLowerCase() + javaFunc.slice(1);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (jsFunctions.has(javaFuncCamelCase)) {
         functionMap.set(javaFunc, javaFuncCamelCase);
         continue;
@@ -615,8 +768,26 @@ ${jsCode}
       let bestMatch = '';
       let bestScore = 0;
       
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const jsFunc of jsFunctions) {
         const score = this.calculateStringSimilarity(javaFunc, jsFunc);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (score > bestScore) {
           bestScore = score;
           bestMatch = jsFunc;
@@ -624,6 +795,15 @@ ${jsCode}
       }
       
       // Only use the match if it's reasonably similar
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (bestScore > 0.6) {
         functionMap.set(javaFunc, bestMatch);
       }
@@ -681,7 +861,25 @@ ${jsCode}
   private groupSnapshotsByFunction(snapshots: ProgramStateSnapshot[]): Map<string, ProgramStateSnapshot[]> {
     const result = new Map<string, ProgramStateSnapshot[]>();
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const snapshot of snapshots) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!result.has(snapshot.functionName)) {
         result.set(snapshot.functionName, []);
       }
@@ -710,21 +908,57 @@ ${jsCode}
     const javaEntrySnapshot = javaSnapshots.find(s => s.returnValue === undefined);
     const jsEntrySnapshot = jsSnapshots.find(s => s.returnValue === undefined);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!javaEntrySnapshot || !jsEntrySnapshot) {
       return;
     }
     
     // Compare variables
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [javaVarName, javaVarValue] of javaEntrySnapshot.variables.entries()) {
       // Find corresponding JavaScript variable
       let jsVarName = javaVarName;
       
       // Try camelCase conversion if not found
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!jsEntrySnapshot.variables.has(jsVarName)) {
         jsVarName = javaVarName.charAt(0).toLowerCase() + javaVarName.slice(1);
       }
       
       // Check if variable exists in JavaScript
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!jsEntrySnapshot.variables.has(jsVarName)) {
         divergencePoints.push({
           javaSnapshot: javaEntrySnapshot,
@@ -738,6 +972,15 @@ ${jsCode}
       
       // Compare values
       const jsVarValue = jsEntrySnapshot.variables.get(jsVarName);
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!this.areValuesEquivalent(javaVarValue, jsVarValue)) {
         divergencePoints.push({
           javaSnapshot: javaEntrySnapshot,
@@ -785,6 +1028,15 @@ ${jsCode}
     const javaLastReturn = javaReturnSnapshots[javaReturnSnapshots.length - 1];
     const jsLastReturn = jsReturnSnapshots[jsReturnSnapshots.length - 1];
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.areValuesEquivalent(javaLastReturn.returnValue, jsLastReturn.returnValue)) {
       divergencePoints.push({
         javaSnapshot: javaLastReturn,
@@ -815,6 +1067,15 @@ ${jsCode}
     const jsCalls = jsSnapshots.length;
     
     // If the difference is significant, add a divergence point
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (Math.abs(javaCalls - jsCalls) > Math.max(javaCalls, jsCalls) * 0.3) {
       divergencePoints.push({
         javaSnapshot: javaSnapshots[0],
@@ -826,11 +1087,29 @@ ${jsCode}
     }
     
     // Compare call stacks
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (javaSnapshots.length > 0 && jsSnapshots.length > 0) {
       const javaCallStack = javaSnapshots[0].callStack;
       const jsCallStack = jsSnapshots[0].callStack;
       
       // Compare stack depths
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (Math.abs(javaCallStack.length - jsCallStack.length) > 2) {
         divergencePoints.push({
           javaSnapshot: javaSnapshots[0],
@@ -856,6 +1135,15 @@ ${jsCode}
     }
     
     // Handle numbers
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!isNaN(Number(javaValue)) && !isNaN(Number(jsValue))) {
       return Math.abs(Number(javaValue) - Number(jsValue)) < 0.0001;
     }
@@ -884,23 +1172,68 @@ ${jsCode}
     const missingStateCount = divergencePoints.filter(d => d.divergenceType === 'missing_state').length;
     
     // Generate recommendations based on the most common issues
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (missingStateCount > 0) {
       recommendations.push('Ensure all functions are properly translated and instrumented in both languages');
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (returnValueCount > 0) {
       recommendations.push('Focus on ensuring return values match between Java and JavaScript implementations');
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (variableValueCount > 0) {
       recommendations.push('Check variable types and values for consistency between Java and JavaScript');
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (controlFlowCount > 0) {
       recommendations.push('Review control flow structures to ensure they match between Java and JavaScript');
     }
     
     // Add general recommendations
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (divergencePoints.length > 0) {
       recommendations.push('Consider using more explicit type conversions in the JavaScript code');
       recommendations.push('Add comments explaining any intentional differences between Java and JavaScript implementations');
@@ -1005,6 +1338,15 @@ ${jsCode}
     // based on the validation results
     
     // For this implementation, we'll simulate the process
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (validationResult.isAligned) {
       // No refinement needed
       return originalTranslation;

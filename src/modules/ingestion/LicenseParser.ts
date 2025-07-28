@@ -10,6 +10,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import logger from '../../utils/logger.js';
 
+/**
+ * LicenseInfo interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LicenseInfo {
   type: string;
   text: string;
@@ -20,12 +27,26 @@ export interface LicenseInfo {
   incompatibilityReason?: string;
 }
 
+/**
+ * LicenseParseResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface LicenseParseResult {
   found: boolean;
   licenseInfo?: LicenseInfo;
   errors?: string[];
 }
 
+/**
+ * LicenseParser class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class LicenseParser {
   // Common license file names to look for
   private static readonly LICENSE_FILE_PATTERNS = [
@@ -264,6 +285,15 @@ export class LicenseParser {
       if (fileName === 'mods.toml' || fileName === 'fabric.mod.json' || fileName === 'mcmod.info') {
         // This is a descriptor file, extract license info from it
         const extractedLicenseInfo = await this.extractLicenseFromDescriptor(licenseFilePath);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!extractedLicenseInfo) {
           result.errors?.push('Failed to extract license information from descriptor file');
           return result;
@@ -302,8 +332,26 @@ export class LicenseParser {
 
     try {
       // Check for license files in the root directory
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const pattern of LicenseParser.LICENSE_FILE_PATTERNS) {
         const filePath = path.join(extractedModPath, pattern);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (await this.fileExists(filePath)) {
           result.push(filePath);
         }
@@ -312,9 +360,36 @@ export class LicenseParser {
       // If no license files found in root, check META-INF directory
       if (result.length === 0) {
         const metaInfPath = path.join(extractedModPath, 'META-INF');
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (await this.fileExists(metaInfPath)) {
+          /**
+           * for method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           for (const pattern of LicenseParser.LICENSE_FILE_PATTERNS) {
             const filePath = path.join(metaInfPath, pattern);
+            /**
+             * if method.
+             * 
+             * TODO: Add detailed description of the method's purpose and behavior.
+             * 
+             * @param param - TODO: Document parameters
+             * @returns result - TODO: Document return value
+             * @since 1.0.0
+             */
             if (await this.fileExists(filePath)) {
               result.push(filePath);
             }
@@ -326,8 +401,26 @@ export class LicenseParser {
       if (result.length === 0) {
         // Check mods.toml
         const modsTomlPath = path.join(extractedModPath, 'META-INF', 'mods.toml');
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (await this.fileExists(modsTomlPath)) {
           const licenseInfo = await this.extractLicenseFromDescriptor(modsTomlPath);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (licenseInfo) {
             // Create a virtual license file path for tracking
             result.push(modsTomlPath);
@@ -336,8 +429,26 @@ export class LicenseParser {
 
         // Check fabric.mod.json
         const fabricModJsonPath = path.join(extractedModPath, 'fabric.mod.json');
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (await this.fileExists(fabricModJsonPath)) {
           const licenseInfo = await this.extractLicenseFromDescriptor(fabricModJsonPath);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (licenseInfo) {
             // Create a virtual license file path for tracking
             result.push(fabricModJsonPath);
@@ -346,8 +457,26 @@ export class LicenseParser {
 
         // Check mcmod.info
         const mcmodInfoPath = path.join(extractedModPath, 'mcmod.info');
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (await this.fileExists(mcmodInfoPath)) {
           const licenseInfo = await this.extractLicenseFromDescriptor(mcmodInfoPath);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (licenseInfo) {
             // Create a virtual license file path for tracking
             result.push(mcmodInfoPath);
@@ -375,8 +504,35 @@ export class LicenseParser {
     let conditions: string[] = [];
 
     // Check against known license patterns
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const pattern of license.patterns) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (pattern.test(licenseText)) {
           licenseType = license.identifier;
           permissions = [...license.permissions];
@@ -395,13 +551,49 @@ export class LicenseParser {
     // If it's a custom license, try to extract some basic information
     if (licenseType === 'Custom') {
       // Look for common permissions
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/modify|change|alter/i.test(licenseText)) {
         permissions.push('Modification');
       }
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/distribute|share|give/i.test(licenseText)) {
         permissions.push('Distribution');
       }
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/commercial|sell|profit/i.test(licenseText)) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (/not|don't|cannot|prohibited/i.test(licenseText.substring(Math.max(0, licenseText.search(/commercial|sell|profit/i) - 20), licenseText.search(/commercial|sell|profit/i)))) {
           limitations.push('Commercial use');
         } else {
@@ -410,20 +602,65 @@ export class LicenseParser {
       }
       
       // Look for common limitations
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/no warranty|as is|disclaimer of warranty/i.test(licenseText)) {
         limitations.push('Warranty');
       }
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/no liability|not liable|disclaimer of liability/i.test(licenseText)) {
         limitations.push('Liability');
       }
       
       // Look for common conditions
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/copyright notice|retain|include.*notice/i.test(licenseText)) {
         conditions.push('License and copyright notice');
       }
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/same license|same.*terms/i.test(licenseText)) {
         conditions.push('Same license');
       }
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (/state changes|indicate changes|disclose changes/i.test(licenseText)) {
         conditions.push('State changes');
       }
@@ -475,11 +712,29 @@ export class LicenseParser {
     ];
 
     // Check if the license is in the compatible list
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (compatibleLicenses.includes(licenseInfo.type)) {
       return { compatible: true };
     }
 
     // Check if the license is in the conditional list
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (conditionalLicenses.includes(licenseInfo.type)) {
       return { 
         compatible: true,
@@ -493,6 +748,15 @@ export class LicenseParser {
       const hasDistributionPermission = licenseInfo.permissions.includes('Distribution');
       const hasModificationPermission = licenseInfo.permissions.includes('Modification');
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!hasDistributionPermission || !hasModificationPermission) {
         return {
           compatible: false,
@@ -530,6 +794,15 @@ export class LicenseParser {
   async enforceLicenseCompliance(licenseInfo: LicenseInfo, outputPath: string): Promise<boolean> {
     try {
       // If the license is not compatible, we should not proceed with conversion
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!licenseInfo.compatible) {
         logger.error('License is not compatible with conversion', { 
           licenseType: licenseInfo.type,
@@ -548,6 +821,15 @@ export class LicenseParser {
       await fs.writeFile(noticePath, noticeContent);
 
       // For GPL and similar licenses, ensure source code availability notice
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (['GPL-3.0', 'GPL-2.0', 'LGPL-3.0'].includes(licenseInfo.type)) {
         const readmePath = path.join(outputPath, 'README.md');
         const readmeContent = await this.generateReadmeWithSourceNotice(licenseInfo);
@@ -588,6 +870,15 @@ Conditions:
 ${licenseInfo.conditions.map(c => `- ${c}`).join('\n')}
 
 This conversion was performed using the Minecraft Mod Converter.
+/**
+ * Copyright method.
+ * 
+ * TODO: Add detailed description of the method's purpose and behavior.
+ * 
+ * @param param - TODO: Document parameters
+ * @returns result - TODO: Document return value
+ * @since 1.0.0
+ */
 Copyright (c) ${currentDate} Minecraft Mod Converter Contributors.
 
 The original license text is included in the LICENSE file.
@@ -636,6 +927,15 @@ to accommodate the differences between Java and Bedrock platforms.
       if (fileName === 'mods.toml') {
         // Extract license from mods.toml
         const licenseMatch = content.match(/license\s*=\s*["']([^"']+)["']/);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (licenseMatch) {
           const licenseType = licenseMatch[1];
           return this.getLicenseInfoFromIdentifier(licenseType);
@@ -643,6 +943,15 @@ to accommodate the differences between Java and Bedrock platforms.
       } else if (fileName === 'fabric.mod.json') {
         // Extract license from fabric.mod.json
         const fabricMod = JSON.parse(content);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (fabricMod.license) {
           return this.getLicenseInfoFromIdentifier(fabricMod.license);
         }
@@ -651,6 +960,15 @@ to accommodate the differences between Java and Bedrock platforms.
         const modInfo = JSON.parse(content);
         const modData = Array.isArray(modInfo) ? modInfo[0] : modInfo;
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (modData.license) {
           return this.getLicenseInfoFromIdentifier(modData.license);
         }
@@ -673,6 +991,15 @@ to accommodate the differences between Java and Bedrock platforms.
     const cleanIdentifier = identifier.trim();
     
     // Check if it's a known license
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
       if (cleanIdentifier.toLowerCase() === license.identifier.toLowerCase() ||
           cleanIdentifier.toLowerCase().includes(license.identifier.toLowerCase())) {

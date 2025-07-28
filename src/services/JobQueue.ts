@@ -4,6 +4,13 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('JobQueue');
 
+/**
+ * Job interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface Job {
   id: string;
   type: string;
@@ -15,6 +22,13 @@ export interface Job {
   error?: Error;
 }
 
+/**
+ * JobQueueOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JobQueueOptions {
   maxConcurrent?: number;
   defaultPriority?: number;
@@ -32,11 +46,37 @@ export class JobQueue extends EventEmitter {
   private defaultPriority: number;
   private configService?: ConfigurationService;
 
+  /**
+   * Creates a new instance.
+   * 
+   * TODO: Add detailed description of constructor behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @since 1.0.0
+   */
   constructor(options: JobQueueOptions = {}) {
+    /**
+     * super method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     super();
     this.configService = options.configService;
     
     // Use configuration service if available, otherwise use provided options or defaults
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.configService) {
       this.maxConcurrent = this.configService.get('processing.maxConcurrent', options.maxConcurrent || 5);
       this.defaultPriority = this.configService.get('processing.defaultPriority', options.defaultPriority || 1);
@@ -109,6 +149,15 @@ export class JobQueue extends EventEmitter {
    * Get all jobs with optional filtering
    */
   public getJobs(filter?: { status?: Job['status'], type?: string }): Job[] {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!filter) return [...this.queue];
     
     return this.queue.filter(job => {
@@ -123,6 +172,15 @@ export class JobQueue extends EventEmitter {
    */
   public completeJob(id: string, result?: any): void {
     const job = this.getJob(id);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!job) return;
 
     job.status = 'completed';
@@ -138,6 +196,15 @@ export class JobQueue extends EventEmitter {
    */
   public failJob(id: string, error: Error): void {
     const job = this.getJob(id);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!job) return;
 
     job.status = 'failed';
@@ -159,6 +226,15 @@ export class JobQueue extends EventEmitter {
       .filter(job => job.status === 'pending')
       .slice(0, availableSlots);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const job of pendingJobs) {
       job.status = 'processing';
       this.processing.add(job.id);

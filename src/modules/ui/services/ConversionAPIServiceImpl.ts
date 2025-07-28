@@ -42,7 +42,25 @@ export class APIError extends Error {
   public readonly statusCode: number;
   public readonly errorCode: string;
   
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(message: string, statusCode: number, errorCode: string) {
+    /**
+     * super method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     super(message);
     this.name = 'APIError';
     this.statusCode = statusCode;
@@ -76,6 +94,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @returns Promise resolving to conversion job information
    */
   public async startConversion(input: ConversionInput): Promise<ConversionJob> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockStartConversion(input);
     }
@@ -85,10 +112,28 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
       const formData = new FormData();
       formData.append('modFile', input.modFile);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (input.sourceRepo) {
         formData.append('sourceRepo', input.sourceRepo);
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (input.preferences) {
         formData.append('preferences', JSON.stringify(input.preferences));
       }
@@ -102,6 +147,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -113,6 +167,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
       
       return await response.json();
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -132,6 +195,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @returns Promise resolving to conversion status
    */
   public async getConversionStatus(jobId: string): Promise<ConversionStatus> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockGetConversionStatus(jobId);
     }
@@ -144,6 +216,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -155,6 +236,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
       
       return await response.json();
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -174,6 +264,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @returns Promise resolving to boolean indicating success
    */
   public async cancelConversion(jobId: string): Promise<boolean> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockCancelConversion(jobId);
     }
@@ -186,6 +285,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -198,6 +306,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
       const result = await response.json();
       return result.success === true;
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -217,6 +334,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @returns Promise resolving to conversion result
    */
   public async getConversionResult(jobId: string): Promise<ConversionResult> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.useMockData) {
       return this.mockGetConversionResult(jobId);
     }
@@ -229,6 +355,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
         }
       );
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new APIError(
@@ -240,6 +375,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
       
       return await response.json();
     } catch (error) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (error instanceof APIError) {
         throw error;
       }
@@ -274,6 +418,15 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
       
       return response;
     } finally {
+      /**
+       * clearTimeout method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       clearTimeout(timeoutId);
     }
   }

@@ -14,12 +14,26 @@ export interface JavaTextureFile {
   metadata?: Record<string, any>;
 }
 
+/**
+ * BedrockTextureFile interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockTextureFile {
   path: string;
   content: Buffer;
   metadata?: Record<string, any>;
 }
 
+/**
+ * TextureConversionResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface TextureConversionResult {
   convertedTextures: BedrockTextureFile[];
   conversionNotes: any[];
@@ -34,6 +48,13 @@ export interface JavaModelFile {
   type: 'block' | 'item' | 'entity';
 }
 
+/**
+ * BedrockModelFile interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockModelFile {
   path: string;
   content: string;
@@ -41,6 +62,13 @@ export interface BedrockModelFile {
   geometryName?: string;
 }
 
+/**
+ * ModelConversionResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ModelConversionResult {
   convertedModels: BedrockModelFile[];
   conversionNotes: any[];
@@ -55,12 +83,26 @@ export interface JavaSoundFile {
   category?: string;
 }
 
+/**
+ * BedrockSoundFile interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockSoundFile {
   path: string;
   content: Buffer;
   category?: string;
 }
 
+/**
+ * SoundConversionResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface SoundConversionResult {
   convertedSounds: BedrockSoundFile[];
   soundsJson: object;
@@ -76,12 +118,26 @@ export interface JavaParticleDefinition {
   textures: JavaTextureFile[];
 }
 
+/**
+ * BedrockParticleDefinition interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockParticleDefinition {
   name: string;
   content: string;
   textures: BedrockTextureFile[];
 }
 
+/**
+ * ParticleConversionResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ParticleConversionResult {
   convertedParticles: BedrockParticleDefinition[];
   conversionNotes: any[];

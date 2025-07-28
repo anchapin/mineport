@@ -104,6 +104,15 @@ export class SoundProcessor {
     const conversionNotes: SoundConversionNote[] = [];
     const soundEvents: Record<string, any> = {};
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const javaSound of javaSounds) {
       try {
         const bedrockSound = await this.convertSingleSound(javaSound);
@@ -111,6 +120,15 @@ export class SoundProcessor {
         
         // Extract sound event information from the path
         const soundEvent = this.extractSoundEvent(javaSound.path);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (soundEvent) {
           this.addSoundToEvents(soundEvent, bedrockSound, soundEvents);
         }
@@ -149,6 +167,15 @@ export class SoundProcessor {
     let soundData = javaSound.data;
     let metadata = { ...javaSound.metadata };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.CONVERSION_MAP[fileExtension]) {
       // In a real implementation, this would use a library like ffmpeg to convert the audio
       // For this implementation, we'll just log that conversion would happen
@@ -162,6 +189,15 @@ export class SoundProcessor {
     }
     
     // Map sound categories if needed
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (metadata.category && this.CATEGORY_MAP[metadata.category]) {
       metadata.category = this.CATEGORY_MAP[metadata.category];
     }
@@ -195,6 +231,15 @@ export class SoundProcessor {
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === 'sounds' && i + 1 < parts.length) {
         category = parts[i + 1];
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (i + 2 < parts.length) {
           fileName = parts.slice(i + 2).join('/');
         }
@@ -228,6 +273,15 @@ export class SoundProcessor {
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === 'sounds' && i + 1 < parts.length) {
         category = parts[i + 1];
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (i + 2 < parts.length) {
           fileName = parts.slice(i + 2).join('/');
           // Remove file extension
@@ -237,6 +291,15 @@ export class SoundProcessor {
       }
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (modId && category && fileName) {
       return `${modId}:${category}.${fileName.replace(/\//g, '.')}`;
     }
@@ -265,6 +328,15 @@ export class SoundProcessor {
     const soundName = relativePath.replace(/\.[^/.]+$/, '');
     
     // Initialize the sound event if it doesn't exist
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!soundEvents[soundEvent]) {
       soundEvents[soundEvent] = {
         category: sound.metadata?.category || 'neutral',
@@ -272,6 +344,15 @@ export class SoundProcessor {
       };
       
       // Add subtitle if available
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (sound.metadata?.subtitle) {
         soundEvents[soundEvent].subtitle = sound.metadata.subtitle;
       }
@@ -318,6 +399,15 @@ export class SoundProcessor {
     };
     
     // Convert each Java sound event to Bedrock format
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [eventName, eventData] of Object.entries(soundEvents)) {
       // In Bedrock, we use the event name as the key
       bedrockSounds.sound_definitions[eventName] = {
@@ -357,6 +447,15 @@ export class SoundProcessor {
   ): string {
     // First check custom mappings
     const customMapping = mappings.find(mapping => mapping.javaEvent === javaEvent);
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (customMapping) {
       return customMapping.bedrockEvent;
     }
@@ -370,6 +469,15 @@ export class SoundProcessor {
       // Many more mappings would be defined here
     };
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (javaEvent.startsWith('minecraft:') && vanillaMappings[javaEvent]) {
       return vanillaMappings[javaEvent];
     }
@@ -400,6 +508,15 @@ export class SoundProcessor {
     logger.info(`Organizing ${convertedSounds.length} sounds in ${outputDir}`);
     
     // Write each sound file
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const sound of convertedSounds) {
       const outputPath = path.join(outputDir, sound.path);
       const outputDirPath = path.dirname(outputPath);

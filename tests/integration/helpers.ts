@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
+import { JavaMod, ConversionInput, ConversionResult } from '../../src/types/base';
+import { ConversionError } from '../../src/types/errors';
 
 /**
  * Creates a temporary directory for integration tests
@@ -24,7 +26,7 @@ export function cleanupTempDirectory(directory: string): void {
 /**
  * Creates a mock mod file for testing
  */
-export function createMockModFile(directory: string, modId: string, modLoader: 'forge' | 'fabric'): string {
+export function createMockModFile(directory: string, modId: string, modLoader: 'forge' | 'fabric'): Promise<string> {
   const modFile = path.join(directory, `${modId}.jar`);
   
   // Create a simple ZIP file structure
@@ -237,7 +239,7 @@ dependencies {
 /**
  * Verifies the structure of a generated Bedrock addon
  */
-export function verifyAddonStructure(addonPath: string): boolean {
+export async function verifyAddonStructure(addonPath: string): Promise<boolean> {
   try {
     // Check if the addon file exists
     if (!fs.existsSync(addonPath)) {
@@ -286,4 +288,172 @@ export function verifyAddonStructure(addonPath: string): boolean {
     console.error('Error verifying addon structure:', error);
     return false;
   }
+}
+/**
+ 
+* Creates a complete mock conversion input for testing
+ */
+export function createMockConversionInput(modId: string = 'test-mod', modLoader: 'forge' | 'fabric' = 'forge'): ConversionInput {
+  return {
+    modFile: Buffer.from('mock mod file content'),
+    sourceRepository: {
+      url: `https://github.com/test-owner/${modId}`,
+      branch: 'main',
+    },
+    preferences: {
+      compromiseStrategies: {
+        allowStubs: true,
+        allowWarnings: true,
+        allowSimplifications: true,
+      },
+      outputFormat: 'addon',
+      includeSourceCode: true,
+    },
+    metadata: {
+      modId,
+      name: `Test ${modLoader} Mod`,
+      version: '1.0.0',
+      author: 'Test Author',
+      description: `A test ${modLoader} mod for integration testing`,
+    },
+  };
+}
+
+/**
+ * Creates a mock JavaMod object for testing
+ */
+export function createMockJavaMod(modId: string = 'test-mod', modLoader: 'forge' | 'fabric' = 'forge'): JavaMod {
+  return {
+    id: modId,
+    name: `Test ${modLoader} Mod`,
+    version: '1.0.0',
+    modLoader,
+    sourceFiles: [
+      {
+        path: `src/main/java/com/example/${modId}/TestMod.java`,
+        content: `package com.example.${modId};\n\npublic class TestMod {\n    public static final String MOD_ID = "${modId}";\n}`,
+        type: 'java',
+      },
+    ],
+    assetFiles: [
+      {
+        path: `assets/${modId}/textures/block/test_block.png`,
+        content: Buffer.from([0x89, 0x50, 0x4E, 0x47]),
+        type: 'texture',
+      },
+    ],
+    configFiles: [
+      {
+        path: `data/${modId}/recipes/test_recipe.json`,
+        content: '{"type": "minecraft:crafting_shaped"}',
+        type: 'recipe',
+      },
+    ],
+    license: {
+      type: 'MIT',
+      author: 'Test Author',
+      year: '2023',
+      text: 'MIT License\n\nCopyright (c) 2023 Test Author\n',
+      compatible: true,
+    },
+  };
+}
+
+/**
+ * Creates mock conversion errors for testing
+ */
+export function createMockConversionErrors(): ConversionError[] {
+  return [
+    {
+      id: 'error-1',
+      type: 'validation',
+      severity: 'warning',
+      message: 'Mock validation warning',
+      moduleOrigin: 'ModValidator',
+      timestamp: new Date(),
+    },
+    {
+      id: 'error-2',
+      type: 'logic',
+      severity: 'error',
+      message: 'Mock logic error',
+      sourceLocation: {
+        file: 'TestMod.java',
+        line: 10,
+        column: 5,
+      },
+      recommendedFix: 'Update the code to use Bedrock API',
+      moduleOrigin: 'LogicTranslationEngine',
+      timestamp: new Date(),
+    },
+  ];
+}
+
+/**
+ * Validates that module interactions follow expected patterns
+ */
+export function validateModuleInteraction(
+  sourceModule: string,
+  targetModule: string,
+  input: any,
+  output: any
+): boolean {
+  // Check that output has expected structure based on module interaction
+  if (!output || typeof output !== 'object') {
+    console.error(`Invalid output from ${sourceModule} to ${targetModule}`);
+    return false;
+  }
+
+  // Check for success/error indicators
+  if (!('success' in output) && !('errors' in output)) {
+    console.error(`Output from ${sourceModule} to ${targetModule} missing success/error indicators`);
+    return false;
+  }
+
+  // Check for consistent error format
+  if ('errors' in output && Array.isArray(output.errors)) {
+    for (const error of output.errors) {
+      if (!error.id || !error.type || !error.severity || !error.message || !error.moduleOrigin) {
+        console.error(`Invalid error format in ${sourceModule} to ${targetModule} interaction`);
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Creates a mock end-to-end conversion scenario
+ */
+export function createEndToEndScenario(modId: string = 'e2e-test-mod'): {
+  input: ConversionInput;
+  expectedOutput: Partial<ConversionResult>;
+  validationSteps: Array<(result: ConversionResult) => boolean>;
+} {
+  const input = createMockConversionInput(modId, 'forge');
+  
+  const expectedOutput: Partial<ConversionResult> = {
+    success: true,
+    modId,
+    addonPath: expect.stringContaining('.mcaddon'),
+    report: {
+      summary: {
+        totalFeatures: expect.any(Number),
+        convertedFeatures: expect.any(Number),
+        compromisedFeatures: expect.any(Number),
+        failedFeatures: expect.any(Number),
+      },
+    },
+  };
+
+  const validationSteps = [
+    (result: ConversionResult) => result.success === true,
+    (result: ConversionResult) => result.modId === modId,
+    (result: ConversionResult) => fs.existsSync(result.addonPath),
+    (result: ConversionResult) => result.report?.summary?.totalFeatures > 0,
+    (result: ConversionResult) => result.errors.length >= 0, // Errors are allowed but should be array
+  ];
+
+  return { input, expectedOutput, validationSteps };
 }

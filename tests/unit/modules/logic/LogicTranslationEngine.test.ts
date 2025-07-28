@@ -3,10 +3,12 @@ import { LogicTranslationEngine } from '../../../../src/modules/logic/LogicTrans
 import { JavaParser } from '../../../../src/modules/logic/JavaParser';
 import { MMIRGenerator } from '../../../../src/modules/logic/MMIRGenerator';
 import { ASTTranspiler } from '../../../../src/modules/logic/ASTTranspiler';
-import { APIMapping } from '../../../../src/modules/logic/APIMapping';
+import { APIMappingDatabase } from '../../../../src/modules/logic/APIMapping';
 import { LLMTranslationService } from '../../../../src/modules/logic/LLMTranslationService';
 import { ProgramStateAlignmentValidator } from '../../../../src/modules/logic/ProgramStateAlignmentValidator';
 import { JavaScriptGenerator } from '../../../../src/modules/logic/JavaScriptGenerator';
+import { CompromiseStrategyEngine } from '../../../../src/modules/compromise/CompromiseStrategyEngine';
+import { APIMapperService } from '../../../../src/types/api';
 
 // Mock all dependencies
 vi.mock('../../../../src/modules/logic/JavaParser');
@@ -16,7 +18,25 @@ vi.mock('../../../../src/modules/logic/APIMapping');
 vi.mock('../../../../src/modules/logic/LLMTranslationService');
 vi.mock('../../../../src/modules/logic/ProgramStateAlignmentValidator');
 vi.mock('../../../../src/modules/logic/JavaScriptGenerator');
-vi.mock('../../../../src/utils/logger');
+vi.mock('../../../../src/modules/compromise/CompromiseStrategyEngine');
+vi.mock('../../../../src/utils/logger', () => ({
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
+  }))
+}));
+vi.mock('../../../../src/utils/errorHandler', () => ({
+  ErrorHandler: {
+    logicError: vi.fn(),
+    systemError: vi.fn(),
+    compromiseError: vi.fn()
+  },
+  globalErrorCollector: {
+    addError: vi.fn()
+  }
+}));
 
 describe('LogicTranslationEngine', () => {
   let engine: LogicTranslationEngine;
@@ -24,9 +44,11 @@ describe('LogicTranslationEngine', () => {
   let mockMMIRGenerator: any;
   let mockASTTranspiler: any;
   let mockAPIMapping: any;
+  let mockAPIMapperService: APIMapperService;
   let mockLLMTranslationService: any;
   let mockProgramStateAlignmentValidator: any;
   let mockJavaScriptGenerator: any;
+  let mockCompromiseStrategyEngine: any;
 
   beforeEach(() => {
     // Reset mocks
@@ -45,6 +67,15 @@ describe('LogicTranslationEngine', () => {
         metadata: { modId: 'test-mod', modLoader: 'forge' }
       })
     };
+
+    // Mock APIMapperService
+    mockAPIMapperService = {
+      getMapping: vi.fn().mockResolvedValue(undefined),
+      getMappings: vi.fn().mockResolvedValue([]),
+      addMapping: vi.fn().mockResolvedValue(undefined),
+      updateMapping: vi.fn().mockResolvedValue(undefined),
+      importMappings: vi.fn().mockResolvedValue({ added: 0, updated: 0, failed: 0, failures: [] })
+    };
     (MMIRGenerator as any).mockImplementation(() => mockMMIRGenerator);
 
     mockASTTranspiler = {
@@ -56,9 +87,10 @@ describe('LogicTranslationEngine', () => {
     (ASTTranspiler as any).mockImplementation(() => mockASTTranspiler);
 
     mockAPIMapping = {
-      loadMappings: vi.fn().mockResolvedValue([{ javaSignature: 'test', bedrockEquivalent: 'test' }])
+      getAllMappings: vi.fn().mockReturnValue([]),
+      getMapping: vi.fn().mockReturnValue(undefined)
     };
-    (APIMapping as any).mockImplementation(() => mockAPIMapping);
+    (APIMappingDatabase as any).mockImplementation(() => mockAPIMapping);
 
     mockLLMTranslationService = {
       translate: vi.fn().mockResolvedValue([]),
@@ -85,8 +117,18 @@ describe('LogicTranslationEngine', () => {
     };
     (JavaScriptGenerator as any).mockImplementation(() => mockJavaScriptGenerator);
 
+    mockCompromiseStrategyEngine = {
+      applyStrategy: vi.fn().mockReturnValue(null), // No strategy applied by default
+      registerStrategy: vi.fn(),
+      getCompromiseReport: vi.fn().mockReturnValue({
+        totalCompromisesApplied: 0,
+        appliedStrategies: []
+      })
+    };
+    (CompromiseStrategyEngine as any).mockImplementation(() => mockCompromiseStrategyEngine);
+
     // Create instance of LogicTranslationEngine
-    engine = new LogicTranslationEngine();
+    engine = new LogicTranslationEngine(mockAPIMapperService);
   });
 
   describe('translate', () => {
@@ -115,7 +157,7 @@ describe('LogicTranslationEngine', () => {
       // Verify all components were called
       expect(mockJavaParser.parse).toHaveBeenCalledTimes(1);
       expect(mockMMIRGenerator.generate).toHaveBeenCalledTimes(1);
-      expect(mockAPIMapping.loadMappings).toHaveBeenCalledTimes(1);
+      expect(mockAPIMapperService.getMappings).toHaveBeenCalledTimes(1);
       expect(mockASTTranspiler.transpile).toHaveBeenCalledTimes(1);
       expect(mockLLMTranslationService.translate).toHaveBeenCalledTimes(1);
       expect(mockJavaScriptGenerator.generate).toHaveBeenCalledTimes(1);
@@ -255,10 +297,90 @@ describe('LogicTranslationEngine', () => {
       expect(mockMMIRGenerator.generate).not.toHaveBeenCalled();
       
       // Verify API mappings loader was not called since we provided the mappings
-      expect(mockAPIMapping.loadMappings).not.toHaveBeenCalled();
+      expect(mockAPIMapperService.getMappings).not.toHaveBeenCalled();
       
       // Verify the transpiler was called with our provided context and mappings
       expect(mockASTTranspiler.transpile).toHaveBeenCalledWith(mmirContext, apiMappings);
+    });
+
+    it('should apply compromise strategies to unmappable features', async () => {
+      // Arrange
+      const input = {
+        javaSourceFiles: [
+          {
+            path: 'Test.java',
+            content: 'public class Test {}',
+            modLoader: 'forge' as const
+          }
+        ]
+      };
+
+      // Mock unmappable nodes from transpiler
+      mockASTTranspiler.transpile.mockResolvedValue({
+        jsASTs: [{ type: 'JSAst' }],
+        unmappableNodes: [
+          {
+            id: 'unmappable-1',
+            type: 'dimension',
+            name: 'Custom Dimension',
+            complexity: 'complex',
+            sourceLocation: {
+              file: 'Test.java',
+              startLine: 10,
+              endLine: 20
+            }
+          }
+        ]
+      });
+
+      // Mock compromise strategy application
+      mockCompromiseStrategyEngine.applyStrategy.mockReturnValue({
+        type: 'simulation',
+        name: 'Dimension Simulation',
+        description: 'Simulates custom dimension using teleportation',
+        implementationDetails: 'Uses teleportation to isolated areas',
+        limitations: ['Not a true separate dimension']
+      });
+
+      // Act
+      const result = await engine.translate(input);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(mockCompromiseStrategyEngine.applyStrategy).toHaveBeenCalledTimes(1);
+      expect(result.conversionNotes.length).toBeGreaterThan(0);
+      
+      // Check that compromise strategy note was added
+      const compromiseNote = result.conversionNotes.find(note => 
+        note.message.includes('Applied compromise strategy')
+      );
+      expect(compromiseNote).toBeDefined();
+    });
+
+    it('should provide access to compromise strategy engine', () => {
+      // Act
+      const compromiseEngine = engine.getCompromiseStrategyEngine();
+
+      // Assert
+      expect(compromiseEngine).toBeDefined();
+      expect(compromiseEngine).toBe(mockCompromiseStrategyEngine);
+    });
+
+    it('should allow registering custom compromise strategies', () => {
+      // Arrange
+      const customStrategy = {
+        id: 'custom-strategy',
+        name: 'Custom Strategy',
+        description: 'A custom compromise strategy',
+        applicabilityCheck: vi.fn(),
+        apply: vi.fn()
+      };
+
+      // Act
+      engine.registerCompromiseStrategy('dimension', customStrategy);
+
+      // Assert
+      expect(mockCompromiseStrategyEngine.registerStrategy).toHaveBeenCalledWith('dimension', customStrategy);
     });
   });
 });

@@ -74,6 +74,15 @@ export class TextureConverter {
     const convertedTextures: BedrockTextureFile[] = [];
     const conversionNotes: TextureConversionNote[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const javaTexture of javaTextures) {
       try {
         const bedrockTexture = await this.convertSingleTexture(javaTexture);
@@ -111,6 +120,15 @@ export class TextureConverter {
     let metadata = { ...javaTexture.metadata };
     
     // Handle animated textures if needed
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (javaTexture.metadata?.animated) {
       // Process animated texture (in a real implementation, this might involve
       // reformatting the animation data to match Bedrock's requirements)
@@ -146,6 +164,15 @@ export class TextureConverter {
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === 'textures' && i + 1 < parts.length) {
         category = parts[i + 1];
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (i + 2 < parts.length) {
           fileName = parts.slice(i + 2).join('/');
         }
@@ -155,6 +182,15 @@ export class TextureConverter {
     
     // Map Java categories to Bedrock categories
     let bedrockCategory = category;
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (category) {
       case 'block':
         bedrockCategory = 'blocks';
@@ -233,6 +269,15 @@ export class TextureConverter {
   ): Promise<void> {
     logger.info(`Organizing ${convertedTextures.length} textures in ${outputDir}`);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const texture of convertedTextures) {
       const outputPath = path.join(outputDir, texture.path);
       const outputDirPath = path.dirname(outputPath);
@@ -244,6 +289,15 @@ export class TextureConverter {
       await fs.writeFile(outputPath, texture.data);
       
       // If the texture has animation metadata, create the necessary animation definition file
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (texture.metadata?.animated) {
         await this.createAnimationDefinition(texture, outputDirPath);
       }
@@ -260,6 +314,15 @@ export class TextureConverter {
     texture: BedrockTextureFile,
     outputDir: string
   ): Promise<void> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!texture.metadata?.animated) return;
     
     const textureName = path.basename(texture.path, path.extname(texture.path));

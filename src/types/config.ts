@@ -45,7 +45,34 @@ export interface ConfigValidationResult {
 export interface ConfigurationService {
   get<T>(key: string, defaultValue?: T): T;
   set<T>(key: string, value: T): void;
+  /**
+   * getSection method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getSection(section: string): Record<string, any>;
+  /**
+   * reload method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   reload(): Promise<void>;
+  /**
+   * validate method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   validate(): ConfigValidationResult;
 }

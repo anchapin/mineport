@@ -9,6 +9,15 @@ export class WarningLogger {
   private logger: Logger;
   private warnings: Map<string, FeatureWarning>;
 
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(logger: Logger) {
     this.logger = logger;
     this.warnings = new Map<string, FeatureWarning>();
@@ -89,6 +98,15 @@ export class WarningLogger {
  * Source files: ${feature.sourceFiles.join(', ')}
  *`;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (recommendations.length > 0) {
       comment += `
  * Recommendations:
@@ -124,6 +142,15 @@ export class ${sanitizedModName}NotificationManager {
   private notifiedFeatures: Set<string>;
   private notificationCooldowns: Map<string, number>;
   
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor() {
     this.notifiedFeatures = new Set<string>();
     this.notificationCooldowns = new Map<string, number>();
@@ -148,6 +175,15 @@ export class ${sanitizedModName}NotificationManager {
   showInitialNotification() {
     // Show a welcome message with information about limitations
     system.runTimeout(() => {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const player of world.getAllPlayers()) {
         player.sendMessage({
           rawtext: [
@@ -187,6 +223,15 @@ export class ${sanitizedModName}NotificationManager {
    */
   notifyStub(player, featureId, featureName, details) {
     // Check if we've already notified about this feature
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.notifiedFeatures.has(featureId + player.id)) {
       return;
     }
@@ -196,6 +241,15 @@ export class ${sanitizedModName}NotificationManager {
     const cooldownKey = featureId + player.id;
     const lastNotification = this.notificationCooldowns.get(cooldownKey) || 0;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (now - lastNotification < 300000) { // 5 minutes cooldown
       return;
     }
@@ -232,6 +286,15 @@ ${this.generateLimitationsList(modName)}
 }
 
 // Export a factory function to create the notification manager
+/**
+ * create function.
+ * 
+ * TODO: Add detailed description of the function's purpose and behavior.
+ * 
+ * @param param - TODO: Document parameters
+ * @returns result - TODO: Document return value
+ * @since 1.0.0
+ */
 export function create${sanitizedModName}NotificationManager() {
   return new ${sanitizedModName}NotificationManager();
 }
@@ -280,6 +343,15 @@ world.beforeEvents.chatSend.subscribe((event) => {
    * @returns Warning prefix
    */
   private getWarningPrefix(warningType: WarningType): string {
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (warningType) {
       case 'rendering':
         return 'RENDERING STUB';
@@ -340,6 +412,15 @@ world.beforeEvents.chatSend.subscribe((event) => {
     const result: Record<string, number> = {};
     
     warnings.forEach(warning => {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!result[warning.warningType]) {
         result[warning.warningType] = 0;
       }

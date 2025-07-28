@@ -154,11 +154,29 @@ export class ParticleMapper {
     const convertedParticles: BedrockParticleDefinition[] = [];
     const conversionNotes: ParticleConversionNote[] = [];
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const javaParticle of javaParticles) {
       try {
         const result = await this.convertSingleParticle(javaParticle);
         convertedParticles.push(result.particle);
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (result.note) {
           conversionNotes.push(result.note);
         }
@@ -193,6 +211,15 @@ export class ParticleMapper {
     // Try to map the particle name directly
     const directMapping = this.PARTICLE_MAPPING[javaParticle.name];
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (directMapping) {
       // Direct mapping exists
       logger.info(`Direct mapping found for particle ${javaParticle.name} -> ${directMapping}`);
@@ -276,7 +303,25 @@ export class ParticleMapper {
     const particleName = javaParticle.name.toLowerCase();
     
     // Check for category keywords in the particle name
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [category, fallback] of Object.entries(this.FALLBACK_MAPPING)) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (particleName.includes(category)) {
         logger.info(`Applied ${fallback.type} fallback for ${javaParticle.name} using category '${category}'`);
         return {
@@ -344,6 +389,15 @@ export class ParticleMapper {
     };
     
     // Add texture-specific components if textures are defined
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (javaParticle.textures && javaParticle.textures.length > 0) {
       bedrockData.particle_effect.components['minecraft:particle_appearance_billboard'] = {
         size: [javaData.width || 0.1, javaData.height || 0.1],
@@ -369,6 +423,15 @@ export class ParticleMapper {
    */
   private getParticleTexturePath(targetParticle: string, javaData: Record<string, any>): string {
     // If the Java particle defines textures, use the first one
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (javaData.textures && javaData.textures.length > 0) {
       // Convert Java texture path to Bedrock format
       // Java: textures/particle/example
@@ -377,6 +440,15 @@ export class ParticleMapper {
     }
     
     // Otherwise, use a default texture based on the target particle
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (targetParticle.startsWith('minecraft:')) {
       // For vanilla particles, use their standard textures
       const particleName = targetParticle.replace('minecraft:', '');
@@ -399,6 +471,15 @@ export class ParticleMapper {
   ): Promise<void> {
     logger.info(`Organizing ${convertedParticles.length} particles in ${outputDir}`);
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const particle of convertedParticles) {
       const outputPath = path.join(outputDir, particle.path);
       const outputDirPath = path.dirname(outputPath);
@@ -414,6 +495,15 @@ export class ParticleMapper {
       }
       
       // Copy any associated texture files if needed
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (particle.textures && particle.textures.length > 0) {
         await this.copyParticleTextures(particle, outputDir);
       }
@@ -436,8 +526,26 @@ export class ParticleMapper {
     
     // Example implementation (commented out as we don't have actual texture files to copy)
     /*
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!particle.textures) return;
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const texturePath of particle.textures) {
       const sourceTexturePath = `path/to/source/${texturePath}.png`;
       const targetTexturePath = path.join(outputDir, 'textures/particle', `${path.basename(texturePath)}.png`);

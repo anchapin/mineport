@@ -13,6 +13,15 @@ async function main() {
     // Initialize modules and services here
     
     // Initialize UI rendering
+    /**
+     * initializeUI method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     initializeUI();
     
   } catch (error) {
@@ -35,4 +44,13 @@ function initializeUI() {
   // }
 }
 
+/**
+ * main method.
+ * 
+ * TODO: Add detailed description of the method's purpose and behavior.
+ * 
+ * @param param - TODO: Document parameters
+ * @returns result - TODO: Document return value
+ * @since 1.0.0
+ */
 main();

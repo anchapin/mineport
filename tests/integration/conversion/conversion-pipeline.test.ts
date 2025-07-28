@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createTempDirectory, cleanupTempDirectory, loadMockMod } from '../helpers';
-import { ModValidator } from '../../../src/modules/ingestion/ModValidator';
-import { FeatureCompatibilityAnalyzer } from '../../../src/modules/ingestion/FeatureCompatibilityAnalyzer';
-import { TextureConverter } from '../../../src/modules/assets/TextureConverter';
-import { ModelConverter } from '../../../src/modules/assets/ModelConverter';
-import { SoundProcessor } from '../../../src/modules/assets/SoundProcessor';
-import { BlockItemDefinitionConverter } from '../../../src/modules/configuration/BlockItemDefinitionConverter';
-import { RecipeConverter } from '../../../src/modules/configuration/RecipeConverter';
-import { LootTableConverter } from '../../../src/modules/configuration/LootTableConverter';
-import { ManifestGenerator } from '../../../src/modules/configuration/ManifestGenerator';
-import { JavaParser } from '../../../src/modules/logic/JavaParser';
-import { MMIRGenerator } from '../../../src/modules/logic/MMIRGenerator';
-import { ASTTranspiler } from '../../../src/modules/logic/ASTTranspiler';
-import { JavaScriptGenerator } from '../../../src/modules/logic/JavaScriptGenerator';
+import { 
+  createTempDirectory, 
+  cleanupTempDirectory, 
+  loadMockMod, 
+  validateModuleInteraction,
+  createMockConversionErrors 
+} from '../helpers';
+import { AssetTranslationModule } from '../../../src/modules/assets/AssetTranslationModule';
+import { LogicTranslationEngine } from '../../../src/modules/logic/LogicTranslationEngine';
+import { ConversionPipeline } from '../../../src/services/ConversionPipeline';
+import { ErrorCollector } from '../../../src/services/ErrorCollector';
+import { ConfigurationService } from '../../../src/services/ConfigurationService';
 import fs from 'fs';
 import path from 'path';
 
@@ -20,6 +18,9 @@ describe('Conversion Pipeline Integration', () => {
   let tempDir: string;
   let mockMod: any;
   let extractPath: string;
+  let errorCollector: ErrorCollector;
+  let configService: ConfigurationService;
+  let conversionPipeline: ConversionPipeline;
   
   beforeAll(async () => {
     // Create temporary directory
@@ -49,6 +50,16 @@ describe('Conversion Pipeline Integration', () => {
       fs.mkdirSync(path.dirname(fullPath), { recursive: true });
       fs.writeFileSync(fullPath, content);
     }
+    
+    // Initialize services
+    errorCollector = new ErrorCollector();
+    configService = new ConfigurationService();
+    await configService.initialize();
+    
+    conversionPipeline = new ConversionPipeline({
+      errorCollector,
+      configService,
+    });
   });
   
   afterAll(() => {
@@ -56,161 +67,222 @@ describe('Conversion Pipeline Integration', () => {
     cleanupTempDirectory(tempDir);
   });
   
-  it('should convert assets correctly', async () => {
+  it('should convert assets through unified module interface', async () => {
     // Create output directory for assets
     const outputDir = path.join(tempDir, 'output/assets');
     fs.mkdirSync(outputDir, { recursive: true });
     
-    // Convert textures
-    const textureConverter = new TextureConverter();
-    const textureResult = await textureConverter.convert(
-      extractPath,
+    // Create mock features for asset translation
+    const mockFeatures = [
+      {
+        id: 'texture-feature',
+        name: 'Custom Texture',
+        type: 'TEXTURE',
+        compatibilityTier: 1,
+        sourceFiles: ['assets/mock-forge-mod/textures/block/custom_block.png'],
+        assetData: {
+          type: 'texture',
+          format: 'png',
+          size: { width: 16, height: 16 },
+        },
+      },
+      {
+        id: 'model-feature',
+        name: 'Custom Model',
+        type: 'MODEL',
+        compatibilityTier: 1,
+        sourceFiles: ['assets/mock-forge-mod/models/block/custom_block.json'],
+        assetData: {
+          type: 'model',
+          format: 'json',
+          parent: 'block/cube_all',
+        },
+      },
+    ];
+    
+    // Use unified asset translation module
+    const assetTranslator = new AssetTranslationModule();
+    const assetResult = await assetTranslator.translateAssets(
+      mockFeatures,
       outputDir,
       { modId: 'mock-forge-mod' }
     );
     
-    expect(textureResult.success).toBe(true);
-    expect(textureResult.convertedFiles.length).toBeGreaterThan(0);
-    expect(fs.existsSync(path.join(outputDir, 'textures'))).toBe(true);
+    expect(assetResult.success).toBe(true);
+    expect(validateModuleInteraction('AssetTranslationModule', 'Output', mockFeatures, assetResult)).toBe(true);
+    expect(assetResult.assets.length).toBeGreaterThan(0);
+    expect(assetResult.modId).toBe('mock-forge-mod');
     
-    // Convert models
-    const modelConverter = new ModelConverter();
-    const modelResult = await modelConverter.convert(
-      extractPath,
-      outputDir,
-      { modId: 'mock-forge-mod' }
-    );
-    
-    expect(modelResult.success).toBe(true);
-    expect(modelResult.convertedFiles.length).toBeGreaterThan(0);
-    expect(fs.existsSync(path.join(outputDir, 'models'))).toBe(true);
-    
-    // Convert sounds
-    const soundProcessor = new SoundProcessor();
-    const soundResult = await soundProcessor.convert(
-      extractPath,
-      outputDir,
-      { modId: 'mock-forge-mod' }
-    );
-    
-    expect(soundResult.success).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, 'sounds.json'))).toBe(true);
+    // Verify error handling consistency
+    if (assetResult.errors) {
+      expect(assetResult.errors.every(error => 
+        error.moduleOrigin === 'AssetTranslationModule'
+      )).toBe(true);
+    }
   });
   
-  it('should convert configuration files correctly', async () => {
+  it('should process configuration through pipeline stages', async () => {
     // Create output directory for configuration
     const outputDir = path.join(tempDir, 'output/config');
     fs.mkdirSync(outputDir, { recursive: true });
     
-    // Generate manifest
-    const manifestGenerator = new ManifestGenerator();
-    const manifestResult = await manifestGenerator.generate({
+    // Create mock configuration features
+    const mockConfigFeatures = [
+      {
+        id: 'recipe-feature',
+        name: 'Custom Recipe',
+        type: 'RECIPE',
+        compatibilityTier: 1,
+        sourceFiles: ['data/mock-forge-mod/recipes/custom_recipe.json'],
+        configData: {
+          type: 'crafting_shaped',
+          pattern: ['###', '# #', '###'],
+          result: 'mock-forge-mod:custom_item',
+        },
+      },
+      {
+        id: 'block-feature',
+        name: 'Custom Block Definition',
+        type: 'BLOCK',
+        compatibilityTier: 1,
+        sourceFiles: ['src/main/java/com/example/mockmod/blocks/CustomBlock.java'],
+        configData: {
+          identifier: 'mock-forge-mod:custom_block',
+          material: 'stone',
+          hardness: 1.5,
+        },
+      },
+    ];
+    
+    // Test pipeline stage interaction
+    const stageInput = {
+      features: mockConfigFeatures,
+      outputDir,
       modId: 'mock-forge-mod',
-      name: 'Mock Forge Mod',
-      version: '1.0.0',
-      description: 'A mock Forge mod for testing',
-      author: 'Test Author',
-    });
+      modMetadata: {
+        name: 'Mock Forge Mod',
+        version: '1.0.0',
+        author: 'Test Author',
+      },
+    };
     
-    expect(manifestResult.behaviorPack).toBeDefined();
-    expect(manifestResult.resourcePack).toBeDefined();
+    // Process through configuration stage
+    const configResult = await conversionPipeline.processConfigurationStage(stageInput);
     
-    // Write manifests to output directory
-    fs.writeFileSync(
-      path.join(outputDir, 'behavior_pack/manifest.json'),
-      JSON.stringify(manifestResult.behaviorPack, null, 2)
-    );
-    fs.writeFileSync(
-      path.join(outputDir, 'resource_pack/manifest.json'),
-      JSON.stringify(manifestResult.resourcePack, null, 2)
-    );
+    expect(configResult.success).toBe(true);
+    expect(validateModuleInteraction('ConversionPipeline', 'ConfigurationStage', stageInput, configResult)).toBe(true);
+    expect(configResult.generatedFiles.length).toBeGreaterThan(0);
     
-    // Convert block/item definitions
-    const definitionConverter = new BlockItemDefinitionConverter();
-    const definitionResult = await definitionConverter.convert(
-      extractPath,
-      path.join(outputDir, 'behavior_pack'),
-      { modId: 'mock-forge-mod' }
-    );
+    // Verify manifest generation
+    expect(configResult.manifests.behaviorPack).toBeDefined();
+    expect(configResult.manifests.resourcePack).toBeDefined();
     
-    expect(definitionResult.success).toBe(true);
-    expect(definitionResult.blocks.length + definitionResult.items.length).toBeGreaterThan(0);
-    
-    // Convert recipes
-    const recipeConverter = new RecipeConverter();
-    const recipeResult = await recipeConverter.convert(
-      extractPath,
-      path.join(outputDir, 'behavior_pack'),
-      { modId: 'mock-forge-mod' }
-    );
-    
-    expect(recipeResult.success).toBe(true);
-    expect(recipeResult.convertedFiles.length).toBeGreaterThan(0);
-    
-    // Convert loot tables
-    const lootTableConverter = new LootTableConverter();
-    const lootTableResult = await lootTableConverter.convert(
-      extractPath,
-      path.join(outputDir, 'behavior_pack'),
-      { modId: 'mock-forge-mod' }
-    );
-    
-    expect(lootTableResult.success).toBe(true);
-    expect(lootTableResult.convertedFiles.length).toBeGreaterThan(0);
+    // Verify error collection
+    errorCollector.addErrors(configResult.errors || []);
+    const errors = errorCollector.getErrors();
+    expect(errors.every(error => error.moduleOrigin.includes('Configuration'))).toBe(true);
   });
   
-  it('should convert Java code to JavaScript', async () => {
+  it('should translate Java logic through unified engine', async () => {
     // Create output directory for scripts
     const outputDir = path.join(tempDir, 'output/scripts');
     fs.mkdirSync(outputDir, { recursive: true });
     
-    // Get source code files
-    const sourceCodeDir = path.join(tempDir, 'source-code');
-    const javaFiles = Object.entries(mockMod.sourceCode)
+    // Create mock logic features from source code
+    const mockLogicFeatures = Object.entries(mockMod.sourceCode)
       .filter(([filePath]) => filePath.endsWith('.java'))
-      .map(([filePath, content]) => ({
-        path: filePath,
-        content: content as string,
+      .map(([filePath, content], index) => ({
+        id: `logic-feature-${index}`,
+        name: `Java Class ${index}`,
+        type: 'LOGIC',
+        compatibilityTier: 1,
+        sourceFiles: [filePath],
+        javaCode: content as string,
+        className: filePath.split('/').pop()?.replace('.java', '') || 'Unknown',
       }));
     
-    // Parse Java code
-    const javaParser = new JavaParser();
-    const parseResults = await Promise.all(
-      javaFiles.map(file => javaParser.parse(file.content, file.path))
+    // Use unified logic translation engine
+    const logicEngine = new LogicTranslationEngine();
+    const logicResult = await logicEngine.translateLogic(
+      mockLogicFeatures,
+      { 
+        modId: 'mock-forge-mod',
+        apiMappings: [],
+        outputDir,
+      }
     );
     
-    expect(parseResults.every(result => result.success)).toBe(true);
+    expect(logicResult.success).toBe(true);
+    expect(validateModuleInteraction('LogicTranslationEngine', 'Output', mockLogicFeatures, logicResult)).toBe(true);
+    expect(logicResult.translatedCode).toBeDefined();
+    expect(logicResult.translatedCode.length).toBeGreaterThan(0);
     
-    // Generate MMIR
-    const mmirGenerator = new MMIRGenerator();
-    const mmirContext = await mmirGenerator.generate(
-      parseResults.map(result => result.ast),
-      { modId: 'mock-forge-mod', modLoader: 'forge' }
-    );
+    // Verify error handling and unmappable features
+    if (logicResult.errors) {
+      expect(logicResult.errors.every(error => 
+        error.moduleOrigin === 'LogicTranslationEngine'
+      )).toBe(true);
+    }
     
-    expect(mmirContext.nodes.length).toBeGreaterThan(0);
-    
-    // Transpile to JavaScript AST
-    const astTranspiler = new ASTTranspiler();
-    const jsAst = await astTranspiler.transpile(mmirContext, {
-      modId: 'mock-forge-mod',
-      apiMappings: [],
-    });
-    
-    expect(jsAst).toBeDefined();
-    
-    // Generate JavaScript code
-    const jsGenerator = new JavaScriptGenerator();
-    const jsCode = jsGenerator.generate(jsAst);
-    
-    expect(jsCode).toBeDefined();
-    expect(typeof jsCode).toBe('string');
-    expect(jsCode.length).toBeGreaterThan(0);
+    if (logicResult.unmappableFeatures) {
+      expect(Array.isArray(logicResult.unmappableFeatures)).toBe(true);
+    }
     
     // Write JavaScript code to output directory
-    fs.writeFileSync(path.join(outputDir, 'main.js'), jsCode);
+    fs.writeFileSync(path.join(outputDir, 'main.js'), logicResult.translatedCode);
     
-    // Verify the JavaScript file exists
+    // Verify the JavaScript file exists and has content
     expect(fs.existsSync(path.join(outputDir, 'main.js'))).toBe(true);
+    const generatedCode = fs.readFileSync(path.join(outputDir, 'main.js'), 'utf8');
+    expect(generatedCode.length).toBeGreaterThan(0);
+  });
+  
+  it('should handle complete pipeline with error aggregation', async () => {
+    // Create complete conversion input
+    const conversionInput = {
+      modFile: Buffer.from('mock mod content'),
+      sourceRepository: {
+        url: 'https://github.com/test/mock-forge-mod',
+        branch: 'main',
+      },
+      preferences: {
+        compromiseStrategies: {
+          allowStubs: true,
+          allowWarnings: true,
+          allowSimplifications: true,
+        },
+        outputFormat: 'addon' as const,
+        includeSourceCode: true,
+      },
+      metadata: {
+        modId: 'mock-forge-mod',
+        name: 'Mock Forge Mod',
+        version: '1.0.0',
+        author: 'Test Author',
+        description: 'A mock Forge mod for testing',
+      },
+    };
+    
+    // Run complete pipeline
+    const pipelineResult = await conversionPipeline.convert(conversionInput);
+    
+    expect(pipelineResult.success).toBe(true);
+    expect(pipelineResult.modId).toBe('mock-forge-mod');
+    expect(pipelineResult.addonPath).toBeDefined();
+    
+    // Verify error aggregation across all modules
+    const allErrors = errorCollector.getErrors();
+    const errorSummary = errorCollector.getErrorSummary();
+    
+    expect(errorSummary.totalErrors).toBeGreaterThanOrEqual(0);
+    expect(Object.keys(errorSummary.byModule).length).toBeGreaterThan(0);
+    
+    // Verify all errors follow consistent format
+    expect(allErrors.every(error => 
+      error.id && error.type && error.severity && error.message && error.moduleOrigin
+    )).toBe(true);
+    
+    // Verify output files exist
+    expect(fs.existsSync(pipelineResult.addonPath)).toBe(true);
   });
 });

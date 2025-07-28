@@ -10,6 +10,15 @@ export class UIFlowMapper {
   private uiComponentPatterns: UIComponentPattern[];
   private formTypeMapping: Map<string, BedrockFormType>;
 
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(logger: Logger) {
     this.logger = logger;
     this.uiComponentPatterns = this.initializeUIComponentPatterns();
@@ -205,6 +214,15 @@ export class UIFlowMapper {
     this.uiComponentPatterns.forEach(pattern => {
       const matches = sourceCode.match(pattern.detectionRegex);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (matches && matches.length > 0) {
         this.logger.debug(`Detected UI component: ${pattern.name}`);
         
@@ -367,6 +385,15 @@ export class UIFlowMapper {
     components.forEach(component => {
       const formType = this.formTypeMapping.get(component.componentType);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (formType) {
         formMappings.push({
           originalComponent: component,
@@ -408,6 +435,15 @@ export class UIFlowMapper {
     // Determine the primary form type based on the components
     let primaryFormType = 'custom_form';
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (hasInventory || formTypes.has('chest')) {
       primaryFormType = 'chest';
     } else if (formTypes.has('modal_form')) {
@@ -465,6 +501,15 @@ export class UIFlowMapper {
         }
       }
     } else {
+      /**
+       * switch method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       switch (primaryFormType) {
         case 'modal_form':
           formCode = this.createModalFormCode(className, uiFlow, formMappings);
@@ -508,6 +553,15 @@ ${this.createHelperMethods(className, uiFlow)}
 }
 
 // Export a factory function to create the UI manager
+/**
+ * create function.
+ * 
+ * TODO: Add detailed description of the function's purpose and behavior.
+ * 
+ * @param param - TODO: Document parameters
+ * @returns result - TODO: Document return value
+ * @since 1.0.0
+ */
 export function create${className}UI() {
   return new ${className}UIManager();
 }
@@ -532,6 +586,15 @@ export function create${className}UI() {
    * 
    * @param player The player to show the form to
    */
+  /**
+   * showMainForm method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
   async showMainForm(player) {
     const form = new ActionFormData()
       .setTitle("${className}")
@@ -545,11 +608,29 @@ ${formMappings
     
     const response = await form.show(player);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (response.canceled) {
       return;
     }
     
     // Handle button selection
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (response.selection) {
 ${formMappings
   .filter(mapping => mapping.bedrockForm.formType === 'button')
@@ -569,6 +650,15 @@ ${formMappings
    * @param formType The type of form to show
    */
   async showSubForm(player, formType) {
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (formType) {
 ${formMappings
   .filter(mapping => mapping.originalComponent.componentType === 'tabbed')
@@ -600,6 +690,15 @@ ${formMappings
    * Opens a chest UI for inventory interaction
    * 
    * @param player The player to show the UI to
+   */
+  /**
+   * openChestUI method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
    */
   openChestUI(player) {
     // In Bedrock, we use the built-in chest UI system
@@ -642,6 +741,15 @@ ${formMappings
   closeChestUI(player) {
     const subscriptionId = player.getDynamicProperty("${className.toLowerCase()}_inventory_subscription");
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (subscriptionId) {
       world.afterEvents.playerInventoryChange.unsubscribe(subscriptionId);
       player.setDynamicProperty("${className.toLowerCase()}_inventory_subscription", undefined);
@@ -676,6 +784,15 @@ ${formMappings
    * 
    * @param player The player to show the form to
    */
+  /**
+   * showCustomForm method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns Promise - TODO: Document return value
+   * @since 1.0.0
+   */
   async showCustomForm(player) {
     const form = new ModalFormData()
       .setTitle("${className}");
@@ -689,6 +806,15 @@ ${dropdowns.map((mapping, index) => `    form.addDropdown("${mapping.originalCom
     
     const response = await form.show(player);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (response.canceled) {
       return;
     }
@@ -749,6 +875,15 @@ ${dropdowns.map((mapping, index) => `    const ${mapping.originalComponent.compo
     uiFlow.components.forEach(component => {
       const handlerName = `handle${component.componentName.replace(/[^a-zA-Z0-9]/g, '')}`;
       
+      /**
+       * switch method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       switch (component.componentType) {
         case 'button':
           eventHandlers.push(`  /**
@@ -849,6 +984,15 @@ ${dropdowns.map((mapping, index) => `    const ${mapping.originalComponent.compo
         // Try to extract the variable name from the matches
         component.matches.forEach(match => {
           const variableMatch = match.match(/(\w+)\s*=\s*(?:this\.addButton\(|new\s+GuiButton)/);
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (variableMatch && variableMatch[1]) {
             const name = variableMatch[1].replace(/Button$/, '');
             buttonNames.push(this.capitalizeFirstLetter(name));
@@ -902,6 +1046,15 @@ ${dropdowns.map((mapping, index) => `    const ${mapping.originalComponent.compo
     // Check if we have any state transitions
     const hasStateTransitions = uiFlow.stateTransitions.length > 0;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!hasStateTransitions) {
       return '';
     }
@@ -912,9 +1065,27 @@ ${dropdowns.map((mapping, index) => `    const ${mapping.originalComponent.compo
    * @param player The player
    * @param newState The new UI state
    */
+  /**
+   * transitionToState method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   transitionToState(player, newState) {
     console.log("Transitioning ${className} UI to state: " + newState);
     
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (newState) {
       case "main":
         this.showMainForm(player);

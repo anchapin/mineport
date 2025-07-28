@@ -98,6 +98,15 @@ export class ConversionReportGenerator {
     logger.info('Generating conversion report');
     
     // Ensure output directory exists
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
@@ -353,6 +362,15 @@ export class ConversionReportGenerator {
     const errorNotes = notes.filter(note => note.severity === 'error');
     
     // Add info notes
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (infoNotes.length > 0) {
       html += '<h5>Information</h5>';
       infoNotes.forEach(note => {
@@ -366,6 +384,15 @@ export class ConversionReportGenerator {
     }
     
     // Add warning notes
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (warningNotes.length > 0) {
       html += '<h5>Warnings</h5>';
       warningNotes.forEach(note => {
@@ -379,6 +406,15 @@ export class ConversionReportGenerator {
     }
     
     // Add error notes
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (errorNotes.length > 0) {
       html += '<h5>Errors</h5>';
       errorNotes.forEach(note => {
@@ -412,10 +448,28 @@ export class ConversionReportGenerator {
     const errorNotes = notes.filter(note => note.severity === 'error');
     
     // Add info notes
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (infoNotes.length > 0) {
       markdown += '#### Information\n\n';
       infoNotes.forEach(note => {
         markdown += `- **${note.type}:** ${note.message}`;
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (note.sourceFile) {
           markdown += ` (Source: ${note.sourceFile}${note.sourceLine ? `:${note.sourceLine}` : ''})`;
         }
@@ -425,10 +479,28 @@ export class ConversionReportGenerator {
     }
     
     // Add warning notes
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (warningNotes.length > 0) {
       markdown += '#### Warnings\n\n';
       warningNotes.forEach(note => {
         markdown += `- **${note.type}:** ${note.message}`;
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (note.sourceFile) {
           markdown += ` (Source: ${note.sourceFile}${note.sourceLine ? `:${note.sourceLine}` : ''})`;
         }
@@ -438,10 +510,28 @@ export class ConversionReportGenerator {
     }
     
     // Add error notes
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (errorNotes.length > 0) {
       markdown += '#### Errors\n\n';
       errorNotes.forEach(note => {
         markdown += `- **${note.type}:** ${note.message}`;
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (note.sourceFile) {
           markdown += ` (Source: ${note.sourceFile}${note.sourceLine ? `:${note.sourceLine}` : ''})`;
         }
@@ -918,6 +1008,15 @@ export class ConversionReportGenerator {
       coll[i].addEventListener("click", function() {
         this.classList.toggle("active");
         var content = this.nextElementSibling;
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (content.style.maxHeight) {
           content.style.maxHeight = null;
         } else {

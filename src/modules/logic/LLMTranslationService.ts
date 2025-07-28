@@ -222,6 +222,15 @@ ${context.javaCode}
 `;
 
     // Add additional context if provided
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (context.additionalContext) {
       prompt += `\n\nAdditional context:\n${context.additionalContext}`;
     }
@@ -241,6 +250,15 @@ ${context.javaCode}
     
     return apiMappings.map(mapping => {
       let result = `- Java: ${mapping.javaSignature} → Bedrock: ${mapping.bedrockEquivalent} (${mapping.conversionType})`;
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (mapping.exampleUsage) {
         result += `\n  Example:\n  Java: ${mapping.exampleUsage.java}\n  JavaScript: ${mapping.exampleUsage.bedrock}`;
       }
@@ -293,6 +311,15 @@ ${context.javaCode}
     // For testing purposes, we'll simulate a response
     return new Promise((resolve) => {
       setTimeout(() => {
+        /**
+         * resolve method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         resolve({
           choices: [
             {
@@ -346,12 +373,39 @@ system.events.playerJoin.subscribe(event => {
     
     // Check for potential issues
     const warnings: string[] = [];
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (translatedCode.includes('// Error:')) {
       warnings.push('The LLM indicated an error in the translation.');
     }
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (translatedCode.includes('// Warning:')) {
       warnings.push('The LLM indicated a warning in the translation.');
     }
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (translatedCode.includes('// Unsupported:')) {
       warnings.push('The LLM indicated that some features are not supported in Bedrock.');
     }
@@ -383,8 +437,26 @@ system.events.playerJoin.subscribe(event => {
     const results = new Map<string, LLMTranslationResult>();
     
     // Process each unmappable node
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const node of unmappableNodes) {
       // Skip nodes without source location
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!node.sourceLocation) {
         results.set(node.id, {
           translatedCode: `// Unable to translate node ${node.id} (no source location)`,

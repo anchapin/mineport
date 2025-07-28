@@ -19,6 +19,13 @@ import { exec } from 'child_process';
 
 const execAsync = promisify(exec);
 
+/**
+ * ModValidationResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ModValidationResult {
   isValid: boolean;
   modInfo?: {
@@ -30,9 +37,24 @@ export interface ModValidationResult {
   errors?: string[];
 }
 
+/**
+ * ModValidator class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class ModValidator {
   private tempDir: string;
   
+  /**
+   * Creates a new instance.
+   * 
+   * TODO: Add detailed description of constructor behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @since 1.0.0
+   */
   constructor(tempDir: string = path.join(process.cwd(), 'temp')) {
     this.tempDir = tempDir;
   }
@@ -61,6 +83,15 @@ export class ModValidator {
       await fs.writeFile(jarPath, jarFile);
       
       // Check if it's a valid JAR file
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!await this.isValidJarFile(jarPath)) {
         result.errors?.push('Invalid JAR file format');
         return result;
@@ -72,6 +103,15 @@ export class ModValidator {
       // Check for mod structure validity
       const modStructureResult = await this.validateModStructure(extractPath);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!modStructureResult.isValid) {
         result.errors?.push(...(modStructureResult.errors || []));
         return result;
@@ -107,6 +147,15 @@ export class ModValidator {
       const isZip = buffer[0] === 0x50 && buffer[1] === 0x4B && 
                     buffer[2] === 0x03 && buffer[3] === 0x04;
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!isZip) {
         return false;
       }
@@ -133,7 +182,25 @@ export class ModValidator {
   private async extractJar(jarPath: string, extractPath: string): Promise<void> {
     try {
       await pipeline(
+        /**
+         * createReadStream method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         createReadStream(jarPath),
+        /**
+         * Extract method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         Extract({ path: extractPath })
       );
       
@@ -162,12 +229,30 @@ export class ModValidator {
       const hasFabricMod = await this.fileExists(path.join(extractPath, 'fabric.mod.json'));
       const hasModInfo = await this.fileExists(path.join(extractPath, 'mcmod.info'));
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!hasModToml && !hasFabricMod && !hasModInfo) {
         result.errors?.push('Missing mod descriptor file (mods.toml, fabric.mod.json, or mcmod.info)');
         return result;
       }
       
       // Extract mod information based on the descriptor file found
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (hasModToml) {
         const modTomlInfo = await this.extractModTomlInfo(path.join(extractPath, 'META-INF', 'mods.toml'));
         result.modInfo = { ...result.modInfo, ...modTomlInfo };
@@ -180,6 +265,15 @@ export class ModValidator {
       }
       
       // Check if we have at least a mod ID
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!result.modInfo?.modId) {
         result.errors?.push('Could not determine mod ID from descriptor files');
         return result;

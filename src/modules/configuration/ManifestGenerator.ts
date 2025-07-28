@@ -14,6 +14,13 @@ import logger from '../../utils/logger';
 // UUID namespace for consistent generation based on mod ID
 const UUID_NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 
+/**
+ * JavaModMetadata interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface JavaModMetadata {
   modId: string;
   modName: string;
@@ -24,6 +31,13 @@ export interface JavaModMetadata {
   logoFile?: string;
 }
 
+/**
+ * BedrockManifest interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface BedrockManifest {
   format_version: number;
   header: {
@@ -50,6 +64,13 @@ export interface BedrockManifest {
   };
 }
 
+/**
+ * ManifestGenerationResult interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ManifestGenerationResult {
   success: boolean;
   behaviorPackManifest?: BedrockManifest;
@@ -57,6 +78,13 @@ export interface ManifestGenerationResult {
   errors?: string[];
 }
 
+/**
+ * ManifestGenerator class.
+ * 
+ * TODO: Add detailed description of the class purpose and functionality.
+ * 
+ * @since 1.0.0
+ */
 export class ManifestGenerator {
   /**
    * Extracts metadata from Java mod files
@@ -77,6 +105,15 @@ export class ManifestGenerator {
       };
       
       // Try to extract from mods.toml (Forge)
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (await this.fileExists(modTomlPath)) {
         const tomlData = await this.extractModTomlMetadata(modTomlPath);
         metadata = { ...metadata, ...tomlData };
@@ -93,11 +130,29 @@ export class ManifestGenerator {
       }
       
       // If we still don't have a mod ID, try to infer from directory structure
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!metadata.modId) {
         metadata.modId = this.inferModIdFromPath(modPath);
       }
       
       // If we still don't have a mod name, use the mod ID
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!metadata.modName) {
         metadata.modName = metadata.modId;
       }
@@ -122,6 +177,15 @@ export class ManifestGenerator {
         errors: [],
       };
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!metadata.modId) {
         result.errors?.push('Missing mod ID in metadata');
         return result;
@@ -170,10 +234,28 @@ export class ManifestGenerator {
       };
       
       // Add optional metadata if available
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (metadata.authors && metadata.authors.length > 0) {
         behaviorPackManifest.metadata!.authors = metadata.authors;
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (metadata.website) {
         behaviorPackManifest.metadata!.url = metadata.website;
       }
@@ -203,14 +285,41 @@ export class ManifestGenerator {
       const behaviorValidation = this.validateManifest(behaviorPackManifest);
       const resourceValidation = this.validateManifest(resourcePackManifest);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!behaviorValidation.valid) {
         result.errors?.push(...behaviorValidation.errors);
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!resourceValidation.valid) {
         result.errors?.push(...resourceValidation.errors);
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (result.errors && result.errors.length > 0) {
         return result;
       }
@@ -248,6 +357,15 @@ export class ManifestGenerator {
     resourcePackDir: string
   ): Promise<boolean> {
     try {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!result.success || !result.behaviorPackManifest || !result.resourcePackManifest) {
         logger.error('Cannot write invalid manifests', { result });
         return false;
@@ -375,6 +493,15 @@ export class ManifestGenerator {
       // Look for common package patterns in Java source files
       const srcDir = path.join(modPath, 'src', 'main', 'java');
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (fs.existsSync(srcDir)) {
         // This is a simplified approach - in a real implementation,
         // we would scan Java files for package declarations
@@ -401,6 +528,15 @@ export class ManifestGenerator {
         .filter(num => !isNaN(num));
       
       // Ensure we have at least three components
+      /**
+       * while method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       while (components.length < 3) {
         components.push(0);
       }
@@ -422,31 +558,94 @@ export class ManifestGenerator {
     const errors: string[] = [];
     
     // Check required fields
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!manifest.format_version) {
       errors.push('Missing format_version');
     }
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!manifest.header) {
       errors.push('Missing header section');
     } else {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!manifest.header.name) {
         errors.push('Missing header.name');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!manifest.header.description) {
         errors.push('Missing header.description');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!manifest.header.uuid) {
         errors.push('Missing header.uuid');
       } else if (!this.isValidUuid(manifest.header.uuid)) {
         errors.push('Invalid header.uuid format');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!manifest.header.version || !Array.isArray(manifest.header.version)) {
         errors.push('Missing or invalid header.version');
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!manifest.header.min_engine_version || !Array.isArray(manifest.header.min_engine_version)) {
         errors.push('Missing or invalid header.min_engine_version');
       }
@@ -456,16 +655,43 @@ export class ManifestGenerator {
       errors.push('Missing or empty modules array');
     } else {
       manifest.modules.forEach((module, index) => {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!module.type) {
           errors.push(`Missing type in module at index ${index}`);
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!module.uuid) {
           errors.push(`Missing uuid in module at index ${index}`);
         } else if (!this.isValidUuid(module.uuid)) {
           errors.push(`Invalid uuid format in module at index ${index}`);
         }
         
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!module.version || !Array.isArray(module.version)) {
           errors.push(`Missing or invalid version in module at index ${index}`);
         }
@@ -473,17 +699,53 @@ export class ManifestGenerator {
     }
     
     // Check dependencies if present
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (manifest.dependencies) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (!Array.isArray(manifest.dependencies)) {
         errors.push('dependencies must be an array');
       } else {
         manifest.dependencies.forEach((dependency, index) => {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (!dependency.uuid) {
             errors.push(`Missing uuid in dependency at index ${index}`);
           } else if (!this.isValidUuid(dependency.uuid)) {
             errors.push(`Invalid uuid format in dependency at index ${index}`);
           }
           
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (!dependency.version || !Array.isArray(dependency.version)) {
             errors.push(`Missing or invalid version in dependency at index ${index}`);
           }

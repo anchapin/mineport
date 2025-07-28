@@ -30,10 +30,55 @@ export interface APIMapping {
  * This interface aligns with the design document's APIMapperService specification.
  */
 export interface APIMapperService {
+  /**
+   * getMapping method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getMapping(javaSignature: string): APIMapping | undefined;
+  /**
+   * getMappings method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   getMappings(filter?: MappingFilter): APIMapping[];
+  /**
+   * addMapping method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   addMapping(mapping: APIMapping): Promise<void>;
+  /**
+   * updateMapping method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   updateMapping(mapping: APIMapping): Promise<void>;
+  /**
+   * importMappings method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   importMappings(mappings: APIMapping[]): Promise<ImportResult>;
 }
 

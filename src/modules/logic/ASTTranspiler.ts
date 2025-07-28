@@ -144,9 +144,27 @@ export class ASTTranspiler {
     jsAst.push(moduleNode);
     
     // Process each MMIR node
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const node of mmirContext.nodes) {
       try {
         const jsNodes = this.transpileNode(node, mmirContext);
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (jsNodes.length > 0) {
           jsAst.push(...jsNodes);
         } else {
@@ -250,6 +268,15 @@ export class ASTTranspiler {
    * @returns Array of JavaScript AST nodes
    */
   private transpileNode(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (node.type) {
       case MMIRNodeType.ModDeclaration:
         return this.transpileModDeclaration(node, mmirContext);
@@ -460,8 +487,35 @@ export class ASTTranspiler {
     let mapping = this.apiMappings.get(eventType);
     
     // If not found, try partial matches
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!mapping) {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const [key, value] of this.apiMappings.entries()) {
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (eventType.includes(key)) {
           mapping = value;
           break;
@@ -602,6 +656,15 @@ export class ASTTranspiler {
     // Look up the method in API mappings
     const mapping = this.apiMappings.get(javaSignature);
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (mapping) {
       // Create a mapped method call
       const [objectName, methodName] = mapping.bedrockEquivalent.split('.');
@@ -655,7 +718,25 @@ export class ASTTranspiler {
     const args: JavaScriptASTNode[] = [];
     
     // Add parameters if defined in the node
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.properties.parameters && Array.isArray(node.properties.parameters)) {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const param of node.properties.parameters) {
         if (param.type === 'Identifier') {
           args.push({
@@ -692,7 +773,25 @@ export class ASTTranspiler {
     const params: JavaScriptASTNode[] = [];
     
     // Add parameters if defined in the node
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (node.properties.parameters && Array.isArray(node.properties.parameters)) {
+      /**
+       * for method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       for (const param of node.properties.parameters) {
         params.push({
           type: 'Identifier',
@@ -815,6 +914,15 @@ export class ASTTranspiler {
     
     let code = '';
     
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const node of ast) {
       code += this.generateNodeCode(node) + '\n\n';
     }
@@ -828,6 +936,15 @@ export class ASTTranspiler {
    * @returns Generated JavaScript code
    */
   private generateNodeCode(node: JavaScriptASTNode): string {
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (node.type) {
       case 'Program':
         return node.body.map(bodyNode => this.generateNodeCode(bodyNode)).join('\n\n');

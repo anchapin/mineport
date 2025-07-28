@@ -10,18 +10,45 @@ import { ErrorSeverity, ConversionError } from '../types/errors';
 export function setupLogger() {
   // Ensure log directory exists
   const logDir = path.dirname(config.logging.file);
+  /**
+   * if method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
 
   // Create custom format for structured errors
   const errorFormat = winston.format((info) => {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (info instanceof Error) {
       return Object.assign({}, info, {
         stack: info.stack,
         message: info.message,
       });
     }
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (info.error instanceof Error) {
       return Object.assign({}, info, {
         error: {
@@ -37,6 +64,15 @@ export function setupLogger() {
   const logger = winston.createLogger({
     level: config.logging.level,
     format: winston.format.combine(
+      /**
+       * errorFormat method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       errorFormat(),
       winston.format.timestamp(),
       winston.format.errors({ stack: true }),

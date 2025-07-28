@@ -33,29 +33,83 @@ export const useConversion = () => {
   }, []);
   
   const handleFileSelected = useCallback((file: File) => {
+    /**
+     * setFile method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     setFile(file);
   }, [setFile]);
   
   const handleSourceRepoChange = useCallback((repo: string) => {
+    /**
+     * setSourceRepo method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     setSourceRepo(repo);
   }, [setSourceRepo]);
   
   const handlePreferencesChange = useCallback((preferences: UserPreferences) => {
+    /**
+     * setUserPreferences method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     setUserPreferences(preferences);
   }, [setUserPreferences]);
   
   const startConversion = useCallback(async () => {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!uploadState.file) {
       return;
     }
     
     try {
       // Set uploading state
+      /**
+       * setUploadState method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       setUploadState({
         isUploading: true,
         error: undefined
       });
       
+      /**
+       * setConversionProgress method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       setConversionProgress({
         stage: 'uploading',
         percentage: 0,
@@ -81,19 +135,55 @@ export const useConversion = () => {
       
       // Start conversion using API service
       const job = await apiService().startConversion(input);
+      /**
+       * setConversionJob method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       setConversionJob(job);
       
       // Start polling for conversion status
+      /**
+       * pollConversionStatus method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       pollConversionStatus(job.jobId);
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload file. Please try again.';
       
+      /**
+       * setUploadState method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       setUploadState({
         isUploading: false,
         error: errorMessage
       });
       
+      /**
+       * setConversionProgress method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       setConversionProgress({
         stage: 'uploading',
         percentage: 0,
@@ -119,12 +209,30 @@ export const useConversion = () => {
         
         // Update upload state if still uploading
         if (status.progress.stage === 'uploading') {
+          /**
+           * setUploadState method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           setUploadState({
             progress: status.progress.percentage,
             isUploading: status.progress.percentage < 100
           });
         } else if (uploadState.isUploading) {
           // If we've moved past uploading stage, update upload state
+          /**
+           * setUploadState method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           setUploadState({
             progress: 100,
             isUploading: false
@@ -132,20 +240,56 @@ export const useConversion = () => {
         }
         
         // Update conversion progress
+        /**
+         * setConversionProgress method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         setConversionProgress(status.progress);
         
         // If conversion is complete or failed, stop polling
         if (status.status === 'completed' || status.status === 'failed' || status.progress.error) {
+          /**
+           * clearInterval method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           clearInterval(interval);
           
           // If completed, fetch the result
           if (status.status === 'completed') {
             try {
               const result = await apiService().getConversionResult(jobId);
+              /**
+               * setConversionResult method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               setConversionResult(result);
             } catch (resultError) {
               console.error('Failed to fetch conversion result', resultError);
               
+              /**
+               * setConversionProgress method.
+               * 
+               * TODO: Add detailed description of the method's purpose and behavior.
+               * 
+               * @param param - TODO: Document parameters
+               * @returns result - TODO: Document return value
+               * @since 1.0.0
+               */
               setConversionProgress({
                 ...status.progress,
                 error: 'Failed to fetch conversion result. Please try again.'
@@ -157,6 +301,15 @@ export const useConversion = () => {
         console.error('Failed to fetch conversion status', error);
         
         // Update error state
+        /**
+         * setConversionProgress method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         setConversionProgress(conversionProgress ? {
           ...conversionProgress,
           error: 'Failed to fetch conversion status. Please try again.'
@@ -167,6 +320,15 @@ export const useConversion = () => {
         });
         
         // Stop polling on error
+        /**
+         * clearInterval method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         clearInterval(interval);
       }
     }, 2000); // Poll every 2 seconds
@@ -184,6 +346,15 @@ export const useConversion = () => {
   
   // Cancel a conversion
   const cancelConversion = useCallback(async () => {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!conversionJob) {
       return;
     }
@@ -191,7 +362,25 @@ export const useConversion = () => {
     try {
       const success = await apiService().cancelConversion(conversionJob.jobId);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (success) {
+        /**
+         * setConversionProgress method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         setConversionProgress(conversionProgress ? {
           ...conversionProgress,
           error: 'Conversion cancelled by user.'
@@ -204,6 +393,15 @@ export const useConversion = () => {
     } catch (error) {
       console.error('Failed to cancel conversion', error);
       
+      /**
+       * setConversionProgress method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       setConversionProgress(conversionProgress ? {
         ...conversionProgress,
         error: 'Failed to cancel conversion. Please try again.'
@@ -217,6 +415,15 @@ export const useConversion = () => {
   
   // Reset the conversion state
   const resetConversion = useCallback(() => {
+    /**
+     * resetState method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     resetState();
   }, [resetState]);
   

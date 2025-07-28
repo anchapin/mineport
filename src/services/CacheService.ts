@@ -31,6 +31,15 @@ export class CacheService {
   constructor(options: CacheOptions = {}) {
     this.configService = options.configService;
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.configService) {
       // Use configuration service if available
       this.enabled = this.configService.get('cache.enabled', options.enabled !== undefined ? options.enabled : true);
@@ -52,6 +61,15 @@ export class CacheService {
         this.enabled = options.enabled;
       }
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (options.ttlDefaults) {
         this.ttlDefaults = { ...this.ttlDefaults, ...options.ttlDefaults };
       }
@@ -89,11 +107,29 @@ export class CacheService {
    * Get a value from the cache
    */
   public async get<T>(key: string): Promise<T | null> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.enabled) return null;
     
     try {
       const value = await this.client.get(key);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (value) {
         // Cache hit
         this.metrics.hits++;
@@ -114,6 +150,15 @@ export class CacheService {
    * Set a value in the cache
    */
   public async set<T>(key: string, value: T, options: SetOptions = {}): Promise<boolean> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.enabled) return false;
     
     try {
@@ -133,6 +178,15 @@ export class CacheService {
    * Delete a value from the cache
    */
   public async delete(key: string): Promise<boolean> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.enabled) return false;
     
     try {
@@ -149,6 +203,15 @@ export class CacheService {
    * Clear all values with a specific prefix
    */
   public async clearByPrefix(prefix: string): Promise<number> {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!this.enabled) return 0;
     
     try {
@@ -156,6 +219,15 @@ export class CacheService {
       // and then delete them in batches
       const keys = await this.client.keys(`${prefix}*`);
       
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (keys.length > 0) {
         await this.client.del(...keys);
         this.metrics.invalidations += keys.length;
@@ -206,7 +278,25 @@ export class CacheService {
    */
   private getTTLForKey(key: string): number {
     // Check if the key matches any of our predefined prefixes
+    /**
+     * for method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     for (const [prefix, ttl] of Object.entries(this.ttlDefaults)) {
+      /**
+       * if method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       if (key.startsWith(`${prefix}:`)) {
         return ttl;
       }
@@ -226,9 +316,27 @@ export class CacheService {
     return {
       get: async (key: string) => {
         const item = store[key];
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (!item) return null;
         
         // Check if expired
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (item.expiry && item.expiry < Date.now()) {
           delete store[key];
           return null;
@@ -248,7 +356,25 @@ export class CacheService {
       },
       del: async (...keys: string[]) => {
         let deleted = 0;
+        /**
+         * for method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         for (const key of keys) {
+          /**
+           * if method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           if (key in store) {
             delete store[key];
             deleted++;
@@ -264,16 +390,37 @@ export class CacheService {
   }
 }
 
+/**
+ * CacheOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface CacheOptions {
   enabled?: boolean;
   ttlDefaults?: Record<string, number>;
   configService?: ConfigurationService;
 }
 
+/**
+ * SetOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface SetOptions {
   ttl?: number; // Time to live in seconds
 }
 
+/**
+ * CacheMetrics interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface CacheMetrics {
   hits: number;
   misses: number;
@@ -320,6 +467,15 @@ export class CacheKeyGenerator {
 export class CacheInvalidationStrategy {
   private cacheService: CacheService;
   
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(cacheService: CacheService) {
     this.cacheService = cacheService;
   }

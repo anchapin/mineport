@@ -44,8 +44,29 @@ const logger = createLogger('AssetTranslationModule');
 const MODULE_ID = 'ASSET';
 
 /**
- * Class responsible for coordinating the translation of all asset types
- * from Java Edition format to Bedrock Edition format.
+ * Asset Translation Module
+ * 
+ * Coordinates the translation of all asset types from Java Edition format
+ * to Bedrock Edition format. This module handles textures, models, sounds,
+ * and particles, orchestrating their conversion through specialized converters
+ * and organizing the results into the proper Bedrock resource pack structure.
+ * 
+ * The module integrates with the global error collection system to track
+ * conversion issues and provides detailed notes about the translation process.
+ * 
+ * Implements requirements:
+ * - Asset format conversion from Java to Bedrock
+ * - Error tracking and reporting
+ * - Resource pack organization
+ * 
+ * @example
+ * ```typescript
+ * const module = new AssetTranslationModule();
+ * const result = await module.translateAssets(javaAssets);
+ * await module.organizeAssets(result.bedrockAssets, outputDir);
+ * ```
+ * 
+ * @since 1.0.0
  */
 export class AssetTranslationModule {
   private textureConverter: TextureConverter;
@@ -54,7 +75,12 @@ export class AssetTranslationModule {
   private particleMapper: ParticleMapper;
   
   /**
-   * Creates a new instance of the AssetTranslationModule
+   * Creates a new instance of the AssetTranslationModule.
+   * 
+   * Initializes all specialized converters (texture, model, sound, particle)
+   * that will be used for the asset translation process.
+   * 
+   * @since 1.0.0
    */
   constructor() {
     this.textureConverter = new TextureConverter();
@@ -64,10 +90,28 @@ export class AssetTranslationModule {
   }
   
   /**
-   * Translates all Java assets to Bedrock format
+   * Translates all Java assets to Bedrock format.
+   * 
+   * Processes all asset types (textures, models, sounds, particles) through
+   * their respective converters, collects conversion notes, and integrates
+   * with the global error collection system for comprehensive error tracking.
    * 
    * @param javaAssets - Collection of Java assets to translate
-   * @returns Translation result with converted assets and notes
+   * @returns Promise resolving to translation result with converted assets and notes
+   * @throws {Error} When asset translation fails catastrophically
+   * 
+   * @example
+   * ```typescript
+   * const result = await module.translateAssets({
+   *   textures: [textureFile1, textureFile2],
+   *   models: [modelFile1],
+   *   sounds: [soundFile1],
+   *   particles: [particleFile1]
+   * });
+   * console.log(`Converted ${result.bedrockAssets.textures.length} textures`);
+   * ```
+   * 
+   * @since 1.0.0
    */
   public async translateAssets(javaAssets: JavaAssetCollection): Promise<AssetTranslationResult> {
     logger.info('Starting asset translation process');
@@ -84,6 +128,15 @@ export class AssetTranslationModule {
       // Add texture notes to global error collector
       textureNotes.forEach(note => {
         globalErrorCollector.addError(
+          /**
+           * noteToConversionError method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           noteToConversionError(note, MODULE_ID, ErrorType.ASSET)
         );
       });
@@ -97,6 +150,15 @@ export class AssetTranslationModule {
       // Add model notes to global error collector
       modelNotes.forEach(note => {
         globalErrorCollector.addError(
+          /**
+           * noteToConversionError method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           noteToConversionError(note, MODULE_ID, ErrorType.ASSET)
         );
       });
@@ -110,6 +172,15 @@ export class AssetTranslationModule {
       // Add sound notes to global error collector
       soundNotes.forEach(note => {
         globalErrorCollector.addError(
+          /**
+           * noteToConversionError method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           noteToConversionError(note, MODULE_ID, ErrorType.ASSET)
         );
       });
@@ -123,6 +194,15 @@ export class AssetTranslationModule {
       // Add particle notes to global error collector
       particleNotes.forEach(note => {
         globalErrorCollector.addError(
+          /**
+           * noteToConversionError method.
+           * 
+           * TODO: Add detailed description of the method's purpose and behavior.
+           * 
+           * @param param - TODO: Document parameters
+           * @returns result - TODO: Document return value
+           * @since 1.0.0
+           */
           noteToConversionError(note, MODULE_ID, ErrorType.ASSET)
         );
       });
@@ -153,6 +233,15 @@ export class AssetTranslationModule {
         MODULE_ID,
         { originalError: error },
         ErrorSeverity.ERROR,
+        /**
+         * createErrorCode method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         createErrorCode(MODULE_ID, 'TRANS', 1)
       );
       
@@ -179,10 +268,24 @@ export class AssetTranslationModule {
   }
   
   /**
-   * Organizes all converted assets into the Bedrock resource pack structure
+   * Organizes all converted assets into the Bedrock resource pack structure.
+   * 
+   * Takes the converted Bedrock assets and organizes them into the proper
+   * directory structure expected by Minecraft Bedrock Edition, including
+   * writing necessary metadata files like sounds.json.
    * 
    * @param bedrockAssets - Collection of converted Bedrock assets
    * @param outputDir - Base output directory for the resource pack
+   * @returns Promise that resolves when organization is complete
+   * @throws {Error} When asset organization fails
+   * 
+   * @example
+   * ```typescript
+   * await module.organizeAssets(bedrockAssets, '/output/resource_pack');
+   * // Assets are now organized in proper Bedrock structure
+   * ```
+   * 
+   * @since 1.0.0
    */
   public async organizeAssets(bedrockAssets: BedrockAssetCollection, outputDir: string): Promise<void> {
     logger.info(`Organizing converted assets in ${outputDir}`);
@@ -219,6 +322,15 @@ export class AssetTranslationModule {
         MODULE_ID,
         { originalError: error, outputDir },
         ErrorSeverity.ERROR,
+        /**
+         * createErrorCode method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         createErrorCode(MODULE_ID, 'ORG', 1)
       );
       

@@ -5,6 +5,13 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ResourceAllocator');
 
+/**
+ * SystemResources interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface SystemResources {
   cpu: {
     total: number;
@@ -16,11 +23,34 @@ export interface SystemResources {
   };
 }
 
+/**
+ * ResourceAllocationStrategy interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ResourceAllocationStrategy {
   name: string;
+  /**
+   * allocateResources method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   allocateResources(resources: SystemResources, jobQueue: JobQueue): number;
 }
 
+/**
+ * ResourceAllocatorOptions interface.
+ * 
+ * TODO: Add detailed description of what this interface represents.
+ * 
+ * @since 1.0.0
+ */
 export interface ResourceAllocatorOptions {
   workerPool: WorkerPool;
   jobQueue: JobQueue;
@@ -46,6 +76,15 @@ export class ResourceAllocator {
   private strategy: ResourceAllocationStrategy;
   private strategies: Map<string, ResourceAllocationStrategy> = new Map();
 
+  /**
+   * constructor method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   constructor(options: ResourceAllocatorOptions) {
     this.workerPool = options.workerPool;
     this.jobQueue = options.jobQueue;
@@ -54,6 +93,15 @@ export class ResourceAllocator {
     // Register available strategies
     this.registerStrategies();
     
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.configService) {
       // Use configuration service if available
       this.checkInterval = this.configService.get('resources.checkInterval', options.checkInterval || 30000);
@@ -105,6 +153,15 @@ export class ResourceAllocator {
    */
   private getStrategy(name: string): ResourceAllocationStrategy {
     const strategy = this.strategies.get(name.toLowerCase());
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (!strategy) {
       logger.warn(`Strategy "${name}" not found, using adaptive strategy`);
       return this.strategies.get('adaptive')!;
@@ -116,12 +173,30 @@ export class ResourceAllocator {
    * Handle configuration updates
    */
   private handleConfigUpdate(update: { key: string; value: any }): void {
+    /**
+     * switch method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     switch (update.key) {
       case 'resources.checkInterval':
         this.checkInterval = update.value;
         logger.info('Updated checkInterval from configuration', { checkInterval: this.checkInterval });
         
         // Restart interval if running
+        /**
+         * if method.
+         * 
+         * TODO: Add detailed description of the method's purpose and behavior.
+         * 
+         * @param param - TODO: Document parameters
+         * @returns result - TODO: Document return value
+         * @since 1.0.0
+         */
         if (this.intervalId) {
           this.stop();
           this.start();
@@ -152,6 +227,15 @@ export class ResourceAllocator {
    * Start the resource allocator
    */
   public start(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.intervalId) return;
     
     // Initial allocation
@@ -167,7 +251,25 @@ export class ResourceAllocator {
    * Stop the resource allocator
    */
   public stop(): void {
+    /**
+     * if method.
+     * 
+     * TODO: Add detailed description of the method's purpose and behavior.
+     * 
+     * @param param - TODO: Document parameters
+     * @returns result - TODO: Document return value
+     * @since 1.0.0
+     */
     if (this.intervalId) {
+      /**
+       * clearInterval method.
+       * 
+       * TODO: Add detailed description of the method's purpose and behavior.
+       * 
+       * @param param - TODO: Document parameters
+       * @returns result - TODO: Document return value
+       * @since 1.0.0
+       */
       clearInterval(this.intervalId);
       this.intervalId = undefined;
     }
@@ -250,6 +352,15 @@ export class ResourceAllocator {
 export class AdaptiveAllocationStrategy implements ResourceAllocationStrategy {
   name = 'adaptive';
   
+  /**
+   * allocateResources method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   allocateResources(resources: SystemResources, jobQueue: JobQueue): number {
     // Get job queue stats
     const queueStats = jobQueue.getStats();
@@ -279,6 +390,15 @@ export class AdaptiveAllocationStrategy implements ResourceAllocationStrategy {
 export class ConservativeAllocationStrategy implements ResourceAllocationStrategy {
   name = 'conservative';
   
+  /**
+   * allocateResources method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   allocateResources(resources: SystemResources, jobQueue: JobQueue): number {
     // Use at most 50% of available CPU
     const maxWorkers = Math.floor(resources.cpu.available * 0.5);
@@ -296,6 +416,15 @@ export class ConservativeAllocationStrategy implements ResourceAllocationStrateg
 export class AggressiveAllocationStrategy implements ResourceAllocationStrategy {
   name = 'aggressive';
   
+  /**
+   * allocateResources method.
+   * 
+   * TODO: Add detailed description of the method's purpose and behavior.
+   * 
+   * @param param - TODO: Document parameters
+   * @returns result - TODO: Document return value
+   * @since 1.0.0
+   */
   allocateResources(resources: SystemResources, jobQueue: JobQueue): number {
     // Use up to 90% of available CPU
     const maxWorkers = Math.floor(resources.cpu.available * 0.9);
