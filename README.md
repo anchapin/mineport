@@ -463,7 +463,7 @@ This project includes code from several open-source projects:
 - Texture processing utilities (MIT)
 - Asset optimization tools (BSD-3-Clause)
 
-See [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) for complete license information.
+For complete third-party license information, see the individual package licenses in the node_modules directory.
 
 ## Support
 

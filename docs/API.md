@@ -4,12 +4,53 @@ This document provides comprehensive API documentation for the Minecraft Mod Con
 
 ## Table of Contents
 
+- [Overview](#overview)
 - [Core Services](#core-services)
 - [Conversion Modules](#conversion-modules)
 - [Type Definitions](#type-definitions)
 - [Error Handling](#error-handling)
 - [Configuration](#configuration)
 - [Examples](#examples)
+
+## Overview
+
+The Minecraft Mod Converter provides a comprehensive API for converting Java Edition mods to Bedrock Edition addons. The API is built around a modular architecture with the following key components:
+
+- **ConversionService**: Main orchestrator for conversion operations
+- **JobQueue**: Manages conversion job queuing and processing
+- **ResourceAllocator**: Handles system resource management
+- **Conversion Modules**: Specialized modules for different conversion aspects
+- **Configuration System**: Dynamic configuration management
+
+### Installation
+
+```bash
+npm install minecraft-mod-converter
+```
+
+### Basic Usage
+
+```typescript
+import { ConversionService, JobQueue, ResourceAllocator, WorkerPool } from 'minecraft-mod-converter';
+
+// Set up the conversion pipeline
+const jobQueue = new JobQueue({ maxConcurrent: 3 });
+const workerPool = new WorkerPool({ maxWorkers: 5 });
+const resourceAllocator = new ResourceAllocator({ workerPool, jobQueue });
+
+const conversionService = new ConversionService({
+  jobQueue,
+  resourceAllocator
+});
+
+// Start the service and convert a mod
+conversionService.start();
+const job = conversionService.createConversionJob({
+  modFile: './my-mod.jar',
+  outputPath: './converted-addon',
+  options: { targetMinecraftVersion: '1.20.0' }
+});
+```
 
 ## Core Services
 
@@ -61,6 +102,50 @@ const job = conversionService.createConversionJob({
     compromiseStrategy: 'balanced',
     includeDocumentation: true,
     optimizeAssets: true
+  }
+});
+```
+
+**Advanced Example with Full Options:**
+```typescript
+const job = conversionService.createConversionJob({
+  modFile: './complex-mod.jar',
+  outputPath: './converted-addon',
+  options: {
+    targetMinecraftVersion: '1.20.0',
+    compromiseStrategy: 'aggressive',
+    includeDocumentation: true,
+    optimizeAssets: true,
+    generateSourceMaps: true,
+    customApiMappings: './custom-mappings.json',
+    validateOutput: true,
+    maxTextureSize: 1024,
+    compressionQuality: 85,
+    enableLLMTranslation: true,
+    parallelProcessing: true,
+    streamingMode: false,
+    includeDebugInfo: true
+  }
+});
+
+// Monitor job progress
+conversionService.on('job:status', (status) => {
+  if (status.jobId === job.id) {
+    console.log(`Progress: ${status.progress}% - ${status.currentStage}`);
+    if (status.estimatedTimeRemaining) {
+      console.log(`ETA: ${Math.round(status.estimatedTimeRemaining / 1000)}s`);
+    }
+  }
+});
+
+// Handle completion
+conversionService.on('job:completed', (data) => {
+  if (data.jobId === job.id) {
+    console.log('Conversion completed successfully!');
+    const result = conversionService.getJobResult(job.id);
+    console.log(`Files processed: ${result.stats.filesProcessed}`);
+    console.log(`Warnings: ${result.warnings.length}`);
+    console.log(`Output size: ${result.stats.outputSize} bytes`);
   }
 });
 ```

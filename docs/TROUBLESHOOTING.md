@@ -1,9 +1,10 @@
 # Troubleshooting Guide
 
-This guide helps you diagnose and resolve common issues when using the Minecraft Mod Converter.
+This comprehensive guide helps you diagnose and resolve common issues when using the Minecraft Mod Converter. Whether you're experiencing installation problems, conversion failures, or performance issues, this guide provides step-by-step solutions and diagnostic techniques.
 
 ## Table of Contents
 
+- [Quick Diagnostics](#quick-diagnostics)
 - [Installation Issues](#installation-issues)
 - [Conversion Failures](#conversion-failures)
 - [Performance Problems](#performance-problems)
@@ -11,7 +12,54 @@ This guide helps you diagnose and resolve common issues when using the Minecraft
 - [API and Integration Issues](#api-and-integration-issues)
 - [Development Issues](#development-issues)
 - [Error Reference](#error-reference)
+- [Diagnostic Tools](#diagnostic-tools)
 - [Getting Help](#getting-help)
+
+## Quick Diagnostics
+
+Before diving into specific issues, try these quick diagnostic steps:
+
+### System Check
+
+```bash
+# Check system requirements
+node --version    # Should be >= 18.0.0
+npm --version     # Should be >= 8.0.0
+java --version    # Should be >= 11 (for mod analysis)
+
+# Check available memory
+free -h           # Linux
+vm_stat           # macOS
+systeminfo        # Windows
+
+# Check disk space
+df -h             # Linux/macOS
+dir               # Windows
+```
+
+### Service Health Check
+
+```bash
+# Check if converter is properly installed
+minecraft-mod-converter --version
+
+# Validate a simple mod file
+minecraft-mod-converter validate ./test-mod.jar
+
+# Check service dependencies
+npm list minecraft-mod-converter
+```
+
+### Enable Debug Mode
+
+```bash
+# Enable comprehensive logging
+export DEBUG=minecraft-mod-converter:*
+export LOG_LEVEL=debug
+
+# Run with debug output
+minecraft-mod-converter convert ./mod.jar --debug --verbose
+```
 
 ## Installation Issues
 
@@ -118,17 +166,102 @@ nvm use 18
 **Symptoms:**
 ```bash
 FATAL ERROR: Ineffective mark-compacts near heap limit
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+npm ERR! errno 134
 ```
 
-**Solution:**
+**Solutions:**
+
+1. **Increase Node.js memory limit:**
+   ```bash
+   # Temporary fix for current session
+   export NODE_OPTIONS="--max-old-space-size=4096"
+   npm install
+   
+   # Permanent fix (add to ~/.bashrc or ~/.zshrc)
+   echo 'export NODE_OPTIONS="--max-old-space-size=4096"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+2. **Install with reduced concurrency:**
+   ```bash
+   # Reduce concurrent downloads
+   npm install --maxsockets 1
+   
+   # Or use yarn with network concurrency limit
+   yarn install --network-concurrency 1
+   ```
+
+3. **Clear npm cache and retry:**
+   ```bash
+   # Clear all caches
+   npm cache clean --force
+   rm -rf ~/.npm
+   rm -rf node_modules package-lock.json
+   
+   # Reinstall with increased memory
+   NODE_OPTIONS="--max-old-space-size=6144" npm install
+   ```
+
+4. **Use alternative package managers:**
+   ```bash
+   # Try with yarn (often more memory efficient)
+   npm install -g yarn
+   yarn install
+   
+   # Or use pnpm (uses hard links, saves space)
+   npm install -g pnpm
+   pnpm install
+   ```
+
+### Docker Installation Issues
+
+**Problem:** Docker-based installation fails or containers won't start.
+
+**Symptoms:**
 ```bash
-# Increase Node.js memory limit
-export NODE_OPTIONS="--max-old-space-size=4096"
-npm install
-
-# Or install with reduced concurrency
-npm install --maxsockets 1
+docker: Error response from daemon: pull access denied
+Container exits with code 125 or 137
 ```
+
+**Solutions:**
+
+1. **Memory allocation for Docker:**
+   ```bash
+   # Check Docker memory settings
+   docker system info | grep -i memory
+   
+   # Increase Docker memory limit (Docker Desktop)
+   # Go to Docker Desktop > Settings > Resources > Memory
+   # Set to at least 4GB for mod conversion
+   ```
+
+2. **Build from source if pull fails:**
+   ```bash
+   # Clone and build locally
+   git clone https://github.com/your-org/minecraft-mod-converter.git
+   cd minecraft-mod-converter
+   docker build -t minecraft-mod-converter:local .
+   docker run -p 3000:3000 minecraft-mod-converter:local
+   ```
+
+3. **Use Docker Compose for complex setups:**
+   ```yaml
+   # docker-compose.yml
+   version: '3.8'
+   services:
+     converter:
+       image: minecraft-mod-converter:latest
+       ports:
+         - "3000:3000"
+       environment:
+         - NODE_OPTIONS=--max-old-space-size=4096
+       volumes:
+         - ./mods:/app/input
+         - ./output:/app/output
+       mem_limit: 4g
+       memswap_limit: 4g
+   ```
 
 ## Conversion Failures
 
@@ -846,15 +979,203 @@ const logger = createLogger('MyModule', { level: 'debug' });
 logger.debug('Detailed debug information', { context: data });
 ```
 
+## Diagnostic Tools
+
+### Built-in Diagnostics
+
+The converter includes several diagnostic tools to help identify issues:
+
+#### Health Check Command
+
+```bash
+# Run comprehensive health check
+minecraft-mod-converter health-check
+
+# Check specific components
+minecraft-mod-converter health-check --component conversion
+minecraft-mod-converter health-check --component assets
+minecraft-mod-converter health-check --component logic
+```
+
+#### System Information
+
+```bash
+# Get detailed system information
+minecraft-mod-converter system-info
+
+# Output includes:
+# - Node.js version and configuration
+# - Available memory and CPU
+# - Disk space and permissions
+# - Installed dependencies
+# - Configuration settings
+```
+
+#### Performance Profiling
+
+```bash
+# Enable performance profiling
+minecraft-mod-converter convert input.jar --profile
+
+# Generate performance report
+minecraft-mod-converter convert input.jar --profile --profile-output ./profile-report.json
+
+# Analyze memory usage
+node --inspect --max-old-space-size=4096 $(which minecraft-mod-converter) convert input.jar
+```
+
+### Log Analysis Tools
+
+#### Log Level Configuration
+
+```bash
+# Set different log levels
+export LOG_LEVEL=error    # Only errors
+export LOG_LEVEL=warn     # Warnings and errors
+export LOG_LEVEL=info     # General information (default)
+export LOG_LEVEL=debug    # Detailed debugging
+export LOG_LEVEL=trace    # Very detailed tracing
+```
+
+#### Structured Logging
+
+```javascript
+// Enable structured JSON logging
+const logger = createLogger('MyModule', { 
+  format: 'json',
+  level: 'debug',
+  includeTimestamp: true,
+  includeStackTrace: true
+});
+
+// Log with context
+logger.debug('Processing texture', {
+  textureId: 'stone_block',
+  originalSize: '64x64',
+  targetSize: '32x32',
+  compressionQuality: 85
+});
+```
+
+#### Log Filtering and Analysis
+
+```bash
+# Filter logs by component
+grep "ConversionService" app.log | tail -50
+
+# Filter by error level
+grep "ERROR" app.log | grep -v "WARN"
+
+# Analyze conversion performance
+grep "Job.*completed" app.log | awk '{print $NF}' | sort -n
+
+# Find memory-related issues
+grep -i "memory\|heap\|allocation" app.log
+```
+
+### Network Diagnostics
+
+#### API Connectivity Tests
+
+```bash
+# Test GitHub API connectivity
+curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
+
+# Test OpenAI API connectivity
+curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
+
+# Test local services
+curl http://localhost:27017  # MongoDB
+redis-cli ping               # Redis
+```
+
+#### Network Configuration
+
+```javascript
+// Configure network timeouts and retries
+const networkConfig = {
+  timeout: 30000,           // 30 second timeout
+  retries: 3,               // 3 retry attempts
+  retryDelay: 1000,         // 1 second between retries
+  keepAlive: true,          // Use keep-alive connections
+  maxSockets: 10            // Maximum concurrent connections
+};
+```
+
+### Memory Diagnostics
+
+#### Memory Usage Monitoring
+
+```javascript
+// Monitor memory usage during conversion
+const memoryMonitor = setInterval(() => {
+  const usage = process.memoryUsage();
+  console.log({
+    rss: Math.round(usage.rss / 1024 / 1024) + 'MB',
+    heapTotal: Math.round(usage.heapTotal / 1024 / 1024) + 'MB',
+    heapUsed: Math.round(usage.heapUsed / 1024 / 1024) + 'MB',
+    external: Math.round(usage.external / 1024 / 1024) + 'MB'
+  });
+}, 5000);
+
+// Stop monitoring when done
+clearInterval(memoryMonitor);
+```
+
+#### Memory Leak Detection
+
+```bash
+# Run with memory leak detection
+node --trace-gc --max-old-space-size=4096 dist/src/index.js
+
+# Use clinic.js for advanced profiling
+npm install -g clinic
+clinic doctor -- node dist/src/index.js
+clinic flame -- node dist/src/index.js
+```
+
+### File System Diagnostics
+
+#### Permission Checks
+
+```bash
+# Check file permissions
+ls -la input-mod.jar
+ls -la output-directory/
+
+# Test write permissions
+touch output-directory/test-file && rm output-directory/test-file
+
+# Check disk space
+df -h output-directory/
+```
+
+#### File Integrity Verification
+
+```bash
+# Verify JAR file integrity
+jar tf input-mod.jar > /dev/null && echo "JAR file is valid"
+
+# Check file sizes
+du -sh input-mod.jar
+du -sh output-directory/
+
+# Verify file types
+file input-mod.jar
+file output-directory/manifest.json
+```
+
 ## Getting Help
 
 ### Before Asking for Help
 
-1. **Check this troubleshooting guide**
-2. **Search existing issues** on GitHub
-3. **Enable debug logging** and collect error messages
+1. **Check this troubleshooting guide** thoroughly
+2. **Search existing issues** on GitHub Issues and Discussions
+3. **Enable debug logging** and collect complete error messages
 4. **Try the latest version** of the converter
-5. **Prepare a minimal reproduction case**
+5. **Prepare a minimal reproduction case** with sample files
+6. **Run diagnostic tools** and include their output
+7. **Check system requirements** and resource availability
 
 ### Information to Include
 

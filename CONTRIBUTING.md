@@ -486,7 +486,7 @@ We follow [Semantic Versioning](https://semver.org/):
 
 - **GitHub Issues**: For bugs and feature requests
 - **GitHub Discussions**: For questions and general discussion
-- **Email**: [maintainer-email] for security issues
+- **Email**: [security@your-org.com](mailto:security@your-org.com) for security issues
 
 ## Recognition
 

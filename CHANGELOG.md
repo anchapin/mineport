@@ -42,5 +42,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Secure file handling and temporary directory management
 - License compliance checking and embedding
 
-[Unreleased]: https://github.com/username/minecraft-mod-converter/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/username/minecraft-mod-converter/releases/tag/v0.1.0
+[Unreleased]: https://github.com/your-org/minecraft-mod-converter/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/your-org/minecraft-mod-converter/releases/tag/v0.1.0
