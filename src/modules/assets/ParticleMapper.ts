@@ -537,15 +537,7 @@ export class ParticleMapper {
      */
     if (!particle.textures) return;
     
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
+    // Copy particle textures to Bedrock format
     for (const texturePath of particle.textures) {
       const sourceTexturePath = `path/to/source/${texturePath}.png`;
       const targetTexturePath = path.join(outputDir, 'textures/particle', `${path.basename(texturePath)}.png`);
@@ -554,6 +546,5 @@ export class ParticleMapper {
       await fs.mkdir(targetDir, { recursive: true });
       await fs.copyFile(sourceTexturePath, targetTexturePath);
     }
-    */
   }
 }

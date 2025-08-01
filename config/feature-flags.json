@@ -1,0 +1,54 @@
+{
+  "enhanced_file_processing": false,
+  "multi_strategy_analysis": false,
+  "specialized_conversion_agents": false,
+  "comprehensive_validation": false,
+  "modporter_ai_rollout_percentage": 0,
+  "feature_flag_metadata": {
+    "last_updated": "2025-01-08T17:00:00Z",
+    "updated_by": "deployment-system",
+    "environment": "production",
+    "version": "1.0.0"
+  },
+  "rollout_configuration": {
+    "canary_percentage": 5,
+    "staging_percentage": 25,
+    "production_percentage": 100,
+    "rollback_threshold": {
+      "error_rate": 0.05,
+      "response_time": 5000,
+      "health_check_failures": 3
+    }
+  },
+  "component_flags": {
+    "file_processor": {
+      "security_scanning": true,
+      "malware_detection": true,
+      "zip_bomb_protection": true,
+      "path_traversal_protection": true
+    },
+    "java_analyzer": {
+      "multi_strategy_extraction": false,
+      "bytecode_analysis": false,
+      "manifest_parsing": true,
+      "texture_detection": false
+    },
+    "asset_converter": {
+      "texture_optimization": false,
+      "model_conversion": false,
+      "sound_conversion": false
+    },
+    "validation_pipeline": {
+      "strict_validation": false,
+      "security_validation": true,
+      "analysis_validation": false,
+      "conversion_validation": false
+    }
+  },
+  "monitoring": {
+    "enable_metrics": true,
+    "enable_alerts": true,
+    "enable_performance_tracking": true,
+    "enable_error_tracking": true
+  }
+}

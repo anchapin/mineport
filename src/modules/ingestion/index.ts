@@ -11,6 +11,10 @@ import { SourceCodeFetcher, SourceCodeFetchOptions, SourceCodeFetchResult } from
 import { ModLoaderDetector, ModLoaderType, ModLoaderDetectionResult } from './ModLoaderDetector';
 import { LicenseParser, LicenseInfo as LicenseInfoType, LicenseParseResult } from './LicenseParser';
 import { FeatureCompatibilityAnalyzer, FeatureAnalysisResult } from './FeatureCompatibilityAnalyzer';
+import { FileProcessor } from './FileProcessor';
+import { SecurityScanner } from './SecurityScanner';
+import { JavaAnalyzer, AnalysisResult, ManifestInfo, Dependency, AnalysisNote } from './JavaAnalyzer';
+import { ManifestParser, ParsedManifest, ManifestDependency, ManifestParseResult } from './ManifestParser';
 
 /**
  * ModInput interface.
@@ -106,6 +110,10 @@ export { SourceCodeFetcher, SourceCodeFetchOptions, SourceCodeFetchResult };
 export { ModLoaderDetector, ModLoaderType, ModLoaderDetectionResult };
 export { LicenseParser, LicenseInfoType as LicenseParseInfo, LicenseParseResult };
 export { FeatureCompatibilityAnalyzer, FeatureAnalysisResult };
+export { FileProcessor };
+export { SecurityScanner };
+export { JavaAnalyzer, AnalysisResult, ManifestInfo, Dependency, AnalysisNote };
+export { ManifestParser, ParsedManifest, ManifestDependency, ManifestParseResult };
 
 /**
  * IngestionModule class.

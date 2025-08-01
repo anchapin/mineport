@@ -1,7 +1,8 @@
 /**
  * ModValidator Component
  * 
- * This component is responsible for validating Java mod (.jar) files and extracting their contents.
+ * Enhanced component responsible for validating Java mod (.jar) files and extracting their contents.
+ * Now leverages the enhanced JavaAnalyzer and FileProcessor for improved validation and analysis.
  * It checks if the uploaded file is a valid Minecraft Java mod and extracts its structure.
  */
 
@@ -16,13 +17,14 @@ import logger from '../../utils/logger';
 import { randomUUID } from 'crypto';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import { FileProcessor } from './FileProcessor';
+import { JavaAnalyzer } from './JavaAnalyzer';
+import { SecurityScanner } from './SecurityScanner';
 
 const execAsync = promisify(exec);
 
 /**
- * ModValidationResult interface.
- * 
- * TODO: Add detailed description of what this interface represents.
+ * Enhanced ModValidationResult interface with security and analysis information.
  * 
  * @since 1.0.0
  */
@@ -32,45 +34,86 @@ export interface ModValidationResult {
     modId?: string;
     modName?: string;
     modVersion?: string;
+    modDescription?: string;
+    modAuthor?: string;
+    registryNames?: string[];
+    texturePaths?: string[];
   };
   extractedPath?: string;
   errors?: string[];
+  warnings?: string[];
+  securityScanResult?: {
+    isSafe: boolean;
+    threats: any[];
+    scanTime: number;
+  };
+  analysisNotes?: any[];
 }
 
 /**
- * ModValidator class.
- * 
- * TODO: Add detailed description of the class purpose and functionality.
+ * Enhanced ModValidator class with integrated security scanning and analysis.
  * 
  * @since 1.0.0
  */
 export class ModValidator {
   private tempDir: string;
+  private fileProcessor: FileProcessor;
+  private javaAnalyzer: JavaAnalyzer;
+  private securityScanner: SecurityScanner;
   
   /**
-   * Creates a new instance.
+   * Creates a new instance with enhanced components.
    * 
-   * TODO: Add detailed description of constructor behavior.
-   * 
-   * @param param - TODO: Document parameters
+   * @param tempDir - Temporary directory for file processing
+   * @param fileProcessor - Enhanced file processor for validation
+   * @param javaAnalyzer - Enhanced Java analyzer for mod analysis
+   * @param securityScanner - Security scanner for threat detection
    * @since 1.0.0
    */
-  constructor(tempDir: string = path.join(process.cwd(), 'temp')) {
+  constructor(
+    tempDir: string = path.join(process.cwd(), 'temp'),
+    fileProcessor?: FileProcessor,
+    javaAnalyzer?: JavaAnalyzer,
+    securityScanner?: SecurityScanner
+  ) {
     this.tempDir = tempDir;
+    this.fileProcessor = fileProcessor || new FileProcessor();
+    this.javaAnalyzer = javaAnalyzer || new JavaAnalyzer();
+    this.securityScanner = securityScanner || new SecurityScanner();
   }
   
   /**
-   * Validates a .jar file to ensure it's a valid Minecraft Java mod
+   * Enhanced validation of a .jar file with security scanning and detailed analysis
    * @param jarFile Buffer containing the .jar file
-   * @returns ModValidationResult with validation status and extracted information
+   * @param filename Original filename for context
+   * @returns Enhanced ModValidationResult with security and analysis information
    */
-  async validateMod(jarFile: Buffer): Promise<ModValidationResult> {
+  async validateMod(jarFile: Buffer, filename?: string): Promise<ModValidationResult> {
     const result: ModValidationResult = {
       isValid: false,
       errors: [],
+      warnings: []
     };
     
     try {
+      // Step 1: Enhanced file validation and security scanning
+      const fileValidationResult = await this.fileProcessor.validateUpload(jarFile, filename || 'mod.jar');
+      
+      if (!fileValidationResult.isValid) {
+        result.errors?.push(...(fileValidationResult.errors?.map(e => e.message) || []));
+        result.warnings?.push(...(fileValidationResult.warnings?.map(w => w.message) || []));
+        return result;
+      }
+      
+      // Step 2: Security scanning
+      const securityScanResult = await this.securityScanner.scanBuffer(jarFile, filename || 'mod.jar');
+      result.securityScanResult = securityScanResult;
+      
+      if (!securityScanResult.isSafe) {
+        result.errors?.push(`Security threats detected: ${securityScanResult.threats.map(t => t.description).join(', ')}`);
+        return result;
+      }
+      
       // Create a unique directory for this validation
       const validationId = randomUUID();
       const extractPath = path.join(this.tempDir, validationId);
@@ -82,50 +125,48 @@ export class ModValidator {
       const jarPath = path.join(extractPath, 'mod.jar');
       await fs.writeFile(jarPath, jarFile);
       
-      // Check if it's a valid JAR file
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (!await this.isValidJarFile(jarPath)) {
-        result.errors?.push('Invalid JAR file format');
+      // Step 3: Enhanced Java analysis
+      const analysisResult = await this.javaAnalyzer.analyzeJarForMVP(jarPath);
+      
+      if (!analysisResult.success) {
+        result.errors?.push(`Java analysis failed: ${analysisResult.error}`);
         return result;
       }
       
-      // Extract the JAR contents
-      await this.extractJar(jarPath, extractPath);
-      
-      // Check for mod structure validity
+      // Step 4: Legacy structure validation (for compatibility)
       const modStructureResult = await this.validateModStructure(extractPath);
       
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (!modStructureResult.isValid) {
-        result.errors?.push(...(modStructureResult.errors || []));
-        return result;
+        result.warnings?.push(...(modStructureResult.errors || []));
+        // Don't fail validation if enhanced analysis succeeded
       }
       
-      // Set the result properties
+      // Combine results from enhanced analysis and legacy validation
       result.isValid = true;
       result.extractedPath = extractPath;
-      result.modInfo = modStructureResult.modInfo;
+      result.modInfo = {
+        modId: analysisResult.modId || modStructureResult.modInfo?.modId,
+        modName: analysisResult.modName || modStructureResult.modInfo?.modName,
+        modVersion: analysisResult.modVersion || modStructureResult.modInfo?.modVersion,
+        modDescription: analysisResult.modDescription,
+        modAuthor: analysisResult.modAuthor,
+        registryNames: analysisResult.registryNames,
+        texturePaths: analysisResult.texturePaths
+      };
+      result.analysisNotes = analysisResult.analysisNotes;
+      
+      logger.info('Enhanced mod validation completed successfully', {
+        modId: result.modInfo?.modId,
+        registryNames: result.modInfo?.registryNames?.length || 0,
+        texturePaths: result.modInfo?.texturePaths?.length || 0,
+        securityThreats: securityScanResult.threats.length,
+        analysisNotes: result.analysisNotes?.length || 0
+      });
       
       return result;
     } catch (error) {
-      logger.error('Error validating mod file', { error });
-      result.errors?.push(`Validation error: ${(error as Error).message}`);
+      logger.error('Error in enhanced mod validation', { error });
+      result.errors?.push(`Enhanced validation error: ${(error as Error).message}`);
       return result;
     }
   }

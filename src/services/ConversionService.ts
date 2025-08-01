@@ -33,6 +33,8 @@ import { ConversionPipeline, ConversionPipelineInput, ConversionPipelineResult }
 import { JobQueue, Job } from './JobQueue';
 import { ResourceAllocator } from './ResourceAllocator';
 import { ErrorCollector } from './ErrorCollector';
+import { ValidationPipeline } from './ValidationPipeline';
+import { ConfigurationService } from './ConfigurationService';
 import { createLogger } from '../utils/logger';
 import { 
   ConversionJob, 
@@ -44,6 +46,16 @@ import {
   ConversionService as IConversionService
 } from '../types/services';
 import { ErrorSeverity, createErrorCode, createConversionError } from '../types/errors';
+import { FileProcessor } from '../modules/ingestion/FileProcessor';
+import { JavaAnalyzer } from '../modules/ingestion/JavaAnalyzer';
+import { AssetConverter } from '../modules/conversion-agents/AssetConverter';
+import { BedrockArchitect } from '../modules/conversion-agents/BedrockArchitect';
+import { BlockItemGenerator } from '../modules/conversion-agents/BlockItemGenerator';
+import { FeatureFlagService, MODPORTER_AI_FEATURES } from './FeatureFlagService';
+import { StreamingFileProcessor } from './StreamingFileProcessor';
+import { CacheService } from './CacheService';
+import { WorkerPool } from './WorkerPool';
+import { PerformanceMonitor } from './PerformanceMonitor';
 
 const logger = createLogger('ConversionService');
 const MODULE_ID = 'CONVERSION';
@@ -51,7 +63,7 @@ const MODULE_ID = 'CONVERSION';
 /**
  * ConversionServiceOptions interface.
  * 
- * TODO: Add detailed description of what this interface represents.
+ * Configuration options for the ConversionService, including new ModPorter-AI components.
  * 
  * @since 1.0.0
  */
@@ -61,6 +73,19 @@ export interface ConversionServiceOptions {
   errorCollector?: ErrorCollector;
   configService?: ConfigurationService;
   statusUpdateInterval?: number; // milliseconds
+  // New ModPorter-AI components
+  fileProcessor?: FileProcessor;
+  javaAnalyzer?: JavaAnalyzer;
+  assetConverter?: AssetConverter;
+  bedrockArchitect?: BedrockArchitect;
+  blockItemGenerator?: BlockItemGenerator;
+  validationPipeline?: ValidationPipeline;
+  featureFlagService?: FeatureFlagService;
+  // Performance optimization components
+  streamingFileProcessor?: StreamingFileProcessor;
+  cacheService?: CacheService;
+  workerPool?: WorkerPool;
+  performanceMonitor?: PerformanceMonitor;
 }
 
 /**
@@ -85,6 +110,20 @@ export class ConversionService extends EventEmitter implements IConversionServic
     errorCollector: ErrorCollector 
   }> = new Map();
   private statusIntervalId?: NodeJS.Timeout;
+  
+  // New ModPorter-AI components
+  private fileProcessor: FileProcessor;
+  private javaAnalyzer: JavaAnalyzer;
+  private assetConverter: AssetConverter;
+  private bedrockArchitect: BedrockArchitect;
+  private blockItemGenerator: BlockItemGenerator;
+  private validationPipeline: ValidationPipeline;
+  private featureFlagService: FeatureFlagService;
+  // Performance optimization components
+  private streamingFileProcessor: StreamingFileProcessor;
+  private cacheService: CacheService;
+  private workerPool: WorkerPool;
+  private performanceMonitor: PerformanceMonitor;
 
   /**
    * Creates a new instance of the ConversionService.
@@ -97,20 +136,26 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * @since 1.0.0
    */
   constructor(options: ConversionServiceOptions) {
-    /**
-     * super method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     super();
     this.jobQueue = options.jobQueue;
     this.resourceAllocator = options.resourceAllocator;
     this.errorCollector = options.errorCollector || new ErrorCollector();
     this.configService = options.configService;
+    
+    // Initialize performance optimization components first
+    this.cacheService = options.cacheService || new CacheService();
+    this.performanceMonitor = options.performanceMonitor || new PerformanceMonitor();
+    this.streamingFileProcessor = options.streamingFileProcessor || new StreamingFileProcessor();
+    this.workerPool = options.workerPool || new WorkerPool();
+    
+    // Initialize ModPorter-AI components with performance optimizations
+    this.fileProcessor = options.fileProcessor || new FileProcessor({}, this.cacheService, this.performanceMonitor);
+    this.javaAnalyzer = options.javaAnalyzer || new JavaAnalyzer(this.cacheService, this.performanceMonitor);
+    this.assetConverter = options.assetConverter || new AssetConverter();
+    this.bedrockArchitect = options.bedrockArchitect || new BedrockArchitect();
+    this.blockItemGenerator = options.blockItemGenerator || new BlockItemGenerator();
+    this.validationPipeline = options.validationPipeline || new ValidationPipeline();
+    this.featureFlagService = options.featureFlagService || new FeatureFlagService();
     
     // Create pipeline with job queue and resource allocator
     this.pipeline = new ConversionPipeline({ 
@@ -198,18 +243,12 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * @since 1.0.0
    */
   public start(): void {
-    logger.info('Starting conversion service');
+    logger.info('Starting conversion service with performance optimizations');
+    
+    // Start performance monitoring
+    this.performanceMonitor.startMonitoring();
     
     // Start the resource allocator if provided
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.resourceAllocator) {
       this.resourceAllocator.start();
     }
@@ -232,19 +271,19 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * 
    * @since 1.0.0
    */
-  public stop(): void {
+  public async stop(): Promise<void> {
     logger.info('Stopping conversion service');
     
+    // Stop performance monitoring
+    this.performanceMonitor.stopMonitoring();
+    
+    // Stop worker pool
+    await this.workerPool.destroy();
+    
+    // Stop cache service
+    await this.cacheService.destroy();
+    
     // Stop the resource allocator if provided
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.resourceAllocator) {
       this.resourceAllocator.stop();
     }
@@ -260,15 +299,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
   }
 
   /**
-   * Create a new conversion job.
+   * Create a new conversion job with enhanced file processing and validation.
    * 
-   * Creates a new conversion job from the provided input, queues it for processing,
-   * and returns the job details. The job will be processed asynchronously by the
-   * conversion pipeline.
+   * Creates a new conversion job from the provided input, performs enhanced file validation
+   * and security scanning, then queues it for processing. The job will be processed 
+   * asynchronously by the conversion pipeline using the new ModPorter-AI components.
    * 
    * @param input - Conversion input containing mod file and options
    * @returns Created conversion job with ID and initial status
-   * @throws {Error} When job creation fails or queue is unavailable
+   * @throws {Error} When job creation fails, file validation fails, or queue is unavailable
    * 
    * @example
    * ```typescript
@@ -282,83 +321,142 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * 
    * @since 1.0.0
    */
-  public createConversionJob(input: ConversionInput): ConversionJob {
-    logger.info('Creating conversion job', { modFile: input.modFile });
+  public async createConversionJob(input: ConversionInput): Promise<ConversionJob> {
+    logger.info('Creating conversion job with enhanced processing', { modFile: input.modFile });
     
-    // Prepare pipeline input
-    const pipelineInput = {
-      inputPath: input.modFile,
-      outputPath: input.outputPath,
-      modId: this.extractModId(input.modFile),
-      modName: this.extractModName(input.modFile),
-      modVersion: input.options.targetMinecraftVersion,
-      modDescription: '',
-      modAuthor: '',
-      generateReport: input.options.includeDocumentation,
-      packageAddon: true
-    };
-    
-    // Queue the conversion job using the pipeline
-    const jobId = this.pipeline.queueConversion(pipelineInput);
-    
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!jobId) {
-      throw new Error('Failed to queue conversion job');
-    }
-    
-    // Get the job from the queue
-    const job = this.jobQueue.getJob(jobId);
-    
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!job) {
-      throw new Error(`Job not found after queueing: ${jobId}`);
-    }
-    
-    // Create conversion job object
-    const conversionJob: ConversionJob = {
-      id: job.id,
-      input,
-      status: job.status as JobStatus,
-      progress: 0,
-      createdAt: job.createdAt,
-      updatedAt: job.createdAt
-    };
-    
-    // Create a dedicated error collector for this job
-    const jobErrorCollector = new ErrorCollector();
-    
-    // Store active job info
-    this.activeJobs.set(job.id, { 
-      job, 
-      status: {
-        jobId: job.id,
+    try {
+      // Check feature flags to determine which components to use
+      const useEnhancedFileProcessing = await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING);
+      const useMultiStrategyAnalysis = await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS);
+      
+      let validationResult: any = { isValid: true };
+      let analysisResult: any = { success: true };
+      
+      // Step 1: Enhanced file validation and security scanning (if enabled)
+      if (useEnhancedFileProcessing) {
+        // Check file size to determine processing method
+        const fs = await import('fs/promises');
+        const stats = await fs.stat(input.modFile);
+        const fileSize = stats.size;
+        
+        if (fileSize > 10 * 1024 * 1024) { // Use streaming for files > 10MB
+          logger.info('Using streaming file processor for large file', { modFile: input.modFile, size: fileSize });
+          validationResult = await this.streamingFileProcessor.processLargeFile(input.modFile, {
+            maxFileSize: 500 * 1024 * 1024, // 500MB limit
+            allowedMimeTypes: ['application/java-archive', 'application/zip'],
+            enableMalwareScanning: true,
+            tempDirectory: process.env.TEMP_DIR || '/tmp'
+          });
+        } else {
+          // Use regular processing for smaller files
+          const fileBuffer = await this.readFileBuffer(input.modFile);
+          validationResult = await this.fileProcessor.validateUpload(fileBuffer, input.modFile);
+        }
+        
+        if (!validationResult.isValid) {
+          const errorMessage = `File validation failed: ${validationResult.errors?.map((e: any) => e.message).join(', ')}`;
+          logger.error('File validation failed', { modFile: input.modFile, errors: validationResult.errors });
+          throw new Error(errorMessage);
+        }
+        
+        logger.info('Enhanced file processing completed', { modFile: input.modFile, streamingUsed: fileSize > 10 * 1024 * 1024 });
+      }
+      
+      // Step 2: Enhanced Java analysis with multi-strategy extraction (if enabled)
+      if (useMultiStrategyAnalysis) {
+        // Use worker pool for CPU-intensive analysis
+        try {
+          analysisResult = await this.workerPool.execute('javaAnalysis', {
+            jarPath: input.modFile
+          });
+        } catch (workerError) {
+          // Fallback to direct analysis if worker fails
+          logger.warn('Worker pool analysis failed, falling back to direct analysis', { error: workerError });
+          analysisResult = await this.javaAnalyzer.analyzeJarForMVP(input.modFile);
+        }
+        
+        if (!analysisResult || analysisResult.modId === 'unknown') {
+          logger.warn('Java analysis returned minimal results', { modFile: input.modFile });
+        }
+        
+        logger.info('Multi-strategy analysis completed', { 
+          modFile: input.modFile,
+          registryNames: analysisResult.registryNames?.length || 0,
+          texturePaths: analysisResult.texturePaths?.length || 0
+        });
+      }
+      
+      // Prepare enhanced pipeline input with analysis results
+      const pipelineInput = {
+        inputPath: input.modFile,
+        outputPath: input.outputPath,
+        modId: analysisResult.modId || this.extractModId(input.modFile),
+        modName: analysisResult.modName || this.extractModName(input.modFile),
+        modVersion: analysisResult.modVersion || input.options.targetMinecraftVersion,
+        modDescription: analysisResult.modDescription || '',
+        modAuthor: analysisResult.modAuthor || '',
+        generateReport: input.options.includeDocumentation,
+        packageAddon: true,
+        // Include analysis results for enhanced processing
+        analysisResult,
+        validationResult
+      };
+      
+      // Queue the conversion job using the pipeline
+      const jobId = this.pipeline.queueConversion(pipelineInput);
+      
+      if (!jobId) {
+        throw new Error('Failed to queue conversion job');
+      }
+      
+      // Get the job from the queue
+      const job = this.jobQueue.getJob(jobId);
+      
+      if (!job) {
+        throw new Error(`Job not found after queueing: ${jobId}`);
+      }
+      
+      // Create conversion job object
+      const conversionJob: ConversionJob = {
+        id: job.id,
+        input,
         status: job.status as JobStatus,
         progress: 0,
-        currentStage: 'queued'
-      },
-      errorCollector: jobErrorCollector
-    });
-    
-    // Emit job created event
-    this.emit('job:created', conversionJob);
-    
-    return conversionJob;
+        createdAt: job.createdAt,
+        updatedAt: job.createdAt
+      };
+      
+      // Create a dedicated error collector for this job
+      const jobErrorCollector = new ErrorCollector();
+      
+      // Store active job info with enhanced status
+      this.activeJobs.set(job.id, { 
+        job, 
+        status: {
+          jobId: job.id,
+          status: job.status as JobStatus,
+          progress: 0,
+          currentStage: 'validated'
+        },
+        errorCollector: jobErrorCollector
+      });
+      
+      // Emit job created event
+      this.emit('job:created', conversionJob);
+      
+      logger.info('Conversion job created successfully with enhanced processing', { 
+        jobId: job.id, 
+        modId: analysisResult.modId,
+        registryNames: analysisResult.registryNames?.length || 0,
+        texturePaths: analysisResult.texturePaths?.length || 0
+      });
+      
+      return conversionJob;
+      
+    } catch (error) {
+      logger.error('Failed to create conversion job', { error: error.message, modFile: input.modFile });
+      throw error;
+    }
   }
 
   /**
@@ -769,6 +867,17 @@ export class ConversionService extends EventEmitter implements IConversionServic
     const fileName = filePath.split('/').pop() || '';
     const modName = fileName.split('.')[0].replace(/_/g, ' ');
     return modName.charAt(0).toUpperCase() + modName.slice(1) || 'Unknown Mod';
+  }
+
+  /**
+   * Read file as buffer for processing
+   * 
+   * @param filePath Path to the file
+   * @returns File buffer
+   */
+  private async readFileBuffer(filePath: string): Promise<Buffer> {
+    const fs = await import('fs/promises');
+    return await fs.readFile(filePath);
   }
 
   /**

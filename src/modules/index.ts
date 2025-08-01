@@ -25,6 +25,7 @@ export * as logic from './logic';
 export * as compromise from './compromise';
 export * as packaging from './packaging';
 export * as ui from './ui';
+export * as conversionAgents from './conversion-agents';
 
 // Re-export main module classes for convenience
 export { IngestionModule } from './ingestion';
@@ -33,3 +34,4 @@ export { ConfigurationModule } from './configuration';
 export { LogicTranslationEngine } from './logic';
 export { CompromiseStrategyEngine } from './compromise';
 export { AddonPackager } from './packaging';
+export { AssetConverter, BedrockArchitect, BlockItemGenerator } from './conversion-agents';

@@ -1,78 +1,99 @@
 /**
- * Configuration-related type definitions
- * 
- * This file contains interfaces related to application configuration,
- * settings management, and validation.
+ * Configuration interfaces for ModPorter-AI integration components
  */
 
-/**
- * Represents a configuration value
- */
-export interface ConfigurationValue<T> {
-  key: string;
-  value: T;
-  defaultValue: T;
-  description?: string;
-  validation?: (value: T) => boolean;
+export interface FileProcessorConfig {
+  maxFileSize: number;
+  allowedMimeTypes: string[];
+  enableMalwareScanning: boolean;
+  tempDirectory: string;
+  scanTimeout: number;
+  maxCompressionRatio: number;
+  maxExtractedSize: number;
 }
 
-/**
- * Represents a configuration section
- */
-export interface ConfigSection {
-  name: string;
-  description?: string;
-  values: Record<string, ConfigurationValue<any>>;
+export interface JavaAnalyzerConfig {
+  extractionStrategies: string[];
+  analysisTimeout: number;
+  enableBytecodeAnalysis: boolean;
+  maxClassFilesToAnalyze: number;
+  enableMultiStrategyExtraction: boolean;
+  fallbackToBasicAnalysis: boolean;
 }
 
-/**
- * Represents a configuration validation result
- */
+export interface AssetConverterConfig {
+  textureOptimization: boolean;
+  modelConversionQuality: 'fast' | 'balanced' | 'high';
+  soundConversionFormat: 'ogg' | 'wav';
+  maxTextureSize: number;
+  enableParallelConversion: boolean;
+  outputDirectory: string;
+}
+
+export interface ValidationPipelineConfig {
+  enableStrictValidation: boolean;
+  maxValidationTime: number;
+  requiredStages: string[];
+  enableParallelValidation: boolean;
+  failFast: boolean;
+  validationTimeout: number;
+}
+
+export interface SecurityScannerConfig {
+  enableZipBombDetection: boolean;
+  enablePathTraversalCheck: boolean;
+  enableMalwarePatternScanning: boolean;
+  maxScanTime: number;
+  threatDatabasePath?: string;
+  quarantineDirectory: string;
+}
+
+export interface MonitoringConfig {
+  enableMetrics: boolean;
+  metricsPort: number;
+  enableTracing: boolean;
+  tracingEndpoint?: string;
+  enableHealthChecks: boolean;
+  healthCheckInterval: number;
+  alertingEnabled: boolean;
+  alertingWebhookUrl?: string;
+}
+
+export interface LoggingConfig {
+  level: 'debug' | 'info' | 'warn' | 'error';
+  format: 'json' | 'text';
+  enableStructuredLogging: boolean;
+  enableSecurityEventLogging: boolean;
+  enablePerformanceLogging: boolean;
+  logDirectory: string;
+  maxLogFileSize: number;
+  maxLogFiles: number;
+}
+
+export interface ModPorterAIConfig {
+  fileProcessor: FileProcessorConfig;
+  javaAnalyzer: JavaAnalyzerConfig;
+  assetConverter: AssetConverterConfig;
+  validationPipeline: ValidationPipelineConfig;
+  securityScanner: SecurityScannerConfig;
+  monitoring: MonitoringConfig;
+  logging: LoggingConfig;
+}
+
 export interface ConfigValidationResult {
   isValid: boolean;
-  invalidValues: {
-    key: string;
-    value: any;
-    reason: string;
-  }[];
+  errors: ConfigValidationError[];
+  warnings: ConfigValidationWarning[];
 }
 
-/**
- * Interface for configuration service
- * 
- * This interface aligns with the design document's ConfigurationService specification.
- */
-export interface ConfigurationService {
-  get<T>(key: string, defaultValue?: T): T;
-  set<T>(key: string, value: T): void;
-  /**
-   * getSection method.
-   * 
-   * TODO: Add detailed description of the method's purpose and behavior.
-   * 
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  getSection(section: string): Record<string, any>;
-  /**
-   * reload method.
-   * 
-   * TODO: Add detailed description of the method's purpose and behavior.
-   * 
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  reload(): Promise<void>;
-  /**
-   * validate method.
-   * 
-   * TODO: Add detailed description of the method's purpose and behavior.
-   * 
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  validate(): ConfigValidationResult;
+export interface ConfigValidationError {
+  field: string;
+  message: string;
+  value?: any;
+}
+
+export interface ConfigValidationWarning {
+  field: string;
+  message: string;
+  value?: any;
 }

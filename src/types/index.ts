@@ -28,3 +28,6 @@ export * from './services';
 
 // Compromise types
 export * from './compromise';
+
+// File processing types
+export * from './file-processing';

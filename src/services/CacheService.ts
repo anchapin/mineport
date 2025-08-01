@@ -1,525 +1,454 @@
-import { ConfigurationService } from './ConfigurationService';
-import { createLogger } from '../utils/logger';
+/**
+ * Cache Service - Provides caching for analysis results and validation outcomes
+ * 
+ * This service implements multiple caching strategies including in-memory,
+ * file-based, and distributed caching to improve performance by avoiding
+ * redundant processing of identical files and analysis results.
+ */
 
-const logger = createLogger('CacheService');
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as crypto from 'crypto';
+import { LRUCache } from 'lru-cache';
+import logger from '../utils/logger';
+
+export interface CacheEntry<T> {
+  key: string;
+  value: T;
+  createdAt: Date;
+  lastAccessed: Date;
+  accessCount: number;
+  ttl?: number;
+  size?: number;
+}
+
+export interface CacheOptions {
+  maxSize: number; // Maximum number of entries
+  maxMemorySize: number; // Maximum memory usage in bytes
+  defaultTTL: number; // Default time-to-live in milliseconds
+  enablePersistence: boolean;
+  persistenceDir?: string;
+  enableMetrics: boolean;
+  compressionEnabled: boolean;
+}
+
+export interface CacheMetrics {
+  hits: number;
+  misses: number;
+  hitRate: number;
+  totalEntries: number;
+  memoryUsage: number;
+  diskUsage: number;
+  evictions: number;
+}
+
+export interface CacheKey {
+  type: 'file_validation' | 'java_analysis' | 'asset_conversion' | 'security_scan';
+  identifier: string; // Usually file hash or unique identifier
+  version?: string; // For cache invalidation
+}
 
 /**
- * CacheService provides a Redis-based caching system for intermediate results
- * Implements requirement 7.4: Maintain reasonable performance and resource usage
+ * Multi-level cache service with memory and disk persistence
  */
 export class CacheService {
-  private client: any; // In a real implementation, this would be a Redis client
-  private enabled: boolean = true;
-  private metrics: CacheMetrics = {
-    hits: 0,
-    misses: 0,
-    sets: 0,
-    invalidations: 0,
-  };
-  private ttlDefaults: Record<string, number> = {
-    'api_mapping': 86400, // 24 hours
-    'mod_analysis': 3600, // 1 hour
-    'asset_conversion': 7200, // 2 hours
-    'default': 1800, // 30 minutes
-  };
-  private configService?: ConfigurationService;
+  private memoryCache: LRUCache<string, CacheEntry<any>>;
+  private options: CacheOptions;
+  private metrics: CacheMetrics;
+  private persistenceEnabled: boolean;
+  private persistenceDir: string;
 
-  /**
-   * Initialize the cache service
-   * In a real implementation, this would connect to Redis
-   */
-  constructor(options: CacheOptions = {}) {
-    this.configService = options.configService;
-    
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (this.configService) {
-      // Use configuration service if available
-      this.enabled = this.configService.get('cache.enabled', options.enabled !== undefined ? options.enabled : true);
-      
-      // Get TTL defaults from configuration
-      const configTtlDefaults = this.configService.get('cache.ttlDefaults', {});
-      this.ttlDefaults = { ...this.ttlDefaults, ...configTtlDefaults };
-      
-      // Listen for configuration changes
-      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
-      
-      logger.info('CacheService initialized with ConfigurationService', { 
-        enabled: this.enabled,
-        ttlDefaults: this.ttlDefaults
-      });
-    } else {
-      // Apply options directly
-      if (options.enabled !== undefined) {
-        this.enabled = options.enabled;
+  constructor(options: Partial<CacheOptions> = {}) {
+    this.options = {
+      maxSize: options.maxSize || 1000,
+      maxMemorySize: options.maxMemorySize || 100 * 1024 * 1024, // 100MB
+      defaultTTL: options.defaultTTL || 3600000, // 1 hour
+      enablePersistence: options.enablePersistence ?? true,
+      persistenceDir: options.persistenceDir || path.join(process.cwd(), '.cache'),
+      enableMetrics: options.enableMetrics ?? true,
+      compressionEnabled: options.compressionEnabled ?? true
+    };
+
+    this.persistenceEnabled = this.options.enablePersistence;
+    this.persistenceDir = this.options.persistenceDir!;
+
+    this.memoryCache = new LRUCache({
+      max: this.options.maxSize,
+      maxSize: this.options.maxMemorySize,
+      sizeCalculation: (entry: CacheEntry<any>) => this.calculateEntrySize(entry),
+      dispose: (entry: CacheEntry<any>, key: string) => {
+        this.metrics.evictions++;
+        if (this.persistenceEnabled) {
+          this.persistToDisk(key, entry).catch(error => {
+            logger.error('Failed to persist evicted cache entry', { error, key });
+          });
+        }
       }
-      
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (options.ttlDefaults) {
-        this.ttlDefaults = { ...this.ttlDefaults, ...options.ttlDefaults };
-      }
-      
-      logger.info('CacheService initialized with default options', { 
-        enabled: this.enabled
-      });
-    }
-    
-    // In a real implementation, we would initialize the Redis client here
-    this.client = this.createMockRedisClient();
-  }
-  
-  /**
-   * Handle configuration updates
-   */
-  private handleConfigUpdate(update: { key: string; value: any }): void {
-    if (update.key === 'cache.enabled') {
-      this.enabled = update.value;
-      logger.info('Updated cache enabled status from configuration', { enabled: this.enabled });
-    } else if (update.key === 'cache.ttlDefaults') {
-      this.ttlDefaults = { ...this.ttlDefaults, ...update.value };
-      logger.info('Updated TTL defaults from configuration', { ttlDefaults: this.ttlDefaults });
-    } else if (update.key.startsWith('cache.ttlDefaults.')) {
-      const ttlKey = update.key.replace('cache.ttlDefaults.', '');
-      this.ttlDefaults[ttlKey] = update.value;
-      logger.info(`Updated TTL default for ${ttlKey} from configuration`, { 
-        key: ttlKey, 
-        value: update.value 
-      });
-    }
+    });
+
+    this.metrics = {
+      hits: 0,
+      misses: 0,
+      hitRate: 0,
+      totalEntries: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
+      evictions: 0
+    };
+
+    this.initializePersistence();
   }
 
   /**
-   * Get a value from the cache
+   * Get a value from cache
    */
-  public async get<T>(key: string): Promise<T | null> {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!this.enabled) return null;
+  async get<T>(cacheKey: CacheKey): Promise<T | null> {
+    const key = this.generateKey(cacheKey);
+    
+    // Try memory cache first
+    const memoryEntry = this.memoryCache.get(key);
+    if (memoryEntry && !this.isExpired(memoryEntry)) {
+      memoryEntry.lastAccessed = new Date();
+      memoryEntry.accessCount++;
+      this.metrics.hits++;
+      this.updateMetrics();
+      return memoryEntry.value as T;
+    }
+
+    // Try disk cache if persistence is enabled
+    if (this.persistenceEnabled) {
+      try {
+        const diskEntry = await this.loadFromDisk<T>(key);
+        if (diskEntry && !this.isExpired(diskEntry)) {
+          // Move back to memory cache
+          this.memoryCache.set(key, diskEntry);
+          diskEntry.lastAccessed = new Date();
+          diskEntry.accessCount++;
+          this.metrics.hits++;
+          this.updateMetrics();
+          return diskEntry.value;
+        }
+      } catch (error) {
+        logger.debug('Failed to load from disk cache', { error, key });
+      }
+    }
+
+    this.metrics.misses++;
+    this.updateMetrics();
+    return null;
+  }
+
+  /**
+   * Set a value in cache
+   */
+  async set<T>(cacheKey: CacheKey, value: T, ttl?: number): Promise<void> {
+    const key = this.generateKey(cacheKey);
+    const entry: CacheEntry<T> = {
+      key,
+      value,
+      createdAt: new Date(),
+      lastAccessed: new Date(),
+      accessCount: 1,
+      ttl: ttl || this.options.defaultTTL,
+      size: this.estimateValueSize(value)
+    };
+
+    this.memoryCache.set(key, entry);
+    this.updateMetrics();
+
+    // Persist to disk if enabled
+    if (this.persistenceEnabled) {
+      try {
+        await this.persistToDisk(key, entry);
+      } catch (error) {
+        logger.error('Failed to persist cache entry to disk', { error, key });
+      }
+    }
+  }
+
+  /**
+   * Delete a value from cache
+   */
+  async delete(cacheKey: CacheKey): Promise<boolean> {
+    const key = this.generateKey(cacheKey);
+    
+    const memoryDeleted = this.memoryCache.delete(key);
+    
+    if (this.persistenceEnabled) {
+      try {
+        await this.deleteFromDisk(key);
+      } catch (error) {
+        logger.debug('Failed to delete from disk cache', { error, key });
+      }
+    }
+
+    this.updateMetrics();
+    return memoryDeleted;
+  }
+
+  /**
+   * Check if a key exists in cache
+   */
+  async has(cacheKey: CacheKey): Promise<boolean> {
+    const key = this.generateKey(cacheKey);
+    
+    if (this.memoryCache.has(key)) {
+      const entry = this.memoryCache.get(key);
+      return entry ? !this.isExpired(entry) : false;
+    }
+
+    if (this.persistenceEnabled) {
+      try {
+        const diskEntry = await this.loadFromDisk(key);
+        return diskEntry ? !this.isExpired(diskEntry) : false;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Clear all cache entries
+   */
+  async clear(): Promise<void> {
+    this.memoryCache.clear();
+    
+    if (this.persistenceEnabled) {
+      try {
+        await fs.rm(this.persistenceDir, { recursive: true, force: true });
+        await fs.mkdir(this.persistenceDir, { recursive: true });
+      } catch (error) {
+        logger.error('Failed to clear disk cache', { error });
+      }
+    }
+
+    this.resetMetrics();
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getMetrics(): CacheMetrics {
+    return { ...this.metrics };
+  }
+
+  /**
+   * Cleanup expired entries
+   */
+  async cleanup(): Promise<void> {
+    const now = new Date();
+    const expiredKeys: string[] = [];
+
+    // Check memory cache
+    for (const [key, entry] of this.memoryCache.entries()) {
+      if (this.isExpired(entry)) {
+        expiredKeys.push(key);
+      }
+    }
+
+    // Remove expired entries from memory
+    for (const key of expiredKeys) {
+      this.memoryCache.delete(key);
+    }
+
+    // Cleanup disk cache if enabled
+    if (this.persistenceEnabled) {
+      await this.cleanupDiskCache();
+    }
+
+    this.updateMetrics();
+  }
+
+  /**
+   * Generate cache key from CacheKey object
+   */
+  private generateKey(cacheKey: CacheKey): string {
+    const keyString = `${cacheKey.type}:${cacheKey.identifier}${cacheKey.version ? `:${cacheKey.version}` : ''}`;
+    return crypto.createHash('sha256').update(keyString).digest('hex');
+  }
+
+  /**
+   * Check if cache entry is expired
+   */
+  private isExpired(entry: CacheEntry<any>): boolean {
+    if (!entry.ttl) return false;
+    const now = new Date().getTime();
+    const expiryTime = entry.createdAt.getTime() + entry.ttl;
+    return now > expiryTime;
+  }
+
+  /**
+   * Calculate size of cache entry
+   */
+  private calculateEntrySize(entry: CacheEntry<any>): number {
+    return entry.size || this.estimateValueSize(entry.value);
+  }
+
+  /**
+   * Estimate size of a value in bytes
+   */
+  private estimateValueSize(value: any): number {
+    if (value === null || value === undefined) return 0;
+    
+    if (typeof value === 'string') {
+      return Buffer.byteLength(value, 'utf8');
+    }
+    
+    if (Buffer.isBuffer(value)) {
+      return value.length;
+    }
+    
+    // For objects, use JSON string length as approximation
+    try {
+      return Buffer.byteLength(JSON.stringify(value), 'utf8');
+    } catch {
+      return 1024; // Default estimate
+    }
+  }
+
+  /**
+   * Initialize persistence directory
+   */
+  private async initializePersistence(): Promise<void> {
+    if (!this.persistenceEnabled) return;
+
+    try {
+      await fs.mkdir(this.persistenceDir, { recursive: true });
+    } catch (error) {
+      logger.error('Failed to initialize cache persistence directory', { error });
+      this.persistenceEnabled = false;
+    }
+  }
+
+  /**
+   * Persist cache entry to disk
+   */
+  private async persistToDisk<T>(key: string, entry: CacheEntry<T>): Promise<void> {
+    if (!this.persistenceEnabled) return;
+
+    const filePath = path.join(this.persistenceDir, `${key}.json`);
+    const data = {
+      ...entry,
+      createdAt: entry.createdAt.toISOString(),
+      lastAccessed: entry.lastAccessed.toISOString()
+    };
+
+    let content = JSON.stringify(data);
+    
+    if (this.options.compressionEnabled) {
+      const zlib = await import('zlib');
+      content = zlib.gzipSync(content).toString('base64');
+    }
+
+    await fs.writeFile(filePath, content);
+  }
+
+  /**
+   * Load cache entry from disk
+   */
+  private async loadFromDisk<T>(key: string): Promise<CacheEntry<T> | null> {
+    if (!this.persistenceEnabled) return null;
+
+    const filePath = path.join(this.persistenceDir, `${key}.json`);
     
     try {
-      const value = await this.client.get(key);
+      let content = await fs.readFile(filePath, 'utf8');
       
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (value) {
-        // Cache hit
-        this.metrics.hits++;
-        return JSON.parse(value);
-      } else {
-        // Cache miss
-        this.metrics.misses++;
-        return null;
+      if (this.options.compressionEnabled) {
+        const zlib = await import('zlib');
+        content = zlib.gunzipSync(Buffer.from(content, 'base64')).toString();
       }
+
+      const data = JSON.parse(content);
+      
+      return {
+        ...data,
+        createdAt: new Date(data.createdAt),
+        lastAccessed: new Date(data.lastAccessed)
+      };
     } catch (error) {
-      console.error('Cache get error:', error);
-      this.metrics.misses++;
       return null;
     }
   }
 
   /**
-   * Set a value in the cache
+   * Delete cache entry from disk
    */
-  public async set<T>(key: string, value: T, options: SetOptions = {}): Promise<boolean> {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!this.enabled) return false;
+  private async deleteFromDisk(key: string): Promise<void> {
+    if (!this.persistenceEnabled) return;
+
+    const filePath = path.join(this.persistenceDir, `${key}.json`);
     
     try {
-      const ttl = options.ttl || this.getTTLForKey(key);
-      const serializedValue = JSON.stringify(value);
-      
-      await this.client.set(key, serializedValue, 'EX', ttl);
-      this.metrics.sets++;
-      return true;
+      await fs.unlink(filePath);
     } catch (error) {
-      console.error('Cache set error:', error);
-      return false;
+      // File might not exist, which is fine
     }
   }
 
   /**
-   * Delete a value from the cache
+   * Cleanup expired entries from disk cache
    */
-  public async delete(key: string): Promise<boolean> {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!this.enabled) return false;
-    
-    try {
-      await this.client.del(key);
-      this.metrics.invalidations++;
-      return true;
-    } catch (error) {
-      console.error('Cache delete error:', error);
-      return false;
-    }
-  }
+  private async cleanupDiskCache(): Promise<void> {
+    if (!this.persistenceEnabled) return;
 
-  /**
-   * Clear all values with a specific prefix
-   */
-  public async clearByPrefix(prefix: string): Promise<number> {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!this.enabled) return 0;
-    
     try {
-      // In a real Redis implementation, we would use SCAN to find keys with the prefix
-      // and then delete them in batches
-      const keys = await this.client.keys(`${prefix}*`);
+      const files = await fs.readdir(this.persistenceDir);
       
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (keys.length > 0) {
-        await this.client.del(...keys);
-        this.metrics.invalidations += keys.length;
+      for (const file of files) {
+        if (file.endsWith('.json')) {
+          const key = file.replace('.json', '');
+          const entry = await this.loadFromDisk(key);
+          
+          if (entry && this.isExpired(entry)) {
+            await this.deleteFromDisk(key);
+          }
+        }
       }
-      
-      return keys.length;
     } catch (error) {
-      console.error('Cache clear by prefix error:', error);
-      return 0;
+      logger.error('Failed to cleanup disk cache', { error });
     }
   }
 
   /**
-   * Get cache metrics
+   * Update cache metrics
    */
-  public getMetrics(): CacheMetrics {
-    return { ...this.metrics };
+  private updateMetrics(): void {
+    if (!this.options.enableMetrics) return;
+
+    this.metrics.totalEntries = this.memoryCache.size;
+    this.metrics.memoryUsage = this.memoryCache.calculatedSize || 0;
+    
+    const totalRequests = this.metrics.hits + this.metrics.misses;
+    this.metrics.hitRate = totalRequests > 0 ? this.metrics.hits / totalRequests : 0;
   }
 
   /**
-   * Reset cache metrics
+   * Reset metrics
    */
-  public resetMetrics(): void {
+  private resetMetrics(): void {
     this.metrics = {
       hits: 0,
       misses: 0,
-      sets: 0,
-      invalidations: 0,
+      hitRate: 0,
+      totalEntries: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
+      evictions: 0
     };
   }
 
   /**
-   * Enable or disable the cache
+   * Destroy cache service and cleanup resources
    */
-  public setEnabled(enabled: boolean): void {
-    this.enabled = enabled;
-  }
-
-  /**
-   * Check if the cache is enabled
-   */
-  public isEnabled(): boolean {
-    return this.enabled;
-  }
-
-  /**
-   * Get the TTL for a specific key based on its prefix
-   */
-  private getTTLForKey(key: string): number {
-    // Check if the key matches any of our predefined prefixes
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const [prefix, ttl] of Object.entries(this.ttlDefaults)) {
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (key.startsWith(`${prefix}:`)) {
-        return ttl;
-      }
+  async destroy(): Promise<void> {
+    this.memoryCache.clear();
+    
+    if (this.persistenceEnabled) {
+      // Optionally keep disk cache for next startup
+      // await fs.rm(this.persistenceDir, { recursive: true, force: true });
     }
-    
-    // Return default TTL if no match
-    return this.ttlDefaults.default;
-  }
-
-  /**
-   * Create a mock Redis client for development/testing
-   * In a real implementation, this would be replaced with an actual Redis client
-   */
-  private createMockRedisClient() {
-    const store: Record<string, { value: string; expiry: number | null }> = {};
-    
-    return {
-      get: async (key: string) => {
-        const item = store[key];
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (!item) return null;
-        
-        // Check if expired
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (item.expiry && item.expiry < Date.now()) {
-          delete store[key];
-          return null;
-        }
-        
-        return item.value;
-      },
-      set: async (key: string, value: string, exFlag?: string, ttl?: number) => {
-        let expiry: number | null = null;
-        
-        if (exFlag === 'EX' && ttl) {
-          expiry = Date.now() + (ttl * 1000);
-        }
-        
-        store[key] = { value, expiry };
-        return 'OK';
-      },
-      del: async (...keys: string[]) => {
-        let deleted = 0;
-        /**
-         * for method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        for (const key of keys) {
-          /**
-           * if method.
-           * 
-           * TODO: Add detailed description of the method's purpose and behavior.
-           * 
-           * @param param - TODO: Document parameters
-           * @returns result - TODO: Document return value
-           * @since 1.0.0
-           */
-          if (key in store) {
-            delete store[key];
-            deleted++;
-          }
-        }
-        return deleted;
-      },
-      keys: async (pattern: string) => {
-        const prefix = pattern.replace('*', '');
-        return Object.keys(store).filter(key => key.startsWith(prefix));
-      }
-    };
-  }
-}
-
-/**
- * CacheOptions interface.
- * 
- * TODO: Add detailed description of what this interface represents.
- * 
- * @since 1.0.0
- */
-export interface CacheOptions {
-  enabled?: boolean;
-  ttlDefaults?: Record<string, number>;
-  configService?: ConfigurationService;
-}
-
-/**
- * SetOptions interface.
- * 
- * TODO: Add detailed description of what this interface represents.
- * 
- * @since 1.0.0
- */
-export interface SetOptions {
-  ttl?: number; // Time to live in seconds
-}
-
-/**
- * CacheMetrics interface.
- * 
- * TODO: Add detailed description of what this interface represents.
- * 
- * @since 1.0.0
- */
-export interface CacheMetrics {
-  hits: number;
-  misses: number;
-  sets: number;
-  invalidations: number;
-}
-
-/**
- * Cache key generator for consistent key naming
- */
-export class CacheKeyGenerator {
-  /**
-   * Generate a cache key for mod analysis results
-   */
-  static modAnalysis(modId: string, version: string): string {
-    return `mod_analysis:${modId}:${version}`;
-  }
-  
-  /**
-   * Generate a cache key for asset conversion results
-   */
-  static assetConversion(modId: string, assetType: string, assetId: string): string {
-    return `asset_conversion:${modId}:${assetType}:${assetId}`;
-  }
-  
-  /**
-   * Generate a cache key for API mapping
-   */
-  static apiMapping(javaSignature: string, minecraftVersion: string): string {
-    return `api_mapping:${minecraftVersion}:${javaSignature}`;
-  }
-  
-  /**
-   * Generate a cache key for code translation
-   */
-  static codeTranslation(sourceHash: string): string {
-    return `code_translation:${sourceHash}`;
-  }
-}
-
-/**
- * Cache invalidation strategy implementation
- */
-export class CacheInvalidationStrategy {
-  private cacheService: CacheService;
-  
-  /**
-   * constructor method.
-   * 
-   * TODO: Add detailed description of the method's purpose and behavior.
-   * 
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  constructor(cacheService: CacheService) {
-    this.cacheService = cacheService;
-  }
-  
-  /**
-   * Invalidate cache entries related to a specific mod
-   */
-  async invalidateModCache(modId: string): Promise<number> {
-    return await this.cacheService.clearByPrefix(`mod_analysis:${modId}`);
-  }
-  
-  /**
-   * Invalidate cache entries related to asset conversions
-   */
-  async invalidateAssetCache(modId: string): Promise<number> {
-    return await this.cacheService.clearByPrefix(`asset_conversion:${modId}`);
-  }
-  
-  /**
-   * Invalidate API mapping cache when mappings are updated
-   */
-  async invalidateApiMappingCache(minecraftVersion: string): Promise<number> {
-    return await this.cacheService.clearByPrefix(`api_mapping:${minecraftVersion}`);
-  }
-  
-  /**
-   * Invalidate all caches (use sparingly)
-   */
-  async invalidateAllCaches(): Promise<void> {
-    await this.cacheService.clearByPrefix('mod_analysis:');
-    await this.cacheService.clearByPrefix('asset_conversion:');
-    await this.cacheService.clearByPrefix('api_mapping:');
-    await this.cacheService.clearByPrefix('code_translation:');
-  }
-  
-  /**
-   * Schedule automatic invalidation of old cache entries
-   * In a real Redis implementation, we would use Redis TTL instead
-   */
-  scheduleAutomaticInvalidation(intervalMs: number = 3600000): NodeJS.Timeout {
-    return setInterval(() => {
-      console.log('Running scheduled cache invalidation');
-      // In a real implementation, we might use Redis SCAN with TTL checks
-      // For now, we rely on the TTL mechanism in our mock implementation
-    }, intervalMs);
   }
 }

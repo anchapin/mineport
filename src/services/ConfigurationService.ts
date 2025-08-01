@@ -1,654 +1,338 @@
-import { EventEmitter } from 'events';
-import { ConfigurationService as IConfigurationService, ConfigSection, ConfigurationValue, ConfigValidationResult } from '../types/config';
-import defaultConfig from '../../config/default';
-import * as fs from 'fs';
-import * as path from 'path';
-import { createLogger } from '../utils/logger';
-
-const logger = createLogger('ConfigurationService');
-
-/**
- * Configuration service options
- */
-export interface ConfigurationServiceOptions {
-  /**
-   * Path to environment-specific configuration file
-   */
-  envConfigPath?: string;
-  
-  /**
-   * Environment name (e.g., 'development', 'production')
-   */
-  environment?: string;
-  
-  /**
-   * Whether to watch configuration files for changes
-   */
-  watchForChanges?: boolean;
-}
+import { 
+  ModPorterAIConfig, 
+  ConfigValidationResult, 
+  ConfigValidationError, 
+  ConfigValidationWarning 
+} from '../types/config.js';
+import { logger } from '../utils/logger.js';
 
 /**
- * ConfigurationService provides centralized configuration management
- * Implements requirements:
- * - 7.1: Standardize interfaces across the codebase
- * - 7.3: Implement centralized configuration management
+ * Configuration service for ModPorter-AI integration components
+ * Handles environment-based configuration loading and validation
  */
-export class ConfigurationService extends EventEmitter implements IConfigurationService {
-  private config: Record<string, any>;
-  private envConfig: Record<string, any> = {};
-  private options: ConfigurationServiceOptions;
-  private watcher?: fs.FSWatcher;
-  private sections: Record<string, ConfigSection> = {};
+export class ConfigurationService {
+  private config: ModPorterAIConfig;
+  private static instance: ConfigurationService;
 
-  /**
-   * Creates a new instance of the ConfigurationService
-   * 
-   * @param options Options for the configuration service
-   */
-  constructor(options: ConfigurationServiceOptions = {}) {
-    /**
-     * super method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    super();
-    this.options = {
-      environment: process.env.NODE_ENV || 'development',
-      watchForChanges: true,
-      ...options
-    };
-    
-    // Load default configuration
-    this.config = this.deepClone(defaultConfig);
-    
-    // Load environment-specific configuration if available
-    this.loadEnvironmentConfig();
-    
-    // Set up file watchers if enabled
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (this.options.watchForChanges) {
-      this.setupConfigWatchers();
+  private constructor() {
+    this.config = this.loadConfiguration();
+    this.validateConfiguration();
+  }
+
+  public static getInstance(): ConfigurationService {
+    if (!ConfigurationService.instance) {
+      ConfigurationService.instance = new ConfigurationService();
     }
+    return ConfigurationService.instance;
+  }
+
+  /**
+   * Get the complete configuration
+   */
+  public getConfig(): ModPorterAIConfig {
+    return JSON.parse(JSON.stringify(this.config));
+  }
+
+  /**
+   * Get file processor configuration
+   */
+  public getFileProcessorConfig() {
+    return JSON.parse(JSON.stringify(this.config.fileProcessor));
+  }
+
+  /**
+   * Get Java analyzer configuration
+   */
+  public getJavaAnalyzerConfig() {
+    return JSON.parse(JSON.stringify(this.config.javaAnalyzer));
+  }
+
+  /**
+   * Get asset converter configuration
+   */
+  public getAssetConverterConfig() {
+    return JSON.parse(JSON.stringify(this.config.assetConverter));
+  }
+
+  /**
+   * Get validation pipeline configuration
+   */
+  public getValidationPipelineConfig() {
+    return JSON.parse(JSON.stringify(this.config.validationPipeline));
+  }
+
+  /**
+   * Get security scanner configuration
+   */
+  public getSecurityScannerConfig() {
+    return JSON.parse(JSON.stringify(this.config.securityScanner));
+  }
+
+  /**
+   * Get monitoring configuration
+   */
+  public getMonitoringConfig() {
+    return JSON.parse(JSON.stringify(this.config.monitoring));
+  }
+
+  /**
+   * Get logging configuration
+   */
+  public getLoggingConfig() {
+    return JSON.parse(JSON.stringify(this.config.logging));
+  }
+
+  /**
+   * Reload configuration from environment
+   */
+  public reloadConfiguration(): void {
+    const newConfig = this.loadConfiguration();
+    const validation = this.validateConfigurationObject(newConfig);
     
-    logger.info('Configuration service initialized', { environment: this.options.environment });
-  }
-
-  /**
-   * Get a configuration value by key
-   * 
-   * @param key Dot-notation key (e.g., 'server.port')
-   * @param defaultValue Default value if key is not found
-   * @returns Configuration value or default value
-   */
-  public get<T>(key: string, defaultValue?: T): T {
-    const value = this.getValueByPath(key);
-    return value !== undefined ? value : (defaultValue as T);
-  }
-
-  /**
-   * Set a configuration value
-   * 
-   * @param key Dot-notation key (e.g., 'server.port')
-   * @param value Value to set
-   */
-  public set<T>(key: string, value: T): void {
-    this.setValueByPath(key, value);
-    this.emit('config:updated', { key, value });
-    logger.debug('Configuration updated', { key });
-  }
-
-  /**
-   * Get a configuration section
-   * 
-   * @param section Section name (e.g., 'server')
-   * @returns Section object or empty object if not found
-   */
-  public getSection(section: string): Record<string, any> {
-    return this.config[section] || {};
-  }
-
-  /**
-   * Reload configuration from files
-   */
-  public async reload(): Promise<void> {
-    logger.info('Reloading configuration');
-    
-    try {
-      // Reload default configuration
-      this.config = this.deepClone(defaultConfig);
-      
-      // Reload environment-specific configuration
-      this.loadEnvironmentConfig();
-      
-      this.emit('config:reloaded');
-      logger.info('Configuration reloaded successfully');
-    } catch (error) {
-      logger.error('Failed to reload configuration', { error });
-      throw error;
-    }
-  }
-
-  /**
-   * Validate configuration against defined validation rules
-   * 
-   * @returns Validation result
-   */
-  public validate(): ConfigValidationResult {
-    const invalidValues: { key: string; value: any; reason: string }[] = [];
-    
-    // Validate each section
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const [sectionName, section] of Object.entries(this.sections)) {
-      // Validate each value in the section
-      /**
-       * for method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      for (const [key, configValue] of Object.entries(section.values)) {
-        const fullKey = `${sectionName}.${key}`;
-        const currentValue = this.get(fullKey, configValue.defaultValue);
-        
-        // Skip validation if no validation function is defined
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (!configValue.validation) continue;
-        
-        // Validate the value
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (!configValue.validation(currentValue)) {
-          invalidValues.push({
-            key: fullKey,
-            value: currentValue,
-            reason: `Failed validation for ${fullKey}`
-          });
-        }
-      }
-    }
-    
-    return {
-      isValid: invalidValues.length === 0,
-      invalidValues
-    };
-  }
-
-  /**
-   * Register a configuration section with validation rules
-   * 
-   * @param section Configuration section
-   */
-  public registerSection(section: ConfigSection): void {
-    this.sections[section.name] = section;
-    logger.debug('Registered configuration section', { section: section.name });
-  }
-
-  /**
-   * Get all registered configuration sections
-   * 
-   * @returns Record of configuration sections
-   */
-  public getSections(): Record<string, ConfigSection> {
-    return { ...this.sections };
-  }
-
-  /**
-   * Export configuration to a file
-   * 
-   * @param filePath Path to export configuration to
-   */
-  public async exportConfig(filePath: string): Promise<void> {
-    try {
-      const configToExport = this.deepClone(this.config);
-      
-      // Remove sensitive information
-      this.removeSensitiveInfo(configToExport);
-      
-      // Ensure directory exists
-      const dir = path.dirname(filePath);
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      
-      // Write configuration to file
-      fs.writeFileSync(filePath, JSON.stringify(configToExport, null, 2));
-      logger.info('Configuration exported successfully', { filePath });
-    } catch (error) {
-      logger.error('Failed to export configuration', { error, filePath });
-      throw error;
-    }
-  }
-  
-  /**
-   * Export configuration as an object
-   * 
-   * @returns Configuration object
-   */
-  public exportConfig(): Record<string, any> {
-    const configToExport = this.deepClone(this.config);
-    
-    // Remove sensitive information
-    this.removeSensitiveInfo(configToExport);
-    
-    return configToExport;
-  }
-
-  /**
-   * Import configuration from a file or object
-   * 
-   * @param filePathOrConfig Path to import configuration from or configuration object
-   */
-  public async importConfig(filePathOrConfig: string | Record<string, any>): Promise<void> {
-    try {
-      let importedConfig: Record<string, any>;
-      
-      if (typeof filePathOrConfig === 'string') {
-        // Import from file
-        const filePath = filePathOrConfig;
-        
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (!fs.existsSync(filePath)) {
-          throw new Error(`Configuration file not found: ${filePath}`);
-        }
-        
-        importedConfig = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        logger.info('Configuration imported from file', { filePath });
-      } else {
-        // Import from object
-        importedConfig = filePathOrConfig;
-        logger.info('Configuration imported from object');
-      }
-      
-      // Merge imported configuration with default configuration
-      this.config = this.deepMerge(this.deepClone(defaultConfig), importedConfig);
-      
-      // Emit event
-      this.emit('config:imported', { source: typeof filePathOrConfig === 'string' ? filePathOrConfig : 'object' });
-      
-      // Emit individual update events for each changed key
-      this.emitUpdateEvents(importedConfig);
-    } catch (error) {
-      logger.error('Failed to import configuration', { 
-        error, 
-        source: typeof filePathOrConfig === 'string' ? filePathOrConfig : 'object' 
+    if (!validation.isValid) {
+      logger.error('Configuration reload failed validation', { 
+        errors: validation.errors 
       });
-      throw error;
+      throw new Error('Invalid configuration');
     }
-  }
-  
-  /**
-   * Emit update events for each changed key in the imported configuration
-   * 
-   * @param importedConfig Imported configuration
-   * @param prefix Key prefix for nested objects
-   */
-  private emitUpdateEvents(importedConfig: Record<string, any>, prefix: string = ''): void {
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const [key, value] of Object.entries(importedConfig)) {
-      const fullKey = prefix ? `${prefix}.${key}` : key;
-      
-      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-        // Recurse into nested objects
-        this.emitUpdateEvents(value, fullKey);
-      } else {
-        // Emit update event for this key
-        this.emit('config:updated', { key: fullKey, value });
-      }
-    }
+
+    this.config = newConfig;
+    logger.info('Configuration reloaded successfully');
   }
 
   /**
-   * Get environment-specific configuration path
-   * 
-   * @returns Path to environment-specific configuration file
+   * Load configuration from environment variables with defaults
    */
-  private getEnvironmentConfigPath(): string {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (this.options.envConfigPath) {
-      return this.options.envConfigPath;
-    }
-    
-    const environment = this.options.environment;
-    return path.resolve(__dirname, `../../config/${environment}.ts`);
-  }
-
-  /**
-   * Load environment-specific configuration
-   */
-  private loadEnvironmentConfig(): void {
-    const envConfigPath = this.getEnvironmentConfigPath();
-    
-    try {
-      // Check if environment-specific configuration exists
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (fs.existsSync(envConfigPath)) {
-        // In a real implementation, we would use dynamic import
-        // For now, we'll simulate loading the environment config
-        this.envConfig = {}; // This would be the imported config
-        
-        // Merge environment-specific configuration with default configuration
-        this.config = this.deepMerge(this.config, this.envConfig);
-        
-        logger.info('Loaded environment-specific configuration', { environment: this.options.environment });
-      }
-    } catch (error) {
-      logger.warn('Failed to load environment-specific configuration', { error, envConfigPath });
-    }
-  }
-
-  /**
-   * Set up file watchers for configuration files
-   */
-  private setupConfigWatchers(): void {
-    const envConfigPath = this.getEnvironmentConfigPath();
-    
-    try {
-      // Watch environment-specific configuration file if it exists
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (fs.existsSync(envConfigPath)) {
-        this.watcher = fs.watch(envConfigPath, () => {
-          logger.info('Configuration file changed, reloading');
-          this.reload().catch(error => {
-            logger.error('Failed to reload configuration after file change', { error });
-          });
-        });
-      }
-    } catch (error) {
-      logger.warn('Failed to set up configuration file watchers', { error });
-    }
-  }
-
-  /**
-   * Get a value by dot-notation path
-   * 
-   * @param path Dot-notation path (e.g., 'server.port')
-   * @returns Value at path or undefined if not found
-   */
-  private getValueByPath(path: string): any {
-    const parts = path.split('.');
-    let current: any = this.config;
-    
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const part of parts) {
-      if (current === undefined || current === null) {
-        return undefined;
-      }
-      
-      current = current[part];
-    }
-    
-    return current;
-  }
-
-  /**
-   * Set a value by dot-notation path
-   * 
-   * @param path Dot-notation path (e.g., 'server.port')
-   * @param value Value to set
-   */
-  private setValueByPath(path: string, value: any): void {
-    const parts = path.split('.');
-    const lastPart = parts.pop();
-    
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!lastPart) {
-      return;
-    }
-    
-    let current: any = this.config;
-    
-    // Navigate to the parent object
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const part of parts) {
-      if (current[part] === undefined || current[part] === null) {
-        current[part] = {};
-      }
-      
-      current = current[part];
-    }
-    
-    // Set the value
-    current[lastPart] = value;
-  }
-
-  /**
-   * Deep clone an object
-   * 
-   * @param obj Object to clone
-   * @returns Cloned object
-   */
-  private deepClone<T>(obj: T): T {
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  /**
-   * Deep merge two objects
-   * 
-   * @param target Target object
-   * @param source Source object
-   * @returns Merged object
-   */
-  private deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
-    const result = { ...target };
-    
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const key of Object.keys(source)) {
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (source[key] instanceof Object && key in target && target[key] instanceof Object) {
-        result[key] = this.deepMerge(target[key], source[key]);
-      } else {
-        result[key] = source[key];
-      }
-    }
-    
-    return result;
-  }
-
-  /**
-   * Remove sensitive information from configuration
-   * 
-   * @param config Configuration object
-   */
-  private removeSensitiveInfo(config: Record<string, any>): void {
-    // List of sensitive keys to mask
-    const sensitiveKeys = ['apiKey', 'password', 'secret', 'token'];
-    
-    // Recursively search for sensitive keys
-    const maskSensitiveValues = (obj: Record<string, any>) => {
-      /**
-       * for method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      for (const key of Object.keys(obj)) {
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (obj[key] instanceof Object) {
-          /**
-           * maskSensitiveValues method.
-           * 
-           * TODO: Add detailed description of the method's purpose and behavior.
-           * 
-           * @param param - TODO: Document parameters
-           * @returns result - TODO: Document return value
-           * @since 1.0.0
-           */
-          maskSensitiveValues(obj[key]);
-        } else if (sensitiveKeys.some(sensitiveKey => key.toLowerCase().includes(sensitiveKey))) {
-          obj[key] = '********';
-        }
+  private loadConfiguration(): ModPorterAIConfig {
+    return {
+      fileProcessor: {
+        maxFileSize: this.getEnvNumber('MODPORTER_FILE_MAX_SIZE', 500 * 1024 * 1024), // 500MB
+        allowedMimeTypes: this.getEnvArray('MODPORTER_ALLOWED_MIME_TYPES', [
+          'application/java-archive',
+          'application/zip',
+          'application/x-zip-compressed'
+        ]),
+        enableMalwareScanning: this.getEnvBoolean('MODPORTER_ENABLE_MALWARE_SCAN', true),
+        tempDirectory: this.getEnvString('MODPORTER_TEMP_DIR', './temp'),
+        scanTimeout: this.getEnvNumber('MODPORTER_SCAN_TIMEOUT', 30000),
+        maxCompressionRatio: this.getEnvNumber('MODPORTER_MAX_COMPRESSION_RATIO', 100),
+        maxExtractedSize: this.getEnvNumber('MODPORTER_MAX_EXTRACTED_SIZE', 1024 * 1024 * 1024) // 1GB
+      },
+      javaAnalyzer: {
+        extractionStrategies: this.getEnvArray('MODPORTER_EXTRACTION_STRATEGIES', [
+          'classFiles', 'jsonFiles', 'langFiles', 'modelFiles'
+        ]),
+        analysisTimeout: this.getEnvNumber('MODPORTER_ANALYSIS_TIMEOUT', 60000),
+        enableBytecodeAnalysis: this.getEnvBoolean('MODPORTER_ENABLE_BYTECODE_ANALYSIS', true),
+        maxClassFilesToAnalyze: this.getEnvNumber('MODPORTER_MAX_CLASS_FILES', 1000),
+        enableMultiStrategyExtraction: this.getEnvBoolean('MODPORTER_MULTI_STRATEGY', true),
+        fallbackToBasicAnalysis: this.getEnvBoolean('MODPORTER_FALLBACK_BASIC', true)
+      },
+      assetConverter: {
+        textureOptimization: this.getEnvBoolean('MODPORTER_TEXTURE_OPTIMIZATION', true),
+        modelConversionQuality: this.getEnvString('MODPORTER_MODEL_QUALITY', 'balanced') as 'fast' | 'balanced' | 'high',
+        soundConversionFormat: this.getEnvString('MODPORTER_SOUND_FORMAT', 'ogg') as 'ogg' | 'wav',
+        maxTextureSize: this.getEnvNumber('MODPORTER_MAX_TEXTURE_SIZE', 1024),
+        enableParallelConversion: this.getEnvBoolean('MODPORTER_PARALLEL_CONVERSION', true),
+        outputDirectory: this.getEnvString('MODPORTER_OUTPUT_DIR', './output')
+      },
+      validationPipeline: {
+        enableStrictValidation: this.getEnvBoolean('MODPORTER_STRICT_VALIDATION', false),
+        maxValidationTime: this.getEnvNumber('MODPORTER_MAX_VALIDATION_TIME', 120000),
+        requiredStages: this.getEnvArray('MODPORTER_REQUIRED_STAGES', [
+          'security', 'analysis', 'conversion'
+        ]),
+        enableParallelValidation: this.getEnvBoolean('MODPORTER_PARALLEL_VALIDATION', true),
+        failFast: this.getEnvBoolean('MODPORTER_FAIL_FAST', false),
+        validationTimeout: this.getEnvNumber('MODPORTER_VALIDATION_TIMEOUT', 30000)
+      },
+      securityScanner: {
+        enableZipBombDetection: this.getEnvBoolean('MODPORTER_ZIP_BOMB_DETECTION', true),
+        enablePathTraversalCheck: this.getEnvBoolean('MODPORTER_PATH_TRAVERSAL_CHECK', true),
+        enableMalwarePatternScanning: this.getEnvBoolean('MODPORTER_MALWARE_PATTERN_SCAN', true),
+        maxScanTime: this.getEnvNumber('MODPORTER_MAX_SCAN_TIME', 30000),
+        threatDatabasePath: this.getEnvString('MODPORTER_THREAT_DB_PATH'),
+        quarantineDirectory: this.getEnvString('MODPORTER_QUARANTINE_DIR', './quarantine')
+      },
+      monitoring: {
+        enableMetrics: this.getEnvBoolean('MODPORTER_ENABLE_METRICS', true),
+        metricsPort: this.getEnvNumber('MODPORTER_METRICS_PORT', 9090),
+        enableTracing: this.getEnvBoolean('MODPORTER_ENABLE_TRACING', false),
+        tracingEndpoint: this.getEnvString('MODPORTER_TRACING_ENDPOINT'),
+        enableHealthChecks: this.getEnvBoolean('MODPORTER_ENABLE_HEALTH_CHECKS', true),
+        healthCheckInterval: this.getEnvNumber('MODPORTER_HEALTH_CHECK_INTERVAL', 30000),
+        alertingEnabled: this.getEnvBoolean('MODPORTER_ALERTING_ENABLED', false),
+        alertingWebhookUrl: this.getEnvString('MODPORTER_ALERTING_WEBHOOK_URL')
+      },
+      logging: {
+        level: this.getEnvString('MODPORTER_LOG_LEVEL', 'info') as 'debug' | 'info' | 'warn' | 'error',
+        format: this.getEnvString('MODPORTER_LOG_FORMAT', 'json') as 'json' | 'text',
+        enableStructuredLogging: this.getEnvBoolean('MODPORTER_STRUCTURED_LOGGING', true),
+        enableSecurityEventLogging: this.getEnvBoolean('MODPORTER_SECURITY_EVENT_LOGGING', true),
+        enablePerformanceLogging: this.getEnvBoolean('MODPORTER_PERFORMANCE_LOGGING', true),
+        logDirectory: this.getEnvString('MODPORTER_LOG_DIR', './logs'),
+        maxLogFileSize: this.getEnvNumber('MODPORTER_MAX_LOG_FILE_SIZE', 10 * 1024 * 1024), // 10MB
+        maxLogFiles: this.getEnvNumber('MODPORTER_MAX_LOG_FILES', 5)
       }
     };
-    
-    /**
-     * maskSensitiveValues method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    maskSensitiveValues(config);
   }
 
   /**
-   * Clean up resources when service is no longer needed
+   * Validate the current configuration
    */
-  public dispose(): void {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (this.watcher) {
-      this.watcher.close();
-      this.watcher = undefined;
-    }
+  private validateConfiguration(): void {
+    const validation = this.validateConfigurationObject(this.config);
     
-    this.removeAllListeners();
-    logger.info('Configuration service disposed');
+    if (!validation.isValid) {
+      logger.error('Configuration validation failed', { 
+        errors: validation.errors 
+      });
+      throw new Error('Invalid configuration');
+    }
+
+    if (validation.warnings.length > 0) {
+      logger.warn('Configuration validation warnings', { 
+        warnings: validation.warnings 
+      });
+    }
+
+    logger.info('Configuration validation passed');
+  }
+
+  /**
+   * Validate a configuration object
+   */
+  public validateConfigurationObject(config: ModPorterAIConfig): ConfigValidationResult {
+    const errors: ConfigValidationError[] = [];
+    const warnings: ConfigValidationWarning[] = [];
+
+    // Validate file processor config
+    if (config.fileProcessor.maxFileSize <= 0) {
+      errors.push({
+        field: 'fileProcessor.maxFileSize',
+        message: 'Max file size must be greater than 0',
+        value: config.fileProcessor.maxFileSize
+      });
+    }
+
+    if (config.fileProcessor.maxFileSize > 1024 * 1024 * 1024) { // 1GB
+      warnings.push({
+        field: 'fileProcessor.maxFileSize',
+        message: 'Max file size is very large, consider reducing for performance',
+        value: config.fileProcessor.maxFileSize
+      });
+    }
+
+    if (config.fileProcessor.allowedMimeTypes.length === 0) {
+      errors.push({
+        field: 'fileProcessor.allowedMimeTypes',
+        message: 'At least one MIME type must be allowed',
+        value: config.fileProcessor.allowedMimeTypes
+      });
+    }
+
+    // Validate Java analyzer config
+    if (config.javaAnalyzer.analysisTimeout <= 0) {
+      errors.push({
+        field: 'javaAnalyzer.analysisTimeout',
+        message: 'Analysis timeout must be greater than 0',
+        value: config.javaAnalyzer.analysisTimeout
+      });
+    }
+
+    if (config.javaAnalyzer.maxClassFilesToAnalyze <= 0) {
+      errors.push({
+        field: 'javaAnalyzer.maxClassFilesToAnalyze',
+        message: 'Max class files to analyze must be greater than 0',
+        value: config.javaAnalyzer.maxClassFilesToAnalyze
+      });
+    }
+
+    // Validate asset converter config
+    const validQualities = ['fast', 'balanced', 'high'];
+    if (!validQualities.includes(config.assetConverter.modelConversionQuality)) {
+      errors.push({
+        field: 'assetConverter.modelConversionQuality',
+        message: `Model conversion quality must be one of: ${validQualities.join(', ')}`,
+        value: config.assetConverter.modelConversionQuality
+      });
+    }
+
+    const validFormats = ['ogg', 'wav'];
+    if (!validFormats.includes(config.assetConverter.soundConversionFormat)) {
+      errors.push({
+        field: 'assetConverter.soundConversionFormat',
+        message: `Sound conversion format must be one of: ${validFormats.join(', ')}`,
+        value: config.assetConverter.soundConversionFormat
+      });
+    }
+
+    // Validate validation pipeline config
+    if (config.validationPipeline.maxValidationTime <= 0) {
+      errors.push({
+        field: 'validationPipeline.maxValidationTime',
+        message: 'Max validation time must be greater than 0',
+        value: config.validationPipeline.maxValidationTime
+      });
+    }
+
+    // Validate monitoring config
+    if (config.monitoring.enableMetrics && (config.monitoring.metricsPort <= 0 || config.monitoring.metricsPort > 65535)) {
+      errors.push({
+        field: 'monitoring.metricsPort',
+        message: 'Metrics port must be between 1 and 65535',
+        value: config.monitoring.metricsPort
+      });
+    }
+
+    // Validate logging config
+    const validLogLevels = ['debug', 'info', 'warn', 'error'];
+    if (!validLogLevels.includes(config.logging.level)) {
+      errors.push({
+        field: 'logging.level',
+        message: `Log level must be one of: ${validLogLevels.join(', ')}`,
+        value: config.logging.level
+      });
+    }
+
+    const validLogFormats = ['json', 'text'];
+    if (!validLogFormats.includes(config.logging.format)) {
+      errors.push({
+        field: 'logging.format',
+        message: `Log format must be one of: ${validLogFormats.join(', ')}`,
+        value: config.logging.format
+      });
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings
+    };
+  }
+
+  // Helper methods for environment variable parsing
+  private getEnvString(key: string, defaultValue?: string): string | undefined {
+    const value = process.env[key];
+    return value !== undefined ? value : defaultValue;
+  }
+
+  private getEnvNumber(key: string, defaultValue: number): number {
+    const value = process.env[key];
+    if (value === undefined) return defaultValue;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  private getEnvBoolean(key: string, defaultValue: boolean): boolean {
+    const value = process.env[key];
+    if (value === undefined) return defaultValue;
+    return value.toLowerCase() === 'true';
+  }
+
+  private getEnvArray(key: string, defaultValue: string[]): string[] {
+    const value = process.env[key];
+    if (value === undefined) return defaultValue;
+    return value.split(',').map(item => item.trim()).filter(item => item.length > 0);
   }
 }

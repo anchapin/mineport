@@ -1,0 +1,93 @@
+{
+  "environments": {
+    "canary": {
+      "name": "canary",
+      "description": "Canary deployment for early testing",
+      "rolloutPercentage": 5,
+      "features": {
+        "enhanced_file_processing": true,
+        "multi_strategy_analysis": false,
+        "specialized_conversion_agents": false,
+        "comprehensive_validation": false
+      },
+      "monitoring": {
+        "alertThreshold": 0.01,
+        "errorRateThreshold": 0.05,
+        "responseTimeThreshold": 5000
+      },
+      "database": {
+        "connectionPool": 5,
+        "queryTimeout": 30000
+      }
+    },
+    "staging": {
+      "name": "staging",
+      "description": "Staging environment for integration testing",
+      "rolloutPercentage": 25,
+      "features": {
+        "enhanced_file_processing": true,
+        "multi_strategy_analysis": true,
+        "specialized_conversion_agents": false,
+        "comprehensive_validation": false
+      },
+      "monitoring": {
+        "alertThreshold": 0.02,
+        "errorRateThreshold": 0.1,
+        "responseTimeThreshold": 10000
+      },
+      "database": {
+        "connectionPool": 10,
+        "queryTimeout": 45000
+      }
+    },
+    "production": {
+      "name": "production",
+      "description": "Production environment",
+      "rolloutPercentage": 100,
+      "features": {
+        "enhanced_file_processing": true,
+        "multi_strategy_analysis": true,
+        "specialized_conversion_agents": true,
+        "comprehensive_validation": true
+      },
+      "monitoring": {
+        "alertThreshold": 0.005,
+        "errorRateThreshold": 0.02,
+        "responseTimeThreshold": 3000
+      },
+      "database": {
+        "connectionPool": 20,
+        "queryTimeout": 60000
+      }
+    }
+  },
+  "deployment": {
+    "strategy": "blue-green",
+    "healthCheckPath": "/health",
+    "healthCheckTimeout": 30000,
+    "rollbackTimeout": 300000,
+    "preDeploymentChecks": [
+      "database-connectivity",
+      "feature-flags-validation",
+      "dependency-check"
+    ],
+    "postDeploymentChecks": [
+      "health-check",
+      "smoke-tests",
+      "performance-validation"
+    ]
+  },
+  "rollback": {
+    "automaticRollback": true,
+    "rollbackTriggers": [
+      "health-check-failure",
+      "error-rate-threshold",
+      "response-time-threshold"
+    ],
+    "rollbackSteps": [
+      "restore-feature-flags",
+      "restart-services",
+      "verify-rollback"
+    ]
+  }
+}

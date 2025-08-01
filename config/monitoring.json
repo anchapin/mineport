@@ -1,0 +1,201 @@
+{
+  "monitoring": {
+    "enabled": true,
+    "interval": 30000,
+    "retention": {
+      "metrics": "7d",
+      "logs": "30d",
+      "alerts": "90d"
+    }
+  },
+  "metrics": {
+    "system": {
+      "cpu_usage": {
+        "enabled": true,
+        "threshold": 80,
+        "severity": "warning"
+      },
+      "memory_usage": {
+        "enabled": true,
+        "threshold": 85,
+        "severity": "warning"
+      },
+      "disk_usage": {
+        "enabled": true,
+        "threshold": 90,
+        "severity": "critical"
+      }
+    },
+    "application": {
+      "response_time": {
+        "enabled": true,
+        "threshold": 5000,
+        "severity": "warning"
+      },
+      "error_rate": {
+        "enabled": true,
+        "threshold": 0.05,
+        "severity": "critical"
+      },
+      "throughput": {
+        "enabled": true,
+        "min_threshold": 10,
+        "severity": "warning"
+      }
+    },
+    "modporter_ai": {
+      "file_processing_time": {
+        "enabled": true,
+        "threshold": 30000,
+        "severity": "warning"
+      },
+      "security_scan_failures": {
+        "enabled": true,
+        "threshold": 0.01,
+        "severity": "critical"
+      },
+      "analysis_accuracy": {
+        "enabled": true,
+        "min_threshold": 0.85,
+        "severity": "warning"
+      },
+      "conversion_success_rate": {
+        "enabled": true,
+        "min_threshold": 0.80,
+        "severity": "warning"
+      },
+      "validation_failures": {
+        "enabled": true,
+        "threshold": 0.10,
+        "severity": "warning"
+      }
+    }
+  },
+  "alerts": {
+    "channels": {
+      "slack": {
+        "enabled": true,
+        "webhook_url": "${SLACK_WEBHOOK_URL}",
+        "channel": "#alerts",
+        "username": "mineport-monitor"
+      },
+      "email": {
+        "enabled": true,
+        "smtp_host": "${SMTP_HOST}",
+        "smtp_port": 587,
+        "from": "alerts@mineport.com",
+        "to": ["ops@mineport.com", "dev@mineport.com"]
+      },
+      "pagerduty": {
+        "enabled": false,
+        "integration_key": "${PAGERDUTY_KEY}"
+      }
+    },
+    "rules": [
+      {
+        "name": "high_error_rate",
+        "condition": "error_rate > 0.05",
+        "severity": "critical",
+        "channels": ["slack", "email"],
+        "cooldown": 300,
+        "message": "High error rate detected: {{value}}%"
+      },
+      {
+        "name": "slow_response_time",
+        "condition": "response_time > 5000",
+        "severity": "warning",
+        "channels": ["slack"],
+        "cooldown": 600,
+        "message": "Slow response time detected: {{value}}ms"
+      },
+      {
+        "name": "modporter_ai_security_failures",
+        "condition": "security_scan_failures > 0.01",
+        "severity": "critical",
+        "channels": ["slack", "email"],
+        "cooldown": 60,
+        "message": "ModPorter-AI security scan failures: {{value}}%"
+      },
+      {
+        "name": "modporter_ai_low_accuracy",
+        "condition": "analysis_accuracy < 0.85",
+        "severity": "warning",
+        "channels": ["slack"],
+        "cooldown": 1800,
+        "message": "ModPorter-AI analysis accuracy below threshold: {{value}}%"
+      },
+      {
+        "name": "service_unhealthy",
+        "condition": "health_status == 'unhealthy'",
+        "severity": "critical",
+        "channels": ["slack", "email"],
+        "cooldown": 120,
+        "message": "Service health check failed"
+      },
+      {
+        "name": "high_memory_usage",
+        "condition": "memory_usage > 85",
+        "severity": "warning",
+        "channels": ["slack"],
+        "cooldown": 900,
+        "message": "High memory usage: {{value}}%"
+      },
+      {
+        "name": "disk_space_low",
+        "condition": "disk_usage > 90",
+        "severity": "critical",
+        "channels": ["slack", "email"],
+        "cooldown": 300,
+        "message": "Low disk space: {{value}}% used"
+      }
+    ]
+  },
+  "dashboards": {
+    "system_overview": {
+      "enabled": true,
+      "refresh_interval": 30,
+      "panels": [
+        "system_metrics",
+        "application_metrics",
+        "error_rates",
+        "response_times"
+      ]
+    },
+    "modporter_ai": {
+      "enabled": true,
+      "refresh_interval": 60,
+      "panels": [
+        "file_processing_metrics",
+        "security_scan_results",
+        "analysis_accuracy",
+        "conversion_success_rates",
+        "validation_results"
+      ]
+    }
+  },
+  "log_aggregation": {
+    "enabled": true,
+    "level": "info",
+    "structured": true,
+    "fields": [
+      "timestamp",
+      "level",
+      "service",
+      "component",
+      "message",
+      "metadata"
+    ],
+    "filters": {
+      "exclude_patterns": [
+        "health check",
+        "metrics collection"
+      ],
+      "include_patterns": [
+        "error",
+        "warning",
+        "security",
+        "modporter-ai"
+      ]
+    }
+  }
+}

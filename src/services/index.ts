@@ -13,6 +13,7 @@
  * - ErrorCollector: Centralized error collection and reporting
  * - ConversionPipeline: Main conversion pipeline orchestration
  * - ConversionService: High-level conversion service interface
+ * - ValidationPipeline: Comprehensive validation pipeline with configurable stages
  * - ConfigurationService: Application configuration management
  * - ConfigurationAdminService: Administrative configuration management
  * - APIMapperService: API mapping dictionary service
@@ -28,6 +29,7 @@ export * from './UpdateService';
 export * from './ErrorCollector';
 export * from './ConversionPipeline';
 export * from './ConversionService';
+export * from './ValidationPipeline';
 export * from './ConfigurationService';
 export * from './ConfigurationAdminService';
 export * from './DependencyContainer';
@@ -35,3 +37,7 @@ export * from './ModuleRegistry';
 export * from './ModuleBootstrap';
 export * from './APIMapperService';
 export * from './APIMappingAdminService';
+export * from './FeatureFlagService';
+
+// Export validation stages
+export * from './validation-stages';

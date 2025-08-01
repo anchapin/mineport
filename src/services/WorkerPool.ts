@@ -1,347 +1,463 @@
+/**
+ * Worker Pool - Provides parallel processing capabilities
+ * 
+ * This service manages a pool of worker threads for CPU-intensive tasks
+ * like file analysis, conversion, and validation to improve performance
+ * through parallel processing.
+ */
+
+import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
+import * as path from 'path';
+import * as os from 'os';
 import { EventEmitter } from 'events';
-import { Job, JobQueue } from './JobQueue';
-import { ConfigurationService } from './ConfigurationService';
-import { createLogger } from '../utils/logger';
+import logger from '../utils/logger';
 
-const logger = createLogger('WorkerPool');
-
-/**
- * Worker interface.
- * 
- * TODO: Add detailed description of what this interface represents.
- * 
- * @since 1.0.0
- */
-export interface Worker {
+export interface WorkerTask<T = any, R = any> {
   id: string;
-  status: 'idle' | 'busy';
-  currentJob?: Job;
-  capabilities: string[];
-  performance: {
-    completedJobs: number;
-    failedJobs: number;
-    averageProcessingTime: number;
-  };
+  type: string;
+  data: T;
+  priority?: number;
+  timeout?: number;
+  resolve: (result: R) => void;
+  reject: (error: Error) => void;
 }
 
-/**
- * WorkerPoolOptions interface.
- * 
- * TODO: Add detailed description of what this interface represents.
- * 
- * @since 1.0.0
- */
 export interface WorkerPoolOptions {
-  maxWorkers?: number;
-  jobQueue?: JobQueue;
-  configService?: ConfigurationService;
+  maxWorkers: number;
+  minWorkers: number;
+  idleTimeout: number; // milliseconds
+  taskTimeout: number; // milliseconds
+  enableMetrics: boolean;
+  workerScript?: string;
+}
+
+export interface WorkerMetrics {
+  totalTasks: number;
+  completedTasks: number;
+  failedTasks: number;
+  activeWorkers: number;
+  idleWorkers: number;
+  queuedTasks: number;
+  averageTaskTime: number;
+  throughput: number; // tasks per second
+}
+
+export interface WorkerInfo {
+  id: string;
+  worker: Worker;
+  busy: boolean;
+  currentTask?: WorkerTask;
+  createdAt: Date;
+  lastUsed: Date;
+  tasksCompleted: number;
 }
 
 /**
- * WorkerPool service for managing parallel processing of jobs
- * Implements requirement 7.2: Process multiple conversion requests in parallel
+ * Worker pool for parallel processing
  */
 export class WorkerPool extends EventEmitter {
-  private workers: Worker[] = [];
-  private maxWorkers: number;
-  private jobQueue: JobQueue;
-  private configService?: ConfigurationService;
+  private workers: Map<string, WorkerInfo> = new Map();
+  private taskQueue: WorkerTask[] = [];
+  private options: WorkerPoolOptions;
+  private metrics: WorkerMetrics;
+  private idleTimer?: NodeJS.Timeout;
+  private metricsTimer?: NodeJS.Timeout;
 
-  /**
-   * Creates a new instance.
-   * 
-   * TODO: Add detailed description of constructor behavior.
-   * 
-   * @param param - TODO: Document parameters
-   * @since 1.0.0
-   */
-  constructor(options: WorkerPoolOptions = {}) {
-    /**
-     * super method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
+  constructor(options: Partial<WorkerPoolOptions> = {}) {
     super();
-    this.configService = options.configService;
     
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (this.configService) {
-      // Use configuration service if available
-      this.maxWorkers = this.configService.get('workers.maxWorkers', options.maxWorkers || 5);
-      
-      // Listen for configuration changes
-      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
-      
-      logger.info('WorkerPool initialized with ConfigurationService', { maxWorkers: this.maxWorkers });
-    } else {
-      // Use provided options or defaults
-      this.maxWorkers = options.maxWorkers || 5;
-      
-      logger.info('WorkerPool initialized with default options', { maxWorkers: this.maxWorkers });
-    }
-    
-    this.jobQueue = options.jobQueue || new JobQueue();
-    
-    // Initialize the worker pool
-    this.initialize();
-    
-    // Listen for job queue events
-    this.setupJobQueueListeners();
-  }
-  
-  /**
-   * Handle configuration updates
-   */
-  private handleConfigUpdate(update: { key: string; value: any }): void {
-    if (update.key === 'workers.maxWorkers') {
-      const newMaxWorkers = update.value;
-      logger.info('Updated maxWorkers from configuration', { 
-        oldValue: this.maxWorkers, 
-        newValue: newMaxWorkers 
-      });
-      
-      // Scale the worker pool to the new size
-      this.scalePool(newMaxWorkers);
-    }
-  }
-
-  /**
-   * Initialize the worker pool with workers
-   */
-  private initialize(): void {
-    for (let i = 0; i < this.maxWorkers; i++) {
-      this.addWorker();
-    }
-  }
-
-  /**
-   * Add a new worker to the pool
-   */
-  private addWorker(capabilities: string[] = ['*']): Worker {
-    const worker: Worker = {
-      id: `worker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      status: 'idle',
-      capabilities,
-      performance: {
-        completedJobs: 0,
-        failedJobs: 0,
-        averageProcessingTime: 0,
-      },
+    this.options = {
+      maxWorkers: options.maxWorkers || os.cpus().length,
+      minWorkers: options.minWorkers || Math.max(1, Math.floor(os.cpus().length / 2)),
+      idleTimeout: options.idleTimeout || 300000, // 5 minutes
+      taskTimeout: options.taskTimeout || 60000, // 1 minute
+      enableMetrics: options.enableMetrics ?? true,
+      workerScript: options.workerScript || path.join(__dirname, 'worker-script.js')
     };
-    
-    this.workers.push(worker);
-    this.emit('worker:added', worker);
-    return worker;
+
+    this.metrics = {
+      totalTasks: 0,
+      completedTasks: 0,
+      failedTasks: 0,
+      activeWorkers: 0,
+      idleWorkers: 0,
+      queuedTasks: 0,
+      averageTaskTime: 0,
+      throughput: 0
+    };
+
+    this.initializeWorkers();
+    this.startIdleTimer();
+    this.startMetricsTimer();
   }
 
   /**
-   * Set up listeners for job queue events
+   * Execute a task using the worker pool
    */
-  private setupJobQueueListeners(): void {
-    this.jobQueue.on('job:process', (job: Job) => {
-      this.assignJobToWorker(job);
+  async execute<T, R>(taskType: string, data: T, options: { priority?: number; timeout?: number } = {}): Promise<R> {
+    return new Promise<R>((resolve, reject) => {
+      const task: WorkerTask<T, R> = {
+        id: this.generateTaskId(),
+        type: taskType,
+        data,
+        priority: options.priority || 0,
+        timeout: options.timeout || this.options.taskTimeout,
+        resolve,
+        reject
+      };
+
+      this.queueTask(task);
+      this.processQueue();
     });
   }
 
   /**
-   * Assign a job to an available worker
+   * Queue a task for execution
    */
-  private assignJobToWorker(job: Job): void {
-    // Find an idle worker
-    const availableWorker = this.workers.find(worker => 
-      worker.status === 'idle' && 
-      (worker.capabilities.includes('*') || worker.capabilities.includes(job.type))
+  private queueTask<T, R>(task: WorkerTask<T, R>): void {
+    // Insert task based on priority (higher priority first)
+    let insertIndex = this.taskQueue.length;
+    for (let i = 0; i < this.taskQueue.length; i++) {
+      if ((task.priority || 0) > (this.taskQueue[i].priority || 0)) {
+        insertIndex = i;
+        break;
+      }
+    }
+    
+    this.taskQueue.splice(insertIndex, 0, task);
+    this.metrics.totalTasks++;
+    this.updateMetrics();
+    
+    this.emit('taskQueued', { taskId: task.id, queueLength: this.taskQueue.length });
+  }
+
+  /**
+   * Process the task queue
+   */
+  private async processQueue(): Promise<void> {
+    while (this.taskQueue.length > 0) {
+      const availableWorker = this.findAvailableWorker();
+      
+      if (!availableWorker) {
+        // Try to create a new worker if we haven't reached the limit
+        if (this.workers.size < this.options.maxWorkers) {
+          await this.createWorker();
+          continue;
+        } else {
+          // No available workers, wait
+          break;
+        }
+      }
+
+      const task = this.taskQueue.shift()!;
+      await this.assignTaskToWorker(availableWorker, task);
+    }
+  }
+
+  /**
+   * Find an available worker
+   */
+  private findAvailableWorker(): WorkerInfo | null {
+    for (const workerInfo of this.workers.values()) {
+      if (!workerInfo.busy) {
+        return workerInfo;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Assign a task to a worker
+   */
+  private async assignTaskToWorker(workerInfo: WorkerInfo, task: WorkerTask): Promise<void> {
+    workerInfo.busy = true;
+    workerInfo.currentTask = task;
+    workerInfo.lastUsed = new Date();
+
+    const startTime = Date.now();
+
+    // Set up task timeout
+    const timeoutId = setTimeout(() => {
+      task.reject(new Error(`Task ${task.id} timed out after ${task.timeout}ms`));
+      this.handleTaskCompletion(workerInfo, false, Date.now() - startTime);
+    }, task.timeout);
+
+    try {
+      // Send task to worker
+      workerInfo.worker.postMessage({
+        taskId: task.id,
+        type: task.type,
+        data: task.data
+      });
+
+      // Set up one-time listeners for this task
+      const onMessage = (result: any) => {
+        if (result.taskId === task.id) {
+          clearTimeout(timeoutId);
+          workerInfo.worker.off('message', onMessage);
+          workerInfo.worker.off('error', onError);
+          
+          if (result.error) {
+            task.reject(new Error(result.error));
+            this.handleTaskCompletion(workerInfo, false, Date.now() - startTime);
+          } else {
+            task.resolve(result.data);
+            this.handleTaskCompletion(workerInfo, true, Date.now() - startTime);
+          }
+        }
+      };
+
+      const onError = (error: Error) => {
+        clearTimeout(timeoutId);
+        workerInfo.worker.off('message', onMessage);
+        workerInfo.worker.off('error', onError);
+        
+        task.reject(error);
+        this.handleTaskCompletion(workerInfo, false, Date.now() - startTime);
+      };
+
+      workerInfo.worker.on('message', onMessage);
+      workerInfo.worker.on('error', onError);
+
+    } catch (error) {
+      clearTimeout(timeoutId);
+      task.reject(error as Error);
+      this.handleTaskCompletion(workerInfo, false, Date.now() - startTime);
+    }
+  }
+
+  /**
+   * Handle task completion
+   */
+  private handleTaskCompletion(workerInfo: WorkerInfo, success: boolean, duration: number): void {
+    workerInfo.busy = false;
+    workerInfo.currentTask = undefined;
+    workerInfo.tasksCompleted++;
+
+    if (success) {
+      this.metrics.completedTasks++;
+    } else {
+      this.metrics.failedTasks++;
+    }
+
+    // Update average task time
+    const totalCompleted = this.metrics.completedTasks + this.metrics.failedTasks;
+    this.metrics.averageTaskTime = (this.metrics.averageTaskTime * (totalCompleted - 1) + duration) / totalCompleted;
+
+    this.updateMetrics();
+    this.emit('taskCompleted', { 
+      workerId: workerInfo.id, 
+      success, 
+      duration,
+      tasksCompleted: workerInfo.tasksCompleted 
+    });
+
+    // Continue processing queue
+    this.processQueue();
+  }
+
+  /**
+   * Initialize minimum number of workers
+   */
+  private async initializeWorkers(): Promise<void> {
+    const promises = [];
+    for (let i = 0; i < this.options.minWorkers; i++) {
+      promises.push(this.createWorker());
+    }
+    await Promise.all(promises);
+  }
+
+  /**
+   * Create a new worker
+   */
+  private async createWorker(): Promise<WorkerInfo> {
+    const workerId = this.generateWorkerId();
+    
+    const worker = new Worker(this.options.workerScript!, {
+      workerData: { workerId }
+    });
+
+    const workerInfo: WorkerInfo = {
+      id: workerId,
+      worker,
+      busy: false,
+      createdAt: new Date(),
+      lastUsed: new Date(),
+      tasksCompleted: 0
+    };
+
+    // Set up worker error handling
+    worker.on('error', (error) => {
+      logger.error('Worker error', { error, workerId });
+      this.removeWorker(workerId);
+    });
+
+    worker.on('exit', (code) => {
+      if (code !== 0) {
+        logger.error('Worker exited with error', { code, workerId });
+      }
+      this.removeWorker(workerId);
+    });
+
+    this.workers.set(workerId, workerInfo);
+    this.updateMetrics();
+    
+    this.emit('workerCreated', { workerId, totalWorkers: this.workers.size });
+    
+    return workerInfo;
+  }
+
+  /**
+   * Remove a worker
+   */
+  private async removeWorker(workerId: string): Promise<void> {
+    const workerInfo = this.workers.get(workerId);
+    if (!workerInfo) return;
+
+    // If worker is busy, reject the current task
+    if (workerInfo.busy && workerInfo.currentTask) {
+      workerInfo.currentTask.reject(new Error('Worker terminated unexpectedly'));
+    }
+
+    try {
+      await workerInfo.worker.terminate();
+    } catch (error) {
+      logger.error('Error terminating worker', { error, workerId });
+    }
+
+    this.workers.delete(workerId);
+    this.updateMetrics();
+    
+    this.emit('workerRemoved', { workerId, totalWorkers: this.workers.size });
+
+    // Ensure we maintain minimum workers
+    if (this.workers.size < this.options.minWorkers) {
+      await this.createWorker();
+    }
+  }
+
+  /**
+   * Clean up idle workers
+   */
+  private async cleanupIdleWorkers(): Promise<void> {
+    const now = new Date();
+    const workersToRemove: string[] = [];
+
+    for (const [workerId, workerInfo] of this.workers.entries()) {
+      if (!workerInfo.busy && this.workers.size > this.options.minWorkers) {
+        const idleTime = now.getTime() - workerInfo.lastUsed.getTime();
+        if (idleTime > this.options.idleTimeout) {
+          workersToRemove.push(workerId);
+        }
+      }
+    }
+
+    for (const workerId of workersToRemove) {
+      await this.removeWorker(workerId);
+    }
+  }
+
+  /**
+   * Start idle worker cleanup timer
+   */
+  private startIdleTimer(): void {
+    this.idleTimer = setInterval(() => {
+      this.cleanupIdleWorkers().catch(error => {
+        logger.error('Error cleaning up idle workers', { error });
+      });
+    }, 60000); // Check every minute
+  }
+
+  /**
+   * Start metrics update timer
+   */
+  private startMetricsTimer(): void {
+    if (!this.options.enableMetrics) return;
+
+    let lastCompletedTasks = 0;
+    let lastTimestamp = Date.now();
+
+    this.metricsTimer = setInterval(() => {
+      const now = Date.now();
+      const timeDiff = (now - lastTimestamp) / 1000; // seconds
+      const tasksDiff = this.metrics.completedTasks - lastCompletedTasks;
+      
+      this.metrics.throughput = tasksDiff / timeDiff;
+      
+      lastCompletedTasks = this.metrics.completedTasks;
+      lastTimestamp = now;
+    }, 10000); // Update every 10 seconds
+  }
+
+  /**
+   * Update metrics
+   */
+  private updateMetrics(): void {
+    if (!this.options.enableMetrics) return;
+
+    this.metrics.activeWorkers = Array.from(this.workers.values()).filter(w => w.busy).length;
+    this.metrics.idleWorkers = this.workers.size - this.metrics.activeWorkers;
+    this.metrics.queuedTasks = this.taskQueue.length;
+  }
+
+  /**
+   * Generate unique task ID
+   */
+  private generateTaskId(): string {
+    return `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Generate unique worker ID
+   */
+  private generateWorkerId(): string {
+    return `worker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Get current metrics
+   */
+  getMetrics(): WorkerMetrics {
+    return { ...this.metrics };
+  }
+
+  /**
+   * Get worker information
+   */
+  getWorkerInfo(): Array<{ id: string; busy: boolean; tasksCompleted: number; createdAt: Date }> {
+    return Array.from(this.workers.values()).map(worker => ({
+      id: worker.id,
+      busy: worker.busy,
+      tasksCompleted: worker.tasksCompleted,
+      createdAt: worker.createdAt
+    }));
+  }
+
+  /**
+   * Destroy the worker pool
+   */
+  async destroy(): Promise<void> {
+    if (this.idleTimer) {
+      clearInterval(this.idleTimer);
+    }
+    
+    if (this.metricsTimer) {
+      clearInterval(this.metricsTimer);
+    }
+
+    // Reject all queued tasks
+    for (const task of this.taskQueue) {
+      task.reject(new Error('Worker pool is being destroyed'));
+    }
+    this.taskQueue = [];
+
+    // Terminate all workers
+    const terminationPromises = Array.from(this.workers.keys()).map(workerId => 
+      this.removeWorker(workerId)
     );
     
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!availableWorker) {
-      // No available worker, put job back in queue
-      job.status = 'pending';
-      return;
-    }
+    await Promise.all(terminationPromises);
     
-    // Assign job to worker
-    availableWorker.status = 'busy';
-    availableWorker.currentJob = job;
-    
-    // Simulate job processing
-    this.processJob(availableWorker, job);
-  }
-
-  /**
-   * Process a job with a worker (in a real system, this would delegate to actual worker processes)
-   */
-  private processJob(worker: Worker, job: Job): void {
-    const startTime = Date.now();
-    
-    // Emit event that job processing has started
-    this.emit('job:started', { worker, job });
-    
-    // In a real implementation, this would delegate to actual worker processes
-    // For now, we'll simulate async processing
-    setTimeout(() => {
-      const processingTime = Date.now() - startTime;
-      
-      try {
-        // Simulate successful job completion 90% of the time
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (Math.random() > 0.1) {
-          // Update worker stats
-          worker.performance.completedJobs++;
-          this.updateWorkerPerformanceStats(worker, processingTime);
-          
-          // Complete the job
-          this.jobQueue.completeJob(job.id, { result: 'Simulated job result' });
-          
-          // Reset worker status
-          worker.status = 'idle';
-          worker.currentJob = undefined;
-          
-          this.emit('job:processed', { worker, job, success: true });
-        } else {
-          // Simulate job failure
-          worker.performance.failedJobs++;
-          
-          // Fail the job
-          this.jobQueue.failJob(job.id, new Error('Simulated job failure'));
-          
-          // Reset worker status
-          worker.status = 'idle';
-          worker.currentJob = undefined;
-          
-          this.emit('job:processed', { worker, job, success: false });
-        }
-      } catch (error) {
-        // Handle unexpected errors
-        worker.performance.failedJobs++;
-        this.jobQueue.failJob(job.id, error instanceof Error ? error : new Error(String(error)));
-        
-        // Reset worker status
-        worker.status = 'idle';
-        worker.currentJob = undefined;
-        
-        this.emit('job:processed', { worker, job, success: false, error });
-      }
-    }, this.simulateProcessingTime(job));
-  }
-
-  /**
-   * Simulate variable processing time based on job type and data
-   */
-  private simulateProcessingTime(job: Job): number {
-    // In a real system, different job types would take different amounts of time
-    const baseTime = 1000; // 1 second base
-    const jobComplexityFactor = job.data?.complexity || 1;
-    
-    return baseTime * jobComplexityFactor;
-  }
-
-  /**
-   * Update worker performance statistics
-   */
-  private updateWorkerPerformanceStats(worker: Worker, processingTime: number): void {
-    const { completedJobs, averageProcessingTime } = worker.performance;
-    
-    // Calculate new average processing time
-    const totalProcessingTime = averageProcessingTime * (completedJobs - 1);
-    worker.performance.averageProcessingTime = 
-      (totalProcessingTime + processingTime) / completedJobs;
-  }
-
-  /**
-   * Get all workers with optional filtering
-   */
-  public getWorkers(filter?: { status?: Worker['status'] }): Worker[] {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!filter) return [...this.workers];
-    
-    return this.workers.filter(worker => {
-      if (filter.status && worker.status !== filter.status) return false;
-      return true;
-    });
-  }
-
-  /**
-   * Get worker pool statistics
-   */
-  public getStats(): { total: number; idle: number; busy: number } {
-    return {
-      total: this.workers.length,
-      idle: this.workers.filter(w => w.status === 'idle').length,
-      busy: this.workers.filter(w => w.status === 'busy').length,
-    };
-  }
-
-  /**
-   * Scale the worker pool up or down
-   */
-  public scalePool(targetSize: number): void {
-    if (targetSize < 1) targetSize = 1;
-    
-    const currentSize = this.workers.length;
-    
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (targetSize > currentSize) {
-      // Scale up
-      for (let i = currentSize; i < targetSize; i++) {
-        this.addWorker();
-      }
-    } else if (targetSize < currentSize) {
-      // Scale down - remove idle workers only
-      const excessWorkers = currentSize - targetSize;
-      const idleWorkers = this.workers.filter(w => w.status === 'idle');
-      
-      for (let i = 0; i < Math.min(excessWorkers, idleWorkers.length); i++) {
-        const workerToRemove = idleWorkers[i];
-        this.workers = this.workers.filter(w => w.id !== workerToRemove.id);
-        this.emit('worker:removed', workerToRemove);
-      }
-    }
-    
-    this.maxWorkers = targetSize;
+    this.emit('destroyed');
   }
 }

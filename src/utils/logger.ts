@@ -2,7 +2,8 @@ import winston from 'winston';
 import config from '../../config/default.js';
 import path from 'path';
 import fs from 'fs';
-import { ErrorSeverity, ConversionError } from '../types/errors';
+import { ErrorSeverity, ConversionError } from '../types/errors.js';
+import { LoggingConfig } from '../types/config.js';
 
 /**
  * Setup the logger with enhanced error handling
@@ -128,9 +129,9 @@ export function createLogger(moduleId: string) {
   };
 }
 
-// Create and export the logger instance
-const logger = setupLogger();
-export default logger;
+// Create and export the default logger instance
+const defaultLogger = setupLogger();
+export default defaultLogger;
 
 /**
  * Global error handler for uncaught exceptions
@@ -149,3 +150,159 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Promise Rejection:', { reason, promise });
 });
+/**
+
+ * Security event types for structured logging
+ */
+export interface SecurityEvent {
+  type: 'security';
+  event: 'threat_detected' | 'scan_completed' | 'file_quarantined' | 'malware_detected' | 'access_denied';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  userId?: string;
+  fileName?: string;
+  threatType?: string;
+  details?: Record<string, any>;
+}
+
+/**
+ * Performance event types for structured logging
+ */
+export interface PerformanceEvent {
+  type: 'performance';
+  operation: 'file_processing' | 'java_analysis' | 'asset_conversion' | 'validation';
+  duration: number;
+  success: boolean;
+  userId?: string;
+  fileSize?: number;
+  details?: Record<string, any>;
+}
+
+/**
+ * Business event types for structured logging
+ */
+export interface BusinessEvent {
+  type: 'business';
+  event: 'conversion_started' | 'conversion_completed' | 'conversion_failed' | 'user_action';
+  userId?: string;
+  conversionId?: string;
+  details?: Record<string, any>;
+}
+
+/**
+ * System event types for structured logging
+ */
+export interface SystemEvent {
+  type: 'system';
+  event: 'startup' | 'shutdown' | 'health_check' | 'configuration_change';
+  component?: string;
+  details?: Record<string, any>;
+}
+
+export type StructuredLogEvent = SecurityEvent | PerformanceEvent | BusinessEvent | SystemEvent;
+
+/**
+ * Enhanced logger with structured logging capabilities
+ */
+class EnhancedLogger {
+  private winston: winston.Logger;
+  private config: Partial<LoggingConfig>;
+
+  constructor(winstonLogger: winston.Logger, config?: Partial<LoggingConfig>) {
+    this.winston = winstonLogger;
+    this.config = config || {};
+  }
+
+  /**
+   * Log a structured event
+   */
+  logStructuredEvent(event: StructuredLogEvent, message: string, additionalData?: Record<string, any>): void {
+    const logData = {
+      message,
+      eventType: event.type,
+      event: event,
+      ...additionalData
+    };
+
+    // Determine log level based on event type and severity
+    let level = 'info';
+    if ('severity' in event) {
+      switch (event.severity) {
+        case 'critical':
+          level = 'error';
+          break;
+        case 'high':
+          level = 'error';
+          break;
+        case 'medium':
+          level = 'warn';
+          break;
+        case 'low':
+          level = 'info';
+          break;
+      }
+    }
+
+    if (event.type === 'performance' && !event.success) {
+      level = 'warn';
+    }
+
+    this.winston.log(level, logData);
+  }
+
+  /**
+   * Log a security event
+   */
+  logSecurityEvent(event: Omit<SecurityEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+    this.logStructuredEvent({ ...event, type: 'security' }, message, additionalData);
+  }
+
+  /**
+   * Log a performance event
+   */
+  logPerformanceEvent(event: Omit<PerformanceEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+    this.logStructuredEvent({ ...event, type: 'performance' }, message, additionalData);
+  }
+
+  /**
+   * Log a business event
+   */
+  logBusinessEvent(event: Omit<BusinessEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+    this.logStructuredEvent({ ...event, type: 'business' }, message, additionalData);
+  }
+
+  /**
+   * Log a system event
+   */
+  logSystemEvent(event: Omit<SystemEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+    this.logStructuredEvent({ ...event, type: 'system' }, message, additionalData);
+  }
+
+  // Standard logging methods
+  debug(message: string, meta?: any): void {
+    this.winston.debug(message, meta);
+  }
+
+  info(message: string, meta?: any): void {
+    this.winston.info(message, meta);
+  }
+
+  warn(message: string, meta?: any): void {
+    this.winston.warn(message, meta);
+  }
+
+  error(message: string, meta?: any): void {
+    this.winston.error(message, meta);
+  }
+}
+
+// Create enhanced logger instance
+export const logger = new EnhancedLogger(setupLogger());
+
+/**
+ * Create an enhanced logger for a specific module
+ */
+export function createEnhancedLogger(moduleId: string, config?: Partial<LoggingConfig>): EnhancedLogger {
+  const baseLogger = setupLogger();
+  const childLogger = baseLogger.child({ moduleId });
+  return new EnhancedLogger(childLogger, config);
+}
