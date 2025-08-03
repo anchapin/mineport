@@ -201,6 +201,56 @@ class MigrationRunner {
     }
   }
 
+  async dryRunMigrations() {
+    console.log('🧪 Running migration dry-run...');
+    
+    await this.ensureMigrationsTable();
+    
+    const migrationFiles = await this.getMigrationFiles();
+    const executedMigrations = await this.getExecutedMigrations();
+    
+    const pendingMigrations = migrationFiles.filter(
+      file => !executedMigrations.includes(file)
+    );
+    
+    if (pendingMigrations.length === 0) {
+      console.log('✓ No pending migrations to test');
+      return;
+    }
+    
+    console.log(`📋 Testing ${pendingMigrations.length} pending migrations`);
+    
+    const client = await this.pool.connect();
+    
+    try {
+      for (const migration of pendingMigrations) {
+        console.log(`🧪 Testing migration: ${migration}`);
+        
+        const filePath = path.join(this.migrationsDir, migration);
+        const content = await fs.readFile(filePath, 'utf8');
+        
+        // Start a transaction for dry-run
+        await client.query('BEGIN');
+        
+        try {
+          // Execute the migration in the transaction
+          await client.query(content);
+          console.log(`✓ Migration ${migration} syntax is valid`);
+          
+          // Rollback the transaction (dry-run)
+          await client.query('ROLLBACK');
+        } catch (error) {
+          await client.query('ROLLBACK');
+          throw new Error(`Migration ${migration} failed dry-run: ${error.message}`);
+        }
+      }
+      
+      console.log('✅ All migrations passed dry-run validation');
+    } finally {
+      client.release();
+    }
+  }
+
   async close() {
     await this.pool.end();
   }
@@ -222,6 +272,9 @@ async function main() {
       case 'validate':
         await runner.validateMigrations();
         break;
+      case 'dry-run':
+        await runner.dryRunMigrations();
+        break;
       case 'status':
         await runner.ensureMigrationsTable();
         const files = await runner.getMigrationFiles();
@@ -238,6 +291,7 @@ Usage: node run-migrations.js <command>
 Commands:
   up        Run all pending migrations
   down      Rollback the last migration
+  dry-run   Test migrations without executing them
   validate  Validate migration checksums
   status    Show migration status
         `);

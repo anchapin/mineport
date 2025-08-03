@@ -13,6 +13,7 @@ const axios = require('axios');
 class DeploymentValidator {
   constructor() {
     this.baseUrl = process.env.TEST_BASE_URL || 'http://localhost:3000';
+    this.startTime = Date.now();
     this.results = {
       passed: 0,
       failed: 0,
@@ -391,21 +392,97 @@ class DeploymentValidator {
     }
     
     // Write detailed report to file
-    const reportPath = path.join(__dirname, '..', 'deployment-validation-report.json');
-    fs.writeFileSync(reportPath, JSON.stringify({
+    const reportData = {
       timestamp: new Date().toISOString(),
+      environment: process.env.DEPLOYMENT_ENVIRONMENT || 'unknown',
+      commit: process.env.GITHUB_SHA || 'unknown',
+      branch: process.env.GITHUB_REF_NAME || 'unknown',
+      workflow: process.env.GITHUB_WORKFLOW || 'unknown',
+      run_id: process.env.GITHUB_RUN_ID || 'unknown',
       summary: {
         total,
         passed: this.results.passed,
         failed: this.results.failed,
         successRate: parseFloat(successRate)
       },
-      tests: this.results.tests
-    }, null, 2));
+      tests: this.results.tests,
+      deployment_metrics: {
+        validation_duration: Date.now() - this.startTime,
+        critical_failures: this.results.tests.filter(t => 
+          t.status === 'failed' && 
+          ['Service Health Check', 'Service Readiness', 'Database Connectivity'].includes(t.name)
+        ).length,
+        security_failures: this.results.tests.filter(t => 
+          t.status === 'failed' && t.name.toLowerCase().includes('security')
+        ).length,
+        performance_failures: this.results.tests.filter(t => 
+          t.status === 'failed' && 
+          ['Response Time Check', 'Memory Usage Check'].includes(t.name)
+        ).length
+      }
+    };
+    
+    const reportPath = path.join(__dirname, '..', 'deployment-validation-report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(reportData, null, 2));
     
     console.log(`\nDetailed report saved to: ${reportPath}`);
     
+    // Send metrics to monitoring system if webhook is configured
+    this.sendValidationMetrics(reportData);
+    
     return this.results.failed === 0;
+  }
+
+  async sendValidationMetrics(reportData) {
+    if (!process.env.MONITORING_WEBHOOK_URL) {
+      return;
+    }
+
+    try {
+      const validationMetrics = {
+        type: 'deployment_validation',
+        timestamp: reportData.timestamp,
+        environment: reportData.environment,
+        deployment: {
+          commit: reportData.commit,
+          branch: reportData.branch,
+          workflow: reportData.workflow,
+          run_id: reportData.run_id
+        },
+        validation: {
+          total_tests: reportData.summary.total,
+          passed_tests: reportData.summary.passed,
+          failed_tests: reportData.summary.failed,
+          success_rate: reportData.summary.successRate,
+          duration: reportData.deployment_metrics.validation_duration,
+          critical_failures: reportData.deployment_metrics.critical_failures,
+          security_failures: reportData.deployment_metrics.security_failures,
+          performance_failures: reportData.deployment_metrics.performance_failures
+        },
+        failed_tests: reportData.tests.filter(t => t.status === 'failed').map(t => ({
+          name: t.name,
+          message: t.message,
+          duration: t.duration
+        }))
+      };
+
+      const response = await fetch(process.env.MONITORING_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'DeploymentValidator/1.0'
+        },
+        body: JSON.stringify(validationMetrics)
+      });
+
+      if (response.ok) {
+        console.log('✅ Validation metrics sent to monitoring system');
+      } else {
+        console.warn(`⚠️ Failed to send validation metrics: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to send validation metrics:', error.message);
+    }
   }
 
   async run() {
