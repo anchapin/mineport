@@ -1,0 +1,935 @@
+name: Deployment Monitoring
+
+on:
+  workflow_run:
+    workflows: ["Deployment Pipeline"]
+    types: [completed, requested, in_progress]
+  schedule:
+    # Monitor deployments every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to monitor'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - staging
+          - production
+          - canary
+      check_type:
+        description: 'Type of monitoring check'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options:
+          - comprehensive
+          - health-only
+          - performance-only
+          - security-only
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=2048'
+  MONITORING_ENABLED: true
+
+jobs:
+  # Monitor deployment health across environments
+  deployment-health-monitoring:
+    name: Monitor Deployment Health
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    
+    strategy:
+      matrix:
+        environment: [staging, production]
+        include:
+          - environment: staging
+            base_url: ${{ secrets.STAGING_BASE_URL || 'https://staging.mineport.com' }}
+            health_threshold: 0.8
+            response_threshold: 5000
+          - environment: production
+            base_url: ${{ secrets.PRODUCTION_BASE_URL || 'https://mineport.com' }}
+            health_threshold: 0.95
+            response_threshold: 2000
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Create deployment monitoring script
+        run: |
+          cat > deployment-monitor.js << 'EOF'
+          const axios = require('axios');
+          const fs = require('fs');
+          const path = require('path');
+          
+          class DeploymentMonitor {
+            constructor(environment, baseUrl, thresholds) {
+              this.environment = environment;
+              this.baseUrl = baseUrl;
+              this.thresholds = thresholds;
+              this.results = {
+                timestamp: new Date().toISOString(),
+                environment,
+                baseUrl,
+                overall_status: 'unknown',
+                checks: [],
+                metrics: {},
+                alerts: []
+              };
+            }
+            
+            async runHealthCheck() {
+              console.log(`🏥 Running health check for ${this.environment}...`);
+              
+              try {
+                const startTime = Date.now();
+                const response = await axios.get(`${this.baseUrl}/health`, {
+                  timeout: 10000,
+                  validateStatus: () => true // Accept all status codes
+                });
+                const responseTime = Date.now() - startTime;
+                
+                const healthCheck = {
+                  name: 'health_endpoint',
+                  status: response.status === 200 ? 'healthy' : 'unhealthy',
+                  response_time: responseTime,
+                  http_status: response.status,
+                  data: response.data || null,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(healthCheck);
+                
+                // Check response time threshold
+                if (responseTime > this.thresholds.response_threshold) {
+                  this.results.alerts.push({
+                    type: 'performance',
+                    severity: 'warning',
+                    message: `Health endpoint response time ${responseTime}ms exceeds threshold ${this.thresholds.response_threshold}ms`,
+                    timestamp: new Date().toISOString()
+                  });
+                }
+                
+                // Analyze health data if available
+                if (response.data && response.data.checks) {
+                  const healthyChecks = response.data.checks.filter(c => c.status === 'healthy').length;
+                  const totalChecks = response.data.checks.length;
+                  const healthRatio = totalChecks > 0 ? healthyChecks / totalChecks : 0;
+                  
+                  this.results.metrics.health_ratio = healthRatio;
+                  this.results.metrics.healthy_checks = healthyChecks;
+                  this.results.metrics.total_checks = totalChecks;
+                  
+                  if (healthRatio < this.thresholds.health_threshold) {
+                    this.results.alerts.push({
+                      type: 'health',
+                      severity: 'critical',
+                      message: `Health ratio ${(healthRatio * 100).toFixed(1)}% below threshold ${(this.thresholds.health_threshold * 100).toFixed(1)}%`,
+                      timestamp: new Date().toISOString(),
+                      details: {
+                        healthy_checks: healthyChecks,
+                        total_checks: totalChecks,
+                        failed_checks: response.data.checks.filter(c => c.status !== 'healthy').map(c => c.name)
+                      }
+                    });
+                  }
+                }
+                
+                console.log(`✅ Health check completed: ${response.status} (${responseTime}ms)`);
+                return healthCheck;
+                
+              } catch (error) {
+                const healthCheck = {
+                  name: 'health_endpoint',
+                  status: 'unhealthy',
+                  response_time: 0,
+                  http_status: 0,
+                  error: error.message,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(healthCheck);
+                this.results.alerts.push({
+                  type: 'availability',
+                  severity: 'critical',
+                  message: `Health endpoint unreachable: ${error.message}`,
+                  timestamp: new Date().toISOString()
+                });
+                
+                console.error(`❌ Health check failed: ${error.message}`);
+                return healthCheck;
+              }
+            }
+            
+            async runReadinessCheck() {
+              console.log(`🚀 Running readiness check for ${this.environment}...`);
+              
+              try {
+                const startTime = Date.now();
+                const response = await axios.get(`${this.baseUrl}/ready`, {
+                  timeout: 5000,
+                  validateStatus: () => true
+                });
+                const responseTime = Date.now() - startTime;
+                
+                const readinessCheck = {
+                  name: 'readiness_endpoint',
+                  status: response.status === 200 && response.data.status === 'ready' ? 'healthy' : 'unhealthy',
+                  response_time: responseTime,
+                  http_status: response.status,
+                  data: response.data || null,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(readinessCheck);
+                
+                if (response.status !== 200 || response.data.status !== 'ready') {
+                  this.results.alerts.push({
+                    type: 'readiness',
+                    severity: 'critical',
+                    message: `Service not ready: ${response.data?.message || 'Unknown reason'}`,
+                    timestamp: new Date().toISOString()
+                  });
+                }
+                
+                console.log(`✅ Readiness check completed: ${response.data?.status || 'unknown'} (${responseTime}ms)`);
+                return readinessCheck;
+                
+              } catch (error) {
+                const readinessCheck = {
+                  name: 'readiness_endpoint',
+                  status: 'unhealthy',
+                  response_time: 0,
+                  http_status: 0,
+                  error: error.message,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(readinessCheck);
+                this.results.alerts.push({
+                  type: 'availability',
+                  severity: 'critical',
+                  message: `Readiness endpoint unreachable: ${error.message}`,
+                  timestamp: new Date().toISOString()
+                });
+                
+                console.error(`❌ Readiness check failed: ${error.message}`);
+                return readinessCheck;
+              }
+            }
+            
+            async runLivenessCheck() {
+              console.log(`💓 Running liveness check for ${this.environment}...`);
+              
+              try {
+                const startTime = Date.now();
+                const response = await axios.get(`${this.baseUrl}/live`, {
+                  timeout: 5000,
+                  validateStatus: () => true
+                });
+                const responseTime = Date.now() - startTime;
+                
+                const livenessCheck = {
+                  name: 'liveness_endpoint',
+                  status: response.status === 200 && response.data.status === 'alive' ? 'healthy' : 'unhealthy',
+                  response_time: responseTime,
+                  http_status: response.status,
+                  data: response.data || null,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(livenessCheck);
+                
+                if (response.status !== 200 || response.data.status !== 'alive') {
+                  this.results.alerts.push({
+                    type: 'liveness',
+                    severity: 'critical',
+                    message: `Service not alive: ${response.data?.message || 'Unknown reason'}`,
+                    timestamp: new Date().toISOString()
+                  });
+                }
+                
+                console.log(`✅ Liveness check completed: ${response.data?.status || 'unknown'} (${responseTime}ms)`);
+                return livenessCheck;
+                
+              } catch (error) {
+                const livenessCheck = {
+                  name: 'liveness_endpoint',
+                  status: 'unhealthy',
+                  response_time: 0,
+                  http_status: 0,
+                  error: error.message,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(livenessCheck);
+                this.results.alerts.push({
+                  type: 'availability',
+                  severity: 'critical',
+                  message: `Liveness endpoint unreachable: ${error.message}`,
+                  timestamp: new Date().toISOString()
+                });
+                
+                console.error(`❌ Liveness check failed: ${error.message}`);
+                return livenessCheck;
+              }
+            }
+            
+            async runMetricsCheck() {
+              console.log(`📊 Running metrics check for ${this.environment}...`);
+              
+              try {
+                const startTime = Date.now();
+                const response = await axios.get(`${this.baseUrl}/metrics`, {
+                  timeout: 5000,
+                  validateStatus: () => true
+                });
+                const responseTime = Date.now() - startTime;
+                
+                const metricsCheck = {
+                  name: 'metrics_endpoint',
+                  status: response.status === 200 ? 'healthy' : 'unhealthy',
+                  response_time: responseTime,
+                  http_status: response.status,
+                  data: response.data || null,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(metricsCheck);
+                
+                // Extract key metrics
+                if (response.data) {
+                  this.results.metrics = {
+                    ...this.results.metrics,
+                    uptime: response.data.system?.uptime || 0,
+                    memory_usage: response.data.memory?.heapUsed || 0,
+                    memory_total: response.data.memory?.heapTotal || 0,
+                    cpu_user: response.data.cpu?.user || 0,
+                    cpu_system: response.data.cpu?.system || 0,
+                    node_version: response.data.system?.nodeVersion || 'unknown',
+                    platform: response.data.system?.platform || 'unknown'
+                  };
+                  
+                  // Check memory usage
+                  if (response.data.memory) {
+                    const memoryUsagePercent = (response.data.memory.heapUsed / response.data.memory.heapTotal) * 100;
+                    this.results.metrics.memory_usage_percent = memoryUsagePercent;
+                    
+                    if (memoryUsagePercent > 85) {
+                      this.results.alerts.push({
+                        type: 'performance',
+                        severity: memoryUsagePercent > 95 ? 'critical' : 'warning',
+                        message: `High memory usage: ${memoryUsagePercent.toFixed(1)}%`,
+                        timestamp: new Date().toISOString(),
+                        details: {
+                          heap_used: response.data.memory.heapUsed,
+                          heap_total: response.data.memory.heapTotal
+                        }
+                      });
+                    }
+                  }
+                }
+                
+                console.log(`✅ Metrics check completed: ${response.status} (${responseTime}ms)`);
+                return metricsCheck;
+                
+              } catch (error) {
+                const metricsCheck = {
+                  name: 'metrics_endpoint',
+                  status: 'unhealthy',
+                  response_time: 0,
+                  http_status: 0,
+                  error: error.message,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(metricsCheck);
+                console.warn(`⚠️ Metrics check failed: ${error.message}`);
+                return metricsCheck;
+              }
+            }
+            
+            async runConfigValidationCheck() {
+              console.log(`⚙️ Running configuration validation for ${this.environment}...`);
+              
+              try {
+                const startTime = Date.now();
+                const response = await axios.get(`${this.baseUrl}/config/validate`, {
+                  timeout: 5000,
+                  validateStatus: () => true
+                });
+                const responseTime = Date.now() - startTime;
+                
+                const configCheck = {
+                  name: 'config_validation',
+                  status: response.status === 200 && response.data.valid ? 'healthy' : 'unhealthy',
+                  response_time: responseTime,
+                  http_status: response.status,
+                  data: response.data || null,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(configCheck);
+                
+                if (response.status !== 200 || !response.data.valid) {
+                  this.results.alerts.push({
+                    type: 'configuration',
+                    severity: 'warning',
+                    message: `Configuration validation failed`,
+                    timestamp: new Date().toISOString(),
+                    details: response.data
+                  });
+                }
+                
+                console.log(`✅ Configuration validation completed: ${response.data?.valid ? 'valid' : 'invalid'} (${responseTime}ms)`);
+                return configCheck;
+                
+              } catch (error) {
+                const configCheck = {
+                  name: 'config_validation',
+                  status: 'unhealthy',
+                  response_time: 0,
+                  http_status: 0,
+                  error: error.message,
+                  timestamp: new Date().toISOString()
+                };
+                
+                this.results.checks.push(configCheck);
+                console.warn(`⚠️ Configuration validation failed: ${error.message}`);
+                return configCheck;
+              }
+            }
+            
+            determineOverallStatus() {
+              const criticalChecks = ['health_endpoint', 'readiness_endpoint', 'liveness_endpoint'];
+              const criticalResults = this.results.checks.filter(check => 
+                criticalChecks.includes(check.name)
+              );
+              
+              const criticalFailures = criticalResults.filter(check => check.status !== 'healthy');
+              const criticalAlerts = this.results.alerts.filter(alert => alert.severity === 'critical');
+              
+              if (criticalFailures.length > 0 || criticalAlerts.length > 0) {
+                this.results.overall_status = 'unhealthy';
+              } else if (this.results.alerts.length > 0) {
+                this.results.overall_status = 'degraded';
+              } else {
+                this.results.overall_status = 'healthy';
+              }
+            }
+            
+            async runAllChecks() {
+              console.log(`🔍 Starting comprehensive monitoring for ${this.environment} environment`);
+              console.log(`🌐 Base URL: ${this.baseUrl}`);
+              
+              try {
+                // Run all monitoring checks
+                await Promise.all([
+                  this.runHealthCheck(),
+                  this.runReadinessCheck(),
+                  this.runLivenessCheck(),
+                  this.runMetricsCheck(),
+                  this.runConfigValidationCheck()
+                ]);
+                
+                // Determine overall status
+                this.determineOverallStatus();
+                
+                // Save results
+                const resultsDir = 'deployment-monitoring';
+                if (!fs.existsSync(resultsDir)) {
+                  fs.mkdirSync(resultsDir, { recursive: true });
+                }
+                
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const resultsFile = path.join(resultsDir, `${this.environment}-monitoring-${timestamp}.json`);
+                fs.writeFileSync(resultsFile, JSON.stringify(this.results, null, 2));
+                
+                console.log(`📊 Monitoring results saved to: ${resultsFile}`);
+                
+                // Generate summary
+                this.generateSummary();
+                
+                return this.results;
+                
+              } catch (error) {
+                console.error(`❌ Monitoring failed for ${this.environment}:`, error);
+                this.results.overall_status = 'unhealthy';
+                this.results.alerts.push({
+                  type: 'monitoring',
+                  severity: 'critical',
+                  message: `Monitoring execution failed: ${error.message}`,
+                  timestamp: new Date().toISOString()
+                });
+                throw error;
+              }
+            }
+            
+            generateSummary() {
+              const healthyChecks = this.results.checks.filter(c => c.status === 'healthy').length;
+              const totalChecks = this.results.checks.length;
+              const criticalAlerts = this.results.alerts.filter(a => a.severity === 'critical').length;
+              const warningAlerts = this.results.alerts.filter(a => a.severity === 'warning').length;
+              
+              console.log('\n' + '='.repeat(60));
+              console.log(`DEPLOYMENT MONITORING SUMMARY - ${this.environment.toUpperCase()}`);
+              console.log('='.repeat(60));
+              console.log(`Overall Status: ${this.results.overall_status.toUpperCase()}`);
+              console.log(`Healthy Checks: ${healthyChecks}/${totalChecks}`);
+              console.log(`Critical Alerts: ${criticalAlerts}`);
+              console.log(`Warning Alerts: ${warningAlerts}`);
+              
+              if (this.results.metrics.uptime) {
+                console.log(`Uptime: ${Math.round(this.results.metrics.uptime / 3600)} hours`);
+              }
+              
+              if (this.results.metrics.memory_usage_percent) {
+                console.log(`Memory Usage: ${this.results.metrics.memory_usage_percent.toFixed(1)}%`);
+              }
+              
+              console.log('='.repeat(60));
+              
+              if (this.results.alerts.length > 0) {
+                console.log('\nALERTS:');
+                this.results.alerts.forEach(alert => {
+                  const icon = alert.severity === 'critical' ? '🚨' : '⚠️';
+                  console.log(`${icon} [${alert.severity.toUpperCase()}] ${alert.message}`);
+                });
+              }
+              
+              console.log('');
+            }
+          }
+          
+          // Main execution
+          async function main() {
+            const environment = process.env.ENVIRONMENT;
+            const baseUrl = process.env.BASE_URL;
+            const healthThreshold = parseFloat(process.env.HEALTH_THRESHOLD) || 0.8;
+            const responseThreshold = parseInt(process.env.RESPONSE_THRESHOLD) || 5000;
+            
+            const monitor = new DeploymentMonitor(environment, baseUrl, {
+              health_threshold: healthThreshold,
+              response_threshold: responseThreshold
+            });
+            
+            try {
+              const results = await monitor.runAllChecks();
+              
+              // Set GitHub Actions outputs
+              console.log(`::set-output name=overall_status::${results.overall_status}`);
+              console.log(`::set-output name=healthy_checks::${results.checks.filter(c => c.status === 'healthy').length}`);
+              console.log(`::set-output name=total_checks::${results.checks.length}`);
+              console.log(`::set-output name=critical_alerts::${results.alerts.filter(a => a.severity === 'critical').length}`);
+              console.log(`::set-output name=warning_alerts::${results.alerts.filter(a => a.severity === 'warning').length}`);
+              
+              // Exit with appropriate code
+              if (results.overall_status === 'unhealthy') {
+                console.error(`❌ ${environment} environment is unhealthy`);
+                process.exit(1);
+              } else if (results.overall_status === 'degraded') {
+                console.warn(`⚠️ ${environment} environment is degraded`);
+                process.exit(0); // Don't fail the workflow for degraded status
+              } else {
+                console.log(`✅ ${environment} environment is healthy`);
+                process.exit(0);
+              }
+              
+            } catch (error) {
+              console.error(`❌ Monitoring failed: ${error.message}`);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          # Install axios for HTTP requests
+          npm install axios
+
+      - name: Run deployment monitoring
+        id: monitor
+        run: node deployment-monitor.js
+        env:
+          ENVIRONMENT: ${{ matrix.environment }}
+          BASE_URL: ${{ matrix.base_url }}
+          HEALTH_THRESHOLD: ${{ matrix.health_threshold }}
+          RESPONSE_THRESHOLD: ${{ matrix.response_threshold }}
+        continue-on-error: true
+
+      - name: Store monitoring results in monitoring system
+        if: always()
+        run: |
+          # Create script to store deployment monitoring results
+          cat > store-deployment-metrics.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const { MonitoringService } = require('./src/services/MonitoringService.js');
+          
+          async function storeDeploymentMetrics() {
+            try {
+              // Initialize monitoring service
+              const monitoringService = new MonitoringService({
+                enableHealthChecks: false,
+                alertingEnabled: true,
+                alertingWebhookUrl: process.env.MONITORING_WEBHOOK_URL
+              });
+              
+              // Find the latest monitoring results
+              const monitoringDir = 'deployment-monitoring';
+              if (!fs.existsSync(monitoringDir)) {
+                console.log('No monitoring results found');
+                return;
+              }
+              
+              const files = fs.readdirSync(monitoringDir)
+                .filter(file => file.endsWith('.json'))
+                .sort()
+                .reverse();
+              
+              if (files.length === 0) {
+                console.log('No monitoring result files found');
+                return;
+              }
+              
+              const latestFile = path.join(monitoringDir, files[0]);
+              const results = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
+              
+              console.log(`Processing deployment monitoring results from ${latestFile}`);
+              
+              // Record system health metrics
+              monitoringService.recordSystemHealthMetric({
+                component: `deployment_${results.environment}`,
+                status: results.overall_status === 'healthy' ? 'healthy' : 
+                        results.overall_status === 'degraded' ? 'degraded' : 'unhealthy',
+                details: {
+                  environment: results.environment,
+                  base_url: results.baseUrl,
+                  healthy_checks: results.checks.filter(c => c.status === 'healthy').length,
+                  total_checks: results.checks.length,
+                  critical_alerts: results.alerts.filter(a => a.severity === 'critical').length,
+                  warning_alerts: results.alerts.filter(a => a.severity === 'warning').length,
+                  uptime: results.metrics.uptime,
+                  memory_usage_percent: results.metrics.memory_usage_percent
+                }
+              });
+              
+              // Record performance metrics for each endpoint
+              for (const check of results.checks) {
+                if (check.response_time > 0) {
+                  monitoringService.recordPerformanceMetric({
+                    operation: `${results.environment}_${check.name}`,
+                    duration: check.response_time,
+                    success: check.status === 'healthy',
+                    details: {
+                      environment: results.environment,
+                      endpoint: check.name,
+                      http_status: check.http_status,
+                      base_url: results.baseUrl
+                    }
+                  });
+                }
+              }
+              
+              // Record security events for any critical alerts
+              for (const alert of results.alerts.filter(a => a.severity === 'critical')) {
+                monitoringService.recordSecurityMetric({
+                  event: 'threat_detected',
+                  severity: 'high',
+                  details: {
+                    environment: results.environment,
+                    alert_type: alert.type,
+                    message: alert.message,
+                    timestamp: alert.timestamp
+                  }
+                });
+              }
+              
+              console.log('Deployment monitoring metrics stored successfully');
+              
+            } catch (error) {
+              console.error('Error storing deployment metrics:', error);
+              throw error;
+            }
+          }
+          
+          storeDeploymentMetrics();
+          EOF
+          
+          # Run the metrics storage
+          node store-deployment-metrics.js
+        env:
+          MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
+
+      - name: Upload monitoring results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-monitoring-${{ matrix.environment }}-${{ github.run_id }}
+          path: deployment-monitoring/
+          retention-days: 30
+
+      - name: Add monitoring results to job summary
+        if: always()
+        run: |
+          if [[ -d "deployment-monitoring" ]]; then
+            # Find the latest monitoring file
+            LATEST_FILE=$(ls -t deployment-monitoring/*.json | head -n1)
+            
+            if [[ -f "$LATEST_FILE" ]]; then
+              # Extract key information for summary
+              OVERALL_STATUS=$(jq -r '.overall_status' "$LATEST_FILE")
+              HEALTHY_CHECKS=$(jq -r '.checks | map(select(.status == "healthy")) | length' "$LATEST_FILE")
+              TOTAL_CHECKS=$(jq -r '.checks | length' "$LATEST_FILE")
+              CRITICAL_ALERTS=$(jq -r '.alerts | map(select(.severity == "critical")) | length' "$LATEST_FILE")
+              WARNING_ALERTS=$(jq -r '.alerts | map(select(.severity == "warning")) | length' "$LATEST_FILE")
+              
+              # Generate summary
+              cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## Deployment Monitoring Results - ${{ matrix.environment }}
+          
+          **Overall Status:** ${OVERALL_STATUS^^}
+          
+          | Metric | Value |
+          |--------|-------|
+          | Environment | ${{ matrix.environment }} |
+          | Base URL | ${{ matrix.base_url }} |
+          | Healthy Checks | ${HEALTHY_CHECKS}/${TOTAL_CHECKS} |
+          | Critical Alerts | ${CRITICAL_ALERTS} |
+          | Warning Alerts | ${WARNING_ALERTS} |
+          
+          EOF
+              
+              # Add alerts if any
+              if [[ $CRITICAL_ALERTS -gt 0 || $WARNING_ALERTS -gt 0 ]]; then
+                echo "### Alerts" >> $GITHUB_STEP_SUMMARY
+                jq -r '.alerts[] | "- **\(.severity | ascii_upcase)**: \(.message)"' "$LATEST_FILE" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          fi
+
+  # Aggregate monitoring results across environments
+  aggregate-monitoring-results:
+    name: Aggregate Monitoring Results
+    needs: deployment-health-monitoring
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all monitoring results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: deployment-monitoring-*
+          path: aggregated-monitoring
+          merge-multiple: false
+
+      - name: Aggregate and analyze results
+        run: |
+          # Create aggregation script
+          cat > aggregate-monitoring.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          
+          function aggregateMonitoringResults() {
+            const aggregatedDir = 'aggregated-monitoring';
+            const outputDir = 'monitoring-summary';
+            
+            if (!fs.existsSync(outputDir)) {
+              fs.mkdirSync(outputDir, { recursive: true });
+            }
+            
+            const summary = {
+              timestamp: new Date().toISOString(),
+              environments: {},
+              overall: {
+                healthy_environments: 0,
+                degraded_environments: 0,
+                unhealthy_environments: 0,
+                total_environments: 0
+              },
+              alerts: {
+                critical: [],
+                warning: []
+              }
+            };
+            
+            // Process each environment's monitoring results
+            if (fs.existsSync(aggregatedDir)) {
+              const environmentDirs = fs.readdirSync(aggregatedDir);
+              
+              for (const envDir of environmentDirs) {
+                const envPath = path.join(aggregatedDir, envDir);
+                if (!fs.statSync(envPath).isDirectory()) continue;
+                
+                const environment = envDir.replace('deployment-monitoring-', '').split('-')[0];
+                
+                // Find the latest monitoring file for this environment
+                const files = fs.readdirSync(envPath)
+                  .filter(file => file.endsWith('.json'))
+                  .sort()
+                  .reverse();
+                
+                if (files.length > 0) {
+                  const latestFile = path.join(envPath, files[0]);
+                  const results = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
+                  
+                  summary.environments[environment] = {
+                    status: results.overall_status,
+                    healthy_checks: results.checks.filter(c => c.status === 'healthy').length,
+                    total_checks: results.checks.length,
+                    critical_alerts: results.alerts.filter(a => a.severity === 'critical').length,
+                    warning_alerts: results.alerts.filter(a => a.severity === 'warning').length,
+                    base_url: results.baseUrl,
+                    timestamp: results.timestamp,
+                    uptime: results.metrics.uptime || 0,
+                    memory_usage: results.metrics.memory_usage_percent || 0
+                  };
+                  
+                  // Count environment statuses
+                  summary.overall.total_environments++;
+                  if (results.overall_status === 'healthy') {
+                    summary.overall.healthy_environments++;
+                  } else if (results.overall_status === 'degraded') {
+                    summary.overall.degraded_environments++;
+                  } else {
+                    summary.overall.unhealthy_environments++;
+                  }
+                  
+                  // Collect alerts
+                  for (const alert of results.alerts) {
+                    const alertWithEnv = {
+                      ...alert,
+                      environment
+                    };
+                    
+                    if (alert.severity === 'critical') {
+                      summary.alerts.critical.push(alertWithEnv);
+                    } else if (alert.severity === 'warning') {
+                      summary.alerts.warning.push(alertWithEnv);
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Save aggregated summary
+            const summaryFile = path.join(outputDir, 'monitoring-summary.json');
+            fs.writeFileSync(summaryFile, JSON.stringify(summary, null, 2));
+            
+            // Generate markdown report
+            const markdownReport = generateMarkdownReport(summary);
+            const markdownFile = path.join(outputDir, 'monitoring-report.md');
+            fs.writeFileSync(markdownFile, markdownReport);
+            
+            console.log('Monitoring results aggregated successfully');
+            console.log(`Summary: ${summaryFile}`);
+            console.log(`Report: ${markdownFile}`);
+            
+            return summary;
+          }
+          
+          function generateMarkdownReport(summary) {
+            let report = `# Deployment Monitoring Report\n\n`;
+            report += `**Generated:** ${summary.timestamp}\n\n`;
+            
+            // Overall status
+            report += `## Overall Status\n\n`;
+            report += `| Metric | Count |\n`;
+            report += `|--------|-------|\n`;
+            report += `| Total Environments | ${summary.overall.total_environments} |\n`;
+            report += `| Healthy | ${summary.overall.healthy_environments} |\n`;
+            report += `| Degraded | ${summary.overall.degraded_environments} |\n`;
+            report += `| Unhealthy | ${summary.overall.unhealthy_environments} |\n\n`;
+            
+            // Environment details
+            report += `## Environment Details\n\n`;
+            report += `| Environment | Status | Health Checks | Alerts | Uptime | Memory |\n`;
+            report += `|-------------|--------|---------------|--------|--------|--------|\n`;
+            
+            for (const [env, details] of Object.entries(summary.environments)) {
+              const statusIcon = details.status === 'healthy' ? '✅' : 
+                                details.status === 'degraded' ? '⚠️' : '❌';
+              const uptime = details.uptime > 0 ? `${Math.round(details.uptime / 3600)}h` : 'N/A';
+              const memory = details.memory_usage > 0 ? `${details.memory_usage.toFixed(1)}%` : 'N/A';
+              const totalAlerts = details.critical_alerts + details.warning_alerts;
+              
+              report += `| ${env} | ${statusIcon} ${details.status} | ${details.healthy_checks}/${details.total_checks} | ${totalAlerts} | ${uptime} | ${memory} |\n`;
+            }
+            report += `\n`;
+            
+            // Critical alerts
+            if (summary.alerts.critical.length > 0) {
+              report += `## Critical Alerts\n\n`;
+              for (const alert of summary.alerts.critical) {
+                report += `- **${alert.environment}**: ${alert.message}\n`;
+              }
+              report += `\n`;
+            }
+            
+            // Warning alerts
+            if (summary.alerts.warning.length > 0) {
+              report += `## Warning Alerts\n\n`;
+              for (const alert of summary.alerts.warning) {
+                report += `- **${alert.environment}**: ${alert.message}\n`;
+              }
+              report += `\n`;
+            }
+            
+            return report;
+          }
+          
+          aggregateMonitoringResults();
+          EOF
+          
+          # Run aggregation
+          node aggregate-monitoring.js
+
+      - name: Upload aggregated monitoring results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-summary-${{ github.run_id }}
+          path: monitoring-summary/
+          retention-days: 90
+
+      - name: Add aggregated results to job summary
+        if: always()
+        run: |
+          if [[ -f "monitoring-summary/monitoring-report.md" ]]; then
+            cat monitoring-summary/monitoring-report.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for critical issues
+        run: |
+          if [[ -f "monitoring-summary/monitoring-summary.json" ]]; then
+            UNHEALTHY_COUNT=$(jq -r '.overall.unhealthy_environments' monitoring-summary/monitoring-summary.json)
+            CRITICAL_ALERTS=$(jq -r '.alerts.critical | length' monitoring-summary/monitoring-summary.json)
+            
+            if [[ $UNHEALTHY_COUNT -gt 0 ]]; then
+              echo "❌ $UNHEALTHY_COUNT environment(s) are unhealthy"
+              exit 1
+            elif [[ $CRITICAL_ALERTS -gt 0 ]]; then
+              echo "🚨 $CRITICAL_ALERTS critical alert(s) detected"
+              exit 1
+            else
+              echo "✅ All environments are healthy"
+            fi
+          else
+            echo "⚠️ No monitoring summary found"
+            exit 1
+          fi

@@ -1,0 +1,1203 @@
+name: Alerting and Notification System
+
+on:
+  workflow_run:
+    workflows: ["Enhanced CI Pipeline", "Security Scanning", "Deployment Pipeline", "Deployment Monitoring", "Performance Testing"]
+    types: [completed]
+  schedule:
+    # Check for SLA breaches every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      alert_type:
+        description: 'Type of alert to test'
+        required: false
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - pipeline-failure
+          - deployment-failure
+          - security-breach
+          - performance-degradation
+          - sla-breach
+      severity:
+        description: 'Alert severity'
+        required: false
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - critical
+      environment:
+        description: 'Environment affected'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - all
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=2048'
+  ALERTING_ENABLED: true
+
+jobs:
+  # Process workflow completion events and generate alerts
+  workflow-completion-alerts:
+    name: Process Workflow Completion Alerts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Process workflow completion
+        run: |
+          # Create workflow completion processor
+          cat > process-workflow-completion.js << 'EOF'
+          const { Octokit } = require('@octokit/rest');
+          const fs = require('fs');
+          const path = require('path');
+          
+          class WorkflowCompletionProcessor {
+            constructor() {
+              this.octokit = new Octokit({
+                auth: process.env.GITHUB_TOKEN
+              });
+              
+              this.owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+              this.repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+              
+              this.alertConfig = {
+                pipeline_failure: {
+                  severity: 'critical',
+                  channels: ['slack', 'email'],
+                  cooldown: 300, // 5 minutes
+                  escalation: true
+                },
+                deployment_failure: {
+                  severity: 'critical',
+                  channels: ['slack', 'email', 'pagerduty'],
+                  cooldown: 60, // 1 minute
+                  escalation: true
+                },
+                security_failure: {
+                  severity: 'critical',
+                  channels: ['slack', 'email', 'security-team'],
+                  cooldown: 0, // No cooldown for security
+                  escalation: true
+                },
+                performance_degradation: {
+                  severity: 'warning',
+                  channels: ['slack'],
+                  cooldown: 900, // 15 minutes
+                  escalation: false
+                },
+                test_failure: {
+                  severity: 'warning',
+                  channels: ['slack'],
+                  cooldown: 600, // 10 minutes
+                  escalation: false
+                }
+              };
+            }
+            
+            async processWorkflowRun() {
+              const workflowRunId = process.env.WORKFLOW_RUN_ID;
+              const workflowName = process.env.WORKFLOW_NAME;
+              const conclusion = process.env.WORKFLOW_CONCLUSION;
+              const status = process.env.WORKFLOW_STATUS;
+              
+              console.log(`Processing workflow completion: ${workflowName} (${workflowRunId})`);
+              console.log(`Status: ${status}, Conclusion: ${conclusion}`);
+              
+              try {
+                // Get detailed workflow run information
+                const { data: workflowRun } = await this.octokit.rest.actions.getWorkflowRun({
+                  owner: this.owner,
+                  repo: this.repo,
+                  run_id: workflowRunId
+                });
+                
+                // Get workflow jobs for detailed analysis
+                const { data: jobs } = await this.octokit.rest.actions.listJobsForWorkflowRun({
+                  owner: this.owner,
+                  repo: this.repo,
+                  run_id: workflowRunId
+                });
+                
+                const alerts = [];
+                
+                // Analyze workflow completion and generate appropriate alerts
+                if (conclusion === 'failure') {
+                  alerts.push(...this.generateFailureAlerts(workflowRun, jobs.jobs));
+                } else if (conclusion === 'cancelled') {
+                  alerts.push(...this.generateCancellationAlerts(workflowRun, jobs.jobs));
+                } else if (conclusion === 'timed_out') {
+                  alerts.push(...this.generateTimeoutAlerts(workflowRun, jobs.jobs));
+                } else if (conclusion === 'success') {
+                  // Check for performance issues even in successful runs
+                  alerts.push(...this.generatePerformanceAlerts(workflowRun, jobs.jobs));
+                }
+                
+                // Process and send alerts
+                for (const alert of alerts) {
+                  await this.processAlert(alert);
+                }
+                
+                // Save alert history
+                this.saveAlertHistory(alerts);
+                
+                console.log(`Generated ${alerts.length} alerts for workflow ${workflowName}`);
+                
+              } catch (error) {
+                console.error('Error processing workflow completion:', error);
+                
+                // Generate alert for processing failure
+                const processingAlert = {
+                  type: 'system_error',
+                  severity: 'warning',
+                  title: 'Alert Processing Failed',
+                  message: `Failed to process workflow completion for ${workflowName}: ${error.message}`,
+                  timestamp: new Date().toISOString(),
+                  metadata: {
+                    workflow_name: workflowName,
+                    workflow_run_id: workflowRunId,
+                    error: error.message
+                  }
+                };
+                
+                await this.processAlert(processingAlert);
+              }
+            }
+            
+            generateFailureAlerts(workflowRun, jobs) {
+              const alerts = [];
+              const workflowName = workflowRun.name;
+              const failedJobs = jobs.filter(job => job.conclusion === 'failure');
+              
+              // Determine alert type based on workflow name
+              let alertType = 'pipeline_failure';
+              if (workflowName.toLowerCase().includes('deploy')) {
+                alertType = 'deployment_failure';
+              } else if (workflowName.toLowerCase().includes('security')) {
+                alertType = 'security_failure';
+              } else if (workflowName.toLowerCase().includes('test')) {
+                alertType = 'test_failure';
+              }
+              
+              const config = this.alertConfig[alertType];
+              
+              alerts.push({
+                type: alertType,
+                severity: config.severity,
+                title: `${workflowName} Failed`,
+                message: `Workflow "${workflowName}" failed with ${failedJobs.length} failed job(s)`,
+                timestamp: new Date().toISOString(),
+                channels: config.channels,
+                cooldown: config.cooldown,
+                escalation: config.escalation,
+                metadata: {
+                  workflow_name: workflowName,
+                  workflow_run_id: workflowRun.id,
+                  workflow_url: workflowRun.html_url,
+                  commit: workflowRun.head_sha,
+                  branch: workflowRun.head_branch,
+                  actor: workflowRun.actor.login,
+                  failed_jobs: failedJobs.map(job => ({
+                    name: job.name,
+                    conclusion: job.conclusion,
+                    started_at: job.started_at,
+                    completed_at: job.completed_at,
+                    html_url: job.html_url
+                  }))
+                }
+              });
+              
+              // Generate specific alerts for critical job failures
+              const criticalJobs = failedJobs.filter(job => 
+                job.name.toLowerCase().includes('security') ||
+                job.name.toLowerCase().includes('deploy') ||
+                job.name.toLowerCase().includes('health')
+              );
+              
+              for (const job of criticalJobs) {
+                alerts.push({
+                  type: 'critical_job_failure',
+                  severity: 'critical',
+                  title: `Critical Job Failed: ${job.name}`,
+                  message: `Critical job "${job.name}" failed in workflow "${workflowName}"`,
+                  timestamp: new Date().toISOString(),
+                  channels: ['slack', 'email'],
+                  cooldown: 300,
+                  escalation: true,
+                  metadata: {
+                    workflow_name: workflowName,
+                    job_name: job.name,
+                    job_url: job.html_url,
+                    workflow_url: workflowRun.html_url
+                  }
+                });
+              }
+              
+              return alerts;
+            }
+            
+            generateCancellationAlerts(workflowRun, jobs) {
+              const alerts = [];
+              
+              // Only alert for unexpected cancellations (not manual)
+              if (workflowRun.event !== 'workflow_dispatch') {
+                alerts.push({
+                  type: 'workflow_cancelled',
+                  severity: 'warning',
+                  title: `Workflow Cancelled: ${workflowRun.name}`,
+                  message: `Workflow "${workflowRun.name}" was cancelled unexpectedly`,
+                  timestamp: new Date().toISOString(),
+                  channels: ['slack'],
+                  cooldown: 600,
+                  escalation: false,
+                  metadata: {
+                    workflow_name: workflowRun.name,
+                    workflow_url: workflowRun.html_url,
+                    event: workflowRun.event,
+                    actor: workflowRun.actor.login
+                  }
+                });
+              }
+              
+              return alerts;
+            }
+            
+            generateTimeoutAlerts(workflowRun, jobs) {
+              const alerts = [];
+              
+              alerts.push({
+                type: 'workflow_timeout',
+                severity: 'warning',
+                title: `Workflow Timeout: ${workflowRun.name}`,
+                message: `Workflow "${workflowRun.name}" timed out after running for ${this.formatDuration(workflowRun.run_started_at, workflowRun.updated_at)}`,
+                timestamp: new Date().toISOString(),
+                channels: ['slack'],
+                cooldown: 900,
+                escalation: false,
+                metadata: {
+                  workflow_name: workflowRun.name,
+                  workflow_url: workflowRun.html_url,
+                  duration: new Date(workflowRun.updated_at) - new Date(workflowRun.run_started_at),
+                  timed_out_jobs: jobs.filter(job => job.conclusion === 'timed_out').map(job => job.name)
+                }
+              });
+              
+              return alerts;
+            }
+            
+            generatePerformanceAlerts(workflowRun, jobs) {
+              const alerts = [];
+              const duration = new Date(workflowRun.updated_at) - new Date(workflowRun.run_started_at);
+              
+              // Define performance thresholds by workflow type
+              const thresholds = {
+                'Enhanced CI Pipeline': 30 * 60 * 1000, // 30 minutes
+                'Security Scanning': 15 * 60 * 1000,    // 15 minutes
+                'Deployment Pipeline': 20 * 60 * 1000,  // 20 minutes
+                'Performance Testing': 45 * 60 * 1000   // 45 minutes
+              };
+              
+              const threshold = thresholds[workflowRun.name] || 25 * 60 * 1000; // Default 25 minutes
+              
+              if (duration > threshold) {
+                alerts.push({
+                  type: 'performance_degradation',
+                  severity: 'warning',
+                  title: `Slow Workflow: ${workflowRun.name}`,
+                  message: `Workflow "${workflowRun.name}" took ${this.formatDuration(workflowRun.run_started_at, workflowRun.updated_at)}, exceeding threshold of ${Math.round(threshold / 60000)} minutes`,
+                  timestamp: new Date().toISOString(),
+                  channels: ['slack'],
+                  cooldown: 1800, // 30 minutes
+                  escalation: false,
+                  metadata: {
+                    workflow_name: workflowRun.name,
+                    duration: duration,
+                    threshold: threshold,
+                    workflow_url: workflowRun.html_url,
+                    slow_jobs: jobs
+                      .filter(job => {
+                        const jobDuration = new Date(job.completed_at) - new Date(job.started_at);
+                        return jobDuration > 10 * 60 * 1000; // Jobs over 10 minutes
+                      })
+                      .map(job => ({
+                        name: job.name,
+                        duration: new Date(job.completed_at) - new Date(job.started_at)
+                      }))
+                  }
+                });
+              }
+              
+              return alerts;
+            }
+            
+            async processAlert(alert) {
+              console.log(`Processing alert: ${alert.type} - ${alert.title}`);
+              
+              // Check cooldown
+              if (await this.isInCooldown(alert)) {
+                console.log(`Alert ${alert.type} is in cooldown, skipping`);
+                return;
+              }
+              
+              // Send to configured channels
+              const results = await Promise.allSettled(
+                alert.channels.map(channel => this.sendToChannel(channel, alert))
+              );
+              
+              // Log results
+              results.forEach((result, index) => {
+                const channel = alert.channels[index];
+                if (result.status === 'fulfilled') {
+                  console.log(`✅ Alert sent to ${channel}`);
+                } else {
+                  console.error(`❌ Failed to send alert to ${channel}:`, result.reason);
+                }
+              });
+              
+              // Update cooldown
+              await this.updateCooldown(alert);
+              
+              // Handle escalation if needed
+              if (alert.escalation && alert.severity === 'critical') {
+                setTimeout(() => this.handleEscalation(alert), 15 * 60 * 1000); // 15 minutes
+              }
+            }
+            
+            async sendToChannel(channel, alert) {
+              switch (channel) {
+                case 'slack':
+                  return this.sendSlackAlert(alert);
+                case 'email':
+                  return this.sendEmailAlert(alert);
+                case 'pagerduty':
+                  return this.sendPagerDutyAlert(alert);
+                case 'security-team':
+                  return this.sendSecurityTeamAlert(alert);
+                default:
+                  console.warn(`Unknown alert channel: ${channel}`);
+              }
+            }
+            
+            async sendSlackAlert(alert) {
+              const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+              if (!webhookUrl) {
+                throw new Error('SLACK_WEBHOOK_URL not configured');
+              }
+              
+              const color = {
+                'critical': '#ff0000',
+                'warning': '#ffaa00',
+                'info': '#0099ff'
+              }[alert.severity] || '#cccccc';
+              
+              const payload = {
+                username: 'CI/CD Monitor',
+                icon_emoji: ':warning:',
+                attachments: [{
+                  color: color,
+                  title: alert.title,
+                  text: alert.message,
+                  fields: [
+                    {
+                      title: 'Severity',
+                      value: alert.severity.toUpperCase(),
+                      short: true
+                    },
+                    {
+                      title: 'Type',
+                      value: alert.type,
+                      short: true
+                    },
+                    {
+                      title: 'Timestamp',
+                      value: alert.timestamp,
+                      short: true
+                    }
+                  ],
+                  actions: alert.metadata?.workflow_url ? [{
+                    type: 'button',
+                    text: 'View Workflow',
+                    url: alert.metadata.workflow_url
+                  }] : undefined
+                }]
+              };
+              
+              const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              
+              if (!response.ok) {
+                throw new Error(`Slack webhook failed: ${response.status}`);
+              }
+            }
+            
+            async sendEmailAlert(alert) {
+              // This would integrate with your email service (SendGrid, SES, etc.)
+              console.log(`📧 Email alert would be sent: ${alert.title}`);
+              
+              // Placeholder for email integration
+              const emailPayload = {
+                to: process.env.ALERT_EMAIL_RECIPIENTS?.split(',') || ['ops@mineport.com'],
+                subject: `[${alert.severity.toUpperCase()}] ${alert.title}`,
+                body: `
+                  Alert: ${alert.title}
+                  Severity: ${alert.severity}
+                  Type: ${alert.type}
+                  Time: ${alert.timestamp}
+                  
+                  ${alert.message}
+                  
+                  ${alert.metadata?.workflow_url ? `Workflow: ${alert.metadata.workflow_url}` : ''}
+                `,
+                html: this.generateEmailHTML(alert)
+              };
+              
+              // In a real implementation, you would send this via your email service
+              console.log('Email payload prepared:', emailPayload.subject);
+            }
+            
+            async sendPagerDutyAlert(alert) {
+              const integrationKey = process.env.PAGERDUTY_INTEGRATION_KEY;
+              if (!integrationKey) {
+                throw new Error('PAGERDUTY_INTEGRATION_KEY not configured');
+              }
+              
+              const payload = {
+                routing_key: integrationKey,
+                event_action: 'trigger',
+                dedup_key: `${alert.type}-${alert.metadata?.workflow_run_id || Date.now()}`,
+                payload: {
+                  summary: alert.title,
+                  source: 'GitHub Actions',
+                  severity: alert.severity === 'critical' ? 'critical' : 'warning',
+                  component: alert.metadata?.workflow_name || 'CI/CD Pipeline',
+                  group: 'DevOps',
+                  class: alert.type,
+                  custom_details: alert.metadata
+                }
+              };
+              
+              const response = await fetch('https://events.pagerduty.com/v2/enqueue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              
+              if (!response.ok) {
+                throw new Error(`PagerDuty API failed: ${response.status}`);
+              }
+            }
+            
+            async sendSecurityTeamAlert(alert) {
+              // Special handling for security team alerts
+              console.log(`🔒 Security team alert: ${alert.title}`);
+              
+              // This could send to a dedicated security Slack channel, email list, or SIEM system
+              const securityWebhook = process.env.SECURITY_WEBHOOK_URL;
+              if (securityWebhook) {
+                const payload = {
+                  alert_type: 'security_incident',
+                  severity: alert.severity,
+                  title: alert.title,
+                  message: alert.message,
+                  timestamp: alert.timestamp,
+                  metadata: alert.metadata,
+                  source: 'GitHub Actions CI/CD'
+                };
+                
+                await fetch(securityWebhook, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+              }
+            }
+            
+            generateEmailHTML(alert) {
+              const color = {
+                'critical': '#ff4444',
+                'warning': '#ffaa00',
+                'info': '#0099ff'
+              }[alert.severity] || '#cccccc';
+              
+              return `
+                <html>
+                <body style="font-family: Arial, sans-serif; margin: 20px;">
+                  <div style="border-left: 4px solid ${color}; padding-left: 20px;">
+                    <h2 style="color: ${color};">${alert.title}</h2>
+                    <p><strong>Severity:</strong> ${alert.severity.toUpperCase()}</p>
+                    <p><strong>Type:</strong> ${alert.type}</p>
+                    <p><strong>Time:</strong> ${alert.timestamp}</p>
+                    <p>${alert.message}</p>
+                    ${alert.metadata?.workflow_url ? `<p><a href="${alert.metadata.workflow_url}">View Workflow</a></p>` : ''}
+                  </div>
+                </body>
+                </html>
+              `;
+            }
+            
+            async isInCooldown(alert) {
+              // Simple file-based cooldown tracking
+              const cooldownFile = path.join(__dirname, '.alert-cooldowns.json');
+              let cooldowns = {};
+              
+              if (fs.existsSync(cooldownFile)) {
+                try {
+                  cooldowns = JSON.parse(fs.readFileSync(cooldownFile, 'utf8'));
+                } catch (error) {
+                  console.warn('Failed to read cooldown file:', error.message);
+                }
+              }
+              
+              const key = `${alert.type}-${alert.metadata?.workflow_name || 'global'}`;
+              const lastSent = cooldowns[key];
+              
+              if (lastSent && (Date.now() - lastSent) < (alert.cooldown * 1000)) {
+                return true;
+              }
+              
+              return false;
+            }
+            
+            async updateCooldown(alert) {
+              const cooldownFile = path.join(__dirname, '.alert-cooldowns.json');
+              let cooldowns = {};
+              
+              if (fs.existsSync(cooldownFile)) {
+                try {
+                  cooldowns = JSON.parse(fs.readFileSync(cooldownFile, 'utf8'));
+                } catch (error) {
+                  console.warn('Failed to read cooldown file:', error.message);
+                }
+              }
+              
+              const key = `${alert.type}-${alert.metadata?.workflow_name || 'global'}`;
+              cooldowns[key] = Date.now();
+              
+              try {
+                fs.writeFileSync(cooldownFile, JSON.stringify(cooldowns, null, 2));
+              } catch (error) {
+                console.warn('Failed to write cooldown file:', error.message);
+              }
+            }
+            
+            async handleEscalation(alert) {
+              console.log(`🚨 Escalating alert: ${alert.title}`);
+              
+              // Escalation logic - send to additional channels or higher priority
+              const escalationAlert = {
+                ...alert,
+                title: `[ESCALATED] ${alert.title}`,
+                message: `ESCALATED: ${alert.message}`,
+                channels: ['slack', 'email', 'pagerduty'],
+                severity: 'critical'
+              };
+              
+              await this.processAlert(escalationAlert);
+            }
+            
+            saveAlertHistory(alerts) {
+              if (alerts.length === 0) return;
+              
+              const historyDir = 'alert-history';
+              if (!fs.existsSync(historyDir)) {
+                fs.mkdirSync(historyDir, { recursive: true });
+              }
+              
+              const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+              const historyFile = path.join(historyDir, `alerts-${timestamp}.json`);
+              
+              const historyData = {
+                timestamp: new Date().toISOString(),
+                workflow_run_id: process.env.WORKFLOW_RUN_ID,
+                workflow_name: process.env.WORKFLOW_NAME,
+                alerts: alerts
+              };
+              
+              fs.writeFileSync(historyFile, JSON.stringify(historyData, null, 2));
+              console.log(`Alert history saved: ${historyFile}`);
+            }
+            
+            formatDuration(startTime, endTime) {
+              const duration = new Date(endTime) - new Date(startTime);
+              const minutes = Math.floor(duration / 60000);
+              const seconds = Math.floor((duration % 60000) / 1000);
+              return `${minutes}m ${seconds}s`;
+            }
+          }
+          
+          // Main execution
+          async function main() {
+            const processor = new WorkflowCompletionProcessor();
+            await processor.processWorkflowRun();
+          }
+          
+          main().catch(error => {
+            console.error('Failed to process workflow completion:', error);
+            process.exit(1);
+          });
+          EOF
+          
+          # Install required dependencies
+          npm install @octokit/rest
+          
+          # Run the processor
+          node process-workflow-completion.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WORKFLOW_STATUS: ${{ github.event.workflow_run.status }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PAGERDUTY_INTEGRATION_KEY: ${{ secrets.PAGERDUTY_INTEGRATION_KEY }}
+          SECURITY_WEBHOOK_URL: ${{ secrets.SECURITY_WEBHOOK_URL }}
+          ALERT_EMAIL_RECIPIENTS: ${{ secrets.ALERT_EMAIL_RECIPIENTS }}
+
+      - name: Upload alert history
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alert-history-${{ github.run_id }}
+          path: alert-history/
+          retention-days: 90
+
+  # Monitor SLA breaches and system health
+  sla-monitoring:
+    name: SLA Breach Monitoring
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Monitor SLA breaches
+        run: |
+          # Create SLA monitoring script
+          cat > sla-monitor.js << 'EOF'
+          const { Octokit } = require('@octokit/rest');
+          const fs = require('fs');
+          const path = require('path');
+          
+          class SLAMonitor {
+            constructor() {
+              this.octokit = new Octokit({
+                auth: process.env.GITHUB_TOKEN
+              });
+              
+              this.owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+              this.repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+              
+              // Define SLA thresholds
+              this.slaThresholds = {
+                pipeline_success_rate: 0.95,        // 95% success rate
+                pipeline_duration: 30 * 60 * 1000,  // 30 minutes max
+                deployment_frequency: 24 * 60 * 60 * 1000, // At least once per day
+                mean_time_to_recovery: 4 * 60 * 60 * 1000,  // 4 hours max
+                change_failure_rate: 0.05            // 5% max failure rate
+              };
+              
+              this.alerts = [];
+            }
+            
+            async checkSLABreaches() {
+              console.log('🔍 Checking for SLA breaches...');
+              
+              // Get workflow runs from the last 24 hours
+              const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+              
+              try {
+                const { data: workflowRuns } = await this.octokit.rest.actions.listWorkflowRunsForRepo({
+                  owner: this.owner,
+                  repo: this.repo,
+                  per_page: 100,
+                  created: `>=${since}`
+                });
+                
+                console.log(`Analyzing ${workflowRuns.workflow_runs.length} workflow runs`);
+                
+                // Check pipeline success rate
+                await this.checkPipelineSuccessRate(workflowRuns.workflow_runs);
+                
+                // Check pipeline duration
+                await this.checkPipelineDuration(workflowRuns.workflow_runs);
+                
+                // Check deployment frequency
+                await this.checkDeploymentFrequency(workflowRuns.workflow_runs);
+                
+                // Check change failure rate
+                await this.checkChangeFailureRate(workflowRuns.workflow_runs);
+                
+                // Generate SLA report
+                this.generateSLAReport();
+                
+                // Send alerts if any breaches found
+                if (this.alerts.length > 0) {
+                  await this.sendSLAAlerts();
+                }
+                
+              } catch (error) {
+                console.error('Error checking SLA breaches:', error);
+                throw error;
+              }
+            }
+            
+            async checkPipelineSuccessRate(workflowRuns) {
+              const totalRuns = workflowRuns.length;
+              const successfulRuns = workflowRuns.filter(run => run.conclusion === 'success').length;
+              const successRate = totalRuns > 0 ? successfulRuns / totalRuns : 1;
+              
+              console.log(`Pipeline success rate: ${(successRate * 100).toFixed(2)}% (${successfulRuns}/${totalRuns})`);
+              
+              if (successRate < this.slaThresholds.pipeline_success_rate) {
+                this.alerts.push({
+                  type: 'sla_breach',
+                  category: 'pipeline_success_rate',
+                  severity: 'critical',
+                  title: 'Pipeline Success Rate SLA Breach',
+                  message: `Pipeline success rate ${(successRate * 100).toFixed(2)}% is below SLA threshold of ${(this.slaThresholds.pipeline_success_rate * 100).toFixed(2)}%`,
+                  current_value: successRate,
+                  threshold: this.slaThresholds.pipeline_success_rate,
+                  metadata: {
+                    total_runs: totalRuns,
+                    successful_runs: successfulRuns,
+                    failed_runs: totalRuns - successfulRuns,
+                    time_period: '24 hours'
+                  }
+                });
+              }
+            }
+            
+            async checkPipelineDuration(workflowRuns) {
+              const completedRuns = workflowRuns.filter(run => 
+                run.conclusion && run.run_started_at && run.updated_at
+              );
+              
+              if (completedRuns.length === 0) return;
+              
+              const durations = completedRuns.map(run => 
+                new Date(run.updated_at) - new Date(run.run_started_at)
+              );
+              
+              const averageDuration = durations.reduce((sum, duration) => sum + duration, 0) / durations.length;
+              const maxDuration = Math.max(...durations);
+              
+              console.log(`Average pipeline duration: ${Math.round(averageDuration / 60000)} minutes`);
+              console.log(`Max pipeline duration: ${Math.round(maxDuration / 60000)} minutes`);
+              
+              if (averageDuration > this.slaThresholds.pipeline_duration) {
+                this.alerts.push({
+                  type: 'sla_breach',
+                  category: 'pipeline_duration',
+                  severity: 'warning',
+                  title: 'Pipeline Duration SLA Breach',
+                  message: `Average pipeline duration ${Math.round(averageDuration / 60000)} minutes exceeds SLA threshold of ${Math.round(this.slaThresholds.pipeline_duration / 60000)} minutes`,
+                  current_value: averageDuration,
+                  threshold: this.slaThresholds.pipeline_duration,
+                  metadata: {
+                    average_duration_minutes: Math.round(averageDuration / 60000),
+                    max_duration_minutes: Math.round(maxDuration / 60000),
+                    total_runs: completedRuns.length,
+                    time_period: '24 hours'
+                  }
+                });
+              }
+            }
+            
+            async checkDeploymentFrequency(workflowRuns) {
+              const deploymentRuns = workflowRuns.filter(run => 
+                run.name.toLowerCase().includes('deploy') && run.conclusion === 'success'
+              );
+              
+              const lastDeployment = deploymentRuns.length > 0 ? 
+                Math.max(...deploymentRuns.map(run => new Date(run.created_at).getTime())) : 0;
+              
+              const timeSinceLastDeployment = Date.now() - lastDeployment;
+              
+              console.log(`Deployments in last 24h: ${deploymentRuns.length}`);
+              console.log(`Time since last deployment: ${Math.round(timeSinceLastDeployment / (60 * 60 * 1000))} hours`);
+              
+              if (timeSinceLastDeployment > this.slaThresholds.deployment_frequency) {
+                this.alerts.push({
+                  type: 'sla_breach',
+                  category: 'deployment_frequency',
+                  severity: 'warning',
+                  title: 'Deployment Frequency SLA Breach',
+                  message: `No successful deployments in the last ${Math.round(timeSinceLastDeployment / (60 * 60 * 1000))} hours, exceeding SLA threshold of ${Math.round(this.slaThresholds.deployment_frequency / (60 * 60 * 1000))} hours`,
+                  current_value: timeSinceLastDeployment,
+                  threshold: this.slaThresholds.deployment_frequency,
+                  metadata: {
+                    deployments_24h: deploymentRuns.length,
+                    hours_since_last_deployment: Math.round(timeSinceLastDeployment / (60 * 60 * 1000)),
+                    last_deployment: lastDeployment > 0 ? new Date(lastDeployment).toISOString() : 'never'
+                  }
+                });
+              }
+            }
+            
+            async checkChangeFailureRate(workflowRuns) {
+              // Get deployment-related runs
+              const deploymentRuns = workflowRuns.filter(run => 
+                run.name.toLowerCase().includes('deploy')
+              );
+              
+              if (deploymentRuns.length === 0) return;
+              
+              const failedDeployments = deploymentRuns.filter(run => 
+                run.conclusion === 'failure' || run.conclusion === 'cancelled'
+              );
+              
+              const changeFailureRate = failedDeployments.length / deploymentRuns.length;
+              
+              console.log(`Change failure rate: ${(changeFailureRate * 100).toFixed(2)}% (${failedDeployments.length}/${deploymentRuns.length})`);
+              
+              if (changeFailureRate > this.slaThresholds.change_failure_rate) {
+                this.alerts.push({
+                  type: 'sla_breach',
+                  category: 'change_failure_rate',
+                  severity: 'critical',
+                  title: 'Change Failure Rate SLA Breach',
+                  message: `Change failure rate ${(changeFailureRate * 100).toFixed(2)}% exceeds SLA threshold of ${(this.slaThresholds.change_failure_rate * 100).toFixed(2)}%`,
+                  current_value: changeFailureRate,
+                  threshold: this.slaThresholds.change_failure_rate,
+                  metadata: {
+                    total_deployments: deploymentRuns.length,
+                    failed_deployments: failedDeployments.length,
+                    failure_rate_percent: (changeFailureRate * 100).toFixed(2),
+                    time_period: '24 hours'
+                  }
+                });
+              }
+            }
+            
+            generateSLAReport() {
+              const report = {
+                timestamp: new Date().toISOString(),
+                sla_status: this.alerts.length === 0 ? 'compliant' : 'breach',
+                breaches: this.alerts.length,
+                thresholds: this.slaThresholds,
+                alerts: this.alerts
+              };
+              
+              // Save SLA report
+              const reportDir = 'sla-reports';
+              if (!fs.existsSync(reportDir)) {
+                fs.mkdirSync(reportDir, { recursive: true });
+              }
+              
+              const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+              const reportFile = path.join(reportDir, `sla-report-${timestamp}.json`);
+              fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
+              
+              console.log(`SLA report generated: ${reportFile}`);
+              
+              // Generate summary
+              console.log('\n' + '='.repeat(50));
+              console.log('SLA MONITORING SUMMARY');
+              console.log('='.repeat(50));
+              console.log(`Status: ${report.sla_status.toUpperCase()}`);
+              console.log(`Breaches: ${report.breaches}`);
+              
+              if (this.alerts.length > 0) {
+                console.log('\nSLA BREACHES:');
+                this.alerts.forEach(alert => {
+                  console.log(`- ${alert.category}: ${alert.message}`);
+                });
+              }
+              
+              console.log('='.repeat(50));
+            }
+            
+            async sendSLAAlerts() {
+              console.log(`🚨 Sending ${this.alerts.length} SLA breach alerts`);
+              
+              for (const alert of this.alerts) {
+                await this.sendAlert(alert);
+              }
+            }
+            
+            async sendAlert(alert) {
+              // Send to Slack
+              if (process.env.SLACK_WEBHOOK_URL) {
+                try {
+                  await this.sendSlackAlert(alert);
+                  console.log(`✅ SLA alert sent to Slack: ${alert.category}`);
+                } catch (error) {
+                  console.error(`❌ Failed to send Slack alert:`, error.message);
+                }
+              }
+              
+              // Send to monitoring webhook
+              if (process.env.MONITORING_WEBHOOK_URL) {
+                try {
+                  await this.sendMonitoringAlert(alert);
+                  console.log(`✅ SLA alert sent to monitoring system: ${alert.category}`);
+                } catch (error) {
+                  console.error(`❌ Failed to send monitoring alert:`, error.message);
+                }
+              }
+            }
+            
+            async sendSlackAlert(alert) {
+              const payload = {
+                username: 'SLA Monitor',
+                icon_emoji: ':rotating_light:',
+                attachments: [{
+                  color: alert.severity === 'critical' ? '#ff0000' : '#ffaa00',
+                  title: alert.title,
+                  text: alert.message,
+                  fields: [
+                    {
+                      title: 'Category',
+                      value: alert.category,
+                      short: true
+                    },
+                    {
+                      title: 'Severity',
+                      value: alert.severity.toUpperCase(),
+                      short: true
+                    },
+                    {
+                      title: 'Current Value',
+                      value: typeof alert.current_value === 'number' ? 
+                        (alert.current_value < 1 ? `${(alert.current_value * 100).toFixed(2)}%` : `${Math.round(alert.current_value / 60000)}min`) :
+                        alert.current_value,
+                      short: true
+                    },
+                    {
+                      title: 'Threshold',
+                      value: typeof alert.threshold === 'number' ? 
+                        (alert.threshold < 1 ? `${(alert.threshold * 100).toFixed(2)}%` : `${Math.round(alert.threshold / 60000)}min`) :
+                        alert.threshold,
+                      short: true
+                    }
+                  ]
+                }]
+              };
+              
+              const response = await fetch(process.env.SLACK_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              
+              if (!response.ok) {
+                throw new Error(`Slack webhook failed: ${response.status}`);
+              }
+            }
+            
+            async sendMonitoringAlert(alert) {
+              const payload = {
+                type: 'sla_breach',
+                alert: alert,
+                timestamp: new Date().toISOString(),
+                source: 'GitHub Actions SLA Monitor'
+              };
+              
+              const response = await fetch(process.env.MONITORING_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              
+              if (!response.ok) {
+                throw new Error(`Monitoring webhook failed: ${response.status}`);
+              }
+            }
+          }
+          
+          // Main execution
+          async function main() {
+            const monitor = new SLAMonitor();
+            await monitor.checkSLABreaches();
+          }
+          
+          main().catch(error => {
+            console.error('SLA monitoring failed:', error);
+            process.exit(1);
+          });
+          EOF
+          
+          # Install dependencies and run monitoring
+          npm install @octokit/rest
+          node sla-monitor.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
+
+      - name: Upload SLA reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sla-reports-${{ github.run_id }}
+          path: sla-reports/
+          retention-days: 90
+
+  # Test alert system
+  test-alerts:
+    name: Test Alert System
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Send test alert
+        run: |
+          # Create test alert script
+          cat > test-alert.js << 'EOF'
+          async function sendTestAlert() {
+            const alertType = process.env.ALERT_TYPE || 'test';
+            const severity = process.env.SEVERITY || 'warning';
+            const environment = process.env.ENVIRONMENT || 'staging';
+            
+            const alert = {
+              type: alertType,
+              severity: severity,
+              title: `Test Alert - ${alertType}`,
+              message: `This is a test alert of type "${alertType}" with severity "${severity}" for environment "${environment}"`,
+              timestamp: new Date().toISOString(),
+              environment: environment,
+              metadata: {
+                test: true,
+                triggered_by: process.env.GITHUB_ACTOR || 'unknown',
+                workflow_run_id: process.env.GITHUB_RUN_ID || 'unknown'
+              }
+            };
+            
+            console.log('Sending test alert:', JSON.stringify(alert, null, 2));
+            
+            // Send to Slack if configured
+            if (process.env.SLACK_WEBHOOK_URL) {
+              try {
+                const payload = {
+                  username: 'Alert Test',
+                  icon_emoji: ':test_tube:',
+                  text: `🧪 **TEST ALERT** 🧪`,
+                  attachments: [{
+                    color: severity === 'critical' ? '#ff0000' : severity === 'warning' ? '#ffaa00' : '#0099ff',
+                    title: alert.title,
+                    text: alert.message,
+                    fields: [
+                      { title: 'Type', value: alertType, short: true },
+                      { title: 'Severity', value: severity.toUpperCase(), short: true },
+                      { title: 'Environment', value: environment, short: true },
+                      { title: 'Triggered By', value: alert.metadata.triggered_by, short: true }
+                    ]
+                  }]
+                };
+                
+                const response = await fetch(process.env.SLACK_WEBHOOK_URL, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                  console.log('✅ Test alert sent to Slack successfully');
+                } else {
+                  console.error(`❌ Failed to send to Slack: ${response.status}`);
+                }
+              } catch (error) {
+                console.error('❌ Slack alert failed:', error.message);
+              }
+            }
+            
+            // Send to monitoring webhook if configured
+            if (process.env.MONITORING_WEBHOOK_URL) {
+              try {
+                const response = await fetch(process.env.MONITORING_WEBHOOK_URL, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ type: 'test_alert', alert })
+                });
+                
+                if (response.ok) {
+                  console.log('✅ Test alert sent to monitoring system successfully');
+                } else {
+                  console.error(`❌ Failed to send to monitoring system: ${response.status}`);
+                }
+              } catch (error) {
+                console.error('❌ Monitoring webhook failed:', error.message);
+              }
+            }
+            
+            console.log('🧪 Test alert completed');
+          }
+          
+          sendTestAlert().catch(error => {
+            console.error('Test alert failed:', error);
+            process.exit(1);
+          });
+          EOF
+          
+          node test-alert.js
+        env:
+          ALERT_TYPE: ${{ github.event.inputs.alert_type }}
+          SEVERITY: ${{ github.event.inputs.severity }}
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
+
+      - name: Add test results to summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## Alert System Test Results
+          
+          **Test Configuration:**
+          - Alert Type: ${{ github.event.inputs.alert_type }}
+          - Severity: ${{ github.event.inputs.severity }}
+          - Environment: ${{ github.event.inputs.environment }}
+          
+          **Channels Tested:**
+          - Slack: ${SLACK_WEBHOOK_URL:+✅ Configured}${SLACK_WEBHOOK_URL:-❌ Not configured}
+          - Monitoring System: ${MONITORING_WEBHOOK_URL:+✅ Configured}${MONITORING_WEBHOOK_URL:-❌ Not configured}
+          
+          Check the job logs for detailed results.
+          EOF
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}

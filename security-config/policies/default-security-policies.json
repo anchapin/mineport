@@ -1,0 +1,375 @@
+[
+  {
+    "id": "vuln-critical-sla",
+    "name": "Critical Vulnerability SLA",
+    "description": "Critical vulnerabilities must be patched within 24 hours",
+    "category": "vulnerability_management",
+    "severity": "critical",
+    "enabled": true,
+    "conditions": {
+      "vulnerability_severity": "critical",
+      "max_age_hours": 24
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_deployment",
+        "create_incident",
+        "notify_security_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "vuln-high-sla",
+    "name": "High Vulnerability SLA",
+    "description": "High severity vulnerabilities must be patched within 7 days",
+    "category": "vulnerability_management",
+    "severity": "high",
+    "enabled": true,
+    "conditions": {
+      "vulnerability_severity": "high",
+      "max_age_days": 7
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "create_issue",
+        "notify_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "secrets-detection",
+    "name": "Hardcoded Secrets Detection",
+    "description": "No hardcoded secrets allowed in code",
+    "category": "code_security",
+    "severity": "critical",
+    "enabled": true,
+    "conditions": {
+      "scan_type": "secret_scan",
+      "secrets_found": "> 0"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_merge",
+        "revoke_secrets",
+        "notify_security_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001", "GDPR"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "mfa-enforcement",
+    "name": "Multi-Factor Authentication Enforcement",
+    "description": "All users must have MFA enabled",
+    "category": "access_control",
+    "severity": "high",
+    "enabled": true,
+    "conditions": {
+      "mfa_enabled": false,
+      "account_type": "user"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "disable_account",
+        "notify_user",
+        "notify_admin"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001", "HIPAA"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "privileged-access-review",
+    "name": "Privileged Access Review",
+    "description": "Privileged access must be reviewed monthly",
+    "category": "access_control",
+    "severity": "medium",
+    "enabled": true,
+    "conditions": {
+      "access_level": "privileged",
+      "last_review_days": "> 30"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "create_review_task",
+        "notify_admin"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "data-encryption-at-rest",
+    "name": "Data Encryption at Rest",
+    "description": "All sensitive data must be encrypted at rest",
+    "category": "infrastructure_security",
+    "severity": "critical",
+    "enabled": true,
+    "conditions": {
+      "data_classification": "sensitive",
+      "encryption_at_rest": false
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_deployment",
+        "encrypt_data",
+        "notify_security_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001", "GDPR", "HIPAA"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "data-encryption-in-transit",
+    "name": "Data Encryption in Transit",
+    "description": "All data transmission must use TLS 1.2 or higher",
+    "category": "infrastructure_security",
+    "severity": "high",
+    "enabled": true,
+    "conditions": {
+      "protocol": "http",
+      "tls_version": "< 1.2"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_connection",
+        "upgrade_tls",
+        "notify_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001", "GDPR"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "audit-log-retention",
+    "name": "Audit Log Retention",
+    "description": "Audit logs must be retained for minimum compliance period",
+    "category": "compliance_adherence",
+    "severity": "high",
+    "enabled": true,
+    "conditions": {
+      "log_type": "audit",
+      "retention_days": "< 365"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "extend_retention",
+        "backup_logs",
+        "notify_compliance_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001", "GDPR", "HIPAA"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "incident-response-time",
+    "name": "Incident Response Time SLA",
+    "description": "Security incidents must be acknowledged within 1 hour",
+    "category": "incident_response",
+    "severity": "high",
+    "enabled": true,
+    "conditions": {
+      "incident_severity": ["critical", "high"],
+      "response_time_minutes": "> 60"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "escalate_incident",
+        "notify_on_call",
+        "create_sla_violation"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "code-review-security",
+    "name": "Security Code Review",
+    "description": "All code changes must pass security review",
+    "category": "code_security",
+    "severity": "medium",
+    "enabled": true,
+    "conditions": {
+      "change_type": "code",
+      "security_review": false
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_merge",
+        "request_security_review",
+        "notify_security_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "dependency-security-scan",
+    "name": "Dependency Security Scanning",
+    "description": "All dependencies must be scanned for vulnerabilities",
+    "category": "code_security",
+    "severity": "high",
+    "enabled": true,
+    "conditions": {
+      "dependency_scan": false,
+      "change_type": "dependency"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_merge",
+        "run_security_scan",
+        "notify_team"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "backup-verification",
+    "name": "Backup Verification",
+    "description": "Backups must be verified weekly",
+    "category": "infrastructure_security",
+    "severity": "medium",
+    "enabled": true,
+    "conditions": {
+      "backup_verification": false,
+      "last_verification_days": "> 7"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "run_backup_verification",
+        "notify_ops_team",
+        "create_verification_task"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "gdpr-data-processing",
+    "name": "GDPR Data Processing Documentation",
+    "description": "All personal data processing must be documented",
+    "category": "compliance_adherence",
+    "severity": "high",
+    "enabled": true,
+    "conditions": {
+      "processes_personal_data": true,
+      "gdpr_documented": false
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_deployment",
+        "create_documentation_task",
+        "notify_privacy_officer"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["GDPR"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "hipaa-access-logging",
+    "name": "HIPAA Access Logging",
+    "description": "All access to PHI must be logged",
+    "category": "compliance_adherence",
+    "severity": "critical",
+    "enabled": true,
+    "conditions": {
+      "accesses_phi": true,
+      "access_logged": false
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "block_access",
+        "enable_logging",
+        "notify_compliance_officer"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["HIPAA"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "id": "security-training-compliance",
+    "name": "Security Training Compliance",
+    "description": "All users must complete annual security training",
+    "category": "access_control",
+    "severity": "medium",
+    "enabled": true,
+    "conditions": {
+      "security_training_completed": false,
+      "training_due_days": "> 0"
+    },
+    "enforcement": {
+      "enabled": true,
+      "actions": [
+        "restrict_access",
+        "notify_user",
+        "notify_manager"
+      ]
+    },
+    "metadata": {
+      "compliance_standards": ["SOC2", "ISO27001"],
+      "created": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-01T00:00:00Z"
+    }
+  }
+]
