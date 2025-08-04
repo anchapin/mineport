@@ -26,5 +26,10 @@ export * from './ProgramStateAlignmentValidator';
 export * from './JavaScriptGenerator';
 export * from './LogicTranslationEngine';
 
+// New core logic translation components
+export * from './MMIRParser';
+export * from './LLMTranslator';
+export * from './ProgramStateValidator';
+
 // Re-export the main engine as default for convenience
 export { LogicTranslationEngine as default } from './LogicTranslationEngine';

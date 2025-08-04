@@ -31,3 +31,6 @@ export * from './compromise';
 
 // File processing types
 export * from './file-processing';
+
+// Logic translation types
+export * from './logic-translation';
