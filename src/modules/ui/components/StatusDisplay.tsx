@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConversionProgress } from '../types';
+import { ConversionProgress } from '../types.js';
 
 interface StatusDisplayProps {
   progress: ConversionProgress;

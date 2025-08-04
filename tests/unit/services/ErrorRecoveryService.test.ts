@@ -3,15 +3,15 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ErrorRecoveryService, RecoveryContext } from '../../../src/services/ErrorRecoveryService';
-import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorCollector';
+import { ErrorRecoveryService, RecoveryContext } from '../../../src/services/ErrorRecoveryService.js';
+import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorCollector.js';
 import {
   ConversionError,
   ErrorSeverity,
   ErrorType,
   RecoveryStrategy,
-  createConversionError
-} from '../../../src/types/errors';
+  createConversionError,
+} from '../../../src/types/errors.js';
 
 // Mock logger
 vi.mock('../../../src/utils/logger', () => ({
@@ -19,8 +19,8 @@ vi.mock('../../../src/utils/logger', () => ({
     error: vi.fn(),
     warn: vi.fn(),
     info: vi.fn(),
-    debug: vi.fn()
-  }
+    debug: vi.fn(),
+  },
 }));
 
 describe('ErrorRecoveryService', () => {
@@ -38,7 +38,7 @@ describe('ErrorRecoveryService', () => {
       type: ErrorType.VALIDATION,
       severity: ErrorSeverity.ERROR,
       message: 'Test error message',
-      moduleOrigin: 'TEST'
+      moduleOrigin: 'TEST',
     });
 
     mockContext = {
@@ -48,7 +48,7 @@ describe('ErrorRecoveryService', () => {
       fallbackCallback: vi.fn().mockResolvedValue(undefined),
       compromiseCallback: vi.fn().mockResolvedValue(undefined),
       skipCallback: vi.fn().mockResolvedValue(undefined),
-      metadata: { testData: 'value' }
+      metadata: { testData: 'value' },
     };
   });
 
@@ -81,7 +81,7 @@ describe('ErrorRecoveryService', () => {
   describe('unregisterRecoveryContext', () => {
     it('should unregister recovery context successfully', () => {
       recoveryService.registerRecoveryContext(mockContext);
-      
+
       expect(() => {
         recoveryService.unregisterRecoveryContext('TEST', 'test-operation');
       }).not.toThrow();
@@ -118,7 +118,7 @@ describe('ErrorRecoveryService', () => {
         type: ErrorType.SYSTEM,
         severity: ErrorSeverity.CRITICAL,
         message: 'Non-recoverable error',
-        moduleOrigin: 'SYSTEM'
+        moduleOrigin: 'SYSTEM',
       });
 
       const result = await recoveryService.handleError(nonRecoverableError);
@@ -135,7 +135,7 @@ describe('ErrorRecoveryService', () => {
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.ERROR,
         message: 'File too large',
-        moduleOrigin: 'FILE'
+        moduleOrigin: 'FILE',
       });
 
       recoveryService.registerRecoveryContext(mockContext);
@@ -148,7 +148,7 @@ describe('ErrorRecoveryService', () => {
     it('should handle retry callback failure', async () => {
       const failingContext = {
         ...mockContext,
-        retryCallback: vi.fn().mockRejectedValue(new Error('Retry failed'))
+        retryCallback: vi.fn().mockRejectedValue(new Error('Retry failed')),
       };
 
       const result = await recoveryService.handleError(mockError, failingContext);
@@ -161,7 +161,7 @@ describe('ErrorRecoveryService', () => {
       const contextWithFailingRetry = {
         ...mockContext,
         retryCallback: vi.fn().mockRejectedValue(new Error('Retry failed')),
-        fallbackCallback: vi.fn().mockResolvedValue('fallback result')
+        fallbackCallback: vi.fn().mockResolvedValue('fallback result'),
       };
 
       const javaError = createConversionError({
@@ -169,7 +169,7 @@ describe('ErrorRecoveryService', () => {
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.ERROR,
         message: 'Registry extraction failed',
-        moduleOrigin: 'JAVA'
+        moduleOrigin: 'JAVA',
       });
 
       const result = await recoveryService.handleError(javaError, contextWithFailingRetry);
@@ -201,7 +201,7 @@ describe('ErrorRecoveryService', () => {
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.ERROR,
         message: 'Registry extraction failed',
-        moduleOrigin: 'JAVA'
+        moduleOrigin: 'JAVA',
       });
 
       const result = await recoveryService.handleError(javaError, context);
@@ -219,7 +219,7 @@ describe('ErrorRecoveryService', () => {
         type: ErrorType.RESOURCE,
         severity: ErrorSeverity.ERROR,
         message: 'Conversion timeout',
-        moduleOrigin: 'ASSET'
+        moduleOrigin: 'ASSET',
       });
 
       const result = await recoveryService.handleError(assetError, context);
@@ -236,7 +236,7 @@ describe('ErrorRecoveryService', () => {
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.WARNING,
         message: 'Stage execution failed',
-        moduleOrigin: 'VAL'
+        moduleOrigin: 'VAL',
       });
 
       const result = await recoveryService.handleError(validationError, context);
@@ -332,7 +332,7 @@ describe('ErrorRecoveryService', () => {
     it('should enable graceful degradation for module', () => {
       const fallbackMethods = {
         method1: vi.fn().mockResolvedValue('fallback1'),
-        method2: vi.fn().mockResolvedValue('fallback2')
+        method2: vi.fn().mockResolvedValue('fallback2'),
       };
 
       expect(() => {
@@ -342,7 +342,7 @@ describe('ErrorRecoveryService', () => {
 
     it('should register fallback methods as recovery contexts', () => {
       const fallbackMethods = {
-        method1: vi.fn().mockResolvedValue('fallback1')
+        method1: vi.fn().mockResolvedValue('fallback1'),
       };
 
       recoveryService.enableGracefulDegradation('TEST', fallbackMethods);
@@ -360,7 +360,7 @@ describe('ErrorRecoveryService', () => {
         ...mockContext,
         retryCallback: vi.fn().mockImplementation(() => {
           throw new Error('Callback exception');
-        })
+        }),
       };
 
       const result = await recoveryService.handleError(mockError, faultyContext);
@@ -372,7 +372,7 @@ describe('ErrorRecoveryService', () => {
     it('should handle missing callbacks gracefully', async () => {
       const incompleteContext = {
         moduleId: 'TEST',
-        operationId: 'test-operation'
+        operationId: 'test-operation',
         // Missing callbacks
       };
 
@@ -390,7 +390,7 @@ describe('ErrorRecoveryService', () => {
       const results = await Promise.all(promises);
 
       expect(results).toHaveLength(5);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result).toBeDefined();
         expect(typeof result.success).toBe('boolean');
       });
@@ -403,7 +403,7 @@ describe('ErrorRecoveryService', () => {
       for (let i = 0; i < 1000; i++) {
         recoveryService.registerRecoveryContext({
           moduleId: `MODULE_${i}`,
-          operationId: `operation_${i}`
+          operationId: `operation_${i}`,
         });
       }
 
@@ -426,7 +426,7 @@ describe('ErrorRecoveryService', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.ERROR,
           message: `Test error ${i}`,
-          moduleOrigin: 'TEST'
+          moduleOrigin: 'TEST',
         });
 
         await recoveryService.handleError(error);

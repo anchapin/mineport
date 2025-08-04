@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { ConversionStage, ProgressInfo, UIError, UIWarning } from './EnhancedConversionUI';
+import { ConversionStage, ProgressInfo, UIError, UIWarning } from './EnhancedConversionUI.js';
 
 export interface EnhancedStatusDisplayProps {
   progress: ProgressInfo;

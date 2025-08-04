@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { ConversionResults } from './EnhancedConversionUI';
+import { ConversionResults } from './EnhancedConversionUI.js';
 
 export interface ResultsDisplayProps {
   results: ConversionResults;

@@ -1,6 +1,6 @@
 /**
  * Resource Allocator - Manages resource pooling and allocation
- * 
+ *
  * This service provides resource pooling for reusable components,
  * temporary file management, and memory optimization to improve
  * performance and reduce resource waste.
@@ -10,7 +10,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 
 export interface PooledResource<T> {
   id: string;
@@ -67,7 +67,7 @@ export class ResourcePool<T> {
       maxSize: options.maxSize || 10,
       maxIdleTime: options.maxIdleTime || 300000, // 5 minutes
       cleanupInterval: options.cleanupInterval || 60000, // 1 minute
-      enableMetrics: options.enableMetrics ?? true
+      enableMetrics: options.enableMetrics ?? true,
     };
 
     this.metrics = {
@@ -76,7 +76,7 @@ export class ResourcePool<T> {
       currentActive: 0,
       currentIdle: 0,
       hitRate: 0,
-      averageUsage: 0
+      averageUsage: 0,
     };
 
     this.startCleanupTimer();
@@ -92,13 +92,13 @@ export class ResourcePool<T> {
         pooledResource.inUse = true;
         pooledResource.lastUsed = new Date();
         pooledResource.usageCount++;
-        
+
         this.updateMetrics();
-        
+
         return {
           id,
           resource: pooledResource.resource,
-          release: () => this.release(id)
+          release: () => this.release(id),
         };
       }
     }
@@ -113,7 +113,7 @@ export class ResourcePool<T> {
         inUse: true,
         createdAt: new Date(),
         lastUsed: new Date(),
-        usageCount: 1
+        usageCount: 1,
       };
 
       this.pool.set(id, pooledResource);
@@ -123,7 +123,7 @@ export class ResourcePool<T> {
       return {
         id,
         resource,
-        release: () => this.release(id)
+        release: () => this.release(id),
       };
     }
 
@@ -146,7 +146,11 @@ export class ResourcePool<T> {
   /**
    * Wait for a resource to become available
    */
-  private async waitForResource(): Promise<{ id: string; resource: T; release: () => Promise<void> }> {
+  private async waitForResource(): Promise<{
+    id: string;
+    resource: T;
+    release: () => Promise<void>;
+  }> {
     return new Promise((resolve, reject) => {
       const checkInterval = setInterval(async () => {
         try {
@@ -157,13 +161,13 @@ export class ResourcePool<T> {
               pooledResource.inUse = true;
               pooledResource.lastUsed = new Date();
               pooledResource.usageCount++;
-              
+
               this.updateMetrics();
-              
+
               resolve({
                 id,
                 resource: pooledResource.resource,
-                release: () => this.release(id)
+                release: () => this.release(id),
               });
               return;
             }
@@ -219,7 +223,7 @@ export class ResourcePool<T> {
    */
   private startCleanupTimer(): void {
     this.cleanupTimer = setInterval(() => {
-      this.cleanup().catch(error => {
+      this.cleanup().catch((error) => {
         logger.error('Resource pool cleanup failed', { error });
       });
     }, this.options.cleanupInterval);
@@ -231,13 +235,15 @@ export class ResourcePool<T> {
   private updateMetrics(): void {
     if (!this.options.enableMetrics) return;
 
-    this.metrics.currentActive = Array.from(this.pool.values()).filter(r => r.inUse).length;
+    this.metrics.currentActive = Array.from(this.pool.values()).filter((r) => r.inUse).length;
     this.metrics.currentIdle = this.pool.size - this.metrics.currentActive;
-    
+
     const totalRequests = this.metrics.totalCreated;
-    const hits = Array.from(this.pool.values()).reduce((sum, r) => sum + r.usageCount, 0) - this.metrics.totalCreated;
+    const hits =
+      Array.from(this.pool.values()).reduce((sum, r) => sum + r.usageCount, 0) -
+      this.metrics.totalCreated;
     this.metrics.hitRate = totalRequests > 0 ? hits / totalRequests : 0;
-    
+
     const totalUsage = Array.from(this.pool.values()).reduce((sum, r) => sum + r.usageCount, 0);
     this.metrics.averageUsage = this.pool.size > 0 ? totalUsage / this.pool.size : 0;
   }
@@ -275,7 +281,8 @@ export class ResourcePool<T> {
  * Temporary file manager with automatic cleanup
  */
 export class TempFileManager {
-  private tempFiles: Map<string, { path: string; createdAt: Date; options: TempFileOptions }> = new Map();
+  private tempFiles: Map<string, { path: string; createdAt: Date; options: TempFileOptions }> =
+    new Map();
   private cleanupTimer?: NodeJS.Timeout;
   private tempDir: string;
 
@@ -287,7 +294,9 @@ export class TempFileManager {
   /**
    * Create a temporary file
    */
-  async createTempFile(options: TempFileOptions = {}): Promise<{ path: string; cleanup: () => Promise<void> }> {
+  async createTempFile(
+    options: TempFileOptions = {}
+  ): Promise<{ path: string; cleanup: () => Promise<void> }> {
     const id = uuidv4();
     const filename = `${options.prefix || 'temp'}_${id}${options.suffix || '.tmp'}`;
     const directory = options.directory || this.tempDir;
@@ -302,21 +311,23 @@ export class TempFileManager {
     const tempFileInfo = {
       path: filePath,
       createdAt: new Date(),
-      options
+      options,
     };
 
     this.tempFiles.set(id, tempFileInfo);
 
     return {
       path: filePath,
-      cleanup: () => this.cleanupTempFile(id)
+      cleanup: () => this.cleanupTempFile(id),
     };
   }
 
   /**
    * Create a temporary directory
    */
-  async createTempDirectory(options: TempFileOptions = {}): Promise<{ path: string; cleanup: () => Promise<void> }> {
+  async createTempDirectory(
+    options: TempFileOptions = {}
+  ): Promise<{ path: string; cleanup: () => Promise<void> }> {
     const id = uuidv4();
     const dirname = `${options.prefix || 'temp'}_${id}`;
     const directory = options.directory || this.tempDir;
@@ -327,14 +338,14 @@ export class TempFileManager {
     const tempFileInfo = {
       path: dirPath,
       createdAt: new Date(),
-      options
+      options,
     };
 
     this.tempFiles.set(id, tempFileInfo);
 
     return {
       path: dirPath,
-      cleanup: () => this.cleanupTempFile(id)
+      cleanup: () => this.cleanupTempFile(id),
     };
   }
 
@@ -368,7 +379,7 @@ export class TempFileManager {
     for (const [id, tempFileInfo] of this.tempFiles.entries()) {
       const maxAge = tempFileInfo.options.maxAge || 3600000; // 1 hour default
       const age = now.getTime() - tempFileInfo.createdAt.getTime();
-      
+
       if (age > maxAge) {
         toCleanup.push(id);
       }
@@ -384,7 +395,7 @@ export class TempFileManager {
    */
   private startCleanupTimer(): void {
     this.cleanupTimer = setInterval(() => {
-      this.cleanupOldFiles().catch(error => {
+      this.cleanupOldFiles().catch((error) => {
         logger.error('Temp file cleanup failed', { error });
       });
     }, 300000); // Clean up every 5 minutes
@@ -405,7 +416,7 @@ export class TempFileManager {
       clearInterval(this.cleanupTimer);
     }
 
-    const cleanupPromises = Array.from(this.tempFiles.keys()).map(id => this.cleanupTempFile(id));
+    const cleanupPromises = Array.from(this.tempFiles.keys()).map((id) => this.cleanupTempFile(id));
     await Promise.all(cleanupPromises);
   }
 }
@@ -468,7 +479,7 @@ export class ResourceAllocator {
    * Destroy all pools and cleanup
    */
   async destroy(): Promise<void> {
-    const destroyPromises = Array.from(this.pools.values()).map(pool => pool.destroy());
+    const destroyPromises = Array.from(this.pools.values()).map((pool) => pool.destroy());
     await Promise.all(destroyPromises);
     this.pools.clear();
     await this.tempFileManager.destroy();

@@ -1,5 +1,5 @@
 import React, { useState, useRef, ChangeEvent, DragEvent } from 'react';
-import { UploadState } from '../types';
+import { UploadState } from '../types.js';
 
 interface FileUploaderProps {
   onFileSelected: (file: File) => void;

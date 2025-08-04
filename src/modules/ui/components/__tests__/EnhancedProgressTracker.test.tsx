@@ -5,8 +5,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { EnhancedProgressTracker } from '../EnhancedProgressTracker';
-import { ConversionStage, ProgressInfo } from '../EnhancedConversionUI';
+import { EnhancedProgressTracker } from '../EnhancedProgressTracker.js';
+import { ConversionStage, ProgressInfo } from '../EnhancedConversionUI.js';
 
 describe('EnhancedProgressTracker', () => {
   const createMockProgress = (overrides: Partial<ProgressInfo> = {}): ProgressInfo => ({

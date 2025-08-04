@@ -1,6 +1,6 @@
 /**
  * Module System Types
- * 
+ *
  * This file defines the interfaces and types for the standardized module system
  * including initialization, lifecycle management, and dependency injection.
  */
@@ -11,28 +11,28 @@
 export interface Module {
   /** Unique identifier for the module */
   readonly id: string;
-  
+
   /** Human-readable name of the module */
   readonly name: string;
-  
+
   /** Current lifecycle state of the module */
   readonly state: ModuleState;
-  
+
   /** Dependencies required by this module */
   readonly dependencies: string[];
-  
+
   /** Initialize the module with its dependencies */
   initialize(dependencies: DependencyContainer): Promise<void>;
-  
+
   /** Start the module (called after initialization) */
   start(): Promise<void>;
-  
+
   /** Stop the module gracefully */
   stop(): Promise<void>;
-  
+
   /** Clean up resources */
   destroy(): Promise<void>;
-  
+
   /** Get module health status */
   getHealth(): ModuleHealth;
 }
@@ -49,7 +49,7 @@ export enum ModuleState {
   STOPPING = 'stopping',
   STOPPED = 'stopped',
   ERROR = 'error',
-  DESTROYED = 'destroyed'
+  DESTROYED = 'destroyed',
 }
 
 /**
@@ -58,7 +58,7 @@ export enum ModuleState {
 export interface ModuleHealth {
   /** Overall health status */
   status: 'healthy' | 'degraded' | 'unhealthy';
-  
+
   /** Detailed health information */
   details: {
     uptime: number;
@@ -73,13 +73,13 @@ export interface ModuleHealth {
 export interface DependencyContainer {
   /** Get a dependency by its identifier */
   get<T>(identifier: string): T;
-  
+
   /** Check if a dependency is available */
   has(identifier: string): boolean;
-  
+
   /** Register a dependency */
   register<T>(identifier: string, instance: T): void;
-  
+
   /** Register a factory function for lazy initialization */
   registerFactory<T>(identifier: string, factory: () => T): void;
 }
@@ -90,16 +90,16 @@ export interface DependencyContainer {
 export interface ModuleConfig {
   /** Module identifier */
   id: string;
-  
+
   /** Module name */
   name: string;
-  
+
   /** Module dependencies */
   dependencies?: string[];
-  
+
   /** Module-specific configuration */
   config?: Record<string, any>;
-  
+
   /** Whether the module should start automatically */
   autoStart?: boolean;
 }
@@ -110,22 +110,22 @@ export interface ModuleConfig {
 export interface ModuleRegistry {
   /** Register a module */
   register(moduleClass: ModuleConstructor, config: ModuleConfig): void;
-  
+
   /** Get a module by its identifier */
   get(id: string): Module | undefined;
-  
+
   /** Get all registered modules */
   getAll(): Module[];
-  
+
   /** Initialize all modules */
   initializeAll(): Promise<void>;
-  
+
   /** Start all modules */
   startAll(): Promise<void>;
-  
+
   /** Stop all modules */
   stopAll(): Promise<void>;
-  
+
   /** Destroy all modules */
   destroyAll(): Promise<void>;
 }
@@ -133,7 +133,10 @@ export interface ModuleRegistry {
 /**
  * Module constructor type
  */
-export type ModuleConstructor = new (config: ModuleConfig, dependencies: DependencyContainer) => Module;
+export type ModuleConstructor = new (
+  config: ModuleConfig,
+  dependencies: DependencyContainer
+) => Module;
 
 /**
  * Base abstract class for modules
@@ -142,18 +145,18 @@ export abstract class BaseModule implements Module {
   public readonly id: string;
   public readonly name: string;
   public readonly dependencies: string[];
-  
+
   protected _state: ModuleState = ModuleState.UNINITIALIZED;
   protected _config: Record<string, any>;
   protected _dependencies: DependencyContainer | null = null;
   protected _startTime: number = 0;
   protected _lastError: Error | undefined;
-  
+
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -165,16 +168,16 @@ export abstract class BaseModule implements Module {
     this._config = config.config || {};
     this._dependencies = dependencies;
   }
-  
+
   public get state(): ModuleState {
     return this._state;
   }
-  
+
   /**
    * initialize method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -183,17 +186,17 @@ export abstract class BaseModule implements Module {
     if (this._state !== ModuleState.UNINITIALIZED) {
       throw new Error(`Module ${this.id} is already initialized`);
     }
-    
+
     this._state = ModuleState.INITIALIZING;
     this._dependencies = dependencies;
-    
+
     try {
       // Validate dependencies
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -201,9 +204,9 @@ export abstract class BaseModule implements Module {
       for (const dep of this.dependencies) {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -212,7 +215,7 @@ export abstract class BaseModule implements Module {
           throw new Error(`Missing dependency: ${dep}`);
         }
       }
-      
+
       await this.onInitialize();
       this._state = ModuleState.INITIALIZED;
     } catch (error) {
@@ -221,12 +224,12 @@ export abstract class BaseModule implements Module {
       throw error;
     }
   }
-  
+
   /**
    * start method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -235,9 +238,9 @@ export abstract class BaseModule implements Module {
     if (this._state !== ModuleState.INITIALIZED) {
       throw new Error(`Module ${this.id} must be initialized before starting`);
     }
-    
+
     this._state = ModuleState.STARTING;
-    
+
     try {
       await this.onStart();
       this._state = ModuleState.RUNNING;
@@ -248,12 +251,12 @@ export abstract class BaseModule implements Module {
       throw error;
     }
   }
-  
+
   /**
    * stop method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -262,9 +265,9 @@ export abstract class BaseModule implements Module {
     if (this._state !== ModuleState.RUNNING) {
       return; // Already stopped or not running
     }
-    
+
     this._state = ModuleState.STOPPING;
-    
+
     try {
       await this.onStop();
       this._state = ModuleState.STOPPED;
@@ -274,12 +277,12 @@ export abstract class BaseModule implements Module {
       throw error;
     }
   }
-  
+
   /**
    * destroy method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -288,7 +291,7 @@ export abstract class BaseModule implements Module {
     if (this._state === ModuleState.RUNNING) {
       await this.stop();
     }
-    
+
     try {
       await this.onDestroy();
       this._state = ModuleState.DESTROYED;
@@ -298,26 +301,26 @@ export abstract class BaseModule implements Module {
       throw error;
     }
   }
-  
+
   /**
    * getHealth method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
   public getHealth(): ModuleHealth {
     const uptime = this._startTime > 0 ? Date.now() - this._startTime : 0;
-    
+
     let status: 'healthy' | 'degraded' | 'unhealthy';
-    
+
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -333,24 +336,24 @@ export abstract class BaseModule implements Module {
       default:
         status = 'unhealthy';
     }
-    
+
     return {
       status,
       details: {
         uptime,
         lastError: this._lastError,
-        metrics: this.getMetrics()
-      }
+        metrics: this.getMetrics(),
+      },
     };
   }
-  
+
   /** Get dependency by identifier */
   protected getDependency<T>(identifier: string): T {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -360,12 +363,12 @@ export abstract class BaseModule implements Module {
     }
     return this._dependencies.get<T>(identifier);
   }
-  
+
   /** Get configuration value */
   protected getConfig<T>(key: string, defaultValue?: T): T {
     return this._config[key] ?? defaultValue;
   }
-  
+
   // Abstract methods to be implemented by concrete modules
   protected abstract onInitialize(): Promise<void>;
   protected abstract onStart(): Promise<void>;
@@ -373,11 +376,10 @@ export abstract class BaseModule implements Module {
   protected abstract onDestroy(): Promise<void>;
   protected abstract getMetrics(): Record<string, any>;
 }
-//
- Logic Translation Module Types
 
-import { JavaSourceFile } from './base';
-import { APIMapping } from './api';
+// Logic Translation Module Types
+import { JavaSourceFile } from './base.js';
+import { APIMapping } from './api.js';
 
 /**
  * Input for the Logic Translation Engine
@@ -385,10 +387,10 @@ import { APIMapping } from './api';
 export interface LogicTranslationInput {
   /** Java source files to translate */
   javaSourceFiles: JavaSourceFile[];
-  
+
   /** Optional MMIR context for advanced translation */
   mmirContext?: MMIRContext;
-  
+
   /** Optional API mapping dictionary (if not provided, service will be used) */
   apiMappingDictionary?: Record<string, APIMapping>;
 }
@@ -399,10 +401,10 @@ export interface LogicTranslationInput {
 export interface LogicTranslationOutput {
   /** Generated JavaScript files */
   javascriptFiles: JavaScriptFile[];
-  
+
   /** Functions that could not be fully translated */
   stubFunctions: StubFunction[];
-  
+
   /** Notes and warnings from the conversion process */
   conversionNotes: LogicConversionNote[];
 }
@@ -413,13 +415,13 @@ export interface LogicTranslationOutput {
 export interface JavaScriptFile {
   /** File path for the generated JavaScript */
   path: string;
-  
+
   /** Generated JavaScript content */
   content: string;
-  
+
   /** Source map for debugging */
   sourceMap?: string;
-  
+
   /** Original Java file that generated this JavaScript */
   originalJavaFile: string;
 }
@@ -430,22 +432,22 @@ export interface JavaScriptFile {
 export interface StubFunction {
   /** Function name */
   name: string;
-  
+
   /** Original Java code */
   originalJavaCode: string;
-  
+
   /** JavaScript stub implementation */
   javascriptStub: string;
-  
+
   /** Reason why full translation was not possible */
   reason: string;
-  
+
   /** Suggested alternatives or workarounds */
   suggestedAlternatives?: string[];
-  
+
   /** Feature ID if related to a specific feature */
   featureId?: string;
-  
+
   /** Compromise strategy that was applied */
   strategyApplied?: string;
 }
@@ -456,10 +458,10 @@ export interface StubFunction {
 export interface MMIRContext {
   /** MMIR nodes representing code structures */
   nodes: MMIRNode[];
-  
+
   /** Relationships between nodes */
   relationships: MMIRRelationship[];
-  
+
   /** Metadata about the MMIR */
   metadata: MMIRMetadata;
 }
@@ -470,19 +472,19 @@ export interface MMIRContext {
 export interface MMIRNode {
   /** Unique identifier for the node */
   id: string;
-  
+
   /** Type of the node (class, method, field, etc.) */
   type: string;
-  
+
   /** Name of the code element */
   name: string;
-  
+
   /** Source location information */
   sourceLocation?: SourceLocation;
-  
+
   /** Child node IDs */
   children: string[];
-  
+
   /** Node-specific properties */
   properties: Record<string, any>;
 }
@@ -493,13 +495,13 @@ export interface MMIRNode {
 export interface MMIRRelationship {
   /** Source node ID */
   from: string;
-  
+
   /** Target node ID */
   to: string;
-  
+
   /** Type of relationship */
   type: 'extends' | 'implements' | 'calls' | 'references' | 'contains';
-  
+
   /** Additional relationship properties */
   properties?: Record<string, any>;
 }
@@ -510,16 +512,16 @@ export interface MMIRRelationship {
 export interface MMIRMetadata {
   /** Version of MMIR format */
   version: string;
-  
+
   /** Timestamp when MMIR was generated */
   generatedAt: Date;
-  
+
   /** Source files that contributed to this MMIR */
   sourceFiles: string[];
-  
+
   /** Mod loader information */
   modLoader: 'forge' | 'fabric';
-  
+
   /** Additional metadata */
   properties?: Record<string, any>;
 }
@@ -530,16 +532,16 @@ export interface MMIRMetadata {
 export interface SourceLocation {
   /** File path */
   file: string;
-  
+
   /** Starting line number */
   startLine: number;
-  
+
   /** Ending line number */
   endLine: number;
-  
+
   /** Starting column number */
   startColumn?: number;
-  
+
   /** Ending column number */
   endColumn?: number;
 }
@@ -550,16 +552,16 @@ export interface SourceLocation {
 export interface LogicConversionNote {
   /** Type/severity of the note */
   type: 'info' | 'warning' | 'error' | 'critical';
-  
+
   /** Note message */
   message: string;
-  
+
   /** Source location if applicable */
   sourceLocation?: SourceLocation;
-  
+
   /** Error/note code for categorization */
   code?: string;
-  
+
   /** Additional details */
   details?: Record<string, any>;
 }
@@ -570,22 +572,22 @@ export interface LogicConversionNote {
 export interface LogicFeature {
   /** Feature identifier */
   id: string;
-  
+
   /** Feature name */
   name: string;
-  
+
   /** Feature description */
   description: string;
-  
+
   /** Feature type */
   type: string;
-  
+
   /** Compatibility tier */
   compatibilityTier: 1 | 2 | 3 | 4;
-  
+
   /** Source files containing this feature */
   sourceFiles: string[];
-  
+
   /** Line numbers where feature is used */
   sourceLineNumbers: number[][];
 }

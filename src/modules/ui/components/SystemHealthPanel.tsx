@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { SystemHealthStatus, ErrorRateMetrics } from '../../../types/errors';
+import { SystemHealthStatus, ErrorRateMetrics } from '../../../types/errors.js';
 
 export interface SystemHealthPanelProps {
   health: SystemHealthStatus;

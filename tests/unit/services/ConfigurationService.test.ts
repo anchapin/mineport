@@ -9,9 +9,9 @@ describe('ConfigurationService', () => {
   beforeEach(() => {
     // Save original environment
     originalEnv = { ...process.env };
-    
+
     // Clear environment variables
-    Object.keys(process.env).forEach(key => {
+    Object.keys(process.env).forEach((key) => {
       if (key.startsWith('MODPORTER_')) {
         delete process.env[key];
       }
@@ -30,7 +30,7 @@ describe('ConfigurationService', () => {
     it('should return singleton instance', () => {
       const instance1 = ConfigurationService.getInstance();
       const instance2 = ConfigurationService.getInstance();
-      
+
       expect(instance1).toBe(instance2);
     });
   });
@@ -44,7 +44,7 @@ describe('ConfigurationService', () => {
       expect(config.fileProcessor.allowedMimeTypes).toEqual([
         'application/java-archive',
         'application/zip',
-        'application/x-zip-compressed'
+        'application/x-zip-compressed',
       ]);
       expect(config.fileProcessor.enableMalwareScanning).toBe(true);
       expect(config.javaAnalyzer.analysisTimeout).toBe(60000);
@@ -78,16 +78,10 @@ describe('ConfigurationService', () => {
 
       expect(config.fileProcessor.allowedMimeTypes).toEqual([
         'application/zip',
-        'application/x-zip'
+        'application/x-zip',
       ]);
-      expect(config.javaAnalyzer.extractionStrategies).toEqual([
-        'classFiles',
-        'jsonFiles'
-      ]);
-      expect(config.validationPipeline.requiredStages).toEqual([
-        'security',
-        'analysis'
-      ]);
+      expect(config.javaAnalyzer.extractionStrategies).toEqual(['classFiles', 'jsonFiles']);
+      expect(config.validationPipeline.requiredStages).toEqual(['security', 'analysis']);
     });
 
     it('should handle boolean environment variables correctly', () => {
@@ -120,7 +114,7 @@ describe('ConfigurationService', () => {
           tempDirectory: './temp',
           scanTimeout: 30000,
           maxCompressionRatio: 100,
-          maxExtractedSize: 1024 * 1024 * 1024
+          maxExtractedSize: 1024 * 1024 * 1024,
         },
         javaAnalyzer: {
           extractionStrategies: ['classFiles'],
@@ -128,7 +122,7 @@ describe('ConfigurationService', () => {
           enableBytecodeAnalysis: true,
           maxClassFilesToAnalyze: 1000,
           enableMultiStrategyExtraction: true,
-          fallbackToBasicAnalysis: true
+          fallbackToBasicAnalysis: true,
         },
         assetConverter: {
           textureOptimization: true,
@@ -136,7 +130,7 @@ describe('ConfigurationService', () => {
           soundConversionFormat: 'ogg',
           maxTextureSize: 1024,
           enableParallelConversion: true,
-          outputDirectory: './output'
+          outputDirectory: './output',
         },
         validationPipeline: {
           enableStrictValidation: false,
@@ -144,14 +138,14 @@ describe('ConfigurationService', () => {
           requiredStages: ['security'],
           enableParallelValidation: true,
           failFast: false,
-          validationTimeout: 30000
+          validationTimeout: 30000,
         },
         securityScanner: {
           enableZipBombDetection: true,
           enablePathTraversalCheck: true,
           enableMalwarePatternScanning: true,
           maxScanTime: 30000,
-          quarantineDirectory: './quarantine'
+          quarantineDirectory: './quarantine',
         },
         monitoring: {
           enableMetrics: true,
@@ -159,7 +153,7 @@ describe('ConfigurationService', () => {
           enableTracing: false,
           enableHealthChecks: true,
           healthCheckInterval: 30000,
-          alertingEnabled: false
+          alertingEnabled: false,
         },
         logging: {
           level: 'info',
@@ -169,12 +163,12 @@ describe('ConfigurationService', () => {
           enablePerformanceLogging: true,
           logDirectory: './logs',
           maxLogFileSize: 10 * 1024 * 1024,
-          maxLogFiles: 5
-        }
+          maxLogFiles: 5,
+        },
       };
 
       const result = configService.validateConfigurationObject(validConfig);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -185,7 +179,7 @@ describe('ConfigurationService', () => {
       invalidConfig.fileProcessor.allowedMimeTypes = [];
 
       const result = configService.validateConfigurationObject(invalidConfig);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(2);
       expect(result.errors[0].field).toBe('fileProcessor.maxFileSize');
@@ -198,7 +192,7 @@ describe('ConfigurationService', () => {
       invalidConfig.javaAnalyzer.maxClassFilesToAnalyze = 0;
 
       const result = configService.validateConfigurationObject(invalidConfig);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(2);
       expect(result.errors[0].field).toBe('javaAnalyzer.analysisTimeout');
@@ -211,7 +205,7 @@ describe('ConfigurationService', () => {
       invalidConfig.assetConverter.soundConversionFormat = 'mp3' as any;
 
       const result = configService.validateConfigurationObject(invalidConfig);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(2);
       expect(result.errors[0].field).toBe('assetConverter.modelConversionQuality');
@@ -223,7 +217,7 @@ describe('ConfigurationService', () => {
       invalidConfig.validationPipeline.maxValidationTime = -1;
 
       const result = configService.validateConfigurationObject(invalidConfig);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].field).toBe('validationPipeline.maxValidationTime');
@@ -234,7 +228,7 @@ describe('ConfigurationService', () => {
       invalidConfig.monitoring.metricsPort = 70000; // Invalid port
 
       const result = configService.validateConfigurationObject(invalidConfig);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].field).toBe('monitoring.metricsPort');
@@ -246,7 +240,7 @@ describe('ConfigurationService', () => {
       invalidConfig.logging.format = 'xml' as any;
 
       const result = configService.validateConfigurationObject(invalidConfig);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(2);
       expect(result.errors[0].field).toBe('logging.level');
@@ -258,7 +252,7 @@ describe('ConfigurationService', () => {
       configWithWarnings.fileProcessor.maxFileSize = 2 * 1024 * 1024 * 1024; // 2GB - very large
 
       const result = configService.validateConfigurationObject(configWithWarnings);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.warnings).toHaveLength(1);
       expect(result.warnings[0].field).toBe('fileProcessor.maxFileSize');
@@ -272,7 +266,7 @@ describe('ConfigurationService', () => {
 
     it('should return file processor configuration', () => {
       const config = configService.getFileProcessorConfig();
-      
+
       expect(config).toHaveProperty('maxFileSize');
       expect(config).toHaveProperty('allowedMimeTypes');
       expect(config).toHaveProperty('enableMalwareScanning');
@@ -280,7 +274,7 @@ describe('ConfigurationService', () => {
 
     it('should return Java analyzer configuration', () => {
       const config = configService.getJavaAnalyzerConfig();
-      
+
       expect(config).toHaveProperty('extractionStrategies');
       expect(config).toHaveProperty('analysisTimeout');
       expect(config).toHaveProperty('enableBytecodeAnalysis');
@@ -288,7 +282,7 @@ describe('ConfigurationService', () => {
 
     it('should return asset converter configuration', () => {
       const config = configService.getAssetConverterConfig();
-      
+
       expect(config).toHaveProperty('textureOptimization');
       expect(config).toHaveProperty('modelConversionQuality');
       expect(config).toHaveProperty('soundConversionFormat');
@@ -296,7 +290,7 @@ describe('ConfigurationService', () => {
 
     it('should return validation pipeline configuration', () => {
       const config = configService.getValidationPipelineConfig();
-      
+
       expect(config).toHaveProperty('enableStrictValidation');
       expect(config).toHaveProperty('maxValidationTime');
       expect(config).toHaveProperty('requiredStages');
@@ -304,7 +298,7 @@ describe('ConfigurationService', () => {
 
     it('should return security scanner configuration', () => {
       const config = configService.getSecurityScannerConfig();
-      
+
       expect(config).toHaveProperty('enableZipBombDetection');
       expect(config).toHaveProperty('enablePathTraversalCheck');
       expect(config).toHaveProperty('enableMalwarePatternScanning');
@@ -312,7 +306,7 @@ describe('ConfigurationService', () => {
 
     it('should return monitoring configuration', () => {
       const config = configService.getMonitoringConfig();
-      
+
       expect(config).toHaveProperty('enableMetrics');
       expect(config).toHaveProperty('metricsPort');
       expect(config).toHaveProperty('enableHealthChecks');
@@ -320,7 +314,7 @@ describe('ConfigurationService', () => {
 
     it('should return logging configuration', () => {
       const config = configService.getLoggingConfig();
-      
+
       expect(config).toHaveProperty('level');
       expect(config).toHaveProperty('format');
       expect(config).toHaveProperty('enableStructuredLogging');
@@ -334,12 +328,12 @@ describe('ConfigurationService', () => {
 
     it('should reload configuration from environment', () => {
       const originalMaxSize = configService.getFileProcessorConfig().maxFileSize;
-      
+
       // Change environment variable
       process.env.MODPORTER_FILE_MAX_SIZE = '200000000'; // 200MB
-      
+
       configService.reloadConfiguration();
-      
+
       const newMaxSize = configService.getFileProcessorConfig().maxFileSize;
       expect(newMaxSize).toBe(200000000);
       expect(newMaxSize).not.toBe(originalMaxSize);
@@ -348,7 +342,7 @@ describe('ConfigurationService', () => {
     it('should throw error when reloading invalid configuration', () => {
       // Set invalid environment variable
       process.env.MODPORTER_FILE_MAX_SIZE = '-1';
-      
+
       expect(() => {
         configService.reloadConfiguration();
       }).toThrow('Invalid configuration');
@@ -363,10 +357,10 @@ describe('ConfigurationService', () => {
     it('should return copies of configuration objects', () => {
       const config1 = configService.getConfig();
       const config2 = configService.getConfig();
-      
+
       expect(config1).not.toBe(config2); // Different objects
       expect(config1).toEqual(config2); // Same content
-      
+
       // Modifying one should not affect the other
       config1.fileProcessor.maxFileSize = 999;
       expect(config2.fileProcessor.maxFileSize).not.toBe(999);
@@ -375,10 +369,10 @@ describe('ConfigurationService', () => {
     it('should return copies of specific configuration sections', () => {
       const fileConfig1 = configService.getFileProcessorConfig();
       const fileConfig2 = configService.getFileProcessorConfig();
-      
+
       expect(fileConfig1).not.toBe(fileConfig2);
       expect(fileConfig1).toEqual(fileConfig2);
-      
+
       fileConfig1.maxFileSize = 999;
       expect(fileConfig2.maxFileSize).not.toBe(999);
     });

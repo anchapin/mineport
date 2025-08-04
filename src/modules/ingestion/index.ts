@@ -1,26 +1,44 @@
 /**
  * Ingestion & Analysis Module
- * 
+ *
  * This module is responsible for accepting Java mod input, validating it, and performing initial analysis.
  * It includes components for mod validation, source code fetching, mod loader detection,
  * license parsing, and feature compatibility analysis.
  */
 
-import { ModValidator, ModValidationResult } from './ModValidator';
-import { SourceCodeFetcher, SourceCodeFetchOptions, SourceCodeFetchResult } from './SourceCodeFetcher';
-import { ModLoaderDetector, ModLoaderType, ModLoaderDetectionResult } from './ModLoaderDetector';
-import { LicenseParser, LicenseInfo as LicenseInfoType, LicenseParseResult } from './LicenseParser';
-import { FeatureCompatibilityAnalyzer, FeatureAnalysisResult } from './FeatureCompatibilityAnalyzer';
-import { FileProcessor } from './FileProcessor';
-import { SecurityScanner } from './SecurityScanner';
-import { JavaAnalyzer, AnalysisResult, ManifestInfo, Dependency, AnalysisNote } from './JavaAnalyzer';
-import { ManifestParser, ParsedManifest, ManifestDependency, ManifestParseResult } from './ManifestParser';
+import { ModValidator, ModValidationResult } from './ModValidator.js';
+import {
+  SourceCodeFetcher,
+  SourceCodeFetchOptions,
+  SourceCodeFetchResult,
+} from './SourceCodeFetcher.js';
+import { ModLoaderDetector, ModLoaderType, ModLoaderDetectionResult } from './ModLoaderDetector.js';
+import { LicenseParser, LicenseInfo as LicenseInfoType, LicenseParseResult } from './LicenseParser.js';
+import {
+  FeatureCompatibilityAnalyzer,
+  FeatureAnalysisResult,
+} from './FeatureCompatibilityAnalyzer.js';
+import { FileProcessor } from './FileProcessor.js';
+import { SecurityScanner } from './SecurityScanner.js';
+import {
+  JavaAnalyzer,
+  AnalysisResult,
+  ManifestInfo,
+  Dependency,
+  AnalysisNote,
+} from './JavaAnalyzer.js';
+import {
+  ManifestParser,
+  ParsedManifest,
+  ManifestDependency,
+  ManifestParseResult,
+} from './ManifestParser.js';
 
 /**
  * ModInput interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ModInput {
@@ -30,9 +48,9 @@ export interface ModInput {
 
 /**
  * AnalysisResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface AnalysisResult {
@@ -46,9 +64,9 @@ export interface AnalysisResult {
 
 /**
  * LicenseInfo interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface LicenseInfo {
@@ -61,9 +79,9 @@ export interface LicenseInfo {
 
 /**
  * FeatureCompatibilityReport interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface FeatureCompatibilityReport {
@@ -75,9 +93,9 @@ export interface FeatureCompatibilityReport {
 
 /**
  * Feature interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface Feature {
@@ -92,9 +110,9 @@ export interface Feature {
 
 /**
  * CompromiseStrategy interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface CompromiseStrategy {
@@ -117,9 +135,9 @@ export { ManifestParser, ParsedManifest, ManifestDependency, ManifestParseResult
 
 /**
  * IngestionModule class.
- * 
+ *
  * TODO: Add detailed description of the class purpose and functionality.
- * 
+ *
  * @since 1.0.0
  */
 export class IngestionModule {
@@ -128,12 +146,12 @@ export class IngestionModule {
   private modLoaderDetector: ModLoaderDetector;
   private licenseParser: LicenseParser;
   private featureAnalyzer: FeatureCompatibilityAnalyzer;
-  
+
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -145,12 +163,12 @@ export class IngestionModule {
     this.licenseParser = new LicenseParser();
     this.featureAnalyzer = new FeatureCompatibilityAnalyzer();
   }
-  
+
   /**
    * processModInput method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -158,12 +176,12 @@ export class IngestionModule {
   async processModInput(input: ModInput): Promise<AnalysisResult> {
     // Validate the mod file
     const validationResult = await this.modValidator.validateMod(input.jarFile);
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -171,14 +189,14 @@ export class IngestionModule {
     if (!validationResult.isValid) {
       throw new Error(`Invalid mod file: ${validationResult.errors?.join(', ')}`);
     }
-    
+
     // Extract source code if repository is provided
     let sourceCodePath = validationResult.extractedPath;
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -188,12 +206,12 @@ export class IngestionModule {
         repoUrl: input.sourceCodeRepo,
         modId: validationResult.modInfo?.modId || '',
       });
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -202,23 +220,23 @@ export class IngestionModule {
         sourceCodePath = sourceCodeResult.sourcePath;
       }
     }
-    
+
     // Detect mod loader type
     const modLoaderResult = await this.modLoaderDetector.detectModLoader(sourceCodePath!);
-    
+
     if (modLoaderResult.modLoader === 'unknown') {
       throw new Error('Could not determine mod loader type');
     }
-    
+
     // Parse license information
     const licenseResult = await this.licenseParser.parseLicense(sourceCodePath!);
-    
+
     // Analyze feature compatibility
     const featureAnalysisResult = await this.featureAnalyzer.analyzeFeatures(
       sourceCodePath!,
       modLoaderResult.modLoader
     );
-    
+
     // Return the complete analysis result
     return {
       modId: validationResult.modInfo?.modId || '',

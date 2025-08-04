@@ -12,12 +12,15 @@ export function createMockFileBuffer(content: string): Buffer {
 /**
  * Creates a mock JAR file structure for testing
  */
-export function createMockJarStructure(modId: string, modLoader: 'forge' | 'fabric'): Record<string, string> {
+export function createMockJarStructure(
+  modId: string,
+  modLoader: 'forge' | 'fabric'
+): Record<string, string> {
   const structure: Record<string, string> = {
     'META-INF/MANIFEST.MF': `Manifest-Version: 1.0\nModId: ${modId}\nVersion: 1.0.0`,
-    'LICENSE': 'MIT License\n\nCopyright (c) 2023 Test Author\n',
+    LICENSE: 'MIT License\n\nCopyright (c) 2023 Test Author\n',
   };
-  
+
   if (modLoader === 'forge') {
     structure['META-INF/mods.toml'] = `modId="${modId}"\nversion="1.0.0"\ndisplayName="Test Mod"`;
     structure['net/minecraft/test/TestMod.class'] = 'mock class file content';
@@ -25,7 +28,7 @@ export function createMockJarStructure(modId: string, modLoader: 'forge' | 'fabr
     structure['fabric.mod.json'] = `{"id": "${modId}", "version": "1.0.0", "name": "Test Mod"}`;
     structure['net/minecraft/test/TestMod.class'] = 'mock class file content';
   }
-  
+
   return structure;
 }
 
@@ -39,7 +42,7 @@ export function createMockGitHubResponse(repoName: string, files: string[]): any
       default_branch: 'main',
       contents_url: 'https://api.github.com/repos/owner/{repoName}/contents/{+path}',
       trees_url: 'https://api.github.com/repos/owner/{repoName}/git/trees/{/sha}',
-      tree: files.map(file => ({
+      tree: files.map((file) => ({
         path: file,
         type: file.endsWith('/') ? 'tree' : 'blob',
         sha: `mock-sha-${file.replace(/[^a-z0-9]/g, '')}`,
@@ -118,7 +121,7 @@ export function mockUnzipper(fileStructure: Record<string, string>): void {
       Open: {
         buffer: vi.fn(async (buffer: Buffer) => {
           return {
-            files: Object.keys(fileStructure).map(filePath => ({
+            files: Object.keys(fileStructure).map((filePath) => ({
               path: filePath,
               type: 'File',
               buffer: async () => Buffer.from(fileStructure[filePath]),

@@ -1,23 +1,26 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { RenderingStubGenerator, DetectedRenderingPattern } from '../../../../src/modules/compromise/RenderingStubGenerator';
-import { Feature } from '../../../../src/types/compromise';
-import { Logger } from '../../../../src/utils/logger';
+import {
+  RenderingStubGenerator,
+  DetectedRenderingPattern,
+} from '../../../../src/modules/compromise/RenderingStubGenerator.js';
+import { Feature } from '../../../../src/types/compromise.js';
+import { Logger } from '../../../../src/utils/logger.js';
 
 // Mock logger
 const mockLogger = {
   debug: vi.fn(),
   info: vi.fn(),
   warn: vi.fn(),
-  error: vi.fn()
+  error: vi.fn(),
 } as unknown as Logger;
 
 describe('RenderingStubGenerator', () => {
   let generator: RenderingStubGenerator;
   let testFeature: Feature;
-  
+
   beforeEach(() => {
     generator = new RenderingStubGenerator(mockLogger);
-    
+
     testFeature = {
       id: 'custom-renderer',
       name: 'Custom Block Renderer',
@@ -25,12 +28,12 @@ describe('RenderingStubGenerator', () => {
       type: 'rendering',
       compatibilityTier: 3,
       sourceFiles: ['CustomBlockRenderer.java'],
-      sourceLineNumbers: [[10, 50]]
+      sourceLineNumbers: [[10, 50]],
     };
-    
+
     vi.clearAllMocks();
   });
-  
+
   it('should detect custom model renderer code', () => {
     const javaCode = `
       public class CustomModelRenderer extends ModelRenderer {
@@ -41,15 +44,17 @@ describe('RenderingStubGenerator', () => {
         }
       }
     `;
-    
+
     const detectedPatterns = generator.detectRenderingCode(javaCode);
-    
+
     expect(detectedPatterns).toHaveLength(1);
     expect(detectedPatterns[0].patternId).toBe('custom-model-renderer');
     expect(detectedPatterns[0].category).toBe('model-rendering');
-    expect(mockLogger.debug).toHaveBeenCalledWith('Detected rendering pattern: Custom Model Renderer');
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      'Detected rendering pattern: Custom Model Renderer'
+    );
   });
-  
+
   it('should detect shader program code', () => {
     const javaCode = `
       public class CustomShader {
@@ -68,14 +73,14 @@ describe('RenderingStubGenerator', () => {
         }
       }
     `;
-    
+
     const detectedPatterns = generator.detectRenderingCode(javaCode);
-    
+
     expect(detectedPatterns).toHaveLength(1);
     expect(detectedPatterns[0].patternId).toBe('shader-program');
     expect(detectedPatterns[0].category).toBe('shaders');
   });
-  
+
   it('should detect multiple rendering patterns in the same file', () => {
     const javaCode = `
       public class ComplexRenderer extends TileEntitySpecialRenderer {
@@ -97,34 +102,34 @@ describe('RenderingStubGenerator', () => {
         }
       }
     `;
-    
+
     const detectedPatterns = generator.detectRenderingCode(javaCode);
-    
+
     expect(detectedPatterns.length).toBeGreaterThan(1);
-    
-    const patternIds = detectedPatterns.map(pattern => pattern.patternId);
+
+    const patternIds = detectedPatterns.map((pattern) => pattern.patternId);
     expect(patternIds).toContain('shader-program');
     expect(patternIds).toContain('tile-entity-renderer');
     expect(patternIds).toContain('gui-rendering');
   });
-  
+
   it('should generate stub code for a detected pattern', () => {
     const detectedPattern: DetectedRenderingPattern = {
       patternId: 'custom-model-renderer',
       patternName: 'Custom Model Renderer',
       category: 'model-rendering',
-      matches: ['extends ModelRenderer']
+      matches: ['extends ModelRenderer'],
     };
-    
+
     const stub = generator.generateStub(testFeature, detectedPattern);
-    
+
     expect(stub).toBeDefined();
     expect(stub.featureId).toBe(testFeature.id);
     expect(stub.patternId).toBe(detectedPattern.patternId);
     expect(stub.category).toBe(detectedPattern.category);
     expect(stub.recommendations).toBeDefined();
     expect(stub.recommendations.length).toBeGreaterThan(0);
-    
+
     // Check that the stub code contains key elements
     expect(stub.stubCode).toContain('STUBBED RENDERING CODE: Custom Model Renderer');
     expect(stub.stubCode).toContain('export class CustomBlockRendererStub');
@@ -132,15 +137,17 @@ describe('RenderingStubGenerator', () => {
     expect(stub.stubCode).toContain('renderModel(entity, partialTicks, matrixStack)');
     expect(stub.stubCode).toContain('getStubInfo()');
     expect(stub.stubCode).toContain('createCustomBlockRendererStub()');
-    
+
     // Check that recommendations are included in the stub
-    stub.recommendations.forEach(recommendation => {
+    stub.recommendations.forEach((recommendation) => {
       expect(stub.stubCode).toContain(recommendation);
     });
-    
-    expect(mockLogger.info).toHaveBeenCalledWith('Generating stub for rendering pattern: Custom Model Renderer');
+
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'Generating stub for rendering pattern: Custom Model Renderer'
+    );
   });
-  
+
   it('should generate different method signatures based on pattern category', () => {
     const categories = [
       'model-rendering',
@@ -150,9 +157,9 @@ describe('RenderingStubGenerator', () => {
       'entity-rendering',
       'gui',
       'item-models',
-      'tile-entity-rendering'
+      'tile-entity-rendering',
     ];
-    
+
     const expectedMethods = [
       'renderModel(entity, partialTicks, matrixStack)',
       'applyShader(target, shader, uniforms)',
@@ -161,22 +168,22 @@ describe('RenderingStubGenerator', () => {
       'renderEntity(entity, x, y, z, partialTicks)',
       'drawScreen(mouseX, mouseY, partialTicks)',
       'renderItem(item, transformType)',
-      'renderTileEntity(tileEntity, x, y, z, partialTicks)'
+      'renderTileEntity(tileEntity, x, y, z, partialTicks)',
     ];
-    
+
     categories.forEach((category, index) => {
       const detectedPattern: DetectedRenderingPattern = {
         patternId: `test-${category}`,
         patternName: `Test ${category}`,
         category: category,
-        matches: [`test-${category}-match`]
+        matches: [`test-${category}-match`],
       };
-      
+
       const stub = generator.generateStub(testFeature, detectedPattern);
       expect(stub.stubCode).toContain(expectedMethods[index]);
     });
   });
-  
+
   it('should not detect rendering code in unrelated Java code', () => {
     const javaCode = `
       public class SimpleClass {
@@ -191,9 +198,9 @@ describe('RenderingStubGenerator', () => {
         }
       }
     `;
-    
+
     const detectedPatterns = generator.detectRenderingCode(javaCode);
-    
+
     expect(detectedPatterns).toHaveLength(0);
   });
 });

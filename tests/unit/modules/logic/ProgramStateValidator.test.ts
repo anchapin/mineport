@@ -7,14 +7,14 @@ import { ProgramStateValidator } from '../../../../src/modules/logic/ProgramStat
 import {
   TranslationContext,
   ValidationResult,
-  FunctionalDifference
+  FunctionalDifference,
 } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', () => ({
   logger: {
     debug: vi.fn(),
-    error: vi.fn()
-  }
+    error: vi.fn(),
+  },
 }));
 
 describe('ProgramStateValidator', () => {
@@ -27,7 +27,7 @@ describe('ProgramStateValidator', () => {
       enableSemanticAnalysis: true,
       enableBehaviorAnalysis: true,
       confidenceThreshold: 0.8,
-      timeoutMs: 10000
+      timeoutMs: 10000,
     });
 
     mockContext = {
@@ -36,7 +36,7 @@ describe('ProgramStateValidator', () => {
         version: '1.0.0',
         modLoader: 'forge',
         minecraftVersion: '1.19.2',
-        dependencies: []
+        dependencies: [],
       },
       apiMappings: [],
       targetVersion: '1.20.0',
@@ -44,14 +44,14 @@ describe('ProgramStateValidator', () => {
         name: 'default',
         type: 'stub',
         description: 'Default strategy',
-        implementation: 'stub'
+        implementation: 'stub',
       },
       userPreferences: {
         compromiseLevel: 'moderate',
         preserveComments: true,
         generateDocumentation: true,
-        optimizePerformance: false
-      }
+        optimizePerformance: false,
+      },
     };
   });
 
@@ -102,9 +102,9 @@ describe('ProgramStateValidator', () => {
 
       expect(result.isEquivalent).toBe(false);
       expect(result.differences.length).toBeGreaterThan(0);
-      
-      const missingMethodDiff = result.differences.find(
-        diff => diff.description.includes('method2')
+
+      const missingMethodDiff = result.differences.find((diff) =>
+        diff.description.includes('method2')
       );
       expect(missingMethodDiff).toBeDefined();
       expect(missingMethodDiff?.severity).toBe('high');
@@ -138,9 +138,9 @@ describe('ProgramStateValidator', () => {
       const result = await validator.validate(simpleJavaCode, complexJsCode, mockContext);
 
       expect(result.differences.length).toBeGreaterThan(0);
-      
-      const complexityDiff = result.differences.find(
-        diff => diff.description.includes('complexity difference')
+
+      const complexityDiff = result.differences.find((diff) =>
+        diff.description.includes('complexity difference')
       );
       expect(complexityDiff).toBeDefined();
       expect(complexityDiff?.severity).toBe('medium');
@@ -168,9 +168,9 @@ describe('ProgramStateValidator', () => {
       const result = await validator.validate(syncJavaCode, asyncJsCode, mockContext);
 
       expect(result.differences.length).toBeGreaterThan(0);
-      
-      const asyncDiff = result.differences.find(
-        diff => diff.description.includes('Asynchronous behavior')
+
+      const asyncDiff = result.differences.find((diff) =>
+        diff.description.includes('Asynchronous behavior')
       );
       expect(asyncDiff).toBeDefined();
       expect(asyncDiff?.severity).toBe('medium');
@@ -197,12 +197,16 @@ describe('ProgramStateValidator', () => {
         }
       `;
 
-      const result = await validator.validate(javaCodeWithExceptions, jsCodeWithoutExceptions, mockContext);
+      const result = await validator.validate(
+        javaCodeWithExceptions,
+        jsCodeWithoutExceptions,
+        mockContext
+      );
 
       expect(result.differences.length).toBeGreaterThan(0);
-      
-      const errorHandlingDiff = result.differences.find(
-        diff => diff.description.includes('exception handling')
+
+      const errorHandlingDiff = result.differences.find((diff) =>
+        diff.description.includes('exception handling')
       );
       expect(errorHandlingDiff).toBeDefined();
       expect(errorHandlingDiff?.severity).toBe('medium');
@@ -210,13 +214,13 @@ describe('ProgramStateValidator', () => {
 
     it('should handle validation timeout', async () => {
       const shortTimeoutValidator = new ProgramStateValidator({
-        timeoutMs: 100 // Very short timeout
+        timeoutMs: 100, // Very short timeout
       });
 
       // Mock the analysis methods to take longer than timeout
       const originalAnalyze = (shortTimeoutValidator as any).staticAnalyzer.analyze;
       (shortTimeoutValidator as any).staticAnalyzer.analyze = vi.fn().mockImplementation(() => {
-        return new Promise(resolve => setTimeout(resolve, 200));
+        return new Promise((resolve) => setTimeout(resolve, 200));
       });
 
       const javaCode = 'public class Test {}';
@@ -250,7 +254,7 @@ describe('ProgramStateValidator', () => {
       const result = await validator.validate(javaCode, jsCode, mockContext);
 
       expect(result.differences.length).toBeGreaterThan(0);
-      
+
       // Check that differences are sorted by severity
       for (let i = 0; i < result.differences.length - 1; i++) {
         const currentSeverity = getSeverityOrder(result.differences[i].severity);
@@ -281,10 +285,10 @@ describe('ProgramStateValidator', () => {
 
       expect(result.recommendations).toBeInstanceOf(Array);
       expect(result.recommendations.length).toBeGreaterThan(0);
-      
+
       // Should contain relevant recommendations
-      const hasStructuralRec = result.recommendations.some(rec => 
-        rec.includes('structure') || rec.includes('semantic') || rec.includes('behavioral')
+      const hasStructuralRec = result.recommendations.some(
+        (rec) => rec.includes('structure') || rec.includes('semantic') || rec.includes('behavioral')
       );
       expect(hasStructuralRec).toBe(true);
     });
@@ -322,14 +326,14 @@ describe('ProgramStateValidator', () => {
       `;
 
       const highSimilarityResult = await validator.validate(
-        highSimilarityJavaCode, 
-        highSimilarityJsCode, 
+        highSimilarityJavaCode,
+        highSimilarityJsCode,
         mockContext
       );
-      
+
       const lowSimilarityResult = await validator.validate(
-        lowSimilarityJavaCode, 
-        lowSimilarityJsCode, 
+        lowSimilarityJavaCode,
+        lowSimilarityJsCode,
         mockContext
       );
 
@@ -349,11 +353,11 @@ describe('ProgramStateValidator', () => {
 
     it('should respect confidence threshold setting', async () => {
       const highThresholdValidator = new ProgramStateValidator({
-        confidenceThreshold: 0.95
+        confidenceThreshold: 0.95,
       });
 
       const lowThresholdValidator = new ProgramStateValidator({
-        confidenceThreshold: 0.5
+        confidenceThreshold: 0.5,
       });
 
       const javaCode = `
@@ -372,8 +376,16 @@ describe('ProgramStateValidator', () => {
         }
       `;
 
-      const highThresholdResult = await highThresholdValidator.validate(javaCode, jsCode, mockContext);
-      const lowThresholdResult = await lowThresholdValidator.validate(javaCode, jsCode, mockContext);
+      const highThresholdResult = await highThresholdValidator.validate(
+        javaCode,
+        jsCode,
+        mockContext
+      );
+      const lowThresholdResult = await lowThresholdValidator.validate(
+        javaCode,
+        jsCode,
+        mockContext
+      );
 
       // Same code, but different thresholds might lead to different equivalence decisions
       expect(typeof highThresholdResult.isEquivalent).toBe('boolean');
@@ -384,7 +396,7 @@ describe('ProgramStateValidator', () => {
       const limitedValidator = new ProgramStateValidator({
         enableStaticAnalysis: true,
         enableSemanticAnalysis: false,
-        enableBehaviorAnalysis: false
+        enableBehaviorAnalysis: false,
       });
 
       const javaCode = `
@@ -417,8 +429,8 @@ describe('ProgramStateValidator', () => {
         ...mockContext,
         userPreferences: {
           ...mockContext.userPreferences,
-          compromiseLevel: 'minimal' as const
-        }
+          compromiseLevel: 'minimal' as const,
+        },
       };
 
       const javaCode = `
@@ -440,10 +452,10 @@ describe('ProgramStateValidator', () => {
       const result = await validator.validate(javaCode, jsCode, minimalCompromiseContext);
 
       expect(result.recommendations).toBeInstanceOf(Array);
-      
+
       // Should include context-specific recommendations
-      const hasConservativeRec = result.recommendations.some(rec => 
-        rec.includes('conservative') || rec.includes('minimal')
+      const hasConservativeRec = result.recommendations.some(
+        (rec) => rec.includes('conservative') || rec.includes('minimal')
       );
       expect(hasConservativeRec).toBe(true);
     });

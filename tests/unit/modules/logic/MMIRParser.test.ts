@@ -9,8 +9,8 @@ import { MMIRRepresentation } from '../../../../src/types/logic-translation.js';
 vi.mock('../../../../src/utils/logger.js', () => ({
   logger: {
     debug: vi.fn(),
-    error: vi.fn()
-  }
+    error: vi.fn(),
+  },
 }));
 
 describe('MMIRParser', () => {
@@ -45,7 +45,7 @@ describe('MMIRParser', () => {
 
       // Check AST structure
       expect(result.ast.length).toBeGreaterThan(0);
-      const classNode = result.ast.find(node => node.type === 'ClassDeclaration');
+      const classNode = result.ast.find((node) => node.type === 'ClassDeclaration');
       expect(classNode).toBeDefined();
       expect(classNode?.value).toBe('TestClass');
     });
@@ -63,21 +63,21 @@ describe('MMIRParser', () => {
       const result = await parser.parse(javaCode);
 
       expect(result.metadata.imports).toHaveLength(3);
-      
-      const javaImport = result.metadata.imports.find(imp => imp.packageName === 'java.util');
+
+      const javaImport = result.metadata.imports.find((imp) => imp.packageName === 'java.util');
       expect(javaImport).toBeDefined();
       expect(javaImport?.className).toBe('List');
       expect(javaImport?.isStatic).toBe(false);
 
-      const staticImport = result.metadata.imports.find(imp => imp.isStatic);
+      const staticImport = result.metadata.imports.find((imp) => imp.isStatic);
       expect(staticImport).toBeDefined();
       expect(staticImport?.isWildcard).toBe(true);
 
       // Check dependencies
-      const minecraftDep = result.dependencies.find(dep => dep.type === 'minecraft');
+      const minecraftDep = result.dependencies.find((dep) => dep.type === 'minecraft');
       expect(minecraftDep).toBeDefined();
-      
-      const forgeDep = result.dependencies.find(dep => dep.type === 'forge');
+
+      const forgeDep = result.dependencies.find((dep) => dep.type === 'forge');
       expect(forgeDep).toBeDefined();
     });
 
@@ -93,14 +93,14 @@ describe('MMIRParser', () => {
       const result = await parser.parse(javaCode);
 
       expect(result.metadata.methods).toHaveLength(3);
-      
-      const publicMethod = result.metadata.methods.find(m => m.name === 'publicMethod');
+
+      const publicMethod = result.metadata.methods.find((m) => m.name === 'publicMethod');
       expect(publicMethod).toBeDefined();
-      
-      const privateMethod = result.metadata.methods.find(m => m.name === 'privateMethod');
+
+      const privateMethod = result.metadata.methods.find((m) => m.name === 'privateMethod');
       expect(privateMethod).toBeDefined();
-      
-      const staticMethod = result.metadata.methods.find(m => m.name === 'staticMethod');
+
+      const staticMethod = result.metadata.methods.find((m) => m.name === 'staticMethod');
       expect(staticMethod).toBeDefined();
     });
 
@@ -126,15 +126,9 @@ describe('MMIRParser', () => {
       expect(result.complexity.nestingDepth).toBeGreaterThan(2);
 
       // Check AST contains control flow nodes
-      const hasIfStatement = result.ast.some(node => 
-        containsNodeType(node, 'IfStatement')
-      );
-      const hasForLoop = result.ast.some(node => 
-        containsNodeType(node, 'ForLoop')
-      );
-      const hasWhileLoop = result.ast.some(node => 
-        containsNodeType(node, 'WhileLoop')
-      );
+      const hasIfStatement = result.ast.some((node) => containsNodeType(node, 'IfStatement'));
+      const hasForLoop = result.ast.some((node) => containsNodeType(node, 'ForLoop'));
+      const hasWhileLoop = result.ast.some((node) => containsNodeType(node, 'WhileLoop'));
 
       expect(hasIfStatement).toBe(true);
       expect(hasForLoop).toBe(true);
@@ -157,9 +151,7 @@ describe('MMIRParser', () => {
       const result = await parser.parse(javaCode);
 
       // Check that comments are preserved in AST
-      const hasComments = result.ast.some(node => 
-        containsNodeType(node, 'Comment')
-      );
+      const hasComments = result.ast.some((node) => containsNodeType(node, 'Comment'));
       expect(hasComments).toBe(true);
     });
 
@@ -195,11 +187,13 @@ describe('MMIRParser', () => {
       const simpleResult = await parser.parse(simpleCode);
       const complexResult = await parser.parse(complexCode);
 
-      expect(complexResult.complexity.cyclomaticComplexity)
-        .toBeGreaterThan(simpleResult.complexity.cyclomaticComplexity);
-      
-      expect(complexResult.complexity.nestingDepth)
-        .toBeGreaterThan(simpleResult.complexity.nestingDepth);
+      expect(complexResult.complexity.cyclomaticComplexity).toBeGreaterThan(
+        simpleResult.complexity.cyclomaticComplexity
+      );
+
+      expect(complexResult.complexity.nestingDepth).toBeGreaterThan(
+        simpleResult.complexity.nestingDepth
+      );
     });
 
     it('should handle field declarations', async () => {
@@ -214,7 +208,7 @@ describe('MMIRParser', () => {
       const result = await parser.parse(javaCode);
 
       // Check that field declarations are parsed
-      const hasFieldDeclarations = result.ast.some(node => 
+      const hasFieldDeclarations = result.ast.some((node) =>
         containsNodeType(node, 'FieldDeclaration')
       );
       expect(hasFieldDeclarations).toBe(true);
@@ -234,9 +228,7 @@ describe('MMIRParser', () => {
       const result = await parser.parse(javaCode);
 
       // Check that method calls are parsed
-      const hasMethodCalls = result.ast.some(node => 
-        containsNodeType(node, 'MethodCall')
-      );
+      const hasMethodCalls = result.ast.some((node) => containsNodeType(node, 'MethodCall'));
       expect(hasMethodCalls).toBe(true);
     });
 
@@ -249,7 +241,7 @@ describe('MMIRParser', () => {
 
       // Should not throw, but return a result with error information
       const result = await parser.parse(invalidJavaCode);
-      
+
       // Even with invalid syntax, should return some structure
       expect(result).toBeDefined();
       expect(result.ast).toBeInstanceOf(Array);
@@ -273,8 +265,8 @@ describe('MMIRParser', () => {
 
       // Check that some nodes are marked as mappable/unmappable
       const nodes = flattenAST(result.ast);
-      const mappableNodes = nodes.filter(node => node.metadata?.mappable === true);
-      const unmappableNodes = nodes.filter(node => node.metadata?.mappable === false);
+      const mappableNodes = nodes.filter((node) => node.metadata?.mappable === true);
+      const unmappableNodes = nodes.filter((node) => node.metadata?.mappable === false);
 
       expect(mappableNodes.length).toBeGreaterThan(0);
       // Note: unmappable detection is simplified in current implementation
@@ -289,7 +281,7 @@ describe('MMIRParser', () => {
 
       expect(emptyResult.ast).toHaveLength(0);
       expect(emptyResult.metadata.originalLinesOfCode).toBe(1);
-      
+
       expect(whitespaceResult.ast).toHaveLength(0);
       expect(whitespaceResult.metadata.originalLinesOfCode).toBeGreaterThan(1);
     });
@@ -301,23 +293,23 @@ function containsNodeType(node: any, nodeType: string): boolean {
   if (node.type === nodeType) {
     return true;
   }
-  
+
   if (node.children && Array.isArray(node.children)) {
     return node.children.some((child: any) => containsNodeType(child, nodeType));
   }
-  
+
   return false;
 }
 
 function flattenAST(nodes: any[]): any[] {
   const flattened: any[] = [];
-  
+
   for (const node of nodes) {
     flattened.push(node);
     if (node.children && Array.isArray(node.children)) {
       flattened.push(...flattenAST(node.children));
     }
   }
-  
+
   return flattened;
 }

@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { LogicTranslationEngine } from '../../src/modules/logic/LogicTranslationEngine';
-import { CompromiseStrategyEngine } from '../../src/modules/compromise/CompromiseStrategyEngine';
+import { LogicTranslationEngine } from '../../src/modules/logic/LogicTranslationEngine.js';
+import { CompromiseStrategyEngine } from '../../src/modules/compromise/CompromiseStrategyEngine.js';
 
 // Mock all the dependencies that would normally cause issues
 vi.mock('../../src/modules/logic/JavaParser', () => ({
   JavaParser: vi.fn().mockImplementation(() => ({
-    parse: vi.fn().mockResolvedValue({ type: 'JavaAST' })
-  }))
+    parse: vi.fn().mockResolvedValue({ type: 'JavaAST' }),
+  })),
 }));
 
 vi.mock('../../src/modules/logic/MMIRGenerator', () => ({
@@ -14,31 +14,31 @@ vi.mock('../../src/modules/logic/MMIRGenerator', () => ({
     generate: vi.fn().mockResolvedValue({
       nodes: [],
       relationships: [],
-      metadata: { modId: 'test-mod', modLoader: 'forge' }
-    })
-  }))
+      metadata: { modId: 'test-mod', modLoader: 'forge' },
+    }),
+  })),
 }));
 
 vi.mock('../../src/modules/logic/ASTTranspiler', () => ({
   ASTTranspiler: vi.fn().mockImplementation(() => ({
     transpile: vi.fn().mockResolvedValue({
       jsASTs: [],
-      unmappableNodes: []
-    })
-  }))
+      unmappableNodes: [],
+    }),
+  })),
 }));
 
 vi.mock('../../src/modules/logic/APIMapping', () => ({
   APIMapping: vi.fn().mockImplementation(() => ({
-    loadMappings: vi.fn().mockResolvedValue([])
-  }))
+    loadMappings: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 vi.mock('../../src/modules/logic/LLMTranslationService', () => ({
   LLMTranslationService: vi.fn().mockImplementation(() => ({
     translate: vi.fn().mockResolvedValue([]),
-    refineWithFeedback: vi.fn().mockResolvedValue([])
-  }))
+    refineWithFeedback: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 vi.mock('../../src/modules/logic/ProgramStateAlignmentValidator', () => ({
@@ -46,15 +46,15 @@ vi.mock('../../src/modules/logic/ProgramStateAlignmentValidator', () => ({
     validate: vi.fn().mockResolvedValue({
       allValid: true,
       invalidTranslations: [],
-      notes: []
-    })
-  }))
+      notes: [],
+    }),
+  })),
 }));
 
 vi.mock('../../src/modules/logic/JavaScriptGenerator', () => ({
   JavaScriptGenerator: vi.fn().mockImplementation(() => ({
-    generate: vi.fn().mockResolvedValue([])
-  }))
+    generate: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 vi.mock('../../src/utils/logger', () => ({
@@ -62,18 +62,18 @@ vi.mock('../../src/utils/logger', () => ({
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  })
+    error: vi.fn(),
+  }),
 }));
 
 vi.mock('../../src/utils/errorHandler', () => ({
   ErrorHandler: {
     logicError: vi.fn(),
-    compromiseError: vi.fn()
+    compromiseError: vi.fn(),
   },
   globalErrorCollector: {
-    addError: vi.fn()
-  }
+    addError: vi.fn(),
+  },
 }));
 
 describe('Compromise Strategy Integration', () => {
@@ -102,8 +102,8 @@ describe('Compromise Strategy Integration', () => {
         name: 'Test Simulation',
         description: 'Test simulation result',
         implementationDetails: 'Test implementation',
-        limitations: ['Test limitation']
-      })
+        limitations: ['Test limitation'],
+      }),
     };
 
     // This should not throw
@@ -120,7 +120,7 @@ describe('Compromise Strategy Integration', () => {
       type: 'dimension',
       compatibilityTier: 3 as const,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
 
     const strategy = compromiseEngine.selectStrategy(testFeature);

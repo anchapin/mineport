@@ -7,15 +7,15 @@ import { LLMTranslator } from '../../../../src/modules/logic/LLMTranslator.js';
 import {
   TranslationContext,
   UnmappableCodeSegment,
-  LLMTranslationResult
+  LLMTranslationResult,
 } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', () => ({
   logger: {
     debug: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  }
+    error: vi.fn(),
+  },
 }));
 
 describe('LLMTranslator', () => {
@@ -25,7 +25,7 @@ describe('LLMTranslator', () => {
 
   beforeEach(() => {
     mockLLMClient = {
-      call: vi.fn()
+      call: vi.fn(),
     };
 
     translator = new LLMTranslator(mockLLMClient, {
@@ -33,7 +33,7 @@ describe('LLMTranslator', () => {
       temperature: 0.1,
       maxTokens: 1000,
       timeoutMs: 5000,
-      retryAttempts: 2
+      retryAttempts: 2,
     });
 
     mockContext = {
@@ -42,7 +42,7 @@ describe('LLMTranslator', () => {
         version: '1.0.0',
         modLoader: 'forge',
         minecraftVersion: '1.19.2',
-        dependencies: []
+        dependencies: [],
       },
       apiMappings: [],
       targetVersion: '1.20.0',
@@ -50,14 +50,14 @@ describe('LLMTranslator', () => {
         name: 'default',
         type: 'stub',
         description: 'Default strategy',
-        implementation: 'stub'
+        implementation: 'stub',
       },
       userPreferences: {
         compromiseLevel: 'moderate',
         preserveComments: true,
         generateDocumentation: true,
-        optimizePerformance: false
-      }
+        optimizePerformance: false,
+      },
     };
   });
 
@@ -73,17 +73,19 @@ describe('LLMTranslator', () => {
     });
 
     it('should translate single unmappable segment successfully', async () => {
-      const unmappableSegments: UnmappableCodeSegment[] = [{
-        originalCode: 'CustomAPI.doSomething();',
-        reason: 'Custom API not mappable',
-        context: {
-          className: 'TestClass',
-          methodName: 'testMethod',
-          lineNumber: 5,
-          dependencies: []
+      const unmappableSegments: UnmappableCodeSegment[] = [
+        {
+          originalCode: 'CustomAPI.doSomething();',
+          reason: 'Custom API not mappable',
+          context: {
+            className: 'TestClass',
+            methodName: 'testMethod',
+            lineNumber: 5,
+            dependencies: [],
+          },
+          suggestedApproach: 'Use LLM translation',
         },
-        suggestedApproach: 'Use LLM translation'
-      }];
+      ];
 
       const result = await translator.translate(unmappableSegments, mockContext);
 
@@ -103,9 +105,9 @@ describe('LLMTranslator', () => {
             className: 'TestClass',
             methodName: 'method1',
             lineNumber: 5,
-            dependencies: []
+            dependencies: [],
           },
-          suggestedApproach: 'LLM translation'
+          suggestedApproach: 'LLM translation',
         },
         {
           originalCode: 'AnotherAPI.method2();',
@@ -114,10 +116,10 @@ describe('LLMTranslator', () => {
             className: 'TestClass',
             methodName: 'method2',
             lineNumber: 10,
-            dependencies: []
+            dependencies: [],
           },
-          suggestedApproach: 'LLM translation'
-        }
+          suggestedApproach: 'LLM translation',
+        },
       ];
 
       const result = await translator.translate(unmappableSegments, mockContext);
@@ -133,17 +135,19 @@ describe('LLMTranslator', () => {
       const originalCallLLM = (translator as any).callLLM;
       (translator as any).callLLM = vi.fn().mockRejectedValue(new Error('LLM service unavailable'));
 
-      const unmappableSegments: UnmappableCodeSegment[] = [{
-        originalCode: 'CustomAPI.doSomething();',
-        reason: 'Custom API',
-        context: {
-          className: 'TestClass',
-          methodName: 'testMethod',
-          lineNumber: 5,
-          dependencies: []
+      const unmappableSegments: UnmappableCodeSegment[] = [
+        {
+          originalCode: 'CustomAPI.doSomething();',
+          reason: 'Custom API',
+          context: {
+            className: 'TestClass',
+            methodName: 'testMethod',
+            lineNumber: 5,
+            dependencies: [],
+          },
+          suggestedApproach: 'LLM translation',
         },
-        suggestedApproach: 'LLM translation'
-      }];
+      ];
 
       const result = await translator.translate(unmappableSegments, mockContext);
 
@@ -161,7 +165,7 @@ describe('LLMTranslator', () => {
     it('should retry on low confidence translations', async () => {
       let callCount = 0;
       const originalCallLLM = (translator as any).callLLM;
-      
+
       // Mock the translateSegment method instead to control retry behavior
       const originalTranslateSegment = (translator as any).translateSegment;
       (translator as any).translateSegment = vi.fn().mockImplementation(async () => {
@@ -173,7 +177,7 @@ describe('LLMTranslator', () => {
             confidence: 0.2,
             reasoning: 'Low confidence attempt',
             alternatives: [],
-            warnings: []
+            warnings: [],
           };
         } else {
           // Second call returns higher confidence
@@ -182,22 +186,24 @@ describe('LLMTranslator', () => {
             confidence: 0.8,
             reasoning: 'Improved translation',
             alternatives: [],
-            warnings: []
+            warnings: [],
           };
         }
       });
 
-      const unmappableSegments: UnmappableCodeSegment[] = [{
-        originalCode: 'ComplexAPI.doSomething();',
-        reason: 'Complex API',
-        context: {
-          className: 'TestClass',
-          methodName: 'testMethod',
-          lineNumber: 5,
-          dependencies: []
+      const unmappableSegments: UnmappableCodeSegment[] = [
+        {
+          originalCode: 'ComplexAPI.doSomething();',
+          reason: 'Complex API',
+          context: {
+            className: 'TestClass',
+            methodName: 'testMethod',
+            lineNumber: 5,
+            dependencies: [],
+          },
+          suggestedApproach: 'LLM translation',
         },
-        suggestedApproach: 'LLM translation'
-      }];
+      ];
 
       const result = await translator.translate(unmappableSegments, mockContext);
 
@@ -217,7 +223,7 @@ describe('LLMTranslator', () => {
         confidence: 0.8,
         reasoning: 'Mock translation',
         alternatives: [],
-        warnings: []
+        warnings: [],
       });
 
       const apiSegment: UnmappableCodeSegment = {
@@ -227,9 +233,9 @@ describe('LLMTranslator', () => {
           className: 'TestClass',
           methodName: 'testMethod',
           lineNumber: 5,
-          dependencies: ['net.minecraft.world']
+          dependencies: ['net.minecraft.world'],
         },
-        suggestedApproach: 'Find equivalent Bedrock API'
+        suggestedApproach: 'Find equivalent Bedrock API',
       };
 
       // Test the segment
@@ -247,17 +253,19 @@ describe('LLMTranslator', () => {
       const originalCallLLM = (translator as any).callLLM;
       (translator as any).callLLM = vi.fn().mockResolvedValue('Invalid JSON response from LLM');
 
-      const unmappableSegments: UnmappableCodeSegment[] = [{
-        originalCode: 'CustomAPI.doSomething();',
-        reason: 'Custom API',
-        context: {
-          className: 'TestClass',
-          methodName: 'testMethod',
-          lineNumber: 5,
-          dependencies: []
+      const unmappableSegments: UnmappableCodeSegment[] = [
+        {
+          originalCode: 'CustomAPI.doSomething();',
+          reason: 'Custom API',
+          context: {
+            className: 'TestClass',
+            methodName: 'testMethod',
+            lineNumber: 5,
+            dependencies: [],
+          },
+          suggestedApproach: 'LLM translation',
         },
-        suggestedApproach: 'LLM translation'
-      }];
+      ];
 
       const result = await translator.translate(unmappableSegments, mockContext);
 
@@ -286,17 +294,19 @@ describe('LLMTranslator', () => {
         This should work for your use case.
       `);
 
-      const unmappableSegments: UnmappableCodeSegment[] = [{
-        originalCode: 'originalMethod();',
-        reason: 'Custom method',
-        context: {
-          className: 'TestClass',
-          methodName: 'testMethod',
-          lineNumber: 5,
-          dependencies: []
+      const unmappableSegments: UnmappableCodeSegment[] = [
+        {
+          originalCode: 'originalMethod();',
+          reason: 'Custom method',
+          context: {
+            className: 'TestClass',
+            methodName: 'testMethod',
+            lineNumber: 5,
+            dependencies: [],
+          },
+          suggestedApproach: 'LLM translation',
         },
-        suggestedApproach: 'LLM translation'
-      }];
+      ];
 
       const result = await translator.translate(unmappableSegments, mockContext);
 
@@ -311,23 +321,27 @@ describe('LLMTranslator', () => {
 
     it('should handle timeout scenarios', async () => {
       const shortTimeoutTranslator = new LLMTranslator(mockLLMClient, {
-        timeoutMs: 100 // Very short timeout
+        timeoutMs: 100, // Very short timeout
       });
 
       const originalCallLLM = (shortTimeoutTranslator as any).callLLM;
-      (shortTimeoutTranslator as any).callLLM = vi.fn().mockRejectedValue(new Error('LLM call timeout'));
+      (shortTimeoutTranslator as any).callLLM = vi
+        .fn()
+        .mockRejectedValue(new Error('LLM call timeout'));
 
-      const unmappableSegments: UnmappableCodeSegment[] = [{
-        originalCode: 'CustomAPI.doSomething();',
-        reason: 'Custom API',
-        context: {
-          className: 'TestClass',
-          methodName: 'testMethod',
-          lineNumber: 5,
-          dependencies: []
+      const unmappableSegments: UnmappableCodeSegment[] = [
+        {
+          originalCode: 'CustomAPI.doSomething();',
+          reason: 'Custom API',
+          context: {
+            className: 'TestClass',
+            methodName: 'testMethod',
+            lineNumber: 5,
+            dependencies: [],
+          },
+          suggestedApproach: 'LLM translation',
         },
-        suggestedApproach: 'LLM translation'
-      }];
+      ];
 
       const result = await shortTimeoutTranslator.translate(unmappableSegments, mockContext);
 
@@ -348,9 +362,9 @@ describe('LLMTranslator', () => {
             className: 'TestClass',
             methodName: 'method1',
             lineNumber: 5,
-            dependencies: []
+            dependencies: [],
           },
-          suggestedApproach: 'LLM translation'
+          suggestedApproach: 'LLM translation',
         },
         {
           originalCode: 'API2.method();',
@@ -359,10 +373,10 @@ describe('LLMTranslator', () => {
             className: 'TestClass',
             methodName: 'method2',
             lineNumber: 10,
-            dependencies: []
+            dependencies: [],
           },
-          suggestedApproach: 'LLM translation'
-        }
+          suggestedApproach: 'LLM translation',
+        },
       ];
 
       const result = await translator.translate(unmappableSegments, mockContext);
@@ -370,11 +384,11 @@ describe('LLMTranslator', () => {
       // Should combine code from both segments
       expect(result.code).toBeDefined();
       expect(result.code.length).toBeGreaterThan(0);
-      
+
       // Confidence should be average of individual confidences
       expect(result.confidence).toBeGreaterThan(0);
       expect(result.confidence).toBeLessThanOrEqual(1.0);
-      
+
       // Reasoning should combine individual reasonings
       expect(result.reasoning).toBeDefined();
       expect(result.reasoning.length).toBeGreaterThan(0);
@@ -390,9 +404,9 @@ describe('LLMTranslator', () => {
           className: 'TestClass',
           methodName: 'testMethod',
           lineNumber: 5,
-          dependencies: []
+          dependencies: [],
         },
-        suggestedApproach: 'Find equivalent API'
+        suggestedApproach: 'Find equivalent API',
       };
 
       const template = (translator as any).selectPromptTemplate(segment);
@@ -407,9 +421,9 @@ describe('LLMTranslator', () => {
           className: 'TestClass',
           methodName: 'testMethod',
           lineNumber: 5,
-          dependencies: []
+          dependencies: [],
         },
-        suggestedApproach: 'Simplify'
+        suggestedApproach: 'Simplify',
       };
 
       const template = (translator as any).selectPromptTemplate(segment);
@@ -424,9 +438,9 @@ describe('LLMTranslator', () => {
           className: 'TestClass',
           methodName: 'render',
           lineNumber: 5,
-          dependencies: []
+          dependencies: [],
         },
-        suggestedApproach: 'Create stub'
+        suggestedApproach: 'Create stub',
       };
 
       const template = (translator as any).selectPromptTemplate(segment);
@@ -441,9 +455,9 @@ describe('LLMTranslator', () => {
           className: 'TestClass',
           methodName: 'createDimension',
           lineNumber: 5,
-          dependencies: []
+          dependencies: [],
         },
-        suggestedApproach: 'Simulate with teleportation'
+        suggestedApproach: 'Simulate with teleportation',
       };
 
       const template = (translator as any).selectPromptTemplate(segment);
@@ -458,9 +472,9 @@ describe('LLMTranslator', () => {
           className: 'TestClass',
           methodName: 'testMethod',
           lineNumber: 5,
-          dependencies: []
+          dependencies: [],
         },
-        suggestedApproach: 'Manual review'
+        suggestedApproach: 'Manual review',
       };
 
       const template = (translator as any).selectPromptTemplate(segment);
@@ -474,7 +488,7 @@ describe('LLMTranslator', () => {
       const variables = {
         name: 'John',
         age: '30',
-        city: 'New York'
+        city: 'New York',
       };
 
       const result = (translator as any).interpolateTemplate(template, variables);
@@ -484,7 +498,7 @@ describe('LLMTranslator', () => {
     it('should handle missing variables gracefully', () => {
       const template = 'Hello {{name}}, your age is {{age}}.';
       const variables = {
-        name: 'John'
+        name: 'John',
         // age is missing
       };
 
@@ -496,7 +510,7 @@ describe('LLMTranslator', () => {
       const template = '{{greeting}} {{name}}, {{greeting}} again {{name}}!';
       const variables = {
         greeting: 'Hello',
-        name: 'World'
+        name: 'World',
       };
 
       const result = (translator as any).interpolateTemplate(template, variables);

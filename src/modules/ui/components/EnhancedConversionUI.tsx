@@ -14,29 +14,29 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ConversionService } from '../../../services/ConversionService';
-import { ValidationPipeline } from '../../../services/ValidationPipeline';
-import { EnhancedErrorCollector } from '../../../services/EnhancedErrorCollector';
-import { FeatureFlagService } from '../../../services/FeatureFlagService';
+import { ConversionService } from '../../../services/ConversionService.js';
+import { ValidationPipeline } from '../../../services/ValidationPipeline.js';
+import { EnhancedErrorCollector } from '../../../services/EnhancedErrorCollector.js';
+import { FeatureFlagService } from '../../../services/FeatureFlagService.js';
 import { 
   ConversionInput, 
   ConversionOptions, 
   ConversionStatus, 
   ConversionResult,
   JobStatus 
-} from '../../../types/services';
+} from '../../../types/services.js';
 import { 
   EnhancedConversionError,
   SystemHealthStatus,
   ErrorRateMetrics 
-} from '../../../types/errors';
-import { FileUploader } from './FileUploader';
-import { EnhancedProgressTracker } from './EnhancedProgressTracker';
-import { EnhancedStatusDisplay } from './EnhancedStatusDisplay';
-import { ErrorDisplay } from './ErrorDisplay';
-import { ResultsDisplay } from './ResultsDisplay';
-import { ConversionConfigPanel } from './ConversionConfigPanel';
-import { SystemHealthPanel } from './SystemHealthPanel';
+} from '../../../types/errors.js';
+import { FileUploader } from './FileUploader.js';
+import { EnhancedProgressTracker } from './EnhancedProgressTracker.js';
+import { EnhancedStatusDisplay } from './EnhancedStatusDisplay.js';
+import { ErrorDisplay } from './ErrorDisplay.js';
+import { ResultsDisplay } from './ResultsDisplay.js';
+import { ConversionConfigPanel } from './ConversionConfigPanel.js';
+import { SystemHealthPanel } from './SystemHealthPanel.js';
 
 /**
  * Enhanced conversion UI state

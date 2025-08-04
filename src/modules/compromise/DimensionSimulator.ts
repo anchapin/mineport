@@ -1,5 +1,5 @@
-import { Feature } from '../../types/compromise';
-import { Logger } from '../../utils/logger';
+import { Feature } from '../../types/compromise.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * DimensionSimulator provides functionality to simulate custom dimensions in Bedrock Edition
@@ -10,9 +10,9 @@ export class DimensionSimulator {
 
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -23,7 +23,7 @@ export class DimensionSimulator {
 
   /**
    * Generates the JavaScript code needed to simulate a custom dimension.
-   * 
+   *
    * @param feature The dimension feature to simulate
    * @param dimensionName The name of the dimension
    * @param dimensionProperties Properties of the dimension to simulate
@@ -35,19 +35,25 @@ export class DimensionSimulator {
     dimensionProperties: DimensionProperties
   ): DimensionSimulationResult {
     this.logger.info(`Generating dimension simulation for: ${dimensionName}`);
-    
+
     // Generate the teleportation code
     const teleportationCode = this.generateTeleportationCode(dimensionName, dimensionProperties);
-    
+
     // Generate the visual effects code
     const visualEffectsCode = this.generateVisualEffectsCode(dimensionName, dimensionProperties);
-    
+
     // Generate the structure generation code
-    const structureGenerationCode = this.generateStructureGenerationCode(dimensionName, dimensionProperties);
-    
+    const structureGenerationCode = this.generateStructureGenerationCode(
+      dimensionName,
+      dimensionProperties
+    );
+
     // Generate the dimension entry/exit detection code
-    const dimensionDetectionCode = this.generateDimensionDetectionCode(dimensionName, dimensionProperties);
-    
+    const dimensionDetectionCode = this.generateDimensionDetectionCode(
+      dimensionName,
+      dimensionProperties
+    );
+
     // Combine all the code into a single module
     const combinedCode = this.combineCode(
       dimensionName,
@@ -56,26 +62,29 @@ export class DimensionSimulator {
       structureGenerationCode,
       dimensionDetectionCode
     );
-    
+
     return {
       dimensionName,
       simulationCode: combinedCode,
       teleportationCoordinates: dimensionProperties.teleportationCoordinates,
       visualEffects: dimensionProperties.visualEffects,
-      structures: dimensionProperties.structures
+      structures: dimensionProperties.structures,
     };
   }
 
   /**
    * Generates code for teleporting players to the simulated dimension.
-   * 
+   *
    * @param dimensionName The name of the dimension
    * @param properties Properties of the dimension
    * @returns JavaScript code for teleportation
    */
-  private generateTeleportationCode(dimensionName: string, properties: DimensionProperties): string {
+  private generateTeleportationCode(
+    dimensionName: string,
+    properties: DimensionProperties
+  ): string {
     const { teleportationCoordinates } = properties;
-    
+
     return `
 /**
  * Teleports a player to the simulated ${dimensionName} dimension.
@@ -168,21 +177,24 @@ export function teleportPlayer(player, entering) {
 
   /**
    * Generates code for applying visual effects to simulate the dimension's environment.
-   * 
+   *
    * @param dimensionName The name of the dimension
    * @param properties Properties of the dimension
    * @returns JavaScript code for visual effects
    */
-  private generateVisualEffectsCode(dimensionName: string, properties: DimensionProperties): string {
+  private generateVisualEffectsCode(
+    dimensionName: string,
+    properties: DimensionProperties
+  ): string {
     const { visualEffects } = properties;
-    
+
     let effectsCode = '';
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -192,12 +204,12 @@ export function teleportPlayer(player, entering) {
   // Apply fog effect
   player.runCommand("fog @s push ${dimensionName}_fog ${dimensionName}");`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -220,12 +232,12 @@ export function teleportPlayer(player, entering) {
   }, 20);
   player.setDynamicProperty("${dimensionName}:particleInterval", particleInterval);`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -236,12 +248,12 @@ export function teleportPlayer(player, entering) {
   player.runCommand("camerashake add @s 0.1 0.5 positional");
   player.runCommand("skybox ${dimensionName}_sky");`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -254,14 +266,14 @@ export function teleportPlayer(player, entering) {
   }, 200);
   player.setDynamicProperty("${dimensionName}:soundInterval", soundInterval);`;
     }
-    
+
     let removeEffectsCode = '';
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -271,12 +283,12 @@ export function teleportPlayer(player, entering) {
   // Remove fog effect
   player.runCommand("fog @s pop ${dimensionName}_fog");`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -290,12 +302,12 @@ export function teleportPlayer(player, entering) {
     player.setDynamicProperty("${dimensionName}:particleInterval", undefined);
   }`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -306,12 +318,12 @@ export function teleportPlayer(player, entering) {
   player.runCommand("camerashake stop @s");
   player.runCommand("skybox reset");`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -325,7 +337,7 @@ export function teleportPlayer(player, entering) {
     player.setDynamicProperty("${dimensionName}:soundInterval", undefined);
   }`;
     }
-    
+
     return `
 /**
  * Applies visual and audio effects to simulate the ${dimensionName} dimension environment.
@@ -346,14 +358,17 @@ export function removeDimensionEffects(player) {${removeEffectsCode}
 
   /**
    * Generates code for creating structures in the simulated dimension area.
-   * 
+   *
    * @param dimensionName The name of the dimension
    * @param properties Properties of the dimension
    * @returns JavaScript code for structure generation
    */
-  private generateStructureGenerationCode(dimensionName: string, properties: DimensionProperties): string {
+  private generateStructureGenerationCode(
+    dimensionName: string,
+    properties: DimensionProperties
+  ): string {
     const { structures, teleportationCoordinates } = properties;
-    
+
     if (!structures || structures.length === 0) {
       return `
 /**
@@ -365,14 +380,14 @@ export function generateStructures() {
   return false;
 }`;
     }
-    
+
     let structureCode = '';
-    
+
     structures.forEach((structure, index) => {
       const offsetX = structure.offsetX || 0;
       const offsetY = structure.offsetY || 0;
       const offsetZ = structure.offsetZ || 0;
-      
+
       structureCode += `
   // Generate ${structure.name}
   const ${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos = { 
@@ -382,7 +397,7 @@ export function generateStructures() {
   };
   overworld.runCommand(\`structure load ${structure.structureIdentifier} \${${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos.x} \${${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos.y} \${${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos.z}\`);`;
     });
-    
+
     return `
 /**
  * Generates structures for the ${dimensionName} dimension simulation.
@@ -402,14 +417,17 @@ export function generateStructures() {
 
   /**
    * Generates code for detecting when players enter or exit the dimension area.
-   * 
+   *
    * @param dimensionName The name of the dimension
    * @param properties Properties of the dimension
    * @returns JavaScript code for dimension detection
    */
-  private generateDimensionDetectionCode(dimensionName: string, properties: DimensionProperties): string {
+  private generateDimensionDetectionCode(
+    dimensionName: string,
+    properties: DimensionProperties
+  ): string {
     const { teleportationCoordinates, boundaryRadius } = properties;
-    
+
     return `
 /**
  * Sets up detection for players entering or leaving the ${dimensionName} dimension area.
@@ -470,7 +488,7 @@ export function setupDimensionBoundaries() {
 
   /**
    * Combines all the generated code into a single module.
-   * 
+   *
    * @param dimensionName The name of the dimension
    * @param teleportationCode Code for teleportation
    * @param visualEffectsCode Code for visual effects

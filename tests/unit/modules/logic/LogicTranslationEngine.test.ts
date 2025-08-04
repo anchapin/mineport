@@ -13,7 +13,7 @@ import {
   MMIRRepresentation,
   ASTTranspilationResult,
   LLMTranslationResult,
-  ValidationResult
+  ValidationResult,
 } from '../../../../src/types/logic-translation.js';
 
 // Mock dependencies
@@ -26,8 +26,8 @@ vi.mock('../../../../src/utils/logger.js', () => ({
     info: vi.fn(),
     debug: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  }
+    error: vi.fn(),
+  },
 }));
 
 describe('LogicTranslationEngine', () => {
@@ -44,16 +44,16 @@ describe('LogicTranslationEngine', () => {
 
     // Create mock instances
     mockASTTranspiler = {
-      transpile: vi.fn()
+      transpile: vi.fn(),
     };
     mockLLMTranslator = {
-      translate: vi.fn()
+      translate: vi.fn(),
     };
     mockProgramStateValidator = {
-      validate: vi.fn()
+      validate: vi.fn(),
     };
     mockMMIRParser = {
-      parse: vi.fn()
+      parse: vi.fn(),
     };
 
     // Create engine instance
@@ -71,7 +71,7 @@ describe('LogicTranslationEngine', () => {
         version: '1.0.0',
         modLoader: 'forge',
         minecraftVersion: '1.19.2',
-        dependencies: []
+        dependencies: [],
       },
       apiMappings: [],
       targetVersion: '1.20.0',
@@ -79,14 +79,14 @@ describe('LogicTranslationEngine', () => {
         name: 'default',
         type: 'stub',
         description: 'Default compromise strategy',
-        implementation: 'stub'
+        implementation: 'stub',
       },
       userPreferences: {
         compromiseLevel: 'moderate',
         preserveComments: true,
         generateDocumentation: true,
-        optimizePerformance: false
-      }
+        optimizePerformance: false,
+      },
     };
   });
 
@@ -102,22 +102,34 @@ describe('LogicTranslationEngine', () => {
 
       // Mock MMIR parsing
       const mockMMIR: MMIRRepresentation = {
-        ast: [{
-          type: 'ClassDeclaration',
-          value: 'TestClass',
-          children: [],
-          position: { line: 1, column: 1, offset: 0 },
-          metadata: { javaType: 'class', complexity: 1, mappable: true }
-        }],
+        ast: [
+          {
+            type: 'ClassDeclaration',
+            value: 'TestClass',
+            children: [],
+            position: { line: 1, column: 1, offset: 0 },
+            metadata: { javaType: 'class', complexity: 1, mappable: true },
+          },
+        ],
         metadata: {
           originalLinesOfCode: 6,
-          complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 6, nestingDepth: 1 },
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 6,
+            nestingDepth: 1,
+          },
           imports: [],
           classes: [],
-          methods: []
+          methods: [],
         },
         dependencies: [],
-        complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 6, nestingDepth: 1 }
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 6,
+          nestingDepth: 1,
+        },
       };
 
       mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
@@ -128,7 +140,7 @@ describe('LogicTranslationEngine', () => {
         unmappableCode: [],
         mappedAPIs: [],
         confidence: 0.9,
-        warnings: []
+        warnings: [],
       };
 
       mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockASTResult);
@@ -139,7 +151,7 @@ describe('LogicTranslationEngine', () => {
         confidence: 1.0,
         reasoning: 'No unmappable code segments',
         alternatives: [],
-        warnings: []
+        warnings: [],
       };
 
       mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockLLMResult);
@@ -149,7 +161,7 @@ describe('LogicTranslationEngine', () => {
         isEquivalent: true,
         confidence: 0.95,
         differences: [],
-        recommendations: []
+        recommendations: [],
       };
 
       mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockValidation);
@@ -190,22 +202,34 @@ describe('LogicTranslationEngine', () => {
 
       // Mock MMIR parsing
       const mockMMIR: MMIRRepresentation = {
-        ast: [{
-          type: 'ClassDeclaration',
-          value: 'ComplexClass',
-          children: [],
-          position: { line: 1, column: 1, offset: 0 },
-          metadata: { javaType: 'class', complexity: 2, mappable: false }
-        }],
+        ast: [
+          {
+            type: 'ClassDeclaration',
+            value: 'ComplexClass',
+            children: [],
+            position: { line: 1, column: 1, offset: 0 },
+            metadata: { javaType: 'class', complexity: 2, mappable: false },
+          },
+        ],
         metadata: {
           originalLinesOfCode: 6,
-          complexity: { cyclomaticComplexity: 2, cognitiveComplexity: 2, linesOfCode: 6, nestingDepth: 1 },
+          complexity: {
+            cyclomaticComplexity: 2,
+            cognitiveComplexity: 2,
+            linesOfCode: 6,
+            nestingDepth: 1,
+          },
           imports: [],
           classes: [],
-          methods: []
+          methods: [],
         },
         dependencies: [],
-        complexity: { cyclomaticComplexity: 2, cognitiveComplexity: 2, linesOfCode: 6, nestingDepth: 1 }
+        complexity: {
+          cyclomaticComplexity: 2,
+          cognitiveComplexity: 2,
+          linesOfCode: 6,
+          nestingDepth: 1,
+        },
       };
 
       mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
@@ -213,20 +237,22 @@ describe('LogicTranslationEngine', () => {
       // Mock AST transpilation with unmappable code
       const mockASTResult: ASTTranspilationResult = {
         code: 'class ComplexClass {\n  // Partial transpilation\n}',
-        unmappableCode: [{
-          originalCode: 'CustomAPI.doSomethingComplex();',
-          reason: 'Custom API not mappable',
-          context: {
-            className: 'ComplexClass',
-            methodName: 'complexMethod',
-            lineNumber: 4,
-            dependencies: []
+        unmappableCode: [
+          {
+            originalCode: 'CustomAPI.doSomethingComplex();',
+            reason: 'Custom API not mappable',
+            context: {
+              className: 'ComplexClass',
+              methodName: 'complexMethod',
+              lineNumber: 4,
+              dependencies: [],
+            },
+            suggestedApproach: 'Use LLM translation',
           },
-          suggestedApproach: 'Use LLM translation'
-        }],
+        ],
         mappedAPIs: [],
         confidence: 0.6,
-        warnings: []
+        warnings: [],
       };
 
       mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockASTResult);
@@ -237,7 +263,7 @@ describe('LogicTranslationEngine', () => {
         confidence: 0.7,
         reasoning: 'Translated using semantic understanding',
         alternatives: [],
-        warnings: []
+        warnings: [],
       };
 
       mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockLLMResult);
@@ -247,7 +273,7 @@ describe('LogicTranslationEngine', () => {
         isEquivalent: true,
         confidence: 0.8,
         differences: [],
-        recommendations: []
+        recommendations: [],
       };
 
       mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockValidation);
@@ -278,13 +304,23 @@ describe('LogicTranslationEngine', () => {
         ast: [],
         metadata: {
           originalLinesOfCode: 1,
-          complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 },
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
           imports: [],
           classes: [],
-          methods: []
+          methods: [],
         },
         dependencies: [],
-        complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 }
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
       };
 
       mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
@@ -295,7 +331,7 @@ describe('LogicTranslationEngine', () => {
         unmappableCode: [],
         mappedAPIs: [],
         confidence: 0.8,
-        warnings: []
+        warnings: [],
       };
 
       mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockASTResult);
@@ -306,7 +342,7 @@ describe('LogicTranslationEngine', () => {
         confidence: 1.0,
         reasoning: 'No unmappable code',
         alternatives: [],
-        warnings: []
+        warnings: [],
       };
 
       mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockLLMResult);
@@ -315,14 +351,16 @@ describe('LogicTranslationEngine', () => {
       const mockValidation: ValidationResult = {
         isEquivalent: false,
         confidence: 0.5, // Below threshold
-        differences: [{
-          type: 'behavior',
-          description: 'Behavioral difference detected',
-          severity: 'medium',
-          location: { line: 1, column: 1, offset: 0 },
-          suggestion: 'Review implementation'
-        }],
-        recommendations: ['Manual review required']
+        differences: [
+          {
+            type: 'behavior',
+            description: 'Behavioral difference detected',
+            severity: 'medium',
+            location: { line: 1, column: 1, offset: 0 },
+            suggestion: 'Review implementation',
+          },
+        ],
+        recommendations: ['Manual review required'],
       };
 
       mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockValidation);
@@ -360,7 +398,7 @@ describe('LogicTranslationEngine', () => {
         maxRefinementIterations: 5,
         confidenceThreshold: 0.9,
         enableParallelProcessing: false,
-        timeoutMs: 120000
+        timeoutMs: 120000,
       };
 
       const customEngine = new LogicTranslationEngine(
@@ -376,9 +414,25 @@ describe('LogicTranslationEngine', () => {
       // Mock successful flow
       mockMMIRParser.parse = vi.fn().mockResolvedValue({
         ast: [],
-        metadata: { originalLinesOfCode: 1, complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 }, imports: [], classes: [], methods: [] },
+        metadata: {
+          originalLinesOfCode: 1,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
         dependencies: [],
-        complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 }
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
       });
 
       mockASTTranspiler.transpile = vi.fn().mockResolvedValue({
@@ -386,7 +440,7 @@ describe('LogicTranslationEngine', () => {
         unmappableCode: [],
         mappedAPIs: [],
         confidence: 0.95,
-        warnings: []
+        warnings: [],
       });
 
       mockLLMTranslator.translate = vi.fn().mockResolvedValue({
@@ -394,14 +448,14 @@ describe('LogicTranslationEngine', () => {
         confidence: 1.0,
         reasoning: 'No unmappable code',
         alternatives: [],
-        warnings: []
+        warnings: [],
       });
 
       mockProgramStateValidator.validate = vi.fn().mockResolvedValue({
         isEquivalent: true,
         confidence: 0.95,
         differences: [],
-        recommendations: []
+        recommendations: [],
       });
 
       const result = await customEngine.translateJavaCode(javaCode, mockContext);
@@ -416,9 +470,25 @@ describe('LogicTranslationEngine', () => {
       const javaCode = 'public class Test { }';
       const mockMMIR: MMIRRepresentation = {
         ast: [],
-        metadata: { originalLinesOfCode: 1, complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 }, imports: [], classes: [], methods: [] },
+        metadata: {
+          originalLinesOfCode: 1,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
         dependencies: [],
-        complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 }
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
       };
 
       mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
@@ -434,9 +504,25 @@ describe('LogicTranslationEngine', () => {
     it('should delegate to ASTTranspiler', async () => {
       const mockMMIR: MMIRRepresentation = {
         ast: [],
-        metadata: { originalLinesOfCode: 1, complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 }, imports: [], classes: [], methods: [] },
+        metadata: {
+          originalLinesOfCode: 1,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
         dependencies: [],
-        complexity: { cyclomaticComplexity: 1, cognitiveComplexity: 1, linesOfCode: 1, nestingDepth: 0 }
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
       };
 
       const mockResult: ASTTranspilationResult = {
@@ -444,7 +530,7 @@ describe('LogicTranslationEngine', () => {
         unmappableCode: [],
         mappedAPIs: [],
         confidence: 0.9,
-        warnings: []
+        warnings: [],
       };
 
       mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockResult);
@@ -467,19 +553,21 @@ describe('LogicTranslationEngine', () => {
     });
 
     it('should delegate to LLMTranslator for unmappable code', async () => {
-      const unmappableCode = [{
-        originalCode: 'CustomAPI.call()',
-        reason: 'Custom API',
-        context: { className: 'Test', methodName: 'test', lineNumber: 1, dependencies: [] },
-        suggestedApproach: 'LLM translation'
-      }];
+      const unmappableCode = [
+        {
+          originalCode: 'CustomAPI.call()',
+          reason: 'Custom API',
+          context: { className: 'Test', methodName: 'test', lineNumber: 1, dependencies: [] },
+          suggestedApproach: 'LLM translation',
+        },
+      ];
 
       const mockResult: LLMTranslationResult = {
         code: 'translated code',
         confidence: 0.8,
         reasoning: 'LLM translation',
         alternatives: [],
-        warnings: []
+        warnings: [],
       };
 
       mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockResult);
@@ -500,7 +588,7 @@ describe('LogicTranslationEngine', () => {
         isEquivalent: true,
         confidence: 0.9,
         differences: [],
-        recommendations: []
+        recommendations: [],
       };
 
       mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockResult);

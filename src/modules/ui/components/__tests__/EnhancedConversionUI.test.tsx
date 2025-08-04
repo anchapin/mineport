@@ -5,11 +5,11 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { EnhancedConversionUI } from '../EnhancedConversionUI';
-import { ConversionService } from '../../../../services/ConversionService';
-import { ValidationPipeline } from '../../../../services/ValidationPipeline';
-import { EnhancedErrorCollector } from '../../../../services/EnhancedErrorCollector';
-import { FeatureFlagService } from '../../../../services/FeatureFlagService';
+import { EnhancedConversionUI } from '../EnhancedConversionUI.js';
+import { ConversionService } from '../../../../services/ConversionService.js';
+import { ValidationPipeline } from '../../../../services/ValidationPipeline.js';
+import { EnhancedErrorCollector } from '../../../../services/EnhancedErrorCollector.js';
+import { FeatureFlagService } from '../../../../services/FeatureFlagService.js';
 
 // Mock services
 jest.mock('../../../../services/ConversionService');

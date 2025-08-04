@@ -3,11 +3,15 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BedrockArchitect, ModInfo, AssetInfo } from '../../../../src/modules/conversion-agents/BedrockArchitect';
+import {
+  BedrockArchitect,
+  ModInfo,
+  AssetInfo,
+} from '../../../../src/modules/conversion-agents/BedrockArchitect.js';
 
 // Mock uuid
 vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mock-uuid-1234')
+  v4: vi.fn(() => 'mock-uuid-1234'),
 }));
 
 describe('BedrockArchitect', () => {
@@ -25,7 +29,7 @@ describe('BedrockArchitect', () => {
         name: 'Test Mod',
         version: '1.0.0',
         description: 'A test mod',
-        author: 'Test Author'
+        author: 'Test Author',
       };
 
       const structure = await architect.generateAddonStructure(modInfo);
@@ -41,7 +45,7 @@ describe('BedrockArchitect', () => {
       const modInfo: ModInfo = {
         id: 'testmod',
         name: 'Test Mod',
-        version: '1.0.0'
+        version: '1.0.0',
       };
 
       const structure = await architect.generateAddonStructure(modInfo);
@@ -67,7 +71,7 @@ describe('BedrockArchitect', () => {
         name: 'Test Mod',
         version: '1.2.3',
         description: 'A test mod',
-        author: 'Test Author'
+        author: 'Test Author',
       };
 
       const manifests = await architect.createManifests(modInfo);
@@ -98,14 +102,14 @@ describe('BedrockArchitect', () => {
         { input: '2.5', expected: [2, 5, 0] },
         { input: '3', expected: [3, 0, 0] },
         { input: '1.0.0-beta', expected: [1, 0, 0] },
-        { input: 'v2.1.3', expected: [2, 1, 3] }
+        { input: 'v2.1.3', expected: [2, 1, 3] },
       ];
 
       for (const testCase of testCases) {
         const modInfo: ModInfo = {
           id: 'test',
           name: 'Test',
-          version: testCase.input
+          version: testCase.input,
         };
 
         const manifests = await architect.createManifests(modInfo);
@@ -117,7 +121,7 @@ describe('BedrockArchitect', () => {
       const modInfo: ModInfo = {
         id: 'minimal',
         name: 'Minimal Mod',
-        version: '1.0.0'
+        version: '1.0.0',
       };
 
       const manifests = await architect.createManifests(modInfo);
@@ -135,46 +139,52 @@ describe('BedrockArchitect', () => {
           path: 'textures/blocks/stone.png',
           type: 'texture',
           content: Buffer.from('texture-data'),
-          category: 'blocks'
+          category: 'blocks',
         },
         {
           path: 'models/blocks/stone.json',
           type: 'model',
           content: '{"test": "model"}',
-          category: 'blocks'
+          category: 'blocks',
         },
         {
           path: 'sounds/block/stone/break.ogg',
           type: 'sound',
-          content: Buffer.from('sound-data')
-        }
+          content: Buffer.from('sound-data'),
+        },
       ];
 
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       const result = await architect.organizeAssets(assets, structure);
 
       expect(result.success).toBe(true);
       expect(result.outputFiles.length).toBeGreaterThan(assets.length); // Includes manifests
-      
+
       // Check that manifests are included
-      const manifestFiles = result.outputFiles.filter(f => f.type === 'manifest');
+      const manifestFiles = result.outputFiles.filter((f) => f.type === 'manifest');
       expect(manifestFiles).toHaveLength(2);
-      expect(manifestFiles.some(f => f.path === 'behavior_pack/manifest.json')).toBe(true);
-      expect(manifestFiles.some(f => f.path === 'resource_pack/manifest.json')).toBe(true);
+      expect(manifestFiles.some((f) => f.path === 'behavior_pack/manifest.json')).toBe(true);
+      expect(manifestFiles.some((f) => f.path === 'resource_pack/manifest.json')).toBe(true);
 
       // Check asset organization
-      const textureFile = result.outputFiles.find(f => f.originalPath === 'textures/blocks/stone.png');
+      const textureFile = result.outputFiles.find(
+        (f) => f.originalPath === 'textures/blocks/stone.png'
+      );
       expect(textureFile?.path).toBe('resource_pack/textures/blocks/stone.png');
 
-      const modelFile = result.outputFiles.find(f => f.originalPath === 'models/blocks/stone.json');
+      const modelFile = result.outputFiles.find(
+        (f) => f.originalPath === 'models/blocks/stone.json'
+      );
       expect(modelFile?.path).toBe('resource_pack/models/blocks/stone.json');
 
-      const soundFile = result.outputFiles.find(f => f.originalPath === 'sounds/block/stone/break.ogg');
+      const soundFile = result.outputFiles.find(
+        (f) => f.originalPath === 'sounds/block/stone/break.ogg'
+      );
       expect(soundFile?.path).toBe('resource_pack/sounds/break.ogg');
     });
 
@@ -183,20 +193,20 @@ describe('BedrockArchitect', () => {
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       const result = await architect.organizeAssets(assets, structure);
 
       // Check for generated files
-      const readmeFile = result.outputFiles.find(f => f.path === 'README.md');
+      const readmeFile = result.outputFiles.find((f) => f.path === 'README.md');
       expect(readmeFile).toBeDefined();
       expect(readmeFile?.content).toContain('Test Behavior Pack');
 
-      const structureFile = result.outputFiles.find(f => f.path === 'STRUCTURE.md');
+      const structureFile = result.outputFiles.find((f) => f.path === 'STRUCTURE.md');
       expect(structureFile).toBeDefined();
 
-      const iconFiles = result.outputFiles.filter(f => f.path.includes('pack_icon.png'));
+      const iconFiles = result.outputFiles.filter((f) => f.path.includes('pack_icon.png'));
       expect(iconFiles).toHaveLength(2); // One for each pack
     });
 
@@ -205,14 +215,14 @@ describe('BedrockArchitect', () => {
         {
           path: 'invalid/path',
           type: 'texture' as any,
-          content: null as any // Invalid content
-        }
+          content: null as any, // Invalid content
+        },
       ];
 
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       const result = await architect.organizeAssets(assets, structure);
@@ -229,7 +239,7 @@ describe('BedrockArchitect', () => {
         id: 'test',
         name: 'Test Mod',
         version: '1.0.0',
-        description: 'Test description'
+        description: 'Test description',
       });
 
       const validation = architect.validateStructureCompliance(structure);
@@ -242,7 +252,7 @@ describe('BedrockArchitect', () => {
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // Corrupt the manifest
@@ -259,7 +269,7 @@ describe('BedrockArchitect', () => {
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // Remove UUID
@@ -268,14 +278,14 @@ describe('BedrockArchitect', () => {
       const validation = architect.validateStructureCompliance(structure);
 
       expect(validation.success).toBe(false);
-      expect(validation.errors.some(e => e.message.includes('Missing UUID'))).toBe(true);
+      expect(validation.errors.some((e) => e.message.includes('Missing UUID'))).toBe(true);
     });
 
     it('should detect missing modules', async () => {
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // Remove modules
@@ -284,14 +294,16 @@ describe('BedrockArchitect', () => {
       const validation = architect.validateStructureCompliance(structure);
 
       expect(validation.success).toBe(false);
-      expect(validation.errors.some(e => e.message.includes('Missing or empty modules'))).toBe(true);
+      expect(validation.errors.some((e) => e.message.includes('Missing or empty modules'))).toBe(
+        true
+      );
     });
 
     it('should warn about missing optional fields', async () => {
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // Remove description
@@ -299,7 +311,7 @@ describe('BedrockArchitect', () => {
 
       const validation = architect.validateStructureCompliance(structure);
 
-      expect(validation.warnings.some(w => w.message.includes('Missing description'))).toBe(true);
+      expect(validation.warnings.some((w) => w.message.includes('Missing description'))).toBe(true);
     });
   });
 
@@ -311,29 +323,45 @@ describe('BedrockArchitect', () => {
         { path: 'test', type: 'sound', content: Buffer.alloc(0) },
         { path: 'test', type: 'animation', content: Buffer.alloc(0) },
         { path: 'test', type: 'particle', content: Buffer.alloc(0) },
-        { path: 'test', type: 'other', content: Buffer.alloc(0) }
+        { path: 'test', type: 'other', content: Buffer.alloc(0) },
       ];
 
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       const result = await architect.organizeAssets(assets, structure);
 
-      const resourcePackFiles = result.outputFiles.filter(f => f.path.startsWith('resource_pack/'));
-      const behaviorPackFiles = result.outputFiles.filter(f => f.path.startsWith('behavior_pack/'));
+      const resourcePackFiles = result.outputFiles.filter((f) =>
+        f.path.startsWith('resource_pack/')
+      );
+      const behaviorPackFiles = result.outputFiles.filter((f) =>
+        f.path.startsWith('behavior_pack/')
+      );
 
       // Resource pack should have texture, model, sound, animation, particle
-      expect(resourcePackFiles.some(f => f.originalPath === 'test' && f.type === 'texture')).toBe(true);
-      expect(resourcePackFiles.some(f => f.originalPath === 'test' && f.type === 'model')).toBe(true);
-      expect(resourcePackFiles.some(f => f.originalPath === 'test' && f.type === 'sound')).toBe(true);
-      expect(resourcePackFiles.some(f => f.originalPath === 'test' && f.type === 'animation')).toBe(true);
-      expect(resourcePackFiles.some(f => f.originalPath === 'test' && f.type === 'particle')).toBe(true);
+      expect(resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'texture')).toBe(
+        true
+      );
+      expect(resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'model')).toBe(
+        true
+      );
+      expect(resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'sound')).toBe(
+        true
+      );
+      expect(
+        resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'animation')
+      ).toBe(true);
+      expect(
+        resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'particle')
+      ).toBe(true);
 
       // Behavior pack should have 'other' type
-      expect(behaviorPackFiles.some(f => f.originalPath === 'test' && f.type === 'other')).toBe(true);
+      expect(behaviorPackFiles.some((f) => f.originalPath === 'test' && f.type === 'other')).toBe(
+        true
+      );
     });
 
     it('should organize assets with categories correctly', async () => {
@@ -342,33 +370,33 @@ describe('BedrockArchitect', () => {
           path: 'texture1',
           type: 'texture',
           content: Buffer.alloc(0),
-          category: 'blocks'
+          category: 'blocks',
         },
         {
           path: 'texture2',
           type: 'texture',
           content: Buffer.alloc(0),
-          category: 'items'
+          category: 'items',
         },
         {
           path: 'texture3',
           type: 'texture',
-          content: Buffer.alloc(0)
+          content: Buffer.alloc(0),
           // No category
-        }
+        },
       ];
 
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       const result = await architect.organizeAssets(assets, structure);
 
-      const texture1 = result.outputFiles.find(f => f.originalPath === 'texture1');
-      const texture2 = result.outputFiles.find(f => f.originalPath === 'texture2');
-      const texture3 = result.outputFiles.find(f => f.originalPath === 'texture3');
+      const texture1 = result.outputFiles.find((f) => f.originalPath === 'texture1');
+      const texture2 = result.outputFiles.find((f) => f.originalPath === 'texture2');
+      const texture3 = result.outputFiles.find((f) => f.originalPath === 'texture3');
 
       expect(texture1?.path).toBe('resource_pack/textures/blocks/texture1');
       expect(texture2?.path).toBe('resource_pack/textures/items/texture2');
@@ -381,13 +409,13 @@ describe('BedrockArchitect', () => {
       const assets: AssetInfo[] = [
         { path: 'asset1', type: 'texture', content: Buffer.from('data1') },
         { path: 'asset2', type: 'model', content: 'model data' },
-        { path: 'asset3', type: 'sound', content: Buffer.from('sound data') }
+        { path: 'asset3', type: 'sound', content: Buffer.from('sound data') },
       ];
 
       const structure = await architect.generateAddonStructure({
         id: 'test',
         name: 'Test',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       const result = await architect.organizeAssets(assets, structure);

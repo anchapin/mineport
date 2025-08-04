@@ -1,6 +1,6 @@
 /**
  * Enhanced Java Analyzer Component
- * 
+ *
  * This component provides multi-strategy analysis of Java mod files to extract
  * registry names, texture paths, and manifest information using various detection methods.
  */
@@ -9,9 +9,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import AdmZip from 'adm-zip';
 import * as crypto from 'crypto';
-import logger from '../../utils/logger';
-import { CacheService } from '../../services/CacheService';
-import { PerformanceMonitor } from '../../services/PerformanceMonitor';
+import logger from '../../utils/logger.js';
+import { CacheService } from '../../services/CacheService.js';
+import { PerformanceMonitor } from '../../services/PerformanceMonitor.js';
 
 /**
  * Analysis result containing extracted information from Java mod
@@ -100,7 +100,7 @@ export class JavaAnalyzer {
   async analyzeJarForMVP(jarPath: string): Promise<AnalysisResult> {
     const profileId = this.performanceMonitor?.startProfile('java-analysis', { jarPath });
     const analysisNotes: AnalysisNote[] = [];
-    
+
     try {
       // Check cache first if available
       if (this.cache) {
@@ -108,7 +108,7 @@ export class JavaAnalyzer {
         const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
         const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
         const cachedResult = await this.cache.get<AnalysisResult>(cacheKey);
-        
+
         if (cachedResult) {
           this.performanceMonitor?.endProfile(profileId);
           return cachedResult;
@@ -116,7 +116,7 @@ export class JavaAnalyzer {
       }
       // Load the JAR file
       const zip = new AdmZip(jarPath);
-      
+
       // Extract manifest information first
       const manifestInfo = await this.parseManifestInfo(zip);
       analysisNotes.push({
@@ -190,22 +190,22 @@ export class JavaAnalyzer {
     try {
       // Strategy 1: Parse Java class files for registry calls
       const classResult = await this.extractFromClassFiles(zip);
-      classResult.registryNames.forEach(name => registryNames.add(name));
+      classResult.registryNames.forEach((name) => registryNames.add(name));
       notes.push(...classResult.notes);
 
       // Strategy 2: Parse JSON data files
       const jsonResult = await this.extractFromJsonFiles(zip);
-      jsonResult.registryNames.forEach(name => registryNames.add(name));
+      jsonResult.registryNames.forEach((name) => registryNames.add(name));
       notes.push(...jsonResult.notes);
 
       // Strategy 3: Parse lang files for translation keys
       const langResult = await this.extractFromLangFiles(zip);
-      langResult.registryNames.forEach(name => registryNames.add(name));
+      langResult.registryNames.forEach((name) => registryNames.add(name));
       notes.push(...langResult.notes);
 
       // Strategy 4: Parse model files for block/item references
       const modelResult = await this.extractFromModelFiles(zip);
-      modelResult.registryNames.forEach(name => registryNames.add(name));
+      modelResult.registryNames.forEach((name) => registryNames.add(name));
       notes.push(...modelResult.notes);
 
       notes.push({
@@ -224,8 +224,8 @@ export class JavaAnalyzer {
       });
       return { registryNames: [], notes };
     }
-  }  /*
-*
+  } /*
+   *
    * Extracts registry names from Java class files using bytecode analysis
    * @param zip AdmZip instance of the JAR file
    * @returns Promise<ExtractionResult> containing registry names from class files
@@ -245,7 +245,7 @@ export class JavaAnalyzer {
             // This is a simplified approach that looks for common naming patterns
             const className = entry.entryName.replace(/\.class$/, '').replace(/\//g, '.');
             const simpleClassName = className.split('.').pop() || '';
-            
+
             // Look for common block/item class naming patterns
             if (simpleClassName.match(/Block$|Item$|Entity$|TileEntity$/)) {
               const registryName = simpleClassName
@@ -253,12 +253,12 @@ export class JavaAnalyzer {
                 .toLowerCase()
                 .replace(/([A-Z])/g, '_$1')
                 .replace(/^_/, '');
-              
+
               if (registryName && registryName.length > 0) {
                 registryNames.push(registryName);
               }
             }
-            
+
             classFilesProcessed++;
           } catch (error) {
             notes.push({
@@ -409,7 +409,7 @@ export class JavaAnalyzer {
             const pathParts = entry.entryName.split('/');
             const fileName = pathParts[pathParts.length - 1];
             const registryName = fileName.replace('.json', '');
-            
+
             if (registryName && registryName.length > 0) {
               registryNames.push(registryName);
             }
@@ -452,7 +452,7 @@ export class JavaAnalyzer {
       });
       return { registryNames: [], notes };
     }
-  }  /**
+  } /**
   
  * Detects texture paths from the JAR file
    * @param zip AdmZip instance of the JAR file
@@ -493,7 +493,7 @@ export class JavaAnalyzer {
     ];
 
     for (const manifestFile of manifestFiles) {
-      const entry = entries.find(e => e.entryName === manifestFile.name);
+      const entry = entries.find((e) => e.entryName === manifestFile.name);
       if (entry) {
         try {
           return await manifestFile.parser(entry.getData().toString('utf-8'));
@@ -528,11 +528,11 @@ export class JavaAnalyzer {
     const dependencies: Dependency[] = [];
     const dependencyPattern = /\[\[dependencies\.([^\]]+)\]\]([\s\S]*?)(?=\[\[|$)/g;
     let depMatch;
-    
+
     while ((depMatch = dependencyPattern.exec(content)) !== null) {
       const modId = depMatch[1];
       const depSection = depMatch[2];
-      
+
       const depModIdMatch = depSection.match(/modId\s*=\s*["']([^"']+)["']/);
       const mandatoryMatch = depSection.match(/mandatory\s*=\s*(true|false)/);
       const versionRangeMatch = depSection.match(/versionRange\s*=\s*["']([^"']+)["']/);
@@ -608,7 +608,9 @@ export class JavaAnalyzer {
       modName: modData.name || 'Unknown Mod',
       version: modData.version || '1.0.0',
       description: modData.description,
-      author: Array.isArray(modData.authorList) ? modData.authorList.join(', ') : modData.authorList,
+      author: Array.isArray(modData.authorList)
+        ? modData.authorList.join(', ')
+        : modData.authorList,
       dependencies,
     };
   }
@@ -619,7 +621,11 @@ export class JavaAnalyzer {
    * @param registryNames Array to collect registry names
    * @param location Current location for error reporting
    */
-  private extractRegistryNamesFromObject(obj: any, registryNames: string[], location: string): void {
+  private extractRegistryNamesFromObject(
+    obj: any,
+    registryNames: string[],
+    location: string
+  ): void {
     if (typeof obj === 'string') {
       // Look for registry name patterns in string values
       const matches = obj.match(/[a-z_][a-z0-9_]*/g);
@@ -627,7 +633,7 @@ export class JavaAnalyzer {
         registryNames.push(...matches);
       }
     } else if (Array.isArray(obj)) {
-      obj.forEach(item => this.extractRegistryNamesFromObject(item, registryNames, location));
+      obj.forEach((item) => this.extractRegistryNamesFromObject(item, registryNames, location));
     } else if (obj && typeof obj === 'object') {
       // Check object keys for registry names
       for (const key of Object.keys(obj)) {

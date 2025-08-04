@@ -1,19 +1,25 @@
 /**
  * JavaScriptGenerator.test.ts
- * 
+ *
  * Unit tests for the JavaScript Generator module.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { JavaScriptGenerator, CodeGenerationOptions } from '../../../../src/modules/logic/JavaScriptGenerator';
-import { JavaScriptASTNode, TranspilationResult } from '../../../../src/modules/logic/ASTTranspiler';
-import { LLMTranslationResult } from '../../../../src/modules/logic/LLMTranslationService';
-import { MMIRNode, MMIRNodeType } from '../../../../src/modules/logic/MMIRGenerator';
+import {
+  JavaScriptGenerator,
+  CodeGenerationOptions,
+} from '../../../../src/modules/logic/JavaScriptGenerator.js';
+import {
+  JavaScriptASTNode,
+  TranspilationResult,
+} from '../../../../src/modules/logic/ASTTranspiler.js';
+import { LLMTranslationResult } from '../../../../src/modules/logic/LLMTranslationService.js';
+import { MMIRNode, MMIRNodeType } from '../../../../src/modules/logic/MMIRGenerator.js';
 
 describe('JavaScriptGenerator', () => {
   let generator: JavaScriptGenerator;
   let defaultOptions: CodeGenerationOptions;
-  
+
   beforeEach(() => {
     defaultOptions = {
       includeSourceMaps: false,
@@ -21,11 +27,11 @@ describe('JavaScriptGenerator', () => {
       includeComments: true,
       indent: 2,
       useSemicolons: true,
-      useSingleQuotes: false
+      useSingleQuotes: false,
     };
     generator = new JavaScriptGenerator(defaultOptions);
   });
-  
+
   describe('generateFromAST', () => {
     it('should generate JavaScript code from AST', () => {
       // Create a simple AST
@@ -42,14 +48,14 @@ describe('JavaScriptGenerator', () => {
                   type: 'VariableDeclarator',
                   id: {
                     type: 'Identifier',
-                    name: 'MOD_ID'
+                    name: 'MOD_ID',
                   },
                   init: {
                     type: 'Literal',
-                    value: 'test-mod'
-                  }
-                }
-              ]
+                    value: 'test-mod',
+                  },
+                },
+              ],
             },
             {
               type: 'ImportDeclaration',
@@ -58,26 +64,26 @@ describe('JavaScriptGenerator', () => {
                   type: 'ImportDefaultSpecifier',
                   local: {
                     type: 'Identifier',
-                    name: 'system'
-                  }
-                }
+                    name: 'system',
+                  },
+                },
               ],
               source: {
                 type: 'Literal',
-                value: '@minecraft/server'
-              }
-            }
-          ]
-        }
+                value: '@minecraft/server',
+              },
+            },
+          ],
+        },
       ];
-      
+
       const code = generator.generateFromAST(ast);
-      
+
       // Verify the generated code
       expect(code).toContain('const MOD_ID = "test-mod";');
       expect(code).toContain('import system from "@minecraft/server";');
     });
-    
+
     it('should respect code generation options', () => {
       // Create a simple AST
       const ast: JavaScriptASTNode[] = [
@@ -89,31 +95,31 @@ describe('JavaScriptGenerator', () => {
               type: 'VariableDeclarator',
               id: {
                 type: 'Identifier',
-                name: 'greeting'
+                name: 'greeting',
               },
               init: {
                 type: 'Literal',
-                value: 'Hello, world!'
-              }
-            }
-          ]
-        }
+                value: 'Hello, world!',
+              },
+            },
+          ],
+        },
       ];
-      
+
       // Generate with single quotes
       const options: CodeGenerationOptions = {
         useSingleQuotes: true,
-        useSemicolons: false
+        useSemicolons: false,
       };
-      
+
       const code = generator.generateFromAST(ast, options);
-      
+
       // Verify the generated code
       expect(code).toContain("const greeting = 'Hello, world!'");
       expect(code).not.toContain(';');
     });
   });
-  
+
   describe('generateFromTranspilationResult', () => {
     it('should generate JavaScript from transpilation result', () => {
       // Create a transpilation result
@@ -123,7 +129,7 @@ describe('JavaScriptGenerator', () => {
             type: 'FunctionDeclaration',
             id: {
               type: 'Identifier',
-              name: 'initializeMod'
+              name: 'initializeMod',
             },
             params: [],
             body: {
@@ -137,38 +143,38 @@ describe('JavaScriptGenerator', () => {
                       type: 'MemberExpression',
                       object: {
                         type: 'Identifier',
-                        name: 'console'
+                        name: 'console',
                       },
                       property: {
                         type: 'Identifier',
-                        name: 'log'
+                        name: 'log',
                       },
-                      computed: false
+                      computed: false,
                     },
                     arguments: [
                       {
                         type: 'Literal',
-                        value: 'Initializing mod'
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
+                        value: 'Initializing mod',
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
         ],
         metadata: {
           modId: 'test-mod',
           modName: 'Test Mod',
           modVersion: '1.0.0',
-          originalModLoader: 'forge'
+          originalModLoader: 'forge',
         },
         unmappableNodes: [],
-        warnings: []
+        warnings: [],
       };
-      
+
       const result = generator.generateFromTranspilationResult(transpilationResult);
-      
+
       // Verify the result
       expect(result.code).toContain('function initializeMod()');
       expect(result.code).toContain('console.log("Initializing mod");');
@@ -176,7 +182,7 @@ describe('JavaScriptGenerator', () => {
       expect(result.metadata.stats.functionCount).toBeGreaterThan(0);
     });
   });
-  
+
   describe('integrateASTAndLLMCode', () => {
     it('should integrate AST and LLM code', () => {
       // Create AST code
@@ -191,7 +197,7 @@ function initializeMod() {
 
 initializeMod();
 `;
-      
+
       // Create LLM translations
       const llmTranslations = new Map<string, LLMTranslationResult>();
       llmTranslations.set('node_1', {
@@ -212,33 +218,39 @@ function createCustomBlock() {
         metadata: {
           tokensUsed: 100,
           processingTime: 500,
-          modelVersion: 'test-model'
-        }
+          modelVersion: 'test-model',
+        },
       });
-      
+
       // Create unmappable nodes
       const unmappableNodes: MMIRNode[] = [
         {
           id: 'node_1',
           type: MMIRNodeType.BlockDefinition,
           properties: {
-            blockId: 'custom_block'
+            blockId: 'custom_block',
           },
-          children: []
-        }
+          children: [],
+        },
       ];
-      
-      const integratedCode = generator.integrateASTAndLLMCode(astCode, llmTranslations, unmappableNodes);
-      
+
+      const integratedCode = generator.integrateASTAndLLMCode(
+        astCode,
+        llmTranslations,
+        unmappableNodes
+      );
+
       // Verify the integrated code
       expect(integratedCode.length).toBe(2);
       expect(integratedCode[0].filePath).toBe('index.js');
-      expect(integratedCode[0].code).toContain('import { block_custom_block } from \'./block_custom_block\';');
+      expect(integratedCode[0].code).toContain(
+        "import { block_custom_block } from './block_custom_block.js';"
+      );
       expect(integratedCode[1].filePath).toBe('block_custom_block.js');
       expect(integratedCode[1].code).toContain('export const block_custom_block');
     });
   });
-  
+
   describe('optimizeCode', () => {
     it('should apply basic optimizations', () => {
       const code = `
@@ -249,14 +261,14 @@ function logFunction() {
   return true;
 }
 `;
-      
+
       const optimized = generator.optimizeCode(code);
-      
+
       // Verify optimizations
       expect(optimized).not.toContain('console.log');
       // Note: In this simplified implementation, empty functions might not be removed
     });
-    
+
     it('should minify code when requested', () => {
       const code = `
 // This is a comment
@@ -264,13 +276,13 @@ function add(a, b) {
   return a + b;
 }
 `;
-      
+
       const minified = generator.optimizeCode(code, { minify: true });
-      
+
       // Verify minification
       expect(minified).not.toContain('//');
       expect(minified).not.toContain('\n');
-      
+
       // Check for minified function with more flexible matching
       expect(minified).toMatch(/function add\(a,b\).*return a\+b/);
     });

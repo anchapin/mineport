@@ -11,7 +11,7 @@ import {
   UnmappableCodeSegment,
   APIMapping,
   TranslationWarning,
-  SourcePosition
+  SourcePosition,
 } from '../../types/logic-translation.js';
 import { logger } from '../../utils/logger.js';
 
@@ -51,29 +51,30 @@ export class ASTTranspiler {
     context: TranslationContext
   ): Promise<ASTTranspilationResult> {
     logger.debug('Starting AST-based transpilation');
-    
+
     try {
       const transpilationResult = await this.transpileNodes(mmir.ast, context);
-      
+
       const result: ASTTranspilationResult = {
         code: transpilationResult.code,
         unmappableCode: transpilationResult.unmappableSegments,
         mappedAPIs: transpilationResult.mappedAPIs,
         confidence: transpilationResult.confidence,
-        warnings: transpilationResult.warnings
+        warnings: transpilationResult.warnings,
       };
-      
+
       logger.debug('AST transpilation completed', {
         codeLength: result.code.length,
         unmappableSegments: result.unmappableCode.length,
-        confidence: result.confidence
+        confidence: result.confidence,
       });
-      
+
       return result;
-      
     } catch (error) {
       logger.error('AST transpilation failed', { error });
-      throw new Error(`AST transpilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `AST transpilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -100,7 +101,7 @@ export class ASTTranspiler {
     for (const node of nodes) {
       try {
         const nodeResult = await this.transpileNode(node, context);
-        
+
         if (nodeResult.success) {
           codeSegments.push(nodeResult.code);
           mappedAPIs.push(...nodeResult.mappedAPIs);
@@ -114,20 +115,19 @@ export class ASTTranspiler {
               className: context.modInfo.name,
               methodName: this.extractMethodName(node),
               lineNumber: node.position.line,
-              dependencies: context.modInfo.dependencies
+              dependencies: context.modInfo.dependencies,
             },
-            suggestedApproach: nodeResult.suggestedApproach || 'Use LLM-based translation'
+            suggestedApproach: nodeResult.suggestedApproach || 'Use LLM-based translation',
           });
         }
-        
+
         processedNodes++;
-        
       } catch (error) {
-        logger.warn('Failed to transpile node', { 
+        logger.warn('Failed to transpile node', {
           nodeType: node.type,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         unmappableSegments.push({
           originalCode: this.nodeToString(node),
           reason: `Transpilation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -135,9 +135,9 @@ export class ASTTranspiler {
             className: context.modInfo.name,
             methodName: this.extractMethodName(node),
             lineNumber: node.position.line,
-            dependencies: context.modInfo.dependencies
+            dependencies: context.modInfo.dependencies,
           },
-          suggestedApproach: 'Manual review required'
+          suggestedApproach: 'Manual review required',
         });
       }
     }
@@ -150,7 +150,7 @@ export class ASTTranspiler {
       unmappableSegments,
       mappedAPIs,
       confidence: averageConfidence,
-      warnings
+      warnings,
     };
   }
 
@@ -171,7 +171,7 @@ export class ASTTranspiler {
   }> {
     // Find matching transpilation rule
     const matchingRule = this.findMatchingRule(node);
-    
+
     if (!matchingRule) {
       return {
         success: false,
@@ -180,33 +180,32 @@ export class ASTTranspiler {
         confidence: 0,
         warnings: [],
         reason: `No transpilation rule found for node type: ${node.type}`,
-        suggestedApproach: 'Use LLM-based semantic translation'
+        suggestedApproach: 'Use LLM-based semantic translation',
       };
     }
 
     try {
       // Apply the transpilation rule
       const transpiledCode = matchingRule.transform(node, context);
-      
+
       // Extract any API mappings used
       const mappedAPIs = await this.extractAPIMappings(node, transpiledCode, context);
-      
+
       // Generate warnings if needed
       const warnings = this.generateWarnings(node, matchingRule, context);
-      
+
       // Recursively transpile child nodes if needed
       const childResults = await this.transpileChildNodes(node, context);
-      
+
       const finalCode = this.combineCodeSegments(transpiledCode, childResults.code);
-      
+
       return {
         success: true,
         code: finalCode,
         mappedAPIs: [...mappedAPIs, ...childResults.mappedAPIs],
         confidence: (matchingRule.confidence + childResults.confidence) / 2,
-        warnings: [...warnings, ...childResults.warnings]
+        warnings: [...warnings, ...childResults.warnings],
       };
-      
     } catch (error) {
       return {
         success: false,
@@ -215,7 +214,7 @@ export class ASTTranspiler {
         confidence: 0,
         warnings: [],
         reason: `Transpilation rule execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        suggestedApproach: 'Manual review and custom implementation required'
+        suggestedApproach: 'Manual review and custom implementation required',
       };
     }
   }
@@ -237,17 +236,17 @@ export class ASTTranspiler {
         code: '',
         mappedAPIs: [],
         confidence: 1.0,
-        warnings: []
+        warnings: [],
       };
     }
 
     const childResult = await this.transpileNodes(node.children, context);
-    
+
     return {
       code: childResult.code,
       mappedAPIs: childResult.mappedAPIs,
       confidence: childResult.confidence,
-      warnings: childResult.warnings
+      warnings: childResult.warnings,
     };
   }
 
@@ -307,13 +306,17 @@ export class ASTTranspiler {
       case 'equals':
         return propertyValue === condition.value;
       case 'contains':
-        return typeof propertyValue === 'string' && 
-               typeof condition.value === 'string' &&
-               propertyValue.includes(condition.value);
+        return (
+          typeof propertyValue === 'string' &&
+          typeof condition.value === 'string' &&
+          propertyValue.includes(condition.value)
+        );
       case 'matches':
-        return typeof propertyValue === 'string' && 
-               typeof condition.value === 'string' &&
-               new RegExp(condition.value).test(propertyValue);
+        return (
+          typeof propertyValue === 'string' &&
+          typeof condition.value === 'string' &&
+          new RegExp(condition.value).test(propertyValue)
+        );
       case 'exists':
         return propertyValue !== undefined && propertyValue !== null;
       default:
@@ -350,10 +353,10 @@ export class ASTTranspiler {
     context: TranslationContext
   ): Promise<APIMapping[]> {
     const mappings: APIMapping[] = [];
-    
+
     // This would analyze the transpiled code and identify which API mappings were used
     // For now, return empty array as this requires integration with API mapping service
-    
+
     return mappings;
   }
 
@@ -374,7 +377,7 @@ export class ASTTranspiler {
         message: `Transpilation rule '${rule.name}' has low confidence (${rule.confidence})`,
         severity: 'warning',
         location: node.position,
-        suggestion: 'Consider manual review of the generated code'
+        suggestion: 'Consider manual review of the generated code',
       });
     }
 
@@ -385,7 +388,7 @@ export class ASTTranspiler {
         message: `Node has many children (${node.children.length}), transpilation may be incomplete`,
         severity: 'warning',
         location: node.position,
-        suggestion: 'Verify that all child elements are properly transpiled'
+        suggestion: 'Verify that all child elements are properly transpiled',
       });
     }
 
@@ -399,11 +402,11 @@ export class ASTTranspiler {
     if (!childCode.trim()) {
       return parentCode;
     }
-    
+
     if (!parentCode.trim()) {
       return childCode;
     }
-    
+
     return `${parentCode}\n${childCode}`;
   }
 
@@ -414,12 +417,12 @@ export class ASTTranspiler {
     // This would generate a string representation of the original Java code
     // For now, return a simplified representation
     let result = node.value || node.type;
-    
+
     if (node.children.length > 0) {
-      const childStrings = node.children.map(child => this.nodeToString(child));
+      const childStrings = node.children.map((child) => this.nodeToString(child));
       result += ` { ${childStrings.join('; ')} }`;
     }
-    
+
     return result;
   }
 
@@ -430,7 +433,7 @@ export class ASTTranspiler {
     if (node.type === 'MethodDeclaration') {
       return node.value || 'unknownMethod';
     }
-    
+
     // Look for method declaration in parent context
     // This is simplified - in practice, we'd maintain a context stack
     return 'unknownMethod';
@@ -445,108 +448,108 @@ export class ASTTranspiler {
       {
         name: 'ClassDeclaration',
         pattern: {
-          nodeType: 'ClassDeclaration'
+          nodeType: 'ClassDeclaration',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           const className = node.value || 'UnknownClass';
           return `// Transpiled class: ${className}\nclass ${className} {\n  constructor() {\n    // Class initialization\n  }\n}`;
         },
-        confidence: 0.9
+        confidence: 0.9,
       },
 
       // Method Declaration Rule
       {
         name: 'MethodDeclaration',
         pattern: {
-          nodeType: 'MethodDeclaration'
+          nodeType: 'MethodDeclaration',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           const methodName = node.value || 'unknownMethod';
           return `  ${methodName}() {\n    // Method implementation\n  }`;
         },
-        confidence: 0.8
+        confidence: 0.8,
       },
 
       // If Statement Rule
       {
         name: 'IfStatement',
         pattern: {
-          nodeType: 'IfStatement'
+          nodeType: 'IfStatement',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           return `if (condition) {\n  // If body\n}`;
         },
-        confidence: 0.95
+        confidence: 0.95,
       },
 
       // For Loop Rule
       {
         name: 'ForLoop',
         pattern: {
-          nodeType: 'ForLoop'
+          nodeType: 'ForLoop',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           return `for (let i = 0; i < length; i++) {\n  // Loop body\n}`;
         },
-        confidence: 0.9
+        confidence: 0.9,
       },
 
       // While Loop Rule
       {
         name: 'WhileLoop',
         pattern: {
-          nodeType: 'WhileLoop'
+          nodeType: 'WhileLoop',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           return `while (condition) {\n  // Loop body\n}`;
         },
-        confidence: 0.9
+        confidence: 0.9,
       },
 
       // Method Call Rule
       {
         name: 'MethodCall',
         pattern: {
-          nodeType: 'MethodCall'
+          nodeType: 'MethodCall',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           const methodName = node.value || 'unknownMethod';
           return `${methodName}();`;
         },
-        confidence: 0.7
+        confidence: 0.7,
       },
 
       // Assignment Rule
       {
         name: 'Assignment',
         pattern: {
-          nodeType: 'Assignment'
+          nodeType: 'Assignment',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           const variableName = node.value || 'variable';
           return `let ${variableName} = value;`;
         },
-        confidence: 0.85
+        confidence: 0.85,
       },
 
       // Field Declaration Rule
       {
         name: 'FieldDeclaration',
         pattern: {
-          nodeType: 'FieldDeclaration'
+          nodeType: 'FieldDeclaration',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           const fieldName = node.value || 'field';
           return `  ${fieldName} = null;`;
         },
-        confidence: 0.8
+        confidence: 0.8,
       },
 
       // Comment Rule
       {
         name: 'Comment',
         pattern: {
-          nodeType: 'Comment'
+          nodeType: 'Comment',
         },
         transform: (node: ASTNode, context: TranslationContext) => {
           const comment = node.value || '';
@@ -557,8 +560,8 @@ export class ASTTranspiler {
           }
           return `// ${comment}`;
         },
-        confidence: 1.0
-      }
+        confidence: 1.0,
+      },
     ];
   }
 }

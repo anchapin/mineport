@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { useConversionContext } from '../context/ConversionContext';
+import { useConversionContext } from '../context/ConversionContext.js';
 
 export const ResultsDashboard: React.FC = () => {
   const { state } = useConversionContext();

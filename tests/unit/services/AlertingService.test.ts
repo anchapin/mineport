@@ -17,7 +17,7 @@ describe('AlertingService', () => {
       enableHealthChecks: true,
       healthCheckInterval: 30000,
       alertingEnabled: true,
-      alertingWebhookUrl: 'https://example.com/webhook'
+      alertingWebhookUrl: 'https://example.com/webhook',
     };
 
     alertingService = new AlertingService(mockConfig);
@@ -109,7 +109,7 @@ describe('AlertingService', () => {
 
       // Check that alert is marked as resolved
       const history = alertingService.getAlertHistory();
-      const resolvedAlert = history.find(a => a.id === alert.id);
+      const resolvedAlert = history.find((a) => a.id === alert.id);
       expect(resolvedAlert?.resolved).toBe(true);
       expect(resolvedAlert?.resolvedAt).toBeInstanceOf(Date);
       expect(resolvedAlert?.metadata.resolvedBy).toBe('admin');
@@ -156,15 +156,25 @@ describe('AlertingService', () => {
   describe('alert filtering', () => {
     beforeEach(async () => {
       await alertingService.createAlert('security_threat', 'high', 'Security Alert 1', 'Message 1');
-      await alertingService.createAlert('security_threat', 'medium', 'Security Alert 2', 'Message 2');
-      await alertingService.createAlert('performance_degradation', 'high', 'Performance Alert', 'Message 3');
+      await alertingService.createAlert(
+        'security_threat',
+        'medium',
+        'Security Alert 2',
+        'Message 2'
+      );
+      await alertingService.createAlert(
+        'performance_degradation',
+        'high',
+        'Performance Alert',
+        'Message 3'
+      );
       await alertingService.createAlert('system_health', 'low', 'Health Alert', 'Message 4');
     });
 
     it('should filter alerts by type', () => {
       const securityAlerts = alertingService.getAlertsByType('security_threat');
       expect(securityAlerts).toHaveLength(2);
-      expect(securityAlerts.every(a => a.type === 'security_threat')).toBe(true);
+      expect(securityAlerts.every((a) => a.type === 'security_threat')).toBe(true);
 
       const performanceAlerts = alertingService.getAlertsByType('performance_degradation');
       expect(performanceAlerts).toHaveLength(1);
@@ -174,7 +184,7 @@ describe('AlertingService', () => {
     it('should filter alerts by severity', () => {
       const highSeverityAlerts = alertingService.getAlertsBySeverity('high');
       expect(highSeverityAlerts).toHaveLength(2);
-      expect(highSeverityAlerts.every(a => a.severity === 'high')).toBe(true);
+      expect(highSeverityAlerts.every((a) => a.severity === 'high')).toBe(true);
 
       const lowSeverityAlerts = alertingService.getAlertsBySeverity('low');
       expect(lowSeverityAlerts).toHaveLength(1);
@@ -221,11 +231,9 @@ describe('AlertingService', () => {
     });
 
     it('should create system health alerts', async () => {
-      const alert = await alertingService.createSystemHealthAlert(
-        'java_analyzer',
-        'unhealthy',
-        { errorRate: 0.8 }
-      );
+      const alert = await alertingService.createSystemHealthAlert('java_analyzer', 'unhealthy', {
+        errorRate: 0.8,
+      });
 
       expect(alert.type).toBe('system_health');
       expect(alert.severity).toBe('high'); // unhealthy = high severity
@@ -237,12 +245,9 @@ describe('AlertingService', () => {
     });
 
     it('should create resource usage alerts', async () => {
-      const alert = await alertingService.createResourceUsageAlert(
-        'memory',
-        900,
-        500,
-        { processId: 1234 }
-      );
+      const alert = await alertingService.createResourceUsageAlert('memory', 900, 500, {
+        processId: 1234,
+      });
 
       expect(alert.type).toBe('resource_usage');
       expect(alert.severity).toBe('high'); // 900 > 500 * 1.5
@@ -267,8 +272,8 @@ describe('AlertingService', () => {
           {
             metric: 'severity',
             operator: 'eq',
-            threshold: 'critical'
-          }
+            threshold: 'critical',
+          },
         ],
         severity: 'critical',
         cooldownPeriod: 60000,
@@ -276,15 +281,15 @@ describe('AlertingService', () => {
           {
             type: 'log',
             config: { level: 'error' },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       };
 
       alertingService.setAlertRule(rule);
 
       const rules = alertingService.getAlertRules();
-      const addedRule = rules.find(r => r.id === 'test_rule');
+      const addedRule = rules.find((r) => r.id === 'test_rule');
       expect(addedRule).toBeDefined();
       expect(addedRule?.name).toBe('Test Rule');
     });
@@ -298,15 +303,17 @@ describe('AlertingService', () => {
         conditions: [],
         severity: 'medium',
         cooldownPeriod: 30000,
-        actions: []
+        actions: [],
       };
 
       alertingService.setAlertRule(rule);
-      expect(alertingService.getAlertRules().find(r => r.id === 'removable_rule')).toBeDefined();
+      expect(alertingService.getAlertRules().find((r) => r.id === 'removable_rule')).toBeDefined();
 
       const removed = alertingService.removeAlertRule('removable_rule');
       expect(removed).toBe(true);
-      expect(alertingService.getAlertRules().find(r => r.id === 'removable_rule')).toBeUndefined();
+      expect(
+        alertingService.getAlertRules().find((r) => r.id === 'removable_rule')
+      ).toBeUndefined();
     });
 
     it('should return false when removing non-existent rule', () => {
@@ -326,8 +333,8 @@ describe('AlertingService', () => {
           {
             metric: 'memoryUsage',
             operator: 'gt',
-            threshold: 800
-          }
+            threshold: 800,
+          },
         ],
         severity: 'high',
         cooldownPeriod: 60000,
@@ -335,9 +342,9 @@ describe('AlertingService', () => {
           {
             type: 'log',
             config: { level: 'warn' },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       };
 
       alertingService.setAlertRule(rule);
@@ -345,15 +352,13 @@ describe('AlertingService', () => {
       // Trigger rule with metric that exceeds threshold
       await alertingService.checkAlertRules({
         memoryUsage: 900,
-        component: 'test'
+        component: 'test',
       });
 
       const activeAlerts = alertingService.getActiveAlerts();
       expect(activeAlerts.length).toBeGreaterThan(0);
-      
-      const triggeredAlert = activeAlerts.find(a => 
-        a.metadata.ruleId === 'memory_rule'
-      );
+
+      const triggeredAlert = activeAlerts.find((a) => a.metadata.ruleId === 'memory_rule');
       expect(triggeredAlert).toBeDefined();
     });
 
@@ -367,12 +372,12 @@ describe('AlertingService', () => {
           {
             metric: 'duration',
             operator: 'gt',
-            threshold: 1000
-          }
+            threshold: 1000,
+          },
         ],
         severity: 'medium',
         cooldownPeriod: 5000, // 5 seconds
-        actions: []
+        actions: [],
       };
 
       alertingService.setAlertRule(rule);
@@ -398,20 +403,20 @@ describe('AlertingService', () => {
           {
             metric: 'status',
             operator: 'eq',
-            threshold: 'unhealthy'
-          }
+            threshold: 'unhealthy',
+          },
         ],
         severity: 'high',
         cooldownPeriod: 60000,
-        actions: []
+        actions: [],
       };
 
       alertingService.setAlertRule(rule);
 
       const initialAlertCount = alertingService.getActiveAlerts().length;
-      
+
       await alertingService.checkAlertRules({ status: 'unhealthy' });
-      
+
       const finalAlertCount = alertingService.getActiveAlerts().length;
       expect(finalAlertCount).toBe(initialAlertCount);
     });
@@ -431,8 +436,8 @@ describe('AlertingService', () => {
           {
             metric: 'severity',
             operator: 'eq',
-            threshold: 'critical'
-          }
+            threshold: 'critical',
+          },
         ],
         severity: 'critical',
         cooldownPeriod: 60000,
@@ -441,23 +446,19 @@ describe('AlertingService', () => {
             type: 'webhook',
             config: {
               url: 'https://example.com/webhook',
-              headers: { 'X-Custom': 'test' }
+              headers: { 'X-Custom': 'test' },
             },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       };
 
       alertingService.setAlertRule(rule);
 
-      await alertingService.createSecurityThreatAlert(
-        'malware',
-        'test.jar',
-        'critical'
-      );
+      await alertingService.createSecurityThreatAlert('malware', 'test.jar', 'critical');
 
       // Wait a bit for async webhook call
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://example.com/webhook',
@@ -465,9 +466,9 @@ describe('AlertingService', () => {
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'X-Custom': 'test'
+            'X-Custom': 'test',
           }),
-          body: expect.stringContaining('malware')
+          body: expect.stringContaining('malware'),
         })
       );
     });
@@ -488,9 +489,9 @@ describe('AlertingService', () => {
           {
             type: 'webhook',
             config: { url: 'https://failing.example.com/webhook' },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       };
 
       alertingService.setAlertRule(rule);

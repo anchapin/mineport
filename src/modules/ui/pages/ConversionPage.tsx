@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { FileUploader, ProgressTracker, StatusDisplay, SettingsPanel } from '../components';
-import { useConversion } from '../hooks/useConversion';
-import { ConversionProvider } from '../context/ConversionContext';
+import { FileUploader, ProgressTracker, StatusDisplay, SettingsPanel } from '../components.js';
+import { useConversion } from '../hooks/useConversion.js';
+import { ConversionProvider } from '../context/ConversionContext.js';
 
 // Wrapper component that provides the ConversionProvider
 export const ConversionPage: React.FC = () => {

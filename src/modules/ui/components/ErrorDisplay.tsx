@@ -7,15 +7,15 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { EnhancedErrorCollector } from '../../../services/EnhancedErrorCollector';
+import { EnhancedErrorCollector } from '../../../services/EnhancedErrorCollector.js';
 import { 
   EnhancedConversionError,
   ErrorAggregation,
   ErrorCategorization,
   RecoveryResult,
   SystemHealthStatus
-} from '../../../types/errors';
-import { UIError, UIWarning } from './EnhancedConversionUI';
+} from '../../../types/errors.js';
+import { UIError, UIWarning } from './EnhancedConversionUI.js';
 
 export interface ErrorDisplayProps {
   errors: UIError[];

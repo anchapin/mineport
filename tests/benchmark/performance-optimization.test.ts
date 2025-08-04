@@ -1,6 +1,6 @@
 /**
  * Performance Optimization Tests
- * 
+ *
  * Comprehensive performance tests and benchmarks for the optimized components
  */
 
@@ -8,11 +8,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { StreamingFileProcessor } from '../../src/services/StreamingFileProcessor';
-import { ResourceAllocator, ResourcePool } from '../../src/services/ResourceAllocator';
-import { CacheService } from '../../src/services/CacheService';
-import { WorkerPool } from '../../src/services/WorkerPool';
-import { PerformanceMonitor } from '../../src/services/PerformanceMonitor';
+import { StreamingFileProcessor } from '../../src/services/StreamingFileProcessor.js';
+import { ResourceAllocator, ResourcePool } from '../../src/services/ResourceAllocator.js';
+import { CacheService } from '../../src/services/CacheService.js';
+import { WorkerPool } from '../../src/services/WorkerPool.js';
+import { PerformanceMonitor } from '../../src/services/PerformanceMonitor.js';
 
 describe('Performance Optimization Tests', () => {
   let tempDir: string;
@@ -23,7 +23,7 @@ describe('Performance Optimization Tests', () => {
     performanceMonitor = new PerformanceMonitor({
       interval: 1000,
       enableProfiling: true,
-      enableAlerts: false // Disable alerts for tests
+      enableAlerts: false, // Disable alerts for tests
     });
   });
 
@@ -37,7 +37,7 @@ describe('Performance Optimization Tests', () => {
       const processor = new StreamingFileProcessor({
         chunkSize: 64 * 1024, // 64KB chunks
         maxConcurrentChunks: 4,
-        enableProgressTracking: true
+        enableProgressTracking: true,
       });
 
       // Create a large test file (10MB)
@@ -54,7 +54,7 @@ describe('Performance Optimization Tests', () => {
         maxFileSize: 50 * 1024 * 1024, // 50MB limit
         allowedMimeTypes: ['application/zip'],
         enableMalwareScanning: false, // Disable for performance test
-        tempDirectory: tempDir
+        tempDirectory: tempDir,
       });
 
       const profile = performanceMonitor.endProfile(profileId);
@@ -72,7 +72,7 @@ describe('Performance Optimization Tests', () => {
     it('should process multiple files concurrently', async () => {
       const processor = new StreamingFileProcessor({
         chunkSize: 32 * 1024,
-        maxConcurrentChunks: 8
+        maxConcurrentChunks: 8,
       });
 
       // Create multiple test files
@@ -92,12 +92,12 @@ describe('Performance Optimization Tests', () => {
       const startTime = Date.now();
 
       // Process files concurrently
-      const promises = filePaths.map(filePath => 
+      const promises = filePaths.map((filePath) =>
         processor.processLargeFile(filePath, {
           maxFileSize: 10 * 1024 * 1024,
           allowedMimeTypes: ['application/zip'],
           enableMalwareScanning: false,
-          tempDirectory: tempDir
+          tempDirectory: tempDir,
         })
       );
 
@@ -106,7 +106,7 @@ describe('Performance Optimization Tests', () => {
       const totalTime = Date.now() - startTime;
 
       expect(results).toHaveLength(fileCount);
-      expect(results.every(r => r.isValid)).toBe(true);
+      expect(results.every((r) => r.isValid)).toBe(true);
       expect(totalTime).toBeLessThan(10000); // Should complete in under 10 seconds
       expect(profile?.duration).toBeLessThan(10000);
     });
@@ -115,12 +115,14 @@ describe('Performance Optimization Tests', () => {
   describe('ResourceAllocator Performance', () => {
     it('should efficiently manage resource pools', async () => {
       const allocator = new ResourceAllocator(tempDir);
-      
+
       // Create a resource pool for expensive objects
       const pool = allocator.createPool(
         'expensive-resource',
         async () => ({ id: Math.random(), data: Buffer.alloc(1024 * 1024) }), // 1MB objects
-        async (resource) => { /* cleanup */ },
+        async (resource) => {
+          /* cleanup */
+        },
         { maxSize: 10, maxIdleTime: 5000 }
       );
 
@@ -131,7 +133,7 @@ describe('Performance Optimization Tests', () => {
       for (let i = 0; i < 20; i++) {
         const acquired = await pool.acquire();
         acquisitions.push(acquired);
-        
+
         // Release some resources to test reuse
         if (i % 3 === 0 && acquisitions.length > 1) {
           const toRelease = acquisitions.shift()!;
@@ -165,10 +167,10 @@ describe('Performance Optimization Tests', () => {
       for (let i = 0; i < 100; i++) {
         const tempFile = await tempFileManager.createTempFile({
           prefix: 'perf-test',
-          suffix: '.tmp'
+          suffix: '.tmp',
         });
         tempFiles.push(tempFile);
-        
+
         // Write some data
         await fs.writeFile(tempFile.path, `Test data ${i}`);
       }
@@ -198,7 +200,7 @@ describe('Performance Optimization Tests', () => {
         maxMemorySize: 10 * 1024 * 1024, // 10MB
         defaultTTL: 60000,
         enablePersistence: true,
-        persistenceDir: path.join(tempDir, 'cache')
+        persistenceDir: path.join(tempDir, 'cache'),
       });
 
       const profileId = performanceMonitor.startProfile('cache-operations');
@@ -208,7 +210,7 @@ describe('Performance Optimization Tests', () => {
       const operations = 1000;
       const keys = Array.from({ length: operations }, (_, i) => ({
         type: 'test' as const,
-        identifier: `key-${i}`
+        identifier: `key-${i}`,
       }));
 
       // Set operations
@@ -230,7 +232,7 @@ describe('Performance Optimization Tests', () => {
       const profile = performanceMonitor.endProfile(profileId);
       const metrics = cache.getMetrics();
 
-      expect(results.filter(r => r !== null)).toHaveLength(operations);
+      expect(results.filter((r) => r !== null)).toHaveLength(operations);
       expect(setTime).toBeLessThan(5000); // Set operations should be fast
       expect(getTime).toBeLessThan(2000); // Get operations should be very fast
       expect(metrics.hitRate).toBeGreaterThan(0.9); // High hit rate
@@ -244,7 +246,7 @@ describe('Performance Optimization Tests', () => {
         maxSize: 100, // Small cache to force evictions
         maxMemorySize: 1024 * 1024, // 1MB
         defaultTTL: 60000,
-        enablePersistence: false // Disable persistence for this test
+        enablePersistence: false, // Disable persistence for this test
       });
 
       const profileId = performanceMonitor.startProfile('cache-eviction');
@@ -274,7 +276,7 @@ describe('Performance Optimization Tests', () => {
       const workerPool = new WorkerPool({
         maxWorkers: 4,
         minWorkers: 2,
-        taskTimeout: 10000
+        taskTimeout: 10000,
       });
 
       const profileId = performanceMonitor.startProfile('worker-pool-parallel');
@@ -291,9 +293,9 @@ describe('Performance Optimization Tests', () => {
             options: {
               maxFileSize: 1024 * 1024,
               allowedMimeTypes: ['application/zip'],
-              enableMalwareScanning: false
-            }
-          }
+              enableMalwareScanning: false,
+            },
+          },
         });
         tasks.push(task);
       }
@@ -315,7 +317,7 @@ describe('Performance Optimization Tests', () => {
       const workerPool = new WorkerPool({
         maxWorkers: os.cpus().length,
         minWorkers: 2,
-        taskTimeout: 5000
+        taskTimeout: 5000,
       });
 
       const profileId = performanceMonitor.startProfile('high-throughput');
@@ -326,19 +328,21 @@ describe('Performance Optimization Tests', () => {
       // Process tasks in batches to simulate high throughput
       for (let batch = 0; batch < taskCount / batchSize; batch++) {
         const batchTasks = [];
-        
+
         for (let i = 0; i < batchSize; i++) {
           const taskId = batch * batchSize + i;
           const task = workerPool.execute('parallelFileProcessing', {
-            files: [{
-              buffer: Buffer.alloc(1024, taskId),
-              filename: `batch-${batch}-file-${i}.zip`,
-              options: {
-                maxFileSize: 1024 * 1024,
-                allowedMimeTypes: ['application/zip'],
-                enableMalwareScanning: false
-              }
-            }]
+            files: [
+              {
+                buffer: Buffer.alloc(1024, taskId),
+                filename: `batch-${batch}-file-${i}.zip`,
+                options: {
+                  maxFileSize: 1024 * 1024,
+                  allowedMimeTypes: ['application/zip'],
+                  enableMalwareScanning: false,
+                },
+              },
+            ],
           });
           batchTasks.push(task);
         }
@@ -366,7 +370,7 @@ describe('Performance Optimization Tests', () => {
       const allocator = new ResourceAllocator(tempDir);
 
       const profileId = performanceMonitor.startProfile('memory-stability');
-      
+
       // Simulate heavy usage
       for (let cycle = 0; cycle < 10; cycle++) {
         // Cache operations
@@ -417,7 +421,7 @@ describe('Performance Optimization Tests', () => {
       const monitor = new PerformanceMonitor({
         interval: 500,
         enableGCMonitoring: true,
-        enableAlerts: false
+        enableAlerts: false,
       });
 
       const profileId = monitor.startProfile('gc-efficiency');
@@ -431,7 +435,7 @@ describe('Performance Optimization Tests', () => {
       const largeObjects = [];
       for (let i = 0; i < 100; i++) {
         largeObjects.push(Buffer.alloc(1024 * 1024)); // 1MB objects
-        
+
         // Periodically release objects to trigger GC
         if (i % 20 === 0) {
           largeObjects.splice(0, 10);
@@ -442,7 +446,7 @@ describe('Performance Optimization Tests', () => {
       }
 
       // Wait for GC events
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const profile = monitor.endProfile(profileId);
       const summary = monitor.getPerformanceSummary();
@@ -462,7 +466,7 @@ describe('Performance Optimization Tests', () => {
 
       // Create test files of various sizes
       const fileSizes = [1024, 10 * 1024, 100 * 1024, 1024 * 1024]; // 1KB to 1MB
-      
+
       for (const size of fileSizes) {
         const filePath = path.join(tempDir, `benchmark-${size}.zip`);
         const buffer = Buffer.alloc(size, 0x50);
@@ -479,15 +483,15 @@ describe('Performance Optimization Tests', () => {
           maxFileSize: 10 * 1024 * 1024,
           allowedMimeTypes: ['application/zip'],
           enableMalwareScanning: false,
-          tempDirectory: tempDir
+          tempDirectory: tempDir,
         });
         const duration = Date.now() - startTime;
 
         benchmarkResults.push({
           fileSize: file.size,
           duration,
-          throughput: file.size / duration * 1000, // bytes per second
-          valid: result.isValid
+          throughput: (file.size / duration) * 1000, // bytes per second
+          valid: result.isValid,
         });
       }
 
@@ -495,7 +499,7 @@ describe('Performance Optimization Tests', () => {
       for (const result of benchmarkResults) {
         expect(result.valid).toBe(true);
         expect(result.throughput).toBeGreaterThan(1024 * 1024); // At least 1MB/s
-        
+
         if (result.fileSize <= 100 * 1024) {
           expect(result.duration).toBeLessThan(1000); // Small files under 1 second
         } else {
@@ -507,10 +511,10 @@ describe('Performance Optimization Tests', () => {
     it('should demonstrate performance improvements over baseline', async () => {
       // This test would compare optimized vs non-optimized implementations
       // For now, we'll just verify that our optimized components meet targets
-      
+
       const cache = new CacheService({ maxSize: 1000, enablePersistence: false });
       const workerPool = new WorkerPool({ maxWorkers: 4, minWorkers: 2 });
-      
+
       const operations = 100;
       const testData = { data: Buffer.alloc(1024) };
 
@@ -533,8 +537,8 @@ describe('Performance Optimization Tests', () => {
             options: {
               maxFileSize: 1024 * 1024,
               allowedMimeTypes: ['application/zip'],
-              enableMalwareScanning: false
-            }
+              enableMalwareScanning: false,
+            },
           })
         );
       }

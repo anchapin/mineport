@@ -1,23 +1,23 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UIFlowMapper, DetectedUIComponent } from '../../../../src/modules/compromise/UIFlowMapper';
-import { Feature } from '../../../../src/types/compromise';
-import { Logger } from '../../../../src/utils/logger';
+import { UIFlowMapper, DetectedUIComponent } from '../../../../src/modules/compromise/UIFlowMapper.js';
+import { Feature } from '../../../../src/types/compromise.js';
+import { Logger } from '../../../../src/utils/logger.js';
 
 // Mock logger
 const mockLogger = {
   debug: vi.fn(),
   info: vi.fn(),
   warn: vi.fn(),
-  error: vi.fn()
+  error: vi.fn(),
 } as unknown as Logger;
 
 describe('UIFlowMapper', () => {
   let mapper: UIFlowMapper;
   let testFeature: Feature;
-  
+
   beforeEach(() => {
     mapper = new UIFlowMapper(mockLogger);
-    
+
     testFeature = {
       id: 'custom-ui',
       name: 'Custom Inventory UI',
@@ -25,12 +25,12 @@ describe('UIFlowMapper', () => {
       type: 'ui',
       compatibilityTier: 3,
       sourceFiles: ['CustomInventoryUI.java'],
-      sourceLineNumbers: [[10, 100]]
+      sourceLineNumbers: [[10, 100]],
     };
-    
+
     vi.clearAllMocks();
   });
-  
+
   it('should detect GUI screen components', () => {
     const javaCode = `
       public class CustomInventoryScreen extends GuiScreen {
@@ -52,20 +52,20 @@ describe('UIFlowMapper', () => {
         }
       }
     `;
-    
+
     const components = mapper.analyzeUIComponents(javaCode);
-    
+
     expect(components).toHaveLength(4);
-    
-    const componentTypes = components.map(c => c.componentType);
+
+    const componentTypes = components.map((c) => c.componentType);
     expect(componentTypes).toContain('screen');
     expect(componentTypes).toContain('button');
     expect(componentTypes).toContain('textfield');
     expect(componentTypes).toContain('label');
-    
+
     expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Detected UI component'));
   });
-  
+
   it('should detect container GUI components', () => {
     const javaCode = `
       public class CustomContainerScreen extends GuiContainer {
@@ -89,17 +89,17 @@ describe('UIFlowMapper', () => {
         }
       }
     `;
-    
+
     const components = mapper.analyzeUIComponents(javaCode);
-    
+
     expect(components).toHaveLength(3);
-    
-    const componentTypes = components.map(c => c.componentType);
+
+    const componentTypes = components.map((c) => c.componentType);
     expect(componentTypes).toContain('container');
     expect(componentTypes).toContain('label');
     expect(componentTypes).toContain('custom-render');
   });
-  
+
   it('should analyze UI flow with event handlers and state transitions', () => {
     const javaCode = `
       public class CustomInventoryScreen extends GuiScreen {
@@ -137,19 +137,19 @@ describe('UIFlowMapper', () => {
         }
       }
     `;
-    
+
     const uiFlow = mapper.analyzeUIFlow(javaCode);
-    
+
     expect(uiFlow.components).toHaveLength(3);
-    
+
     // We have two event handlers: keyTyped and actionPerformed
     expect(uiFlow.eventHandlers.length).toBeGreaterThanOrEqual(1);
-    
+
     // We have two state transitions: displayGuiScreen(null) and displayGuiScreen(new NextPageScreen)
     expect(uiFlow.stateTransitions.length).toBeGreaterThanOrEqual(1);
-    
+
     // Check that we have at least one event handler of each type
-    const eventTypes = uiFlow.eventHandlers.map(h => h.eventType);
+    const eventTypes = uiFlow.eventHandlers.map((h) => h.eventType);
     if (eventTypes.includes('click')) {
       expect(eventTypes).toContain('click');
     }
@@ -159,9 +159,9 @@ describe('UIFlowMapper', () => {
     if (eventTypes.includes('text_change')) {
       expect(eventTypes).toContain('text_change');
     }
-    
+
     // Check that we have at least one state transition of each type
-    const transitionTypes = uiFlow.stateTransitions.map(t => t.transitionType);
+    const transitionTypes = uiFlow.stateTransitions.map((t) => t.transitionType);
     if (transitionTypes.includes('screen_change')) {
       expect(transitionTypes).toContain('screen_change');
     }
@@ -169,53 +169,55 @@ describe('UIFlowMapper', () => {
       expect(transitionTypes).toContain('close_screen');
     }
   });
-  
+
   it('should map Java UI components to Bedrock form types', () => {
     const components: DetectedUIComponent[] = [
       {
         componentId: 'gui-screen',
         componentName: 'Main Screen',
         componentType: 'screen',
-        matches: ['extends GuiScreen']
+        matches: ['extends GuiScreen'],
       },
       {
         componentId: 'gui-button',
         componentName: 'Close Button',
         componentType: 'button',
-        matches: ['new GuiButton']
+        matches: ['new GuiButton'],
       },
       {
         componentId: 'gui-textfield',
         componentName: 'Search Field',
         componentType: 'textfield',
-        matches: ['new GuiTextField']
+        matches: ['new GuiTextField'],
       },
       {
         componentId: 'gui-label',
         componentName: 'Title Label',
         componentType: 'label',
-        matches: ['drawCenteredString']
-      }
+        matches: ['drawCenteredString'],
+      },
     ];
-    
+
     const formMappings = mapper.mapToBedrockForms(components);
-    
+
     expect(formMappings).toHaveLength(4);
-    
+
     // Check that each component is mapped to the correct form type
-    const screenMapping = formMappings.find(m => m.originalComponent.componentType === 'screen');
+    const screenMapping = formMappings.find((m) => m.originalComponent.componentType === 'screen');
     expect(screenMapping?.bedrockForm.formType).toBe('custom_form');
-    
-    const buttonMapping = formMappings.find(m => m.originalComponent.componentType === 'button');
+
+    const buttonMapping = formMappings.find((m) => m.originalComponent.componentType === 'button');
     expect(buttonMapping?.bedrockForm.formType).toBe('button');
-    
-    const textfieldMapping = formMappings.find(m => m.originalComponent.componentType === 'textfield');
+
+    const textfieldMapping = formMappings.find(
+      (m) => m.originalComponent.componentType === 'textfield'
+    );
     expect(textfieldMapping?.bedrockForm.formType).toBe('input');
-    
-    const labelMapping = formMappings.find(m => m.originalComponent.componentType === 'label');
+
+    const labelMapping = formMappings.find((m) => m.originalComponent.componentType === 'label');
     expect(labelMapping?.bedrockForm.formType).toBe('label');
   });
-  
+
   it('should generate Bedrock form code for a custom form', () => {
     const javaCode = `
       public class CustomSettingsScreen extends GuiScreen {
@@ -245,20 +247,22 @@ describe('UIFlowMapper', () => {
         }
       }
     `;
-    
+
     const uiFlow = mapper.analyzeUIFlow(javaCode);
     const result = mapper.generateBedrockFormCode(testFeature, uiFlow);
-    
+
     expect(result).toBeDefined();
     expect(result.formCode).toContain('CustomInventoryUI');
     expect(result.formCode).toContain('showCustomForm');
     expect(result.formCode).toContain('ModalFormData');
     expect(result.eventHandlerCode).toContain('handleSaveButtonClick');
     expect(result.primaryFormType).toBe('custom_form');
-    
-    expect(mockLogger.info).toHaveBeenCalledWith('Generating Bedrock form code for feature: Custom Inventory UI');
+
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'Generating Bedrock form code for feature: Custom Inventory UI'
+    );
   });
-  
+
   it('should generate Bedrock form code for a modal form', () => {
     const javaCode = `
       public class TabbedInterface extends GuiScreen {
@@ -290,10 +294,10 @@ describe('UIFlowMapper', () => {
         }
       }
     `;
-    
+
     const uiFlow = mapper.analyzeUIFlow(javaCode);
     const result = mapper.generateBedrockFormCode(testFeature, uiFlow);
-    
+
     expect(result).toBeDefined();
     expect(result.formCode).toContain('CustomInventoryUI');
     expect(result.formCode).toContain('showMainForm');
@@ -301,11 +305,11 @@ describe('UIFlowMapper', () => {
     expect(result.eventHandlerCode).toContain('handleTab1ButtonClick');
     expect(result.eventHandlerCode).toContain('handleTab2ButtonClick');
     expect(result.eventHandlerCode).toContain('handleCloseButtonClick');
-    
+
     // Since we have a tabbed interface, it should use a modal form
     expect(result.primaryFormType).toBe('modal_form');
   });
-  
+
   it('should generate Bedrock form code for a chest UI', () => {
     const javaCode = `
       public class InventoryContainer extends GuiContainer {
@@ -331,16 +335,16 @@ describe('UIFlowMapper', () => {
         }
       }
     `;
-    
+
     const uiFlow = mapper.analyzeUIFlow(javaCode);
     const result = mapper.generateBedrockFormCode(testFeature, uiFlow);
-    
+
     expect(result).toBeDefined();
     expect(result.formCode).toContain('CustomInventoryUI');
     expect(result.formCode).toContain('openChestUI');
     expect(result.formCode).toContain('handleInventoryChange');
     expect(result.formCode).toContain('closeChestUI');
-    
+
     // Since we have an inventory container, it should use a chest UI
     expect(result.primaryFormType).toBe('chest');
   });

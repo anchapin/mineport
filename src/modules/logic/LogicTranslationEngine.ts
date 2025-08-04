@@ -14,7 +14,7 @@ import {
   RefinementIteration,
   TranslationWarning,
   TranslationError,
-  CompromiseResult
+  CompromiseResult,
 } from '../../types/logic-translation.js';
 import { ASTTranspiler } from './ASTTranspiler.js';
 import { LLMTranslator } from './LLMTranslator.js';
@@ -52,7 +52,7 @@ export class LogicTranslationEngine {
       confidenceThreshold: 0.8,
       enableParallelProcessing: true,
       timeoutMs: 300000, // 5 minutes
-      ...options
+      ...options,
     };
   }
 
@@ -64,40 +64,33 @@ export class LogicTranslationEngine {
     context: TranslationContext
   ): Promise<TranslationResult> {
     const startTime = Date.now();
-    
+
     try {
       logger.info('Starting Java code translation', {
         codeLength: javaCode.length,
-        modName: context.modInfo.name
+        modName: context.modInfo.name,
       });
 
       // Step 1: Parse Java code to MMIR
       const mmir = await this.parseToMMIR(javaCode);
-      
+
       // Step 2: Attempt AST-based transpilation for mappable patterns
       const astResult = await this.transpileAST(mmir, context);
-      
+
       // Step 3: Use LLM for complex/unmappable code
-      const llmResult = await this.translateWithLLM(
-        astResult.unmappableCode,
-        context
-      );
-      
+      const llmResult = await this.translateWithLLM(astResult.unmappableCode, context);
+
       // Step 4: Integrate results
       const integratedCode = this.integrateResults(astResult, llmResult);
-      
+
       // Step 5: Validate functional equivalence
-      const validation = await this.validateTranslation(
-        javaCode,
-        integratedCode,
-        context
-      );
-      
+      const validation = await this.validateTranslation(javaCode, integratedCode, context);
+
       // Step 6: Iteratively refine if needed
       let finalCode = integratedCode;
       let finalValidation = validation;
       let refinementIterations: RefinementIteration[] = [];
-      
+
       if (!validation.isEquivalent && validation.confidence < this.options.confidenceThreshold) {
         const refinementResult = await this.refineTranslation(
           javaCode,
@@ -109,7 +102,7 @@ export class LogicTranslationEngine {
         finalValidation = refinementResult.validation;
         refinementIterations = refinementResult.iterations;
       }
-      
+
       // Step 7: Generate metadata and results
       const metadata = this.generateMetadata(
         mmir,
@@ -118,41 +111,42 @@ export class LogicTranslationEngine {
         finalValidation,
         Date.now() - startTime
       );
-      
+
       const compromises = this.extractCompromises(astResult, llmResult);
       const warnings = this.consolidateWarnings(astResult, llmResult, finalValidation);
-      
+
       logger.info('Java code translation completed', {
         success: true,
         processingTime: metadata.processingTime,
-        confidenceScore: metadata.confidenceScore
+        confidenceScore: metadata.confidenceScore,
       });
-      
+
       return {
         success: true,
         code: finalCode,
         metadata,
         compromises,
         warnings,
-        errors: []
+        errors: [],
       };
-      
     } catch (error) {
       logger.error('Java code translation failed', { error });
-      
+
       return {
         success: false,
         code: '',
         metadata: this.generateErrorMetadata(Date.now() - startTime),
         compromises: [],
         warnings: [],
-        errors: [{
-          type: 'translation_failure',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          location: { line: 0, column: 0, offset: 0 },
-          stack: error instanceof Error ? error.stack : undefined,
-          recoverable: false
-        }]
+        errors: [
+          {
+            type: 'translation_failure',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            location: { line: 0, column: 0, offset: 0 },
+            stack: error instanceof Error ? error.stack : undefined,
+            recoverable: false,
+          },
+        ],
       };
     }
   }
@@ -189,14 +183,14 @@ export class LogicTranslationEngine {
         confidence: 1.0,
         reasoning: 'No unmappable code segments',
         alternatives: [],
-        warnings: []
+        warnings: [],
       };
     }
-    
+
     logger.debug('Starting LLM-based translation', {
-      unmappableSegments: unmappableCode.length
+      unmappableSegments: unmappableCode.length,
     });
-    
+
     return await this.llmTranslator.translate(unmappableCode, context);
   }
 
@@ -209,11 +203,7 @@ export class LogicTranslationEngine {
     context: TranslationContext
   ): Promise<ValidationResult> {
     logger.debug('Validating translation functional equivalence');
-    return await this.programStateValidator.validate(
-      originalCode,
-      translatedCode,
-      context
-    );
+    return await this.programStateValidator.validate(originalCode, translatedCode, context);
   }
 
   /**
@@ -230,76 +220,67 @@ export class LogicTranslationEngine {
     iterations: RefinementIteration[];
   }> {
     logger.debug('Starting iterative refinement process');
-    
+
     let currentCode = translatedCode;
     let currentValidation = validation;
     const iterations: RefinementIteration[] = [];
-    
+
     for (let i = 0; i < this.options.maxRefinementIterations; i++) {
       logger.debug(`Refinement iteration ${i + 1}`);
-      
+
       // Generate refinement suggestions based on validation differences
-      const refinementSuggestions = this.generateRefinementSuggestions(
-        currentValidation,
-        context
-      );
-      
+      const refinementSuggestions = this.generateRefinementSuggestions(currentValidation, context);
+
       if (refinementSuggestions.length === 0) {
         logger.debug('No refinement suggestions available');
         break;
       }
-      
+
       // Apply refinements
-      const refinedCode = await this.applyRefinements(
-        currentCode,
-        refinementSuggestions,
-        context
-      );
-      
+      const refinedCode = await this.applyRefinements(currentCode, refinementSuggestions, context);
+
       // Validate refined code
-      const refinedValidation = await this.validateTranslation(
-        originalCode,
-        refinedCode,
-        context
-      );
-      
+      const refinedValidation = await this.validateTranslation(originalCode, refinedCode, context);
+
       // Calculate improvement
       const improvement = refinedValidation.confidence - currentValidation.confidence;
-      
+
       iterations.push({
         iteration: i + 1,
         changes: refinementSuggestions,
         validationResult: refinedValidation,
-        improvement
+        improvement,
       });
-      
+
       // Update current state
       currentCode = refinedCode;
       currentValidation = refinedValidation;
-      
+
       // Check if we've reached acceptable quality
-      if (refinedValidation.isEquivalent || 
-          refinedValidation.confidence >= this.options.confidenceThreshold) {
+      if (
+        refinedValidation.isEquivalent ||
+        refinedValidation.confidence >= this.options.confidenceThreshold
+      ) {
         logger.debug('Refinement target achieved', {
           iteration: i + 1,
-          confidence: refinedValidation.confidence
+          confidence: refinedValidation.confidence,
         });
         break;
       }
-      
+
       // Check if improvement is minimal
       if (improvement < 0.05) {
         logger.debug('Minimal improvement detected, stopping refinement', {
-          improvement
+          improvement,
         });
         break;
       }
     }
-    
+
     return {
       code: currentCode,
       validation: currentValidation,
-      iterations
+      iterations,
     };
   }
 
@@ -311,17 +292,17 @@ export class LogicTranslationEngine {
     llmResult: LLMTranslationResult
   ): string {
     logger.debug('Integrating AST and LLM translation results');
-    
+
     // Combine AST-translated code with LLM-translated segments
     let integratedCode = astResult.code;
-    
+
     if (llmResult.code) {
       // Insert LLM-translated code at appropriate locations
       // This is a simplified integration - in practice, this would be more sophisticated
       integratedCode += '\n\n// LLM-translated code segments\n';
       integratedCode += llmResult.code;
     }
-    
+
     return integratedCode;
   }
 
@@ -337,15 +318,19 @@ export class LogicTranslationEngine {
   ): TranslationMetadata {
     const totalTranslatedLines = this.countLines(astResult.code) + this.countLines(llmResult.code);
     const astLines = this.countLines(astResult.code);
-    
+
     return {
       originalLinesOfCode: mmir.metadata.originalLinesOfCode,
       translatedLinesOfCode: totalTranslatedLines,
-      astTranslationPercentage: totalTranslatedLines > 0 ? (astLines / totalTranslatedLines) * 100 : 0,
-      llmTranslationPercentage: totalTranslatedLines > 0 ? (this.countLines(llmResult.code) / totalTranslatedLines) * 100 : 0,
+      astTranslationPercentage:
+        totalTranslatedLines > 0 ? (astLines / totalTranslatedLines) * 100 : 0,
+      llmTranslationPercentage:
+        totalTranslatedLines > 0
+          ? (this.countLines(llmResult.code) / totalTranslatedLines) * 100
+          : 0,
       complexityScore: mmir.complexity.cyclomaticComplexity,
       confidenceScore: (astResult.confidence + llmResult.confidence + validation.confidence) / 3,
-      processingTime
+      processingTime,
     };
   }
 
@@ -360,7 +345,7 @@ export class LogicTranslationEngine {
       llmTranslationPercentage: 0,
       complexityScore: 0,
       confidenceScore: 0,
-      processingTime
+      processingTime,
     };
   }
 
@@ -372,7 +357,7 @@ export class LogicTranslationEngine {
     llmResult: LLMTranslationResult
   ): CompromiseResult[] {
     const compromises: CompromiseResult[] = [];
-    
+
     // Extract compromises from unmappable code segments
     for (const segment of astResult.unmappableCode) {
       compromises.push({
@@ -381,13 +366,13 @@ export class LogicTranslationEngine {
           description: segment.reason,
           javaCode: segment.originalCode,
           context: segment.context,
-          severity: 'medium'
+          severity: 'medium',
         },
         strategy: {
           name: 'llm_translation',
           type: 'alternative',
           description: segment.suggestedApproach,
-          implementation: 'LLM-based semantic translation'
+          implementation: 'LLM-based semantic translation',
         },
         implementation: llmResult.code,
         documentation: llmResult.reasoning,
@@ -395,11 +380,11 @@ export class LogicTranslationEngine {
           functionalityLoss: 'minimal',
           performanceImpact: 'minimal',
           userExperienceImpact: 'minimal',
-          description: 'Code translated using AI with high confidence'
-        }
+          description: 'Code translated using AI with high confidence',
+        },
       });
     }
-    
+
     return compromises;
   }
 
@@ -412,10 +397,10 @@ export class LogicTranslationEngine {
     validation: ValidationResult
   ): TranslationWarning[] {
     const warnings: TranslationWarning[] = [];
-    
+
     warnings.push(...astResult.warnings);
     warnings.push(...llmResult.warnings);
-    
+
     // Convert validation differences to warnings
     for (const diff of validation.differences) {
       warnings.push({
@@ -423,10 +408,10 @@ export class LogicTranslationEngine {
         message: diff.description,
         severity: diff.severity === 'critical' ? 'error' : 'warning',
         location: diff.location,
-        suggestion: diff.suggestion
+        suggestion: diff.suggestion,
       });
     }
-    
+
     return warnings;
   }
 

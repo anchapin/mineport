@@ -4,8 +4,8 @@
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { JobMonitoringPanel } from '../JobMonitoringPanel';
-import { ConversionJob } from '../../../../types/services';
+import { JobMonitoringPanel } from '../JobMonitoringPanel.js';
+import { ConversionJob } from '../../../../types/services.js';
 
 // Mock jobs data
 const mockJobs: ConversionJob[] = [

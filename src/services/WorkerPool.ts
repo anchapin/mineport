@@ -1,6 +1,6 @@
 /**
  * Worker Pool - Provides parallel processing capabilities
- * 
+ *
  * This service manages a pool of worker threads for CPU-intensive tasks
  * like file analysis, conversion, and validation to improve performance
  * through parallel processing.
@@ -10,7 +10,7 @@ import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
 import * as path from 'path';
 import * as os from 'os';
 import { EventEmitter } from 'events';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 
 export interface WorkerTask<T = any, R = any> {
   id: string;
@@ -65,14 +65,14 @@ export class WorkerPool extends EventEmitter {
 
   constructor(options: Partial<WorkerPoolOptions> = {}) {
     super();
-    
+
     this.options = {
       maxWorkers: options.maxWorkers || os.cpus().length,
       minWorkers: options.minWorkers || Math.max(1, Math.floor(os.cpus().length / 2)),
       idleTimeout: options.idleTimeout || 300000, // 5 minutes
       taskTimeout: options.taskTimeout || 60000, // 1 minute
       enableMetrics: options.enableMetrics ?? true,
-      workerScript: options.workerScript || path.join(__dirname, 'worker-script.js')
+      workerScript: options.workerScript || path.join(__dirname, 'worker-script.js'),
     };
 
     this.metrics = {
@@ -83,7 +83,7 @@ export class WorkerPool extends EventEmitter {
       idleWorkers: 0,
       queuedTasks: 0,
       averageTaskTime: 0,
-      throughput: 0
+      throughput: 0,
     };
 
     this.initializeWorkers();
@@ -94,7 +94,11 @@ export class WorkerPool extends EventEmitter {
   /**
    * Execute a task using the worker pool
    */
-  async execute<T, R>(taskType: string, data: T, options: { priority?: number; timeout?: number } = {}): Promise<R> {
+  async execute<T, R>(
+    taskType: string,
+    data: T,
+    options: { priority?: number; timeout?: number } = {}
+  ): Promise<R> {
     return new Promise<R>((resolve, reject) => {
       const task: WorkerTask<T, R> = {
         id: this.generateTaskId(),
@@ -103,7 +107,7 @@ export class WorkerPool extends EventEmitter {
         priority: options.priority || 0,
         timeout: options.timeout || this.options.taskTimeout,
         resolve,
-        reject
+        reject,
       };
 
       this.queueTask(task);
@@ -123,11 +127,11 @@ export class WorkerPool extends EventEmitter {
         break;
       }
     }
-    
+
     this.taskQueue.splice(insertIndex, 0, task);
     this.metrics.totalTasks++;
     this.updateMetrics();
-    
+
     this.emit('taskQueued', { taskId: task.id, queueLength: this.taskQueue.length });
   }
 
@@ -137,7 +141,7 @@ export class WorkerPool extends EventEmitter {
   private async processQueue(): Promise<void> {
     while (this.taskQueue.length > 0) {
       const availableWorker = this.findAvailableWorker();
-      
+
       if (!availableWorker) {
         // Try to create a new worker if we haven't reached the limit
         if (this.workers.size < this.options.maxWorkers) {
@@ -187,7 +191,7 @@ export class WorkerPool extends EventEmitter {
       workerInfo.worker.postMessage({
         taskId: task.id,
         type: task.type,
-        data: task.data
+        data: task.data,
       });
 
       // Set up one-time listeners for this task
@@ -196,7 +200,7 @@ export class WorkerPool extends EventEmitter {
           clearTimeout(timeoutId);
           workerInfo.worker.off('message', onMessage);
           workerInfo.worker.off('error', onError);
-          
+
           if (result.error) {
             task.reject(new Error(result.error));
             this.handleTaskCompletion(workerInfo, false, Date.now() - startTime);
@@ -211,14 +215,13 @@ export class WorkerPool extends EventEmitter {
         clearTimeout(timeoutId);
         workerInfo.worker.off('message', onMessage);
         workerInfo.worker.off('error', onError);
-        
+
         task.reject(error);
         this.handleTaskCompletion(workerInfo, false, Date.now() - startTime);
       };
 
       workerInfo.worker.on('message', onMessage);
       workerInfo.worker.on('error', onError);
-
     } catch (error) {
       clearTimeout(timeoutId);
       task.reject(error as Error);
@@ -242,14 +245,15 @@ export class WorkerPool extends EventEmitter {
 
     // Update average task time
     const totalCompleted = this.metrics.completedTasks + this.metrics.failedTasks;
-    this.metrics.averageTaskTime = (this.metrics.averageTaskTime * (totalCompleted - 1) + duration) / totalCompleted;
+    this.metrics.averageTaskTime =
+      (this.metrics.averageTaskTime * (totalCompleted - 1) + duration) / totalCompleted;
 
     this.updateMetrics();
-    this.emit('taskCompleted', { 
-      workerId: workerInfo.id, 
-      success, 
+    this.emit('taskCompleted', {
+      workerId: workerInfo.id,
+      success,
       duration,
-      tasksCompleted: workerInfo.tasksCompleted 
+      tasksCompleted: workerInfo.tasksCompleted,
     });
 
     // Continue processing queue
@@ -272,9 +276,9 @@ export class WorkerPool extends EventEmitter {
    */
   private async createWorker(): Promise<WorkerInfo> {
     const workerId = this.generateWorkerId();
-    
+
     const worker = new Worker(this.options.workerScript!, {
-      workerData: { workerId }
+      workerData: { workerId },
     });
 
     const workerInfo: WorkerInfo = {
@@ -283,7 +287,7 @@ export class WorkerPool extends EventEmitter {
       busy: false,
       createdAt: new Date(),
       lastUsed: new Date(),
-      tasksCompleted: 0
+      tasksCompleted: 0,
     };
 
     // Set up worker error handling
@@ -301,9 +305,9 @@ export class WorkerPool extends EventEmitter {
 
     this.workers.set(workerId, workerInfo);
     this.updateMetrics();
-    
+
     this.emit('workerCreated', { workerId, totalWorkers: this.workers.size });
-    
+
     return workerInfo;
   }
 
@@ -327,7 +331,7 @@ export class WorkerPool extends EventEmitter {
 
     this.workers.delete(workerId);
     this.updateMetrics();
-    
+
     this.emit('workerRemoved', { workerId, totalWorkers: this.workers.size });
 
     // Ensure we maintain minimum workers
@@ -362,7 +366,7 @@ export class WorkerPool extends EventEmitter {
    */
   private startIdleTimer(): void {
     this.idleTimer = setInterval(() => {
-      this.cleanupIdleWorkers().catch(error => {
+      this.cleanupIdleWorkers().catch((error) => {
         logger.error('Error cleaning up idle workers', { error });
       });
     }, 60000); // Check every minute
@@ -381,9 +385,9 @@ export class WorkerPool extends EventEmitter {
       const now = Date.now();
       const timeDiff = (now - lastTimestamp) / 1000; // seconds
       const tasksDiff = this.metrics.completedTasks - lastCompletedTasks;
-      
+
       this.metrics.throughput = tasksDiff / timeDiff;
-      
+
       lastCompletedTasks = this.metrics.completedTasks;
       lastTimestamp = now;
     }, 10000); // Update every 10 seconds
@@ -395,7 +399,7 @@ export class WorkerPool extends EventEmitter {
   private updateMetrics(): void {
     if (!this.options.enableMetrics) return;
 
-    this.metrics.activeWorkers = Array.from(this.workers.values()).filter(w => w.busy).length;
+    this.metrics.activeWorkers = Array.from(this.workers.values()).filter((w) => w.busy).length;
     this.metrics.idleWorkers = this.workers.size - this.metrics.activeWorkers;
     this.metrics.queuedTasks = this.taskQueue.length;
   }
@@ -425,11 +429,11 @@ export class WorkerPool extends EventEmitter {
    * Get worker information
    */
   getWorkerInfo(): Array<{ id: string; busy: boolean; tasksCompleted: number; createdAt: Date }> {
-    return Array.from(this.workers.values()).map(worker => ({
+    return Array.from(this.workers.values()).map((worker) => ({
       id: worker.id,
       busy: worker.busy,
       tasksCompleted: worker.tasksCompleted,
-      createdAt: worker.createdAt
+      createdAt: worker.createdAt,
     }));
   }
 
@@ -440,7 +444,7 @@ export class WorkerPool extends EventEmitter {
     if (this.idleTimer) {
       clearInterval(this.idleTimer);
     }
-    
+
     if (this.metricsTimer) {
       clearInterval(this.metricsTimer);
     }
@@ -452,12 +456,12 @@ export class WorkerPool extends EventEmitter {
     this.taskQueue = [];
 
     // Terminate all workers
-    const terminationPromises = Array.from(this.workers.keys()).map(workerId => 
+    const terminationPromises = Array.from(this.workers.keys()).map((workerId) =>
       this.removeWorker(workerId)
     );
-    
+
     await Promise.all(terminationPromises);
-    
+
     this.emit('destroyed');
   }
 }

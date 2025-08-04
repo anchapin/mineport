@@ -11,8 +11,8 @@
  */
 
 import React, { useState } from 'react';
-import { JobMonitoringPanel } from '../components/JobMonitoringPanel';
-import { ConversionAPIService } from '../services/ConversionAPIService';
+import { JobMonitoringPanel } from '../components/JobMonitoringPanel.js';
+import { ConversionAPIService } from '../services/ConversionAPIService.js';
 
 interface AdminDashboardProps {
   /**

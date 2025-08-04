@@ -10,7 +10,7 @@
   - Write unit and integration tests for UI components and backend service connections
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-- [x] 2. Build core logic translation engine infrastructure
+- [ ] 2. Build core logic translation engine infrastructure
   - Create LogicTranslationEngine class with MMIR parsing capabilities
   - Implement ASTTranspiler for direct Java-to-JavaScript pattern mapping
   - Build LLMTranslator integration for complex code semantic translation

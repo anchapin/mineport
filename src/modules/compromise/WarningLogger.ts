@@ -1,5 +1,5 @@
-import { Feature } from '../../types/compromise';
-import { Logger } from '../../utils/logger';
+import { Feature } from '../../types/compromise.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * WarningLogger provides functionality to create console warnings and detailed comments
@@ -11,9 +11,9 @@ export class WarningLogger {
 
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -25,7 +25,7 @@ export class WarningLogger {
 
   /**
    * Registers a warning for a stubbed feature.
-   * 
+   *
    * @param feature The feature that has been stubbed
    * @param warningType The type of warning
    * @param details Details about the warning
@@ -44,18 +44,18 @@ export class WarningLogger {
       warningType,
       details,
       recommendations,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
+
     this.warnings.set(feature.id, warning);
     this.logger.warn(`Registered warning for feature ${feature.name}: ${details}`);
-    
+
     return warning;
   }
 
   /**
    * Generates console warning code for a stubbed feature.
-   * 
+   *
    * @param feature The feature that has been stubbed
    * @param warningType The type of warning
    * @param details Details about the warning
@@ -68,13 +68,13 @@ export class WarningLogger {
   ): string {
     const warningPrefix = this.getWarningPrefix(warningType);
     const featureName = feature.name.replace(/['"\\]/g, '\\$&'); // Escape special characters
-    
+
     return `console.warn("[${warningPrefix}] ${featureName}: ${details.replace(/['"\\]/g, '\\$&')}");`;
   }
 
   /**
    * Generates detailed commenting for a stub function.
-   * 
+   *
    * @param feature The feature that has been stubbed
    * @param warningType The type of warning
    * @param details Details about the warning
@@ -88,7 +88,7 @@ export class WarningLogger {
     recommendations: string[] = []
   ): string {
     const warningPrefix = this.getWarningPrefix(warningType);
-    
+
     let comment = `/**
  * ${warningPrefix}: ${feature.name}
  * 
@@ -97,12 +97,12 @@ export class WarningLogger {
  * Original feature compatibility tier: ${feature.compatibilityTier}
  * Source files: ${feature.sourceFiles.join(', ')}
  *`;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -110,27 +110,27 @@ export class WarningLogger {
     if (recommendations.length > 0) {
       comment += `
  * Recommendations:
-${recommendations.map(rec => ` * - ${rec}`).join('\n')}
+${recommendations.map((rec) => ` * - ${rec}`).join('\n')}
  *`;
     }
-    
+
     comment += `
  * This is a stub implementation with limited functionality.
  * Manual implementation may be required for full feature support.
  */`;
-    
+
     return comment;
   }
 
   /**
    * Generates a user notification system for limitations.
-   * 
+   *
    * @param modName The name of the mod
    * @returns JavaScript code for user notification system
    */
   public generateUserNotificationSystem(modName: string): string {
     const sanitizedModName = modName.replace(/[^a-zA-Z0-9]/g, '');
-    
+
     return `// User Notification System for ${modName}
 // This system displays warnings to users about stubbed features and limitations
 
@@ -313,41 +313,46 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Generates a list of limitations for the user notification system.
-   * 
+   *
    * @param modName The name of the mod
    * @returns JavaScript code for limitations list
    */
   private generateLimitationsList(modName: string): string {
     const limitations = [
-      { text: "        { text: \"§c1.§r Advanced rendering effects are simplified\\n\" },\n" },
-      { text: "        { text: \"§c2.§r Custom dimensions are simulated using teleportation\\n\" },\n" },
-      { text: "        { text: \"§c3.§r Some UI elements may look different\\n\" },\n" }
+      { text: '        { text: "§c1.§r Advanced rendering effects are simplified\\n" },\n' },
+      {
+        text: '        { text: "§c2.§r Custom dimensions are simulated using teleportation\\n" },\n',
+      },
+      { text: '        { text: "§c3.§r Some UI elements may look different\\n" },\n' },
     ];
-    
+
     // Add specific limitations based on registered warnings
     let index = 4;
     this.warnings.forEach((warning) => {
-      if (index <= 7) { // Limit to a reasonable number of items
-        limitations.push({ text: `        { text: \"§c${index}.§r ${warning.featureName}: ${warning.details}\\n\" },\n` });
+      if (index <= 7) {
+        // Limit to a reasonable number of items
+        limitations.push({
+          text: `        { text: \"§c${index}.§r ${warning.featureName}: ${warning.details}\\n\" },\n`,
+        });
         index++;
       }
     });
-    
-    return limitations.map(l => l.text).join('');
+
+    return limitations.map((l) => l.text).join('');
   }
 
   /**
    * Gets a warning prefix based on the warning type.
-   * 
+   *
    * @param warningType The type of warning
    * @returns Warning prefix
    */
   private getWarningPrefix(warningType: WarningType): string {
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -370,7 +375,7 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Gets all registered warnings.
-   * 
+   *
    * @returns Array of registered warnings
    */
   public getWarnings(): FeatureWarning[] {
@@ -379,7 +384,7 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Gets warnings for a specific feature.
-   * 
+   *
    * @param featureId The ID of the feature
    * @returns The warning for the feature, or undefined if none exists
    */
@@ -389,34 +394,34 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Generates a warning report for all registered warnings.
-   * 
+   *
    * @returns Warning report
    */
   public generateWarningReport(): WarningReport {
     const warnings = this.getWarnings();
-    
+
     return {
       totalWarnings: warnings.length,
       warningsByType: this.groupWarningsByType(warnings),
-      warnings
+      warnings,
     };
   }
 
   /**
    * Groups warnings by their type.
-   * 
+   *
    * @param warnings Array of warnings
    * @returns Warnings grouped by type
    */
   private groupWarningsByType(warnings: FeatureWarning[]): Record<string, number> {
     const result: Record<string, number> = {};
-    
-    warnings.forEach(warning => {
+
+    warnings.forEach((warning) => {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -424,10 +429,10 @@ world.beforeEvents.chatSend.subscribe((event) => {
       if (!result[warning.warningType]) {
         result[warning.warningType] = 0;
       }
-      
+
       result[warning.warningType]++;
     });
-    
+
     return result;
   }
 }

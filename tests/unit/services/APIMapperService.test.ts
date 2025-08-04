@@ -3,9 +3,12 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { APIMapperServiceImpl, createAPIMapperService } from '../../../src/services/APIMapperService';
-import { ConfigurationService } from '../../../src/services/ConfigurationService';
-import { APIMapping, MappingFilter, ImportResult } from '../../../src/types/api';
+import {
+  APIMapperServiceImpl,
+  createAPIMapperService,
+} from '../../../src/services/APIMapperService.js';
+import { ConfigurationService } from '../../../src/services/ConfigurationService.js';
+import { APIMapping, MappingFilter, ImportResult } from '../../../src/types/api.js';
 
 // Mock dependencies
 vi.mock('../../../src/utils/logger', () => ({
@@ -13,19 +16,19 @@ vi.mock('../../../src/utils/logger', () => ({
     info: vi.fn(),
     debug: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  }))
+    error: vi.fn(),
+  })),
 }));
 
 vi.mock('../../../src/utils/errorHandler', () => ({
   ErrorHandler: {
     systemError: vi.fn(),
     logicError: vi.fn(),
-    compromiseError: vi.fn()
+    compromiseError: vi.fn(),
   },
   globalErrorCollector: {
-    addError: vi.fn()
-  }
+    addError: vi.fn(),
+  },
 }));
 
 describe('APIMapperService', () => {
@@ -48,7 +51,7 @@ describe('APIMapperService', () => {
       set: vi.fn(),
       getSection: vi.fn(),
       reload: vi.fn(),
-      validate: vi.fn()
+      validate: vi.fn(),
     } as any;
 
     apiMapperService = new APIMapperServiceImpl(mockConfigService);
@@ -69,12 +72,12 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'Test mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await apiMapperService.addMapping(testMapping);
       const result = await apiMapperService.getMapping('test.java.Signature');
-      
+
       expect(result).toBeDefined();
       expect(result?.javaSignature).toBe('test.java.Signature');
       expect(result?.bedrockEquivalent).toBe('test.bedrock.equivalent');
@@ -88,15 +91,15 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'Cached mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await apiMapperService.addMapping(testMapping);
-      
+
       // First call should populate cache
       const result1 = await apiMapperService.getMapping('cached.java.Signature');
       expect(result1).toBeDefined();
-      
+
       // Second call should use cache
       const result2 = await apiMapperService.getMapping('cached.java.Signature');
       expect(result2).toBeDefined();
@@ -115,7 +118,7 @@ describe('APIMapperService', () => {
           conversionType: 'direct',
           notes: 'Direct mapping',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'wrapper-mapping',
@@ -124,7 +127,7 @@ describe('APIMapperService', () => {
           conversionType: 'wrapper',
           notes: 'Wrapper mapping',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'complex-mapping',
@@ -133,8 +136,8 @@ describe('APIMapperService', () => {
           conversionType: 'complex',
           notes: 'Complex mapping',
           version: '2.0.0',
-          lastUpdated: new Date()
-        }
+          lastUpdated: new Date(),
+        },
       ];
 
       for (const mapping of testMappings) {
@@ -150,9 +153,9 @@ describe('APIMapperService', () => {
     it('should filter by conversion type', async () => {
       const filter: MappingFilter = { conversionType: 'direct' };
       const result = await apiMapperService.getMappings(filter);
-      
+
       expect(result.length).toBeGreaterThan(0);
-      result.forEach(mapping => {
+      result.forEach((mapping) => {
         expect(mapping.conversionType).toBe('direct');
       });
     });
@@ -160,9 +163,9 @@ describe('APIMapperService', () => {
     it('should filter by version', async () => {
       const filter: MappingFilter = { version: '2.0.0' };
       const result = await apiMapperService.getMappings(filter);
-      
+
       expect(result.length).toBeGreaterThan(0);
-      result.forEach(mapping => {
+      result.forEach((mapping) => {
         expect(mapping.version).toBe('2.0.0');
       });
     });
@@ -170,14 +173,14 @@ describe('APIMapperService', () => {
     it('should filter by search term', async () => {
       const filter: MappingFilter = { search: 'wrapper' };
       const result = await apiMapperService.getMappings(filter);
-      
+
       expect(result.length).toBeGreaterThan(0);
-      result.forEach(mapping => {
+      result.forEach((mapping) => {
         const searchTerm = 'wrapper';
         const matchesSignature = mapping.javaSignature.toLowerCase().includes(searchTerm);
         const matchesBedrock = mapping.bedrockEquivalent.toLowerCase().includes(searchTerm);
         const matchesNotes = mapping.notes.toLowerCase().includes(searchTerm);
-        
+
         expect(matchesSignature || matchesBedrock || matchesNotes).toBe(true);
       });
     });
@@ -192,11 +195,11 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'New mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await expect(apiMapperService.addMapping(testMapping)).resolves.not.toThrow();
-      
+
       const retrieved = await apiMapperService.getMapping('new.java.Signature');
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe('new-mapping');
@@ -207,7 +210,7 @@ describe('APIMapperService', () => {
         javaSignature: 'invalid.java.Signature',
         bedrockEquivalent: 'invalid.bedrock.equivalent',
         conversionType: 'direct',
-        notes: 'Invalid mapping'
+        notes: 'Invalid mapping',
         // Missing id and version
       } as APIMapping;
 
@@ -222,10 +225,12 @@ describe('APIMapperService', () => {
         conversionType: 'invalid' as any,
         notes: 'Invalid type mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
-      await expect(apiMapperService.addMapping(invalidMapping)).rejects.toThrow('Invalid conversion type');
+      await expect(apiMapperService.addMapping(invalidMapping)).rejects.toThrow(
+        'Invalid conversion type'
+      );
     });
 
     it('should reject duplicate mappings', async () => {
@@ -236,11 +241,11 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'Duplicate mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await apiMapperService.addMapping(testMapping);
-      
+
       const duplicateMapping: APIMapping = {
         id: 'duplicate-mapping-2',
         javaSignature: 'duplicate.java.Signature', // Same signature
@@ -248,7 +253,7 @@ describe('APIMapperService', () => {
         conversionType: 'wrapper',
         notes: 'Different mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await expect(apiMapperService.addMapping(duplicateMapping)).rejects.toThrow('already exists');
@@ -264,7 +269,7 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'Original mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await apiMapperService.addMapping(originalMapping);
@@ -273,11 +278,11 @@ describe('APIMapperService', () => {
         ...originalMapping,
         bedrockEquivalent: 'updated.bedrock.equivalent',
         notes: 'Updated mapping',
-        version: '1.1.0'
+        version: '1.1.0',
       };
 
       await expect(apiMapperService.updateMapping(updatedMapping)).resolves.not.toThrow();
-      
+
       const retrieved = await apiMapperService.getMapping('update.java.Signature');
       expect(retrieved?.bedrockEquivalent).toBe('updated.bedrock.equivalent');
       expect(retrieved?.notes).toBe('Updated mapping');
@@ -292,7 +297,7 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'Non-existent mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await expect(apiMapperService.updateMapping(nonExistentMapping)).rejects.toThrow('not found');
@@ -309,7 +314,7 @@ describe('APIMapperService', () => {
           conversionType: 'direct',
           notes: 'Import mapping 1',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'import-2',
@@ -318,12 +323,12 @@ describe('APIMapperService', () => {
           conversionType: 'wrapper',
           notes: 'Import mapping 2',
           version: '1.0.0',
-          lastUpdated: new Date()
-        }
+          lastUpdated: new Date(),
+        },
       ];
 
       const result = await apiMapperService.importMappings(mappingsToImport);
-      
+
       expect(result.added).toBe(2);
       expect(result.updated).toBe(0);
       expect(result.failed).toBe(0);
@@ -339,19 +344,19 @@ describe('APIMapperService', () => {
           conversionType: 'direct',
           notes: 'Valid import mapping',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           // Missing required fields
           javaSignature: 'invalid.import.Signature',
           bedrockEquivalent: 'invalid.import.equivalent',
           conversionType: 'direct',
-          notes: 'Invalid import mapping'
-        } as APIMapping
+          notes: 'Invalid import mapping',
+        } as APIMapping,
       ];
 
       const result = await apiMapperService.importMappings(mappingsToImport);
-      
+
       expect(result.added).toBe(1);
       expect(result.failed).toBe(1);
       expect(result.failures).toHaveLength(1);
@@ -366,7 +371,7 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'Original mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await apiMapperService.addMapping(originalMapping);
@@ -379,15 +384,15 @@ describe('APIMapperService', () => {
         conversionType: 'wrapper',
         notes: 'Updated mapping',
         version: '2.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       const result = await apiMapperService.importMappings([updatedMapping]);
-      
+
       expect(result.added).toBe(0);
       expect(result.updated).toBe(1);
       expect(result.failed).toBe(0);
-      
+
       const retrieved = await apiMapperService.getMapping('existing.import.Signature');
       expect(retrieved?.bedrockEquivalent).toBe('updated.import.equivalent');
       expect(retrieved?.conversionType).toBe('wrapper');
@@ -397,7 +402,7 @@ describe('APIMapperService', () => {
   describe('cache management', () => {
     it('should provide cache statistics', () => {
       const stats = apiMapperService.getCacheStats();
-      
+
       expect(stats).toHaveProperty('size');
       expect(stats).toHaveProperty('maxSize');
       expect(stats).toHaveProperty('enabled');
@@ -415,17 +420,17 @@ describe('APIMapperService', () => {
         conversionType: 'direct',
         notes: 'Cache test mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       await apiMapperService.addMapping(testMapping);
       await apiMapperService.getMapping('cache.test.Signature'); // Populate cache
-      
+
       const statsBefore = apiMapperService.getCacheStats();
       expect(statsBefore.size).toBeGreaterThan(0);
-      
+
       apiMapperService.clearCache();
-      
+
       const statsAfter = apiMapperService.getCacheStats();
       expect(statsAfter.size).toBe(0);
     });
@@ -434,7 +439,7 @@ describe('APIMapperService', () => {
   describe('database statistics', () => {
     it('should provide database statistics', async () => {
       const stats = await apiMapperService.getDatabaseStats();
-      
+
       expect(stats).toHaveProperty('totalMappings');
       expect(typeof stats.totalMappings).toBe('number');
       expect(stats.totalMappings).toBeGreaterThan(0); // Should have default mappings

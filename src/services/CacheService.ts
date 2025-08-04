@@ -1,6 +1,6 @@
 /**
  * Cache Service - Provides caching for analysis results and validation outcomes
- * 
+ *
  * This service implements multiple caching strategies including in-memory,
  * file-based, and distributed caching to improve performance by avoiding
  * redundant processing of identical files and analysis results.
@@ -10,7 +10,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { LRUCache } from 'lru-cache';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 
 export interface CacheEntry<T> {
   key: string;
@@ -66,7 +66,7 @@ export class CacheService {
       enablePersistence: options.enablePersistence ?? true,
       persistenceDir: options.persistenceDir || path.join(process.cwd(), '.cache'),
       enableMetrics: options.enableMetrics ?? true,
-      compressionEnabled: options.compressionEnabled ?? true
+      compressionEnabled: options.compressionEnabled ?? true,
     };
 
     this.persistenceEnabled = this.options.enablePersistence;
@@ -79,11 +79,11 @@ export class CacheService {
       dispose: (entry: CacheEntry<any>, key: string) => {
         this.metrics.evictions++;
         if (this.persistenceEnabled) {
-          this.persistToDisk(key, entry).catch(error => {
+          this.persistToDisk(key, entry).catch((error) => {
             logger.error('Failed to persist evicted cache entry', { error, key });
           });
         }
-      }
+      },
     });
 
     this.metrics = {
@@ -93,7 +93,7 @@ export class CacheService {
       totalEntries: 0,
       memoryUsage: 0,
       diskUsage: 0,
-      evictions: 0
+      evictions: 0,
     };
 
     this.initializePersistence();
@@ -104,7 +104,7 @@ export class CacheService {
    */
   async get<T>(cacheKey: CacheKey): Promise<T | null> {
     const key = this.generateKey(cacheKey);
-    
+
     // Try memory cache first
     const memoryEntry = this.memoryCache.get(key);
     if (memoryEntry && !this.isExpired(memoryEntry)) {
@@ -150,7 +150,7 @@ export class CacheService {
       lastAccessed: new Date(),
       accessCount: 1,
       ttl: ttl || this.options.defaultTTL,
-      size: this.estimateValueSize(value)
+      size: this.estimateValueSize(value),
     };
 
     this.memoryCache.set(key, entry);
@@ -171,9 +171,9 @@ export class CacheService {
    */
   async delete(cacheKey: CacheKey): Promise<boolean> {
     const key = this.generateKey(cacheKey);
-    
+
     const memoryDeleted = this.memoryCache.delete(key);
-    
+
     if (this.persistenceEnabled) {
       try {
         await this.deleteFromDisk(key);
@@ -191,7 +191,7 @@ export class CacheService {
    */
   async has(cacheKey: CacheKey): Promise<boolean> {
     const key = this.generateKey(cacheKey);
-    
+
     if (this.memoryCache.has(key)) {
       const entry = this.memoryCache.get(key);
       return entry ? !this.isExpired(entry) : false;
@@ -214,7 +214,7 @@ export class CacheService {
    */
   async clear(): Promise<void> {
     this.memoryCache.clear();
-    
+
     if (this.persistenceEnabled) {
       try {
         await fs.rm(this.persistenceDir, { recursive: true, force: true });
@@ -291,15 +291,15 @@ export class CacheService {
    */
   private estimateValueSize(value: any): number {
     if (value === null || value === undefined) return 0;
-    
+
     if (typeof value === 'string') {
       return Buffer.byteLength(value, 'utf8');
     }
-    
+
     if (Buffer.isBuffer(value)) {
       return value.length;
     }
-    
+
     // For objects, use JSON string length as approximation
     try {
       return Buffer.byteLength(JSON.stringify(value), 'utf8');
@@ -332,11 +332,11 @@ export class CacheService {
     const data = {
       ...entry,
       createdAt: entry.createdAt.toISOString(),
-      lastAccessed: entry.lastAccessed.toISOString()
+      lastAccessed: entry.lastAccessed.toISOString(),
     };
 
     let content = JSON.stringify(data);
-    
+
     if (this.options.compressionEnabled) {
       const zlib = await import('zlib');
       content = zlib.gzipSync(content).toString('base64');
@@ -352,21 +352,21 @@ export class CacheService {
     if (!this.persistenceEnabled) return null;
 
     const filePath = path.join(this.persistenceDir, `${key}.json`);
-    
+
     try {
       let content = await fs.readFile(filePath, 'utf8');
-      
+
       if (this.options.compressionEnabled) {
         const zlib = await import('zlib');
         content = zlib.gunzipSync(Buffer.from(content, 'base64')).toString();
       }
 
       const data = JSON.parse(content);
-      
+
       return {
         ...data,
         createdAt: new Date(data.createdAt),
-        lastAccessed: new Date(data.lastAccessed)
+        lastAccessed: new Date(data.lastAccessed),
       };
     } catch (error) {
       return null;
@@ -380,7 +380,7 @@ export class CacheService {
     if (!this.persistenceEnabled) return;
 
     const filePath = path.join(this.persistenceDir, `${key}.json`);
-    
+
     try {
       await fs.unlink(filePath);
     } catch (error) {
@@ -396,12 +396,12 @@ export class CacheService {
 
     try {
       const files = await fs.readdir(this.persistenceDir);
-      
+
       for (const file of files) {
         if (file.endsWith('.json')) {
           const key = file.replace('.json', '');
           const entry = await this.loadFromDisk(key);
-          
+
           if (entry && this.isExpired(entry)) {
             await this.deleteFromDisk(key);
           }
@@ -420,7 +420,7 @@ export class CacheService {
 
     this.metrics.totalEntries = this.memoryCache.size;
     this.metrics.memoryUsage = this.memoryCache.calculatedSize || 0;
-    
+
     const totalRequests = this.metrics.hits + this.metrics.misses;
     this.metrics.hitRate = totalRequests > 0 ? this.metrics.hits / totalRequests : 0;
   }
@@ -436,7 +436,7 @@ export class CacheService {
       totalEntries: 0,
       memoryUsage: 0,
       diskUsage: 0,
-      evictions: 0
+      evictions: 0,
     };
   }
 
@@ -445,7 +445,7 @@ export class CacheService {
    */
   async destroy(): Promise<void> {
     this.memoryCache.clear();
-    
+
     if (this.persistenceEnabled) {
       // Optionally keep disk cache for next startup
       // await fs.rm(this.persistenceDir, { recursive: true, force: true });

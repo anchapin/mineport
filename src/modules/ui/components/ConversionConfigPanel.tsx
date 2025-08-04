@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ConversionOptions } from '../../../types/services';
-import { FeatureFlagService } from '../../../services/FeatureFlagService';
+import { ConversionOptions } from '../../../types/services.js';
+import { FeatureFlagService } from '../../../services/FeatureFlagService.js';
 
 export interface ConversionConfigPanelProps {
   options: ConversionOptions;

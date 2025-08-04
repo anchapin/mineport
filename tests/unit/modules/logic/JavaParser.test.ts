@@ -1,11 +1,11 @@
 /**
  * JavaParser.test.ts
- * 
+ *
  * Unit tests for the JavaParser class
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { JavaParser, JavaASTNode } from '../../../../src/modules/logic/JavaParser';
+import { JavaParser, JavaASTNode } from '../../../../src/modules/logic/JavaParser.js';
 
 describe('JavaParser', () => {
   let parser: JavaParser;
@@ -31,9 +31,9 @@ describe('JavaParser', () => {
           }
         }
       `;
-      
+
       const result = parser.parseSource(source, 'SimpleClass.java');
-      
+
       expect(result.errors).toHaveLength(0);
       expect(result.ast).toBeDefined();
       expect(result.ast.type).toBe('compilationUnit');
@@ -52,9 +52,9 @@ describe('JavaParser', () => {
           }
         }
       `;
-      
+
       const result = parser.parseSource(source, 'BrokenClass.java');
-      
+
       expect(result.errors.length).toBeGreaterThan(0);
     });
   });
@@ -62,13 +62,13 @@ describe('JavaParser', () => {
   describe('Java version support', () => {
     it('should detect Java 9+ features when targeting Java 8', () => {
       const java8Parser = new JavaParser({ javaVersion: '8' });
-      
+
       // Mock the validateAST method to simulate finding a Java 9+ feature
       const originalValidateAST = java8Parser.validateAST;
       java8Parser.validateAST = (ast: JavaASTNode) => {
         return [new Error('Private interface methods are not supported in Java 8')];
       };
-      
+
       const source = `
         package com.example;
         
@@ -81,20 +81,20 @@ describe('JavaParser', () => {
           void publicMethod();
         }
       `;
-      
+
       const result = java8Parser.parseSource(source, 'ModernInterface.java');
       const validationErrors = java8Parser.validateAST(result.ast);
-      
+
       expect(validationErrors.length).toBeGreaterThan(0);
       expect(validationErrors[0].message).toContain('Private interface methods');
-      
+
       // Restore original method
       java8Parser.validateAST = originalValidateAST;
     });
 
     it('should accept Java 8 features when targeting Java 8', () => {
       const java8Parser = new JavaParser({ javaVersion: '8' });
-      
+
       const source = `
         package com.example;
         
@@ -107,10 +107,10 @@ describe('JavaParser', () => {
           }
         }
       `;
-      
+
       const result = java8Parser.parseSource(source, 'SimpleInterface.java');
       const validationErrors = java8Parser.validateAST(result.ast);
-      
+
       expect(validationErrors).toHaveLength(0);
     });
   });
@@ -123,22 +123,22 @@ describe('JavaParser', () => {
         public class TestClass {
         }
       `;
-      
+
       // Skip the actual parsing for this test and use a mock result
       const mockClassDecl: JavaASTNode = {
         type: 'classDeclaration',
         children: [
           {
             type: 'identifier',
-            name: 'TestClass'
-          }
-        ]
+            name: 'TestClass',
+          },
+        ],
       };
-      
+
       // Use the mock directly
       const classDecl = mockClassDecl;
       expect(classDecl).toBeDefined();
-      
+
       // Find the identifier within the class declaration
       const identifier = classDecl.children![0];
       expect(identifier).toBeDefined();
@@ -153,7 +153,7 @@ describe('JavaParser', () => {
           {
             type: 'identifier',
             name: 'testMethod',
-            role: 'name'
+            role: 'name',
           },
           {
             type: 'formalParameters',
@@ -163,54 +163,54 @@ describe('JavaParser', () => {
                 children: [
                   {
                     type: 'type',
-                    name: 'String'
+                    name: 'String',
                   },
                   {
                     type: 'identifier',
                     name: 'param1',
-                    role: 'name'
-                  }
-                ]
+                    role: 'name',
+                  },
+                ],
               },
               {
                 type: 'parameter',
                 children: [
                   {
                     type: 'type',
-                    name: 'int'
+                    name: 'int',
                   },
                   {
                     type: 'identifier',
                     name: 'param2',
-                    role: 'name'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                    role: 'name',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
-      
+
       // Use the mock directly
       const methodDecl = mockMethodDecl;
       expect(methodDecl).toBeDefined();
-      
+
       // Check method name
       const methodName = methodDecl.children![0];
       expect(methodName).toBeDefined();
       expect(methodName.name).toBe('testMethod');
-      
+
       // Check parameters
       const formalParams = methodDecl.children![1];
       expect(formalParams).toBeDefined();
       expect(formalParams.children).toBeDefined();
-      
+
       // We should have two parameters with name identifiers
       const paramIdentifiers = [
         formalParams.children![0].children![1],
-        formalParams.children![1].children![1]
+        formalParams.children![1].children![1],
       ];
-      expect(paramIdentifiers.filter(node => node.role === 'name')).toHaveLength(2);
+      expect(paramIdentifiers.filter((node) => node.role === 'name')).toHaveLength(2);
     });
   });
 });
@@ -222,14 +222,14 @@ function findNodeByType(node: JavaASTNode, type: string): JavaASTNode | undefine
   if (node.type === type) {
     return node;
   }
-  
+
   if (node.children) {
     for (const child of node.children) {
       const found = findNodeByType(child, type);
       if (found) return found;
     }
   }
-  
+
   return undefined;
 }
 
@@ -238,17 +238,17 @@ function findNodeByType(node: JavaASTNode, type: string): JavaASTNode | undefine
  */
 function findAllNodesByType(node: JavaASTNode, type: string): JavaASTNode[] {
   const results: JavaASTNode[] = [];
-  
+
   if (node.type === type) {
     results.push(node);
   }
-  
+
   if (node.children) {
     for (const child of node.children) {
       results.push(...findAllNodesByType(child, type));
     }
   }
-  
+
   return results;
 }
 

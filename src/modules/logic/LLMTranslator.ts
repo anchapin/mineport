@@ -7,7 +7,7 @@ import {
   TranslationContext,
   LLMTranslationResult,
   UnmappableCodeSegment,
-  TranslationWarning
+  TranslationWarning,
 } from '../../types/logic-translation.js';
 import { logger } from '../../utils/logger.js';
 
@@ -30,10 +30,7 @@ export class LLMTranslator {
   private promptTemplates: Map<string, LLMPromptTemplate>;
   private llmClient: any; // Would be injected LLM client
 
-  constructor(
-    llmClient: any,
-    options: Partial<LLMTranslatorOptions> = {}
-  ) {
+  constructor(llmClient: any, options: Partial<LLMTranslatorOptions> = {}) {
     this.llmClient = llmClient;
     this.options = {
       model: 'gpt-4',
@@ -41,7 +38,7 @@ export class LLMTranslator {
       maxTokens: 2000,
       timeoutMs: 30000,
       retryAttempts: 3,
-      ...options
+      ...options,
     };
     this.promptTemplates = this.initializePromptTemplates();
   }
@@ -55,7 +52,7 @@ export class LLMTranslator {
   ): Promise<LLMTranslationResult> {
     logger.debug('Starting LLM-based translation', {
       segmentCount: unmappableSegments.length,
-      model: this.options.model
+      model: this.options.model,
     });
 
     if (unmappableSegments.length === 0) {
@@ -64,15 +61,13 @@ export class LLMTranslator {
         confidence: 1.0,
         reasoning: 'No unmappable code segments to translate',
         alternatives: [],
-        warnings: []
+        warnings: [],
       };
     }
 
     try {
       const translationResults = await Promise.all(
-        unmappableSegments.map(segment => 
-          this.translateSegment(segment, context)
-        )
+        unmappableSegments.map((segment) => this.translateSegment(segment, context))
       );
 
       const combinedResult = this.combineTranslationResults(translationResults);
@@ -80,26 +75,27 @@ export class LLMTranslator {
       logger.debug('LLM translation completed', {
         codeLength: combinedResult.code.length,
         confidence: combinedResult.confidence,
-        warningCount: combinedResult.warnings.length
+        warningCount: combinedResult.warnings.length,
       });
 
       return combinedResult;
-
     } catch (error) {
       logger.error('LLM translation failed', { error });
-      
+
       return {
         code: this.generateFallbackCode(unmappableSegments),
         confidence: 0.1,
         reasoning: `LLM translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         alternatives: [],
-        warnings: [{
-          type: 'llm_translation_failure',
-          message: 'LLM translation failed, using fallback implementation',
-          severity: 'error',
-          location: { line: 0, column: 0, offset: 0 },
-          suggestion: 'Manual implementation required'
-        }]
+        warnings: [
+          {
+            type: 'llm_translation_failure',
+            message: 'LLM translation failed, using fallback implementation',
+            severity: 'error',
+            location: { line: 0, column: 0, offset: 0 },
+            suggestion: 'Manual implementation required',
+          },
+        ],
       };
     }
   }
@@ -112,14 +108,14 @@ export class LLMTranslator {
     context: TranslationContext
   ): Promise<SegmentTranslationResult> {
     const prompt = this.buildTranslationPrompt(segment, context);
-    
+
     let lastError: Error | null = null;
-    
+
     for (let attempt = 1; attempt <= this.options.retryAttempts; attempt++) {
       try {
         logger.debug(`LLM translation attempt ${attempt}`, {
           segmentLength: segment.originalCode.length,
-          reason: segment.reason
+          reason: segment.reason,
         });
 
         const response = await this.callLLM(prompt);
@@ -130,11 +126,10 @@ export class LLMTranslator {
         }
 
         logger.warn(`Low confidence translation (${parsedResult.confidence}), retrying`);
-        
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
         logger.warn(`LLM translation attempt ${attempt} failed`, { error: lastError.message });
-        
+
         if (attempt < this.options.retryAttempts) {
           await this.delay(1000 * attempt); // Exponential backoff
         }
@@ -147,13 +142,15 @@ export class LLMTranslator {
       confidence: 0.1,
       reasoning: `All translation attempts failed. Last error: ${lastError?.message || 'Unknown error'}`,
       alternatives: [],
-      warnings: [{
-        type: 'segment_translation_failure',
-        message: `Failed to translate segment: ${segment.reason}`,
-        severity: 'error',
-        location: { line: segment.context.lineNumber, column: 0, offset: 0 },
-        suggestion: 'Manual implementation required'
-      }]
+      warnings: [
+        {
+          type: 'segment_translation_failure',
+          message: `Failed to translate segment: ${segment.reason}`,
+          severity: 'error',
+          location: { line: segment.context.lineNumber, column: 0, offset: 0 },
+          suggestion: 'Manual implementation required',
+        },
+      ],
     };
   }
 
@@ -165,7 +162,7 @@ export class LLMTranslator {
     context: TranslationContext
   ): string {
     const template = this.selectPromptTemplate(segment);
-    
+
     const variables = {
       originalCode: segment.originalCode,
       reason: segment.reason,
@@ -178,7 +175,7 @@ export class LLMTranslator {
       dependencies: segment.context.dependencies.join(', '),
       compromiseLevel: context.userPreferences.compromiseLevel,
       preserveComments: context.userPreferences.preserveComments.toString(),
-      targetVersion: context.targetVersion
+      targetVersion: context.targetVersion,
     };
 
     return this.interpolateTemplate(template.template, variables);
@@ -198,7 +195,7 @@ export class LLMTranslator {
     } else if (segment.reason.includes('dimension')) {
       return this.promptTemplates.get('dimension_code') || this.promptTemplates.get('general')!;
     }
-    
+
     return this.promptTemplates.get('general')!;
   }
 
@@ -207,12 +204,12 @@ export class LLMTranslator {
    */
   private interpolateTemplate(template: string, variables: Record<string, string>): string {
     let result = template;
-    
+
     for (const [key, value] of Object.entries(variables)) {
       const placeholder = `{{${key}}}`;
       result = result.replace(new RegExp(placeholder, 'g'), value);
     }
-    
+
     return result;
   }
 
@@ -222,25 +219,28 @@ export class LLMTranslator {
   private async callLLM(prompt: string): Promise<string> {
     // This would make an actual call to the LLM service
     // For now, simulate with a timeout and mock response
-    
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('LLM call timeout'));
       }, this.options.timeoutMs);
 
       // Simulate LLM call
-      setTimeout(() => {
-        clearTimeout(timeout);
-        
-        // Mock response based on prompt content
-        if (prompt.includes('API')) {
-          resolve(this.generateMockAPITranslation());
-        } else if (prompt.includes('complex')) {
-          resolve(this.generateMockComplexTranslation());
-        } else {
-          resolve(this.generateMockGeneralTranslation());
-        }
-      }, 1000 + Math.random() * 2000); // Simulate variable response time
+      setTimeout(
+        () => {
+          clearTimeout(timeout);
+
+          // Mock response based on prompt content
+          if (prompt.includes('API')) {
+            resolve(this.generateMockAPITranslation());
+          } else if (prompt.includes('complex')) {
+            resolve(this.generateMockComplexTranslation());
+          } else {
+            resolve(this.generateMockGeneralTranslation());
+          }
+        },
+        1000 + Math.random() * 2000
+      ); // Simulate variable response time
     });
   }
 
@@ -255,14 +255,35 @@ export class LLMTranslator {
       // Try to parse as JSON first
       const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[1]);
-        return {
-          code: parsed.code || '',
-          confidence: parsed.confidence || 0.5,
-          reasoning: parsed.reasoning || 'LLM translation',
-          alternatives: parsed.alternatives || [],
-          warnings: this.parseWarnings(parsed.warnings || [])
-        };
+        try {
+          const parsed = JSON.parse(jsonMatch[1]);
+          return {
+            code: parsed.code || '',
+            confidence: parsed.confidence || 0.5,
+            reasoning: parsed.reasoning || 'LLM translation',
+            alternatives: parsed.alternatives || [],
+            warnings: this.parseWarnings(parsed.warnings || []),
+          };
+        } catch (jsonError) {
+          // JSON parsing failed, fall through to unstructured parsing with warning
+          logger.warn('Failed to parse JSON from LLM response', { jsonError });
+          
+          return {
+            code: this.extractCodeFromResponse(response),
+            confidence: 0.4,
+            reasoning: 'Parsed from malformed JSON response',
+            alternatives: [],
+            warnings: [
+              {
+                type: 'response_parsing_warning',
+                message: 'Could not parse JSON from LLM response',
+                severity: 'warning',
+                location: { line: segment.context.lineNumber, column: 0, offset: 0 },
+                suggestion: 'Verify generated code manually',
+              },
+            ],
+          };
+        }
       }
 
       // Try to extract code blocks
@@ -277,29 +298,44 @@ export class LLMTranslator {
       const reasoningMatch = response.match(/(?:reasoning|explanation)[:\s]*(.*?)(?:\n|$)/i);
       const reasoning = reasoningMatch ? reasoningMatch[1] : 'LLM-based translation';
 
+      // Check if response looks unstructured (no code blocks, no JSON, no clear structure)
+      const hasStructure = codeMatch || jsonMatch || confidenceMatch || reasoningMatch;
+      const warnings = [];
+      
+      if (!hasStructure && response.length < 200 && !response.includes('```')) {
+        warnings.push({
+          type: 'response_parsing_warning',
+          message: 'Could not parse structured LLM response',
+          severity: 'warning',
+          location: { line: segment.context.lineNumber, column: 0, offset: 0 },
+          suggestion: 'Verify generated code manually',
+        });
+      }
+
       return {
         code: code.trim(),
         confidence: Math.min(confidence, 1.0),
         reasoning,
         alternatives: [],
-        warnings: []
+        warnings,
       };
-
     } catch (error) {
       logger.warn('Failed to parse LLM response', { error });
-      
+
       return {
         code: this.extractCodeFromResponse(response),
         confidence: 0.3,
         reasoning: 'Parsed from unstructured LLM response',
         alternatives: [],
-        warnings: [{
-          type: 'response_parsing_warning',
-          message: 'Could not parse structured LLM response',
-          severity: 'warning',
-          location: { line: segment.context.lineNumber, column: 0, offset: 0 },
-          suggestion: 'Verify generated code manually'
-        }]
+        warnings: [
+          {
+            type: 'response_parsing_warning',
+            message: 'Could not parse structured LLM response',
+            severity: 'warning',
+            location: { line: segment.context.lineNumber, column: 0, offset: 0 },
+            suggestion: 'Verify generated code manually',
+          },
+        ],
       };
     }
   }
@@ -311,18 +347,25 @@ export class LLMTranslator {
     // Try to find code-like content
     const lines = response.split('\n');
     const codeLines: string[] = [];
-    
+
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.includes('{') || trimmed.includes('}') || 
-          trimmed.includes('function') || trimmed.includes('const') ||
-          trimmed.includes('let') || trimmed.includes('var') ||
-          trimmed.includes('if') || trimmed.includes('for') ||
-          trimmed.includes('while') || trimmed.includes('return')) {
+      if (
+        trimmed.includes('{') ||
+        trimmed.includes('}') ||
+        trimmed.includes('function') ||
+        trimmed.includes('const') ||
+        trimmed.includes('let') ||
+        trimmed.includes('var') ||
+        trimmed.includes('if') ||
+        trimmed.includes('for') ||
+        trimmed.includes('while') ||
+        trimmed.includes('return')
+      ) {
         codeLines.push(line);
       }
     }
-    
+
     return codeLines.length > 0 ? codeLines.join('\n') : '// No code extracted from LLM response';
   }
 
@@ -330,12 +373,12 @@ export class LLMTranslator {
    * Parse warnings from LLM response
    */
   private parseWarnings(warnings: any[]): TranslationWarning[] {
-    return warnings.map(warning => ({
+    return warnings.map((warning) => ({
       type: warning.type || 'llm_warning',
       message: warning.message || 'LLM generated warning',
       severity: warning.severity || 'warning',
       location: warning.location || { line: 0, column: 0, offset: 0 },
-      suggestion: warning.suggestion
+      suggestion: warning.suggestion,
     }));
   }
 
@@ -343,23 +386,23 @@ export class LLMTranslator {
    * Combine multiple segment translation results
    */
   private combineTranslationResults(results: SegmentTranslationResult[]): LLMTranslationResult {
-    const codeSegments = results.map(r => r.code).filter(code => code.trim());
-    const allWarnings = results.flatMap(r => r.warnings);
-    const allAlternatives = results.flatMap(r => r.alternatives);
-    
+    const codeSegments = results.map((r) => r.code).filter((code) => code.trim());
+    const allWarnings = results.flatMap((r) => r.warnings);
+    const allAlternatives = results.flatMap((r) => r.alternatives);
+
     // Calculate average confidence
     const totalConfidence = results.reduce((sum, r) => sum + r.confidence, 0);
     const averageConfidence = results.length > 0 ? totalConfidence / results.length : 0;
-    
+
     // Combine reasoning
-    const reasoning = results.map(r => r.reasoning).join('; ');
+    const reasoning = results.map((r) => r.reasoning).join('; ');
 
     return {
       code: codeSegments.join('\n\n'),
       confidence: averageConfidence,
       reasoning,
       alternatives: allAlternatives,
-      warnings: allWarnings
+      warnings: allWarnings,
     };
   }
 
@@ -367,10 +410,8 @@ export class LLMTranslator {
    * Generate fallback code for failed translations
    */
   private generateFallbackCode(segments: UnmappableCodeSegment[]): string {
-    const fallbackSegments = segments.map(segment => 
-      this.generateSegmentFallback(segment)
-    );
-    
+    const fallbackSegments = segments.map((segment) => this.generateSegmentFallback(segment));
+
     return fallbackSegments.join('\n\n');
   }
 
@@ -446,7 +487,19 @@ Respond in JSON format:
   ]
 }
 \`\`\``,
-      variables: ['originalCode', 'modName', 'modLoader', 'minecraftVersion', 'className', 'methodName', 'reason', 'suggestedApproach', 'targetVersion', 'compromiseLevel', 'preserveComments']
+      variables: [
+        'originalCode',
+        'modName',
+        'modLoader',
+        'minecraftVersion',
+        'className',
+        'methodName',
+        'reason',
+        'suggestedApproach',
+        'targetVersion',
+        'compromiseLevel',
+        'preserveComments',
+      ],
     });
 
     templates.set('api_translation', {
@@ -479,7 +532,7 @@ Focus on:
 - Entity management
 
 Respond with equivalent JavaScript code and explanation.`,
-      variables: ['originalCode', 'modLoader', 'dependencies', 'reason']
+      variables: ['originalCode', 'modLoader', 'dependencies', 'reason'],
     });
 
     templates.set('complex_logic', {
@@ -510,7 +563,7 @@ Pay special attention to:
 - Memory management
 
 Provide clean, efficient JavaScript code.`,
-      variables: ['originalCode', 'reason']
+      variables: ['originalCode', 'reason'],
     });
 
     templates.set('rendering_code', {
@@ -539,7 +592,7 @@ Focus on:
 - Clear documentation of limitations
 
 Provide a JavaScript stub with comprehensive comments.`,
-      variables: ['originalCode']
+      variables: ['originalCode'],
     });
 
     templates.set('dimension_code', {
@@ -568,7 +621,7 @@ Focus on:
 - Clear limitations documentation
 
 Provide JavaScript code that simulates the dimension behavior.`,
-      variables: ['originalCode']
+      variables: ['originalCode'],
     });
 
     return templates;
@@ -624,7 +677,7 @@ Provide JavaScript code that simulates the dimension behavior.`,
    * Delay utility for retry logic
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

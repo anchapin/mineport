@@ -1,6 +1,6 @@
 /**
  * Streaming File Processor - Handles large files efficiently using streams
- * 
+ *
  * This service provides streaming-based file processing to handle large files
  * without loading them entirely into memory, improving performance and reducing
  * memory usage for large mod files.
@@ -10,9 +10,9 @@ import { Readable, Transform, pipeline } from 'stream';
 import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as crypto from 'crypto';
-import { FileValidationOptions, ValidationResult } from '../types/file-processing';
-import { SecurityScanner } from '../modules/ingestion/SecurityScanner';
-import logger from '../utils/logger';
+import { FileValidationOptions, ValidationResult } from '../types/file-processing.js';
+import { SecurityScanner } from '../modules/ingestion/SecurityScanner.js';
+import logger from '../utils/logger.js';
 
 const pipelineAsync = promisify(pipeline);
 
@@ -43,9 +43,10 @@ export class StreamingFileProcessor {
   constructor(options: Partial<StreamingOptions> = {}) {
     this.options = {
       chunkSize: options.chunkSize || StreamingFileProcessor.DEFAULT_CHUNK_SIZE,
-      maxConcurrentChunks: options.maxConcurrentChunks || StreamingFileProcessor.DEFAULT_MAX_CONCURRENT,
+      maxConcurrentChunks:
+        options.maxConcurrentChunks || StreamingFileProcessor.DEFAULT_MAX_CONCURRENT,
       enableProgressTracking: options.enableProgressTracking ?? true,
-      memoryThreshold: options.memoryThreshold || StreamingFileProcessor.DEFAULT_MEMORY_THRESHOLD
+      memoryThreshold: options.memoryThreshold || StreamingFileProcessor.DEFAULT_MEMORY_THRESHOLD,
     };
     this.securityScanner = new SecurityScanner();
   }
@@ -53,16 +54,19 @@ export class StreamingFileProcessor {
   /**
    * Process a large file using streaming approach
    */
-  async processLargeFile(filePath: string, validationOptions: FileValidationOptions): Promise<StreamingValidationResult> {
+  async processLargeFile(
+    filePath: string,
+    validationOptions: FileValidationOptions
+  ): Promise<StreamingValidationResult> {
     const startTime = Date.now();
     const startMemory = process.memoryUsage().heapUsed;
-    let chunksProcessed = 0;
+    const chunksProcessed = 0;
     let peakMemoryUsage = startMemory;
 
     try {
       // Get file stats first
       const stats = await fs.stat(filePath);
-      
+
       // If file is small enough, use regular processing
       if (stats.size < this.options.chunkSize * 2) {
         const buffer = await fs.readFile(filePath);
@@ -71,17 +75,21 @@ export class StreamingFileProcessor {
           ...result,
           streamProcessingTime: Date.now() - startTime,
           chunksProcessed: 1,
-          peakMemoryUsage: process.memoryUsage().heapUsed - startMemory
+          peakMemoryUsage: process.memoryUsage().heapUsed - startMemory,
         };
       }
 
       // Create streaming validation pipeline
-      const validationResult = await this.createValidationPipeline(filePath, stats.size, validationOptions);
-      
+      const validationResult = await this.createValidationPipeline(
+        filePath,
+        stats.size,
+        validationOptions
+      );
+
       // Track memory usage
       const currentMemory = process.memoryUsage().heapUsed;
       peakMemoryUsage = Math.max(peakMemoryUsage, currentMemory);
-      
+
       // Force garbage collection if memory usage is high
       if (currentMemory - startMemory > this.options.memoryThreshold * 1024 * 1024) {
         if (global.gc) {
@@ -93,9 +101,8 @@ export class StreamingFileProcessor {
         ...validationResult,
         streamProcessingTime: Date.now() - startTime,
         chunksProcessed,
-        peakMemoryUsage: peakMemoryUsage - startMemory
+        peakMemoryUsage: peakMemoryUsage - startMemory,
       };
-
     } catch (error) {
       logger.error('Streaming file processing failed', { error, filePath });
       throw error;
@@ -106,8 +113,8 @@ export class StreamingFileProcessor {
    * Create a streaming validation pipeline
    */
   private async createValidationPipeline(
-    filePath: string, 
-    fileSize: number, 
+    filePath: string,
+    fileSize: number,
     validationOptions: FileValidationOptions
   ): Promise<ValidationResult> {
     const errors: any[] = [];
@@ -117,7 +124,7 @@ export class StreamingFileProcessor {
 
     // Create hash stream for checksum calculation
     const hashStream = crypto.createHash('sha256');
-    
+
     // Create magic number validator
     let magicNumberChecked = false;
     let fileTypeDetected = 'unknown';
@@ -136,37 +143,36 @@ export class StreamingFileProcessor {
 
           // Update hash
           hashStream.update(chunk);
-          
+
           // Track progress
           bytesProcessed += chunk.length;
           chunksProcessed++;
-          
+
           // Memory management - don't accumulate chunks
           callback(null, null); // Don't pass chunk downstream to save memory
-          
         } catch (error) {
           callback(error);
         }
-      }
+      },
     });
 
     // Create progress tracker if enabled
-    const progressTransform = this.options.enableProgressTracking 
+    const progressTransform = this.options.enableProgressTracking
       ? this.createProgressTracker(fileSize)
-      : new Transform({ transform(chunk, encoding, callback) { callback(null, chunk); } });
+      : new Transform({
+          transform(chunk, encoding, callback) {
+            callback(null, chunk);
+          },
+        });
 
     // Execute streaming pipeline
     const fileStream = await fs.open(filePath, 'r');
-    const readStream = fileStream.createReadStream({ 
-      highWaterMark: this.options.chunkSize 
+    const readStream = fileStream.createReadStream({
+      highWaterMark: this.options.chunkSize,
     });
 
     try {
-      await pipelineAsync(
-        readStream,
-        progressTransform,
-        validationTransform
-      );
+      await pipelineAsync(readStream, progressTransform, validationTransform);
     } finally {
       await fileStream.close();
     }
@@ -179,18 +185,18 @@ export class StreamingFileProcessor {
     try {
       securityResult = await this.securityScanner.scanFile(filePath);
       if (!securityResult.isSafe) {
-        securityResult.threats.forEach(threat => {
+        securityResult.threats.forEach((threat) => {
           errors.push({
             code: `SECURITY_${threat.type.toUpperCase()}`,
             message: threat.description,
-            severity: threat.severity === 'high' ? 'critical' : 'error'
+            severity: threat.severity === 'high' ? 'critical' : 'error',
           });
         });
       }
     } catch (scanError) {
       warnings.push({
         code: 'SECURITY_SCAN_FAILED',
-        message: `Security scan failed: ${scanError.message}`
+        message: `Security scan failed: ${scanError.message}`,
       });
     }
 
@@ -206,8 +212,8 @@ export class StreamingFileProcessor {
         magicNumber: '',
         checksum,
         createdAt: new Date(),
-        modifiedAt: new Date()
-      }
+        modifiedAt: new Date(),
+      },
     };
   }
 
@@ -222,19 +228,19 @@ export class StreamingFileProcessor {
       transform(chunk: Buffer, encoding, callback) {
         processedBytes += chunk.length;
         const progress = (processedBytes / totalSize) * 100;
-        
+
         // Report progress every 10%
         if (progress - lastProgressReport >= 10) {
-          logger.info('Streaming file processing progress', { 
+          logger.info('Streaming file processing progress', {
             progress: Math.round(progress),
             processedBytes,
-            totalSize
+            totalSize,
           });
           lastProgressReport = Math.floor(progress / 10) * 10;
         }
-        
+
         callback(null, chunk);
-      }
+      },
     });
   }
 
@@ -242,12 +248,12 @@ export class StreamingFileProcessor {
    * Process small files using regular approach
    */
   private async processSmallFile(
-    buffer: Buffer, 
-    filePath: string, 
+    buffer: Buffer,
+    filePath: string,
     validationOptions: FileValidationOptions
   ): Promise<ValidationResult> {
     // Use existing FileProcessor for small files
-    const { FileProcessor } = await import('../modules/ingestion/FileProcessor');
+    const { FileProcessor } = await import('../modules/ingestion/FileProcessor.js');
     const processor = new FileProcessor(validationOptions);
     return processor.validateUpload(buffer, filePath);
   }
@@ -257,11 +263,11 @@ export class StreamingFileProcessor {
    */
   private detectFileTypeFromMagic(magicNumber: Buffer): string {
     const magicHex = magicNumber.toString('hex').toUpperCase();
-    
+
     if (magicHex.startsWith('504B0304')) {
       return 'application/zip'; // Could be ZIP or JAR
     }
-    
+
     return 'application/octet-stream';
   }
 

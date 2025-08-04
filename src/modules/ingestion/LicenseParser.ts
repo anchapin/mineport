@@ -1,6 +1,6 @@
 /**
  * LicenseParser Component
- * 
+ *
  * This component is responsible for parsing and validating license files in Minecraft mods.
  * It identifies common open-source licenses, extracts their terms, and enforces compliance
  * during the conversion process.
@@ -12,9 +12,9 @@ import logger from '../../utils/logger.js';
 
 /**
  * LicenseInfo interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface LicenseInfo {
@@ -29,9 +29,9 @@ export interface LicenseInfo {
 
 /**
  * LicenseParseResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface LicenseParseResult {
@@ -42,9 +42,9 @@ export interface LicenseParseResult {
 
 /**
  * LicenseParser class.
- * 
+ *
  * TODO: Add detailed description of the class purpose and functionality.
- * 
+ *
  * @since 1.0.0
  */
 export class LicenseParser {
@@ -62,73 +62,38 @@ export class LicenseParser {
   ];
 
   // Known license types with their characteristics
-  private static readonly KNOWN_LICENSES: Record<string, {
-    identifier: string;
-    patterns: RegExp[];
-    permissions: string[];
-    limitations: string[];
-    conditions: string[];
-  }> = {
-    'MIT': {
+  private static readonly KNOWN_LICENSES: Record<
+    string,
+    {
+      identifier: string;
+      patterns: RegExp[];
+      permissions: string[];
+      limitations: string[];
+      conditions: string[];
+    }
+  > = {
+    MIT: {
       identifier: 'MIT',
       patterns: [
         /MIT License/i,
         /Permission is hereby granted, free of charge, to any person obtaining a copy of this software/i,
       ],
-      permissions: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Private use',
-      ],
-      limitations: [
-        'Liability',
-        'Warranty',
-      ],
-      conditions: [
-        'License and copyright notice',
-      ],
+      permissions: ['Commercial use', 'Modification', 'Distribution', 'Private use'],
+      limitations: ['Liability', 'Warranty'],
+      conditions: ['License and copyright notice'],
     },
     'Apache-2.0': {
       identifier: 'Apache-2.0',
-      patterns: [
-        /Apache License, Version 2\.0/i,
-        /www\.apache\.org\/licenses\/LICENSE-2\.0/i,
-      ],
-      permissions: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Patent use',
-        'Private use',
-      ],
-      limitations: [
-        'Trademark use',
-        'Liability',
-        'Warranty',
-      ],
-      conditions: [
-        'License and copyright notice',
-        'State changes',
-      ],
+      patterns: [/Apache License, Version 2\.0/i, /www\.apache\.org\/licenses\/LICENSE-2\.0/i],
+      permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
+      limitations: ['Trademark use', 'Liability', 'Warranty'],
+      conditions: ['License and copyright notice', 'State changes'],
     },
     'GPL-3.0': {
       identifier: 'GPL-3.0',
-      patterns: [
-        /GNU General Public License v3\.0/i,
-        /www\.gnu\.org\/licenses\/gpl-3\.0/i,
-      ],
-      permissions: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Patent use',
-        'Private use',
-      ],
-      limitations: [
-        'Liability',
-        'Warranty',
-      ],
+      patterns: [/GNU General Public License v3\.0/i, /www\.gnu\.org\/licenses\/gpl-3\.0/i],
+      permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
+      limitations: ['Liability', 'Warranty'],
       conditions: [
         'License and copyright notice',
         'State changes',
@@ -138,20 +103,9 @@ export class LicenseParser {
     },
     'GPL-2.0': {
       identifier: 'GPL-2.0',
-      patterns: [
-        /GNU General Public License v2\.0/i,
-        /www\.gnu\.org\/licenses\/gpl-2\.0/i,
-      ],
-      permissions: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Private use',
-      ],
-      limitations: [
-        'Liability',
-        'Warranty',
-      ],
+      patterns: [/GNU General Public License v2\.0/i, /www\.gnu\.org\/licenses\/gpl-2\.0/i],
+      permissions: ['Commercial use', 'Modification', 'Distribution', 'Private use'],
+      limitations: ['Liability', 'Warranty'],
       conditions: [
         'License and copyright notice',
         'State changes',
@@ -161,21 +115,9 @@ export class LicenseParser {
     },
     'LGPL-3.0': {
       identifier: 'LGPL-3.0',
-      patterns: [
-        /GNU Lesser General Public License v3\.0/i,
-        /www\.gnu\.org\/licenses\/lgpl-3\.0/i,
-      ],
-      permissions: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Patent use',
-        'Private use',
-      ],
-      limitations: [
-        'Liability',
-        'Warranty',
-      ],
+      patterns: [/GNU Lesser General Public License v3\.0/i, /www\.gnu\.org\/licenses\/lgpl-3\.0/i],
+      permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
+      limitations: ['Liability', 'Warranty'],
       conditions: [
         'License and copyright notice',
         'State changes',
@@ -189,64 +131,25 @@ export class LicenseParser {
         /BSD 3-Clause License/i,
         /Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met/i,
       ],
-      permissions: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Private use',
-      ],
-      limitations: [
-        'Liability',
-        'Warranty',
-      ],
-      conditions: [
-        'License and copyright notice',
-      ],
+      permissions: ['Commercial use', 'Modification', 'Distribution', 'Private use'],
+      limitations: ['Liability', 'Warranty'],
+      conditions: ['License and copyright notice'],
     },
     'MPL-2.0': {
       identifier: 'MPL-2.0',
-      patterns: [
-        /Mozilla Public License Version 2\.0/i,
-        /www\.mozilla\.org\/MPL\/2\.0/i,
-      ],
-      permissions: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Patent use',
-        'Private use',
-      ],
-      limitations: [
-        'Liability',
-        'Trademark use',
-        'Warranty',
-      ],
-      conditions: [
-        'License and copyright notice',
-        'Disclose source',
-        'Same license (file)',
-      ],
+      patterns: [/Mozilla Public License Version 2\.0/i, /www\.mozilla\.org\/MPL\/2\.0/i],
+      permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
+      limitations: ['Liability', 'Trademark use', 'Warranty'],
+      conditions: ['License and copyright notice', 'Disclose source', 'Same license (file)'],
     },
     'All Rights Reserved': {
       identifier: 'All Rights Reserved',
-      patterns: [
-        /All Rights Reserved/i,
-        /Copyright .* All rights reserved/i,
-      ],
-      permissions: [
-        'Private use',
-      ],
-      limitations: [
-        'Commercial use',
-        'Modification',
-        'Distribution',
-        'Patent use',
-      ],
-      conditions: [
-        'License and copyright notice',
-      ],
+      patterns: [/All Rights Reserved/i, /Copyright .* All rights reserved/i],
+      permissions: ['Private use'],
+      limitations: ['Commercial use', 'Modification', 'Distribution', 'Patent use'],
+      conditions: ['License and copyright notice'],
     },
-    'Custom': {
+    Custom: {
       identifier: 'Custom',
       patterns: [],
       permissions: [],
@@ -278,18 +181,18 @@ export class LicenseParser {
       // Read the first license file found
       const licenseFilePath = licenseFiles[0];
       const fileName = path.basename(licenseFilePath);
-      
+
       let licenseInfo: LicenseInfo;
-      
+
       // Check if this is a descriptor file or a regular license file
       if (fileName === 'mods.toml' || fileName === 'fabric.mod.json' || fileName === 'mcmod.info') {
         // This is a descriptor file, extract license info from it
         const extractedLicenseInfo = await this.extractLicenseFromDescriptor(licenseFilePath);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -334,9 +237,9 @@ export class LicenseParser {
       // Check for license files in the root directory
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -345,9 +248,9 @@ export class LicenseParser {
         const filePath = path.join(extractedModPath, pattern);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -362,9 +265,9 @@ export class LicenseParser {
         const metaInfPath = path.join(extractedModPath, 'META-INF');
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -372,9 +275,9 @@ export class LicenseParser {
         if (await this.fileExists(metaInfPath)) {
           /**
            * for method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -383,9 +286,9 @@ export class LicenseParser {
             const filePath = path.join(metaInfPath, pattern);
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
@@ -403,9 +306,9 @@ export class LicenseParser {
         const modsTomlPath = path.join(extractedModPath, 'META-INF', 'mods.toml');
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -414,9 +317,9 @@ export class LicenseParser {
           const licenseInfo = await this.extractLicenseFromDescriptor(modsTomlPath);
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -431,9 +334,9 @@ export class LicenseParser {
         const fabricModJsonPath = path.join(extractedModPath, 'fabric.mod.json');
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -442,9 +345,9 @@ export class LicenseParser {
           const licenseInfo = await this.extractLicenseFromDescriptor(fabricModJsonPath);
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -459,9 +362,9 @@ export class LicenseParser {
         const mcmodInfoPath = path.join(extractedModPath, 'mcmod.info');
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -470,9 +373,9 @@ export class LicenseParser {
           const licenseInfo = await this.extractLicenseFromDescriptor(mcmodInfoPath);
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -506,9 +409,9 @@ export class LicenseParser {
     // Check against known license patterns
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -516,9 +419,9 @@ export class LicenseParser {
     for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -526,9 +429,9 @@ export class LicenseParser {
       for (const pattern of license.patterns) {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -541,7 +444,7 @@ export class LicenseParser {
           break;
         }
       }
-      
+
       // If we found a match, stop checking
       if (licenseType !== 'Custom') {
         break;
@@ -553,9 +456,9 @@ export class LicenseParser {
       // Look for common permissions
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -565,9 +468,9 @@ export class LicenseParser {
       }
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -577,9 +480,9 @@ export class LicenseParser {
       }
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -587,26 +490,33 @@ export class LicenseParser {
       if (/commercial|sell|profit/i.test(licenseText)) {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
-        if (/not|don't|cannot|prohibited/i.test(licenseText.substring(Math.max(0, licenseText.search(/commercial|sell|profit/i) - 20), licenseText.search(/commercial|sell|profit/i)))) {
+        if (
+          /not|don't|cannot|prohibited/i.test(
+            licenseText.substring(
+              Math.max(0, licenseText.search(/commercial|sell|profit/i) - 20),
+              licenseText.search(/commercial|sell|profit/i)
+            )
+          )
+        ) {
           limitations.push('Commercial use');
         } else {
           permissions.push('Commercial use');
         }
       }
-      
+
       // Look for common limitations
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -616,9 +526,9 @@ export class LicenseParser {
       }
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -626,13 +536,13 @@ export class LicenseParser {
       if (/no liability|not liable|disclaimer of liability/i.test(licenseText)) {
         limitations.push('Liability');
       }
-      
+
       // Look for common conditions
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -642,9 +552,9 @@ export class LicenseParser {
       }
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -654,9 +564,9 @@ export class LicenseParser {
       }
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -695,28 +605,22 @@ export class LicenseParser {
    * @param licenseInfo License information
    * @returns Object with compatibility status and reason
    */
-  private checkLicenseCompatibility(licenseInfo: LicenseInfo): { compatible: boolean; incompatibilityReason?: string } {
+  private checkLicenseCompatibility(licenseInfo: LicenseInfo): {
+    compatible: boolean;
+    incompatibilityReason?: string;
+  } {
     // Licenses that are generally compatible with conversion
-    const compatibleLicenses = [
-      'MIT',
-      'Apache-2.0',
-      'BSD-3-Clause',
-      'MPL-2.0',
-    ];
+    const compatibleLicenses = ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'MPL-2.0'];
 
     // Licenses that may require special handling
-    const conditionalLicenses = [
-      'GPL-3.0',
-      'GPL-2.0',
-      'LGPL-3.0',
-    ];
+    const conditionalLicenses = ['GPL-3.0', 'GPL-2.0', 'LGPL-3.0'];
 
     // Check if the license is in the compatible list
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -728,17 +632,17 @@ export class LicenseParser {
     // Check if the license is in the conditional list
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (conditionalLicenses.includes(licenseInfo.type)) {
-      return { 
+      return {
         compatible: true,
-        incompatibilityReason: `${licenseInfo.type} license requires that derivative works also use the same license. Ensure the converted addon includes the original license and source code availability.`
+        incompatibilityReason: `${licenseInfo.type} license requires that derivative works also use the same license. Ensure the converted addon includes the original license and source code availability.`,
       };
     }
 
@@ -747,12 +651,12 @@ export class LicenseParser {
       // Check for restrictive terms in custom licenses
       const hasDistributionPermission = licenseInfo.permissions.includes('Distribution');
       const hasModificationPermission = licenseInfo.permissions.includes('Modification');
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -760,13 +664,15 @@ export class LicenseParser {
       if (!hasDistributionPermission || !hasModificationPermission) {
         return {
           compatible: false,
-          incompatibilityReason: 'Custom license does not explicitly permit distribution or modification, which are required for conversion.'
+          incompatibilityReason:
+            'Custom license does not explicitly permit distribution or modification, which are required for conversion.',
         };
       }
-      
+
       return {
         compatible: true,
-        incompatibilityReason: 'Custom license detected. Manual review recommended to ensure compliance with all terms.'
+        incompatibilityReason:
+          'Custom license detected. Manual review recommended to ensure compliance with all terms.',
       };
     }
 
@@ -774,14 +680,15 @@ export class LicenseParser {
     if (licenseInfo.type === 'All Rights Reserved') {
       return {
         compatible: false,
-        incompatibilityReason: 'All Rights Reserved license does not permit modification or distribution, which are required for conversion.'
+        incompatibilityReason:
+          'All Rights Reserved license does not permit modification or distribution, which are required for conversion.',
       };
     }
 
     // Default case for unknown licenses
     return {
       compatible: false,
-      incompatibilityReason: 'Unknown license type. Cannot determine compatibility for conversion.'
+      incompatibilityReason: 'Unknown license type. Cannot determine compatibility for conversion.',
     };
   }
 
@@ -796,17 +703,17 @@ export class LicenseParser {
       // If the license is not compatible, we should not proceed with conversion
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (!licenseInfo.compatible) {
-        logger.error('License is not compatible with conversion', { 
+        logger.error('License is not compatible with conversion', {
           licenseType: licenseInfo.type,
-          reason: licenseInfo.incompatibilityReason
+          reason: licenseInfo.incompatibilityReason,
         });
         return false;
       }
@@ -823,9 +730,9 @@ export class LicenseParser {
       // For GPL and similar licenses, ensure source code availability notice
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -851,7 +758,7 @@ export class LicenseParser {
    */
   private generateNoticeFile(licenseInfo: LicenseInfo): string {
     const currentDate = new Date().getFullYear();
-    
+
     return `NOTICE
 ======
 
@@ -861,13 +768,13 @@ The original mod is licensed under the ${licenseInfo.type} license.
 License Type: ${licenseInfo.type}
 
 Permissions:
-${licenseInfo.permissions.map(p => `- ${p}`).join('\n')}
+${licenseInfo.permissions.map((p) => `- ${p}`).join('\n')}
 
 Limitations:
-${licenseInfo.limitations.map(l => `- ${l}`).join('\n')}
+${licenseInfo.limitations.map((l) => `- ${l}`).join('\n')}
 
 Conditions:
-${licenseInfo.conditions.map(c => `- ${c}`).join('\n')}
+${licenseInfo.conditions.map((c) => `- ${c}`).join('\n')}
 
 This conversion was performed using the Minecraft Mod Converter.
 /**
@@ -923,15 +830,15 @@ to accommodate the differences between Java and Bedrock platforms.
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const fileName = path.basename(filePath);
-      
+
       if (fileName === 'mods.toml') {
         // Extract license from mods.toml
         const licenseMatch = content.match(/license\s*=\s*["']([^"']+)["']/);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -945,9 +852,9 @@ to accommodate the differences between Java and Bedrock platforms.
         const fabricMod = JSON.parse(content);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -959,12 +866,12 @@ to accommodate the differences between Java and Bedrock platforms.
         // Extract license from mcmod.info
         const modInfo = JSON.parse(content);
         const modData = Array.isArray(modInfo) ? modInfo[0] : modInfo;
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -973,7 +880,7 @@ to accommodate the differences between Java and Bedrock platforms.
           return this.getLicenseInfoFromIdentifier(modData.license);
         }
       }
-      
+
       return null;
     } catch (error) {
       logger.error('Error extracting license from descriptor', { error });
@@ -989,20 +896,22 @@ to accommodate the differences between Java and Bedrock platforms.
   private getLicenseInfoFromIdentifier(identifier: string): LicenseInfo {
     // Clean up the identifier
     const cleanIdentifier = identifier.trim();
-    
+
     // Check if it's a known license
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
-      if (cleanIdentifier.toLowerCase() === license.identifier.toLowerCase() ||
-          cleanIdentifier.toLowerCase().includes(license.identifier.toLowerCase())) {
+      if (
+        cleanIdentifier.toLowerCase() === license.identifier.toLowerCase() ||
+        cleanIdentifier.toLowerCase().includes(license.identifier.toLowerCase())
+      ) {
         return {
           type: license.identifier,
           text: `This project is licensed under the ${license.identifier} license.`,
@@ -1013,7 +922,7 @@ to accommodate the differences between Java and Bedrock platforms.
         };
       }
     }
-    
+
     // If not a known license, return as custom
     return {
       type: 'Custom',

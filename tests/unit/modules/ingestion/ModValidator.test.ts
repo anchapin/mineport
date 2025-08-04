@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ModValidator, ValidationResult } from '../../../../src/modules/ingestion/ModValidator';
-import { createMockFileBuffer, mockUnzipper, resetAllMocks } from '../../../utils/testHelpers';
+import { ModValidator, ValidationResult } from '../../../../src/modules/ingestion/ModValidator.js';
+import { createMockFileBuffer, mockUnzipper, resetAllMocks } from '../../../utils/testHelpers.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -14,20 +14,20 @@ describe('ModValidator', () => {
     mockForgeModStructure = {
       'META-INF/MANIFEST.MF': 'Manifest-Version: 1.0\nModId: test-forge-mod\nVersion: 1.0.0',
       'META-INF/mods.toml': 'modId="test-forge-mod"\nversion="1.0.0"\ndisplayName="Test Forge Mod"',
-      'LICENSE': 'MIT License\n\nCopyright (c) 2023 Test Author\n',
+      LICENSE: 'MIT License\n\nCopyright (c) 2023 Test Author\n',
       'com/example/testmod/TestMod.class': 'mock class file content',
     };
-    
+
     mockFabricModStructure = {
       'META-INF/MANIFEST.MF': 'Manifest-Version: 1.0\nModId: test-fabric-mod\nVersion: 1.0.0',
       'fabric.mod.json': '{"id": "test-fabric-mod", "version": "1.0.0", "name": "Test Fabric Mod"}',
-      'LICENSE': 'MIT License\n\nCopyright (c) 2023 Test Author\n',
+      LICENSE: 'MIT License\n\nCopyright (c) 2023 Test Author\n',
       'com/example/testmod/TestMod.class': 'mock class file content',
     };
-    
+
     // Mock unzipper
     mockUnzipper(mockForgeModStructure);
-    
+
     // Create validator
     modValidator = new ModValidator();
   });
@@ -39,10 +39,10 @@ describe('ModValidator', () => {
   it('should validate a valid Forge mod', async () => {
     // Create mock file buffer
     const fileBuffer = createMockFileBuffer('mock jar content');
-    
+
     // Validate the mod
     const result = await modValidator.validate(fileBuffer);
-    
+
     // Check result
     expect(result.valid).toBe(true);
     expect(result.modId).toBe('test-forge-mod');
@@ -55,13 +55,13 @@ describe('ModValidator', () => {
     // Mock unzipper with Fabric structure
     resetAllMocks();
     mockUnzipper(mockFabricModStructure);
-    
+
     // Create mock file buffer
     const fileBuffer = createMockFileBuffer('mock jar content');
-    
+
     // Validate the mod
     const result = await modValidator.validate(fileBuffer);
-    
+
     // Check result
     expect(result.valid).toBe(true);
     expect(result.modId).toBe('test-fabric-mod');
@@ -73,7 +73,7 @@ describe('ModValidator', () => {
   it('should reject an invalid file format', async () => {
     // Create mock file buffer with invalid content
     const fileBuffer = createMockFileBuffer('not a jar file');
-    
+
     // Mock unzipper to throw an error
     vi.mock('unzipper', () => {
       return {
@@ -84,10 +84,10 @@ describe('ModValidator', () => {
         },
       };
     });
-    
+
     // Validate the mod
     const result = await modValidator.validate(fileBuffer);
-    
+
     // Check result
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Invalid JAR file format');
@@ -99,17 +99,17 @@ describe('ModValidator', () => {
       'META-INF/MANIFEST.MF': 'Manifest-Version: 1.0',
       'com/example/testmod/TestMod.class': 'mock class file content',
     };
-    
+
     // Mock unzipper with invalid structure
     resetAllMocks();
     mockUnzipper(invalidModStructure);
-    
+
     // Create mock file buffer
     const fileBuffer = createMockFileBuffer('mock jar content');
-    
+
     // Validate the mod
     const result = await modValidator.validate(fileBuffer);
-    
+
     // Check result
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Missing mod metadata');
@@ -118,22 +118,22 @@ describe('ModValidator', () => {
   it('should extract mod files to a temporary directory', async () => {
     // Mock fs.promises.mkdir
     const mkdirSpy = vi.spyOn(fs.promises, 'mkdir').mockResolvedValue(undefined);
-    
+
     // Mock fs.promises.writeFile
     const writeFileSpy = vi.spyOn(fs.promises, 'writeFile').mockResolvedValue(undefined);
-    
+
     // Create mock file buffer
     const fileBuffer = createMockFileBuffer('mock jar content');
-    
+
     // Extract the mod
     const extractPath = await modValidator.extractMod(fileBuffer, 'test-mod');
-    
+
     // Check that directories were created
     expect(mkdirSpy).toHaveBeenCalled();
-    
+
     // Check that files were written
     expect(writeFileSpy).toHaveBeenCalledTimes(Object.keys(mockForgeModStructure).length);
-    
+
     // Check that the extract path is returned
     expect(extractPath).toContain('test-mod');
   });
@@ -142,11 +142,11 @@ describe('ModValidator', () => {
     // Test Forge detection
     let modType = await modValidator.detectModType(mockForgeModStructure);
     expect(modType).toBe('forge');
-    
+
     // Test Fabric detection
     modType = await modValidator.detectModType(mockFabricModStructure);
     expect(modType).toBe('fabric');
-    
+
     // Test unknown mod type
     const unknownModStructure = {
       'META-INF/MANIFEST.MF': 'Manifest-Version: 1.0',
@@ -161,12 +161,12 @@ describe('ModValidator', () => {
     let metadata = await modValidator.extractModMetadata(mockForgeModStructure, 'forge');
     expect(metadata.modId).toBe('test-forge-mod');
     expect(metadata.version).toBe('1.0.0');
-    
+
     // Test Fabric metadata extraction
     metadata = await modValidator.extractModMetadata(mockFabricModStructure, 'fabric');
     expect(metadata.modId).toBe('test-fabric-mod');
     expect(metadata.version).toBe('1.0.0');
-    
+
     // Test metadata extraction failure
     const invalidModStructure = {
       'META-INF/MANIFEST.MF': 'Manifest-Version: 1.0',
@@ -178,7 +178,7 @@ describe('ModValidator', () => {
     // Test valid structure
     let result = await modValidator.validateStructure(mockForgeModStructure, 'forge');
     expect(result.valid).toBe(true);
-    
+
     // Test invalid structure (missing required files)
     const invalidModStructure = {
       'META-INF/MANIFEST.MF': 'Manifest-Version: 1.0',
@@ -191,13 +191,13 @@ describe('ModValidator', () => {
   it('should clean up temporary files after validation', async () => {
     // Mock fs.promises.rm
     const rmSpy = vi.spyOn(fs.promises, 'rm').mockResolvedValue(undefined);
-    
+
     // Create mock file buffer
     const fileBuffer = createMockFileBuffer('mock jar content');
-    
+
     // Validate the mod with cleanup
     await modValidator.validate(fileBuffer, { cleanup: true });
-    
+
     // Check that cleanup was called
     expect(rmSpy).toHaveBeenCalled();
   });
