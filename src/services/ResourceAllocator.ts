@@ -28,6 +28,19 @@ export interface ResourcePoolOptions {
   enableMetrics: boolean;
 }
 
+export enum ResourceType {
+  MEMORY = 'memory',
+  CPU = 'cpu',
+  STORAGE = 'storage',
+  NETWORK = 'network'
+}
+
+export enum ResourceAllocationStrategy {
+  CONSERVATIVE = 'conservative',
+  BALANCED = 'balanced',
+  AGGRESSIVE = 'aggressive'
+}
+
 export interface TempFileOptions {
   prefix?: string;
   suffix?: string;
@@ -424,12 +437,59 @@ export class TempFileManager {
 /**
  * Main resource allocator service
  */
+export interface ResourceAllocation {
+  id: string;
+  memory: number;
+  cpu: number;
+  storage: number;
+  createdAt: Date;
+  timeout?: number;
+}
+
+export interface ResourceUsage {
+  memory: number;
+  cpu: number;
+  storage: number;
+}
+
+export interface ResourceRequest {
+  memory: number;
+  cpu: number;
+  storage: number;
+  priority?: number;
+  timeout?: number;
+}
+
 export class ResourceAllocator {
   private pools: Map<string, ResourcePool<any>> = new Map();
   private tempFileManager: TempFileManager;
+  private allocations: Map<string, ResourceAllocation> = new Map();
+  private maxMemory: number;
+  private maxCpu: number;
+  private maxStorage: number;
+  private strategy: ResourceAllocationStrategy;
 
-  constructor(tempDir?: string) {
-    this.tempFileManager = new TempFileManager(tempDir);
+  constructor(config?: string | { maxMemory: number; maxCpu: number; maxStorage: number; strategy?: ResourceAllocationStrategy }) {
+    if (typeof config === 'string') {
+      // Legacy constructor for temp directory
+      this.tempFileManager = new TempFileManager(config);
+      this.maxMemory = 1024; // Default 1GB
+      this.maxCpu = 4; // Default 4 cores
+      this.maxStorage = 10240; // Default 10GB
+      this.strategy = ResourceAllocationStrategy.BALANCED;
+    } else if (config) {
+      this.tempFileManager = new TempFileManager();
+      this.maxMemory = config.maxMemory;
+      this.maxCpu = config.maxCpu;
+      this.maxStorage = config.maxStorage;
+      this.strategy = config.strategy || ResourceAllocationStrategy.BALANCED;
+    } else {
+      this.tempFileManager = new TempFileManager();
+      this.maxMemory = 1024; // Default 1GB
+      this.maxCpu = 4; // Default 4 cores
+      this.maxStorage = 10240; // Default 10GB
+      this.strategy = ResourceAllocationStrategy.BALANCED;
+    }
   }
 
   /**
@@ -476,12 +536,87 @@ export class ResourceAllocator {
   }
 
   /**
+   * Allocate resources
+   */
+  allocate(request: ResourceRequest): ResourceAllocation {
+    const currentUsage = this.getCurrentUsage();
+    
+    // Check if resources are available
+    if (currentUsage.memory + request.memory > this.maxMemory ||
+        currentUsage.cpu + request.cpu > this.maxCpu ||
+        currentUsage.storage + request.storage > this.maxStorage) {
+      throw new Error('Insufficient resources available');
+    }
+
+    const allocation: ResourceAllocation = {
+      id: uuidv4(),
+      memory: request.memory,
+      cpu: request.cpu,
+      storage: request.storage,
+      createdAt: new Date(),
+      timeout: request.timeout
+    };
+
+    this.allocations.set(allocation.id, allocation);
+    return allocation;
+  }
+
+  /**
+   * Release allocated resources
+   */
+  release(allocationId: string): void {
+    this.allocations.delete(allocationId);
+  }
+
+  /**
+   * Get current resource usage
+   */
+  getCurrentUsage(): ResourceUsage {
+    let memory = 0;
+    let cpu = 0;
+    let storage = 0;
+
+    for (const allocation of this.allocations.values()) {
+      memory += allocation.memory;
+      cpu += allocation.cpu;
+      storage += allocation.storage;
+    }
+
+    return { memory, cpu, storage };
+  }
+
+  /**
+   * Get available resources
+   */
+  getAvailability(): ResourceUsage {
+    const currentUsage = this.getCurrentUsage();
+    return {
+      memory: this.maxMemory - currentUsage.memory,
+      cpu: this.maxCpu - currentUsage.cpu,
+      storage: this.maxStorage - currentUsage.storage
+    };
+  }
+
+  /**
+   * Clean up expired allocations
+   */
+  cleanupExpiredAllocations(): void {
+    const now = Date.now();
+    for (const [id, allocation] of this.allocations.entries()) {
+      if (allocation.timeout && (now - allocation.createdAt.getTime()) > allocation.timeout) {
+        this.allocations.delete(id);
+      }
+    }
+  }
+
+  /**
    * Destroy all pools and cleanup
    */
   async destroy(): Promise<void> {
     const destroyPromises = Array.from(this.pools.values()).map((pool) => pool.destroy());
     await Promise.all(destroyPromises);
     this.pools.clear();
+    this.allocations.clear();
     await this.tempFileManager.destroy();
   }
 }

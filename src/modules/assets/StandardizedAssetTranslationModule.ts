@@ -11,7 +11,6 @@ import { ModelConverter } from './ModelConverter.js';
 import { SoundProcessor } from './SoundProcessor.js';
 import { ParticleMapper } from './ParticleMapper.js';
 import { createLogger } from '../../utils/logger.js';
-import type { Logger } from '../../utils/logger.js';
 
 /**
  * Asset translation module configuration
@@ -42,7 +41,7 @@ export interface AssetTranslationModuleConfig {
  * to Bedrock addon format using the standardized module pattern.
  */
 export class StandardizedAssetTranslationModule extends BaseModule {
-  private logger: Logger;
+  private logger = createLogger('StandardizedAssetTranslationModule');
   private textureConverter: TextureConverter;
   private modelConverter: ModelConverter;
   private soundProcessor: SoundProcessor;

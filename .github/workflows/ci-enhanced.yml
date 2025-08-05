@@ -43,9 +43,8 @@ jobs:
           echo "Starting Enhanced CI Pipeline"
           echo "Trigger event: ${{ github.event_name }}"
           echo "Trigger ref: ${{ github.ref }}"
-              "trigger_actor": "${{ github.actor }}",
-              "skip_tests": "${{ github.event.inputs.skip_tests }}"
-            }
+          echo "Trigger actor: ${{ github.actor }}"
+          echo "Skip tests: ${{ github.event.inputs.skip_tests }}"
 
   # Pre-flight checks
   preflight:
@@ -833,7 +832,7 @@ jobs:
         run: |
           echo "Generating build optimization dashboard..."
           
-          cat > generate-dashboard.js << 'EOF'
+          cat > generate-dashboard.cjs << 'EOF'
           const fs = require('fs');
           const path = require('path');
           
@@ -950,7 +949,7 @@ jobs:
           generateDashboard();
           EOF
           
-          node generate-dashboard.js
+          node generate-dashboard.cjs
 
       - name: Check build performance budgets
         run: |
@@ -1205,21 +1204,7 @@ jobs:
         run: |
           echo "Workflow completed with status: ${{ steps.status.outputs.status }}"
           echo "Duration: ${{ steps.duration.outputs.duration }} seconds"
-              "workflow_name": "Enhanced CI Pipeline",
-              "duration_seconds": ${{ steps.duration.outputs.duration }},
-              "build_result": "${{ needs.build.result }}",
-              "test_aggregation_result": "${{ needs.test-aggregation.result }}",
-              "comprehensive_tests_result": "${{ needs.comprehensive-tests.result }}",
-              "quality_gate_result": "${{ needs.quality-gate.result }}",
-              "cache_management_result": "${{ needs.cache-management.result }}",
-              "notify_result": "${{ needs.notify.result }}",
-              "total_jobs": 7,
-              "failed_jobs": [
-                ${{ needs.build.result != 'success' && '"build"' || '' }}
-                ${{ needs.test-aggregation.result != 'success' && ',"test-aggregation"' || '' }}
-                ${{ needs.comprehensive-tests.result != 'success' && ',"comprehensive-tests"' || '' }}
-                ${{ needs.quality-gate.result != 'success' && ',"quality-gate"' || '' }}
-                ${{ needs.cache-management.result != 'success' && ',"cache-management"' || '' }}
-                ${{ needs.notify.result != 'success' && ',"notify"' || '' }}
-              ]
-            }
+          echo "Build result: ${{ needs.build.result }}"
+          echo "Test aggregation result: ${{ needs.test-aggregation.result }}"
+          echo "Comprehensive tests result: ${{ needs.comprehensive-tests.result }}"
+          echo "Quality gate result: ${{ needs.quality-gate.result }}"

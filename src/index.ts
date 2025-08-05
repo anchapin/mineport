@@ -1,7 +1,7 @@
 import config from '../config/default.js';
 import { setupLogger } from './utils/logger.js';
 // Import UI components
-import { ConversionPage } from './modules/ui/pages.js';
+import { ConversionPage } from './modules/ui/pages/index.js';
 
 const logger = setupLogger();
 

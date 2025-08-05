@@ -5,6 +5,13 @@ import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('UpdateService');
 
+export enum UpdateType {
+  API_MAPPINGS = 'api_mappings',
+  BLOCK_MAPPINGS = 'block_mappings',
+  ITEM_MAPPINGS = 'item_mappings',
+  ENTITY_MAPPINGS = 'entity_mappings'
+}
+
 /**
  * UpdateService provides functionality for updating API mappings and other data
  * Implements requirement 7.3: Support a mechanism for updating internal mapping dictionary

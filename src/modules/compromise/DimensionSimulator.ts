@@ -1,5 +1,5 @@
 import { Feature } from '../../types/compromise.js';
-import { Logger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * DimensionSimulator provides functionality to simulate custom dimensions in Bedrock Edition

@@ -101,7 +101,7 @@ describe('ConversionService', () => {
     vi.clearAllMocks();
   });
 
-  it('should create a conversion job', () => {
+  it('should create a conversion job', async () => {
     const input = {
       modFile: 'test.jar',
       outputPath: '/output',
@@ -113,7 +113,7 @@ describe('ConversionService', () => {
       },
     };
 
-    const job = conversionService.createConversionJob(input);
+    const job = await conversionService.createConversionJob(input);
 
     expect(job).toBeDefined();
     expect(job.id).toBe('mock_job_id');

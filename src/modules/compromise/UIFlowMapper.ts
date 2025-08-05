@@ -1,5 +1,5 @@
 import { Feature } from '../../types/compromise.js';
-import { Logger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * UIFlowMapper provides functionality to analyze Java UI components and map them

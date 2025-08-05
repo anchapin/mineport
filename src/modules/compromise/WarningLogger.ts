@@ -1,5 +1,5 @@
 import { Feature } from '../../types/compromise.js';
-import { Logger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * WarningLogger provides functionality to create console warnings and detailed comments

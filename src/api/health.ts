@@ -5,15 +5,14 @@
 
 import { Request, Response } from 'express';
 import { HealthCheckService } from '../services/HealthCheckService.js';
-import { Logger } from '../utils/logger.js';
+import { createLogger } from '../utils/logger.js';
 
 export class HealthAPI {
   private healthCheckService: HealthCheckService;
-  private logger: Logger;
+  private logger = createLogger('HealthAPI');
 
   constructor(healthCheckService: HealthCheckService) {
     this.healthCheckService = healthCheckService;
-    this.logger = new Logger('HealthAPI');
   }
 
   /**
