@@ -9,7 +9,7 @@ describe('CacheService', () => {
   let cacheService: CacheService;
 
   beforeEach(() => {
-    cacheService = new CacheService({ enabled: true });
+    cacheService = new CacheService({ enabled: true, enablePersistence: false });
     cacheService.resetMetrics();
   });
 

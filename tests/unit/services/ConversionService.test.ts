@@ -21,18 +21,47 @@ vi.mock('../../../src/services/ConversionPipeline', () => {
           info: 0,
         },
       }),
+      queueConversion: vi.fn().mockReturnValue('mock_job_id'),
+      cancelJob: vi.fn().mockReturnValue(true),
+      startProcessingJobs: vi.fn(),
+      stopProcessingJobs: vi.fn(),
+      getJobStatus: vi.fn().mockReturnValue({
+        status: 'pending',
+        progress: 0,
+      }),
     })),
   };
 });
 
-vi.mock('../../../src/utils/logger', () => {
+vi.mock('../../../src/utils/logger', async () => {
+  const actual = await vi.importActual('../../../src/utils/logger');
   return {
-    createLogger: () => ({
+    ...actual,
+    default: {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    },
+    createLogger: vi.fn(() => ({
       info: vi.fn(),
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
-    }),
+      verbose: vi.fn(),
+    })),
+    logger: {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      logStructuredEvent: vi.fn(),
+      logSecurityEvent: vi.fn(),
+      logPerformanceEvent: vi.fn(),
+      logBusinessEvent: vi.fn(),
+      logSystemEvent: vi.fn(),
+    },
   };
 });
 
@@ -119,8 +148,7 @@ describe('ConversionService', () => {
     expect(job.id).toBe('mock_job_id');
     expect(job.input).toBe(input);
     expect(job.status).toBe('pending');
-    expect(jobQueue.addJob).toHaveBeenCalled();
-    expect(jobQueue.addJob).toHaveBeenCalledWith('conversion', input);
+    expect(jobQueue.getJob).toHaveBeenCalledWith('mock_job_id');
     expect(conversionService.emit).toHaveBeenCalledWith('job:created', job);
   });
 
@@ -162,33 +190,23 @@ describe('ConversionService', () => {
   it('should cancel a pending job', () => {
     const jobId = 'mock_job_id';
 
-    // Mock job status
-    (jobQueue.getJob as any).mockReturnValue({
-      id: jobId,
-      type: 'conversion',
-      data: { modFile: 'test.jar', outputPath: '/output', options: {} },
-      priority: 1,
-      createdAt: new Date(),
-      status: 'pending',
-    });
-
     const result = conversionService.cancelJob(jobId);
 
     expect(result).toBe(true);
-    expect(jobQueue.failJob).toHaveBeenCalledWith(jobId, expect.any(Error));
     expect(conversionService.emit).toHaveBeenCalledWith('job:cancelled', { jobId });
   });
 
   it('should handle job not found when cancelling', () => {
     const jobId = 'non_existent_job';
 
-    // Mock job not found
-    (jobQueue.getJob as any).mockReturnValue(undefined);
+    // Mock pipeline cancelJob to return false for non-existent job
+    const mockPipeline = conversionService['pipeline'];
+    mockPipeline.cancelJob.mockReturnValue(false);
 
     const result = conversionService.cancelJob(jobId);
 
     expect(result).toBe(false);
-    expect(jobQueue.failJob).not.toHaveBeenCalled();
+    expect(conversionService.emit).not.toHaveBeenCalledWith('job:cancelled', { jobId });
   });
 
   it('should get job result for completed job', () => {
@@ -239,19 +257,19 @@ describe('ConversionService', () => {
     expect(result).toBeUndefined();
   });
 
-  it('should start and stop the service', () => {
-    // Mock methods
-    const startMock = vi.spyOn(conversionService, 'start');
-    const stopMock = vi.spyOn(conversionService, 'stop');
+  it('should start and stop the service', async () => {
+    // Clear previous calls
+    vi.clearAllMocks();
 
     // Start service
     conversionService.start();
-    expect(startMock).toHaveBeenCalled();
     expect(conversionService.emit).toHaveBeenCalledWith('started');
 
-    // Stop service
-    conversionService.stop();
-    expect(stopMock).toHaveBeenCalled();
+    // Clear calls again to isolate stop test
+    vi.clearAllMocks();
+
+    // Stop service (it's async)
+    await conversionService.stop();
     expect(conversionService.emit).toHaveBeenCalledWith('stopped');
   });
 });

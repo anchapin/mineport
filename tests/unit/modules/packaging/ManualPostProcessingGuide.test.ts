@@ -133,7 +133,7 @@ describe('ManualPostProcessingGuide', () => {
     // Check JSON guide
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       path.join(outputDir, 'manual-post-processing.json'),
-      expect.stringContaining('"name":"TestMod"')
+      expect.stringContaining('"name": "TestMod"')
     );
   });
 

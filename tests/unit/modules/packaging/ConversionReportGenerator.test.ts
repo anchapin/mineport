@@ -190,14 +190,16 @@ describe('ConversionReportGenerator', () => {
       expect.stringContaining('<!DOCTYPE html>')
     );
 
-    // Check JSON report
-    expect(fs.writeFileSync).toHaveBeenCalledWith(
+    // Check JSON report (called second)
+    expect(fs.writeFileSync).toHaveBeenNthCalledWith(
+      2,
       path.join(outputDir, 'conversion-report.json'),
-      expect.stringContaining('"name":"TestMod"')
+      expect.stringContaining('"name": "TestMod"')
     );
 
-    // Check Markdown report
-    expect(fs.writeFileSync).toHaveBeenCalledWith(
+    // Check Markdown report (called third)
+    expect(fs.writeFileSync).toHaveBeenNthCalledWith(
+      3,
       path.join(outputDir, 'conversion-report.md'),
       expect.stringContaining('# Conversion Report: TestMod v1.0.0')
     );
@@ -207,9 +209,11 @@ describe('ConversionReportGenerator', () => {
     const outputDir = '/output';
     await reportGenerator.generateReport(mockInput, outputDir);
 
-    // Check that ManualPostProcessingGuide.generateGuide was called
-    const mockManualPostProcessingGuide = vi.mocked(ManualPostProcessingGuide).mock.instances[0];
-    expect(mockManualPostProcessingGuide.generateGuide).toHaveBeenCalledWith(
+    // Check that ManualPostProcessingGuide was instantiated and generateGuide was called
+    expect(ManualPostProcessingGuide).toHaveBeenCalled();
+    const mockConstructor = vi.mocked(ManualPostProcessingGuide);
+    const mockInstance = mockConstructor.mock.results[0].value;
+    expect(mockInstance.generateGuide).toHaveBeenCalledWith(
       {
         modName: mockInput.modName,
         modVersion: mockInput.modVersion,

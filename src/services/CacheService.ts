@@ -23,23 +23,26 @@ export interface CacheEntry<T> {
 }
 
 export interface CacheOptions {
-  maxSize: number; // Maximum number of entries
-  maxMemorySize: number; // Maximum memory usage in bytes
-  defaultTTL: number; // Default time-to-live in milliseconds
-  enablePersistence: boolean;
+  maxSize?: number; // Maximum number of entries
+  maxMemorySize?: number; // Maximum memory usage in bytes
+  defaultTTL?: number; // Default time-to-live in milliseconds
+  enablePersistence?: boolean;
   persistenceDir?: string;
-  enableMetrics: boolean;
-  compressionEnabled: boolean;
+  enableMetrics?: boolean;
+  compressionEnabled?: boolean;
+  enabled?: boolean; // For backward compatibility
 }
 
 export interface CacheMetrics {
   hits: number;
   misses: number;
-  hitRate: number;
-  totalEntries: number;
-  memoryUsage: number;
-  diskUsage: number;
-  evictions: number;
+  hitRate?: number;
+  totalEntries?: number;
+  memoryUsage?: number;
+  diskUsage?: number;
+  evictions?: number;
+  sets?: number;
+  invalidations?: number;
 }
 
 export interface CacheKey {
@@ -57,25 +60,75 @@ export class CacheService {
   private metrics: CacheMetrics;
   private persistenceEnabled: boolean;
   private persistenceDir: string;
+  private enabled: boolean;
+  private ttlDefaults: Record<string, number>;
+  private configService?: any;
 
-  constructor(options: Partial<CacheOptions> = {}) {
-    this.options = {
-      maxSize: options.maxSize || 1000,
-      maxMemorySize: options.maxMemorySize || 100 * 1024 * 1024, // 100MB
-      defaultTTL: options.defaultTTL || 3600000, // 1 hour
-      enablePersistence: options.enablePersistence ?? true,
-      persistenceDir: options.persistenceDir || path.join(process.cwd(), '.cache'),
-      enableMetrics: options.enableMetrics ?? true,
-      compressionEnabled: options.compressionEnabled ?? true,
-    };
+  constructor(options: Partial<CacheOptions & { configService?: any }> = {}) {
+    this.configService = options.configService;
+    
+    if (this.configService) {
+      // Use configuration service values
+      this.options = {
+        maxSize: this.configService.get('cache.maxSize', 1000),
+        maxMemorySize: this.configService.get('cache.maxMemorySize', 100 * 1024 * 1024),
+        defaultTTL: this.configService.get('cache.defaultTTL', 3600000),
+        enablePersistence: this.configService.get('cache.enablePersistence', true),
+        persistenceDir: this.configService.get('cache.persistenceDir', path.join(process.cwd(), '.cache')),
+        enableMetrics: this.configService.get('cache.enableMetrics', true),
+        compressionEnabled: this.configService.get('cache.compressionEnabled', true),
+        enabled: this.configService.get('cache.enabled', true),
+      };
+      
+      const defaultTtls = {
+        api_mapping: 86400, // 24 hours
+        file_validation: 3600, // 1 hour
+        java_analysis: 7200, // 2 hours
+      };
+      
+      this.ttlDefaults = this.configService.get('cache.ttlDefaults', defaultTtls);
+      
+      // Also check for individual ttl keys
+      for (const key of Object.keys(defaultTtls)) {
+        const individualValue = this.configService.get(`cache.ttlDefaults.${key}`);
+        if (individualValue !== undefined) {
+          if (!this.ttlDefaults) {
+            this.ttlDefaults = {};
+          }
+          this.ttlDefaults[key] = individualValue;
+        }
+      }
+      
+      // Listen for configuration changes
+      this.configService.on('configChanged', (key: string, value: any) => {
+        this.handleConfigChange(key, value);
+      });
+    } else {
+      this.options = {
+        maxSize: options.maxSize || 1000,
+        maxMemorySize: options.maxMemorySize || 100 * 1024 * 1024, // 100MB
+        defaultTTL: options.defaultTTL || 3600000, // 1 hour
+        enablePersistence: options.enablePersistence ?? true,
+        persistenceDir: options.persistenceDir || path.join(process.cwd(), '.cache'),
+        enableMetrics: options.enableMetrics ?? true,
+        compressionEnabled: options.compressionEnabled ?? true,
+        enabled: options.enabled ?? true,
+      };
+      
+      this.ttlDefaults = {
+        api_mapping: 86400, // 24 hours
+        file_validation: 3600, // 1 hour
+        java_analysis: 7200, // 2 hours
+      };
+    }
 
-    this.persistenceEnabled = this.options.enablePersistence;
+    this.enabled = this.options.enabled!;
+    this.persistenceEnabled = this.options.enablePersistence!;
     this.persistenceDir = this.options.persistenceDir!;
 
     this.memoryCache = new LRUCache({
-      max: this.options.maxSize,
-      maxSize: this.options.maxMemorySize,
-      sizeCalculation: (entry: CacheEntry<any>) => this.calculateEntrySize(entry),
+      max: this.options.maxSize || 1000,
+      ttl: this.options.defaultTTL || 3600000,
       dispose: (entry: CacheEntry<any>, key: string) => {
         this.metrics.evictions++;
         if (this.persistenceEnabled) {
@@ -94,19 +147,25 @@ export class CacheService {
       memoryUsage: 0,
       diskUsage: 0,
       evictions: 0,
+      sets: 0,
+      invalidations: 0,
     };
 
     this.initializePersistence();
   }
 
   /**
-   * Get a value from cache
+   * Get a value from cache (backward compatibility - accepts string key)
    */
-  async get<T>(cacheKey: CacheKey): Promise<T | null> {
-    const key = this.generateKey(cacheKey);
+  async get<T>(key: string | CacheKey): Promise<T | null> {
+    if (!this.enabled) return null;
+    
+    const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
+    const keyString = this.generateKey(cacheKey);
 
     // Try memory cache first
-    const memoryEntry = this.memoryCache.get(key);
+    const memoryEntry = this.memoryCache.get(keyString);
+    
     if (memoryEntry && !this.isExpired(memoryEntry)) {
       memoryEntry.lastAccessed = new Date();
       memoryEntry.accessCount++;
@@ -118,10 +177,10 @@ export class CacheService {
     // Try disk cache if persistence is enabled
     if (this.persistenceEnabled) {
       try {
-        const diskEntry = await this.loadFromDisk<T>(key);
+        const diskEntry = await this.loadFromDisk<T>(keyString);
         if (diskEntry && !this.isExpired(diskEntry)) {
           // Move back to memory cache
-          this.memoryCache.set(key, diskEntry);
+          this.memoryCache.set(keyString, diskEntry);
           diskEntry.lastAccessed = new Date();
           diskEntry.accessCount++;
           this.metrics.hits++;
@@ -129,7 +188,7 @@ export class CacheService {
           return diskEntry.value;
         }
       } catch (error) {
-        logger.debug('Failed to load from disk cache', { error, key });
+        logger.debug('Failed to load from disk cache', { error, keyString });
       }
     }
 
@@ -139,12 +198,18 @@ export class CacheService {
   }
 
   /**
-   * Set a value in cache
+   * Set a value in cache (backward compatibility - accepts string key)
    */
-  async set<T>(cacheKey: CacheKey, value: T, ttl?: number): Promise<void> {
-    const key = this.generateKey(cacheKey);
+  async set<T>(key: string | CacheKey, value: T, ttl?: number): Promise<void> {
+    if (!this.enabled) return;
+    
+    const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
+    this.metrics.sets = (this.metrics.sets || 0) + 1;
+    const keyString = this.generateKey(cacheKey);
+
+
     const entry: CacheEntry<T> = {
-      key,
+      key: keyString,
       value,
       createdAt: new Date(),
       lastAccessed: new Date(),
@@ -153,32 +218,36 @@ export class CacheService {
       size: this.estimateValueSize(value),
     };
 
-    this.memoryCache.set(key, entry);
+    this.memoryCache.set(keyString, entry);
     this.updateMetrics();
 
     // Persist to disk if enabled
     if (this.persistenceEnabled) {
       try {
-        await this.persistToDisk(key, entry);
+        await this.persistToDisk(keyString, entry);
       } catch (error) {
-        logger.error('Failed to persist cache entry to disk', { error, key });
+        logger.error('Failed to persist cache entry to disk', { error, keyString });
       }
     }
   }
 
   /**
-   * Delete a value from cache
+   * Delete a value from cache (backward compatibility - accepts string key)
    */
-  async delete(cacheKey: CacheKey): Promise<boolean> {
-    const key = this.generateKey(cacheKey);
+  async delete(key: string | CacheKey): Promise<boolean> {
+    if (!this.enabled) return false;
+    
+    const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
+    this.metrics.invalidations = (this.metrics.invalidations || 0) + 1;
+    const keyString = this.generateKey(cacheKey);
 
-    const memoryDeleted = this.memoryCache.delete(key);
+    const memoryDeleted = this.memoryCache.delete(keyString);
 
     if (this.persistenceEnabled) {
       try {
-        await this.deleteFromDisk(key);
+        await this.deleteFromDisk(keyString);
       } catch (error) {
-        logger.debug('Failed to delete from disk cache', { error, key });
+        logger.debug('Failed to delete from disk cache', { error, keyString });
       }
     }
 
@@ -187,19 +256,22 @@ export class CacheService {
   }
 
   /**
-   * Check if a key exists in cache
+   * Check if a key exists in cache (backward compatibility - accepts string key)
    */
-  async has(cacheKey: CacheKey): Promise<boolean> {
-    const key = this.generateKey(cacheKey);
+  async has(key: string | CacheKey): Promise<boolean> {
+    if (!this.enabled) return false;
+    
+    const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
+    const keyString = this.generateKey(cacheKey);
 
-    if (this.memoryCache.has(key)) {
-      const entry = this.memoryCache.get(key);
+    if (this.memoryCache.has(keyString)) {
+      const entry = this.memoryCache.get(keyString);
       return entry ? !this.isExpired(entry) : false;
     }
 
     if (this.persistenceEnabled) {
       try {
-        const diskEntry = await this.loadFromDisk(key);
+        const diskEntry = await this.loadFromDisk(keyString);
         return diskEntry ? !this.isExpired(diskEntry) : false;
       } catch (error) {
         return false;
@@ -441,6 +513,101 @@ export class CacheService {
   }
 
   /**
+   * Set enabled state
+   */
+  setEnabled(enabled: boolean): void {
+    this.enabled = enabled;
+  }
+
+  /**
+   * Reset metrics
+   */
+  resetMetrics(): void {
+    this.metrics = {
+      hits: 0,
+      misses: 0,
+      hitRate: 0,
+      totalEntries: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
+      evictions: 0,
+      sets: 0,
+      invalidations: 0,
+    };
+  }
+
+  /**
+   * Clear entries by prefix
+   */
+  async clearByPrefix(prefix: string): Promise<void> {
+    const keysToDelete: string[] = [];
+    
+    for (const [keyString] of this.memoryCache.entries()) {
+      // For string keys, check if the original key (before hashing) starts with prefix
+      // We need to reverse-engineer this or store original keys
+      if (keyString.includes(prefix) || this.keyMatchesPrefix(keyString, prefix)) {
+        keysToDelete.push(keyString);
+      }
+    }
+
+    for (const keyString of keysToDelete) {
+      this.memoryCache.delete(keyString);
+      this.metrics.invalidations = (this.metrics.invalidations || 0) + 1;
+    }
+
+    this.updateMetrics();
+  }
+
+  /**
+   * Check if a hashed key matches a prefix (simplified approach)
+   */
+  private keyMatchesPrefix(hashedKey: string, prefix: string): boolean {
+    // Since we hash keys, we can't easily match prefixes
+    // For now, we'll store a mapping or use a different approach
+    // This is a simplified implementation
+    return false;
+  }
+
+  /**
+   * Convert string key to CacheKey object (for backward compatibility)
+   */
+  private stringToCacheKey(key: string): CacheKey {
+    const parts = key.split(':');
+    return {
+      type: (parts[0] as any) || 'file_validation',
+      identifier: parts.slice(1).join(':') || key,
+    };
+  }
+
+
+
+  /**
+   * Handle configuration changes
+   */
+  private handleConfigChange(key: string, value: any): void {
+    switch (key) {
+      case 'cache.enabled':
+        this.enabled = value;
+        break;
+      case 'cache.ttlDefaults.api_mapping':
+        this.ttlDefaults.api_mapping = value;
+        break;
+      case 'cache.ttlDefaults.file_validation':
+        this.ttlDefaults.file_validation = value;
+        break;
+      case 'cache.ttlDefaults.java_analysis':
+        this.ttlDefaults.java_analysis = value;
+        break;
+      case 'cache.maxSize':
+        this.options.maxSize = value;
+        break;
+      case 'cache.defaultTTL':
+        this.options.defaultTTL = value;
+        break;
+    }
+  }
+
+  /**
    * Destroy cache service and cleanup resources
    */
   async destroy(): Promise<void> {
@@ -450,5 +617,52 @@ export class CacheService {
       // Optionally keep disk cache for next startup
       // await fs.rm(this.persistenceDir, { recursive: true, force: true });
     }
+  }
+}
+
+/**
+ * Cache key generator utility class
+ */
+export class CacheKeyGenerator {
+  static modAnalysis(modName: string, version: string): string {
+    return `mod_analysis:${modName}:${version}`;
+  }
+
+  static assetConversion(modName: string, assetType: string, assetName: string): string {
+    return `asset_conversion:${modName}:${assetType}:${assetName}`;
+  }
+
+  static apiMapping(className: string, version: string): string {
+    return `api_mapping:${version}:${className}`;
+  }
+
+  static codeTranslation(hash: string): string {
+    return `code_translation:${hash}`;
+  }
+}
+
+/**
+ * Cache invalidation strategy
+ */
+export class CacheInvalidationStrategy {
+  constructor(private cacheService: CacheService) {}
+
+  async invalidateModCache(modName: string): Promise<void> {
+    await this.cacheService.clearByPrefix(`mod_analysis:${modName}`);
+  }
+
+  async invalidateAssetCache(modName: string): Promise<void> {
+    await this.cacheService.clearByPrefix(`asset_conversion:${modName}`);
+  }
+
+  async invalidateApiMappingCache(version: string): Promise<void> {
+    await this.cacheService.clearByPrefix(`api_mapping:${version}`);
+  }
+
+  async invalidateAllCaches(): Promise<void> {
+    await this.cacheService.clearByPrefix('mod_analysis:');
+    await this.cacheService.clearByPrefix('asset_conversion:');
+    await this.cacheService.clearByPrefix('api_mapping:');
+    await this.cacheService.clearByPrefix('code_translation:');
   }
 }

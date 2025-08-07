@@ -468,8 +468,20 @@ export class ResourceAllocator {
   private maxCpu: number;
   private maxStorage: number;
   private strategy: ResourceAllocationStrategy;
+  private checkInterval: number;
+  private minWorkers: number;
+  private maxWorkers: number;
+  private configService?: any;
 
-  constructor(config?: string | { maxMemory: number; maxCpu: number; maxStorage: number; strategy?: ResourceAllocationStrategy }) {
+  constructor(config?: string | { 
+    maxMemory?: number; 
+    maxCpu?: number; 
+    maxStorage?: number; 
+    strategy?: ResourceAllocationStrategy;
+    workerPool?: any;
+    jobQueue?: any;
+    configService?: any;
+  }) {
     if (typeof config === 'string') {
       // Legacy constructor for temp directory
       this.tempFileManager = new TempFileManager(config);
@@ -477,18 +489,85 @@ export class ResourceAllocator {
       this.maxCpu = 4; // Default 4 cores
       this.maxStorage = 10240; // Default 10GB
       this.strategy = ResourceAllocationStrategy.BALANCED;
+      this.checkInterval = 60000;
+      this.minWorkers = 2;
+      this.maxWorkers = 10;
     } else if (config) {
       this.tempFileManager = new TempFileManager();
-      this.maxMemory = config.maxMemory;
-      this.maxCpu = config.maxCpu;
-      this.maxStorage = config.maxStorage;
-      this.strategy = config.strategy || ResourceAllocationStrategy.BALANCED;
+      this.configService = config.configService;
+      
+      if (this.configService) {
+        // Use configuration service values
+        this.maxMemory = this.configService.get('resources.maxMemory', 1024);
+        this.maxCpu = this.configService.get('resources.maxCpu', 4);
+        this.maxStorage = this.configService.get('resources.maxStorage', 10240);
+        this.checkInterval = this.configService.get('resources.checkInterval', 60000);
+        this.minWorkers = this.configService.get('resources.minWorkers', 2);
+        this.maxWorkers = this.configService.get('resources.maxWorkers', 10);
+        
+        const strategyName = this.configService.get('resources.strategy', 'balanced');
+        this.strategy = this.getStrategyFromName(strategyName);
+        
+        // Listen for configuration changes
+        this.configService.on('configChanged', (key: string, value: any) => {
+          this.handleConfigChange(key, value);
+        });
+      } else {
+        this.maxMemory = config.maxMemory || 1024;
+        this.maxCpu = config.maxCpu || 4;
+        this.maxStorage = config.maxStorage || 10240;
+        this.strategy = config.strategy || ResourceAllocationStrategy.BALANCED;
+        this.checkInterval = 60000;
+        this.minWorkers = 2;
+        this.maxWorkers = 10;
+      }
     } else {
       this.tempFileManager = new TempFileManager();
       this.maxMemory = 1024; // Default 1GB
       this.maxCpu = 4; // Default 4 cores
       this.maxStorage = 10240; // Default 10GB
       this.strategy = ResourceAllocationStrategy.BALANCED;
+      this.checkInterval = 60000;
+      this.minWorkers = 2;
+      this.maxWorkers = 10;
+    }
+  }
+
+  private getStrategyFromName(name: string): ResourceAllocationStrategy {
+    switch (name.toLowerCase()) {
+      case 'conservative':
+        return ResourceAllocationStrategy.CONSERVATIVE;
+      case 'aggressive':
+        return ResourceAllocationStrategy.AGGRESSIVE;
+      case 'balanced':
+      default:
+        return ResourceAllocationStrategy.BALANCED;
+    }
+  }
+
+  private handleConfigChange(key: string, value: any): void {
+    switch (key) {
+      case 'resources.checkInterval':
+        this.checkInterval = value;
+        break;
+      case 'resources.minWorkers':
+        this.minWorkers = value;
+        break;
+      case 'resources.maxWorkers':
+        this.maxWorkers = value;
+        break;
+      case 'resources.strategy':
+        this.strategy = this.getStrategyFromName(value);
+        break;
+      case 'resources.maxMemory':
+        this.maxMemory = value;
+        break;
+      case 'resources.maxCpu':
+        this.maxCpu = value;
+        break;
+      case 'resources.maxStorage':
+        this.maxStorage = value;
+        break;
     }
   }
 

@@ -37,7 +37,7 @@ export class AnalysisValidationStage implements ValidationStage {
     input: ValidationInput,
     config?: Record<string, any>
   ): Promise<ValidationStageResult> {
-    const startTime = Date.now();
+    const startTime = process.hrtime.bigint();
     const errors: ConversionError[] = [];
     const warnings: ConversionError[] = [];
 
@@ -61,7 +61,7 @@ export class AnalysisValidationStage implements ValidationStage {
           passed: true,
           errors,
           warnings,
-          executionTime: Date.now() - startTime,
+          executionTime: Number(process.hrtime.bigint() - startTime) / 1000000,
           metadata: { skipped: true, reason: 'No analysis results' },
         };
       }
@@ -84,7 +84,7 @@ export class AnalysisValidationStage implements ValidationStage {
       // Validate extraction completeness
       await this.validateExtractionCompleteness(input.analysisResults, errors, warnings, config);
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = Number(process.hrtime.bigint() - startTime) / 1000000; // Convert to milliseconds
       const passed = errors.length === 0;
 
       logger.debug('Analysis validation completed', {
@@ -112,7 +112,7 @@ export class AnalysisValidationStage implements ValidationStage {
         },
       };
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = Number(process.hrtime.bigint() - startTime) / 1000000;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       logger.error('Analysis validation failed', { error: errorMessage });
@@ -149,7 +149,7 @@ export class AnalysisValidationStage implements ValidationStage {
     errors: ConversionError[],
     warnings: ConversionError[]
   ): Promise<void> {
-    if (!analysisResults.modId) {
+    if (analysisResults.modId === undefined || analysisResults.modId === null) {
       errors.push(
         createConversionError({
           code: createErrorCode(MODULE_ID, 'MODID', 1),
@@ -599,10 +599,10 @@ export class AnalysisValidationStage implements ValidationStage {
     }
 
     // Check for consistency between mod ID and registry names
-    if (analysisResults.modId && analysisResults.registryNames) {
+    if (analysisResults.modId && analysisResults.registryNames && Array.isArray(analysisResults.registryNames)) {
       const modId = analysisResults.modId;
       const matchingNames = analysisResults.registryNames.filter(
-        (name: string) => name.startsWith(modId) || name.includes(modId)
+        (name: any) => typeof name === 'string' && (name.startsWith(modId) || name.includes(modId))
       );
 
       if (matchingNames.length === 0 && analysisResults.registryNames.length > 0) {

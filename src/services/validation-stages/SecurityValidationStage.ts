@@ -37,7 +37,7 @@ export class SecurityValidationStage implements ValidationStage {
     input: ValidationInput,
     config?: Record<string, any>
   ): Promise<ValidationStageResult> {
-    const startTime = Date.now();
+    const startTime = process.hrtime.bigint();
     const errors: ConversionError[] = [];
     const warnings: ConversionError[] = [];
 
@@ -69,7 +69,7 @@ export class SecurityValidationStage implements ValidationStage {
         await this.validateConversionResults(input.conversionResults, errors, warnings);
       }
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = Number(process.hrtime.bigint() - startTime) / 1000000;
       const passed = errors.length === 0;
 
       logger.debug('Security validation completed', {
@@ -96,7 +96,7 @@ export class SecurityValidationStage implements ValidationStage {
         },
       };
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = Number(process.hrtime.bigint() - startTime) / 1000000;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       logger.error('Security validation failed', { error: errorMessage });
@@ -203,6 +203,21 @@ export class SecurityValidationStage implements ValidationStage {
         description: 'Reflection usage detected',
       },
     ];
+
+    // Skip pattern detection for very large files to avoid memory issues
+    if (fileContent.length > 100 * 1024 * 1024) { // 100MB limit for pattern detection
+      warnings.push(
+        createConversionError({
+          code: createErrorCode(MODULE_ID, 'PATTERN', 999),
+          type: ErrorType.SECURITY,
+          severity: ErrorSeverity.WARNING,
+          message: 'File too large for malicious pattern detection',
+          moduleOrigin: MODULE_ID,
+          details: { fileSize: fileContent.length },
+        })
+      );
+      return;
+    }
 
     const content = fileContent.toString('utf-8');
 

@@ -118,7 +118,7 @@ export class MMIRParser {
       if (trimmedLine.length === 0) continue; // Skip empty lines
 
       // Enhanced tokenization to better handle Java constructs
-      const tokenRegex = /(\w+|[{}();,.\[\]<>=!&|+\-*/]|"[^"]*"|\/\/.*)/g;
+      const tokenRegex = /(\/\/.*|"[^"]*"|\w+|[{}();,.\[\]<>=!&|+\-*/])/g;
       let tokenMatch;
 
       while ((tokenMatch = tokenRegex.exec(line)) !== null) {

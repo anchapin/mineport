@@ -132,7 +132,7 @@ describe('SecurityValidationStage', () => {
     });
 
     it('should detect File.delete patterns as warnings', async () => {
-      const suspiciousContent = Buffer.from('file.delete()');
+      const suspiciousContent = Buffer.from('File.delete()');
       const input: ValidationInput = {
         filePath: 'suspicious.jar',
         fileContent: suspiciousContent,
@@ -151,7 +151,7 @@ describe('SecurityValidationStage', () => {
         Runtime.getRuntime().exec("malicious");
         new ProcessBuilder("bad").start();
         System.exit(0);
-        file.delete();
+        File.delete();
       `);
       const input: ValidationInput = {
         filePath: 'very-malicious.jar',

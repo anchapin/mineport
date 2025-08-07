@@ -9,8 +9,12 @@ import { LoggingConfig } from '../types/config.js';
  * Setup the logger with enhanced error handling
  */
 export function setupLogger() {
+  // Handle cases where config might not be available (e.g., in tests)
+  const logFile = config?.logging?.file || '/tmp/test.log';
+  const logLevel = config?.logging?.level || 'info';
+  
   // Ensure log directory exists
-  const logDir = path.dirname(config.logging.file);
+  const logDir = path.dirname(logFile);
   /**
    * if method.
    *
@@ -63,7 +67,7 @@ export function setupLogger() {
   });
 
   const logger = winston.createLogger({
-    level: config.logging.level,
+    level: logLevel,
     format: winston.format.combine(
       /**
        * errorFormat method.
@@ -82,11 +86,11 @@ export function setupLogger() {
     defaultMeta: { service: 'minecraft-mod-converter' },
     transports: [
       new winston.transports.File({
-        filename: config.logging.file,
+        filename: logFile,
         level: 'info',
       }),
       new winston.transports.File({
-        filename: path.join(path.dirname(config.logging.file), 'error.log'),
+        filename: path.join(path.dirname(logFile), 'error.log'),
         level: 'error',
       }),
       new winston.transports.Console({

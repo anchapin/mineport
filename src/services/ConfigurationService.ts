@@ -5,25 +5,38 @@ import {
   ConfigValidationWarning,
 } from '../types/config.js';
 import { logger } from '../utils/logger.js';
+import { EventEmitter } from 'events';
 
 /**
  * Configuration service for ModPorter-AI integration components
  * Handles environment-based configuration loading and validation
  */
-export class ConfigurationService {
+export interface ConfigurationServiceOptions {
+  watchForChanges?: boolean;
+}
+
+export class ConfigurationService extends EventEmitter {
   private config: ModPorterAIConfig;
   private static instance: ConfigurationService;
+  private options: ConfigurationServiceOptions;
+  private dynamicConfig: Map<string, any> = new Map();
 
-  private constructor() {
+  constructor(options: ConfigurationServiceOptions = {}) {
+    super();
+    this.options = options;
     this.config = this.loadConfiguration();
     this.validateConfiguration();
   }
 
-  public static getInstance(): ConfigurationService {
+  private static createSingleton() {
     if (!ConfigurationService.instance) {
       ConfigurationService.instance = new ConfigurationService();
     }
     return ConfigurationService.instance;
+  }
+
+  public static getInstance(): ConfigurationService {
+    return ConfigurationService.createSingleton();
   }
 
   /**
@@ -80,6 +93,162 @@ export class ConfigurationService {
    */
   public getLoggingConfig() {
     return JSON.parse(JSON.stringify(this.config.logging));
+  }
+
+  /**
+   * Set a configuration value dynamically
+   */
+  public set(key: string, value: any): void {
+    this.dynamicConfig.set(key, value);
+    this.emit('config:updated', { key, value });
+    this.emit('configChanged', key, value);
+  }
+
+  /**
+   * Get a configuration value (checks dynamic config first, then static config)
+   */
+  public get(key: string): any {
+    if (this.dynamicConfig.has(key)) {
+      return this.dynamicConfig.get(key);
+    }
+
+    // Navigate through nested config object
+    const keys = key.split('.');
+    let current: any = this.config;
+    
+    for (const k of keys) {
+      if (current && typeof current === 'object' && k in current) {
+        current = current[k];
+      } else {
+        return undefined;
+      }
+    }
+    
+    return current;
+  }
+
+  /**
+   * Export current configuration (including dynamic config)
+   */
+  public exportConfig(): Record<string, any> {
+    const exported = JSON.parse(JSON.stringify(this.config));
+    
+    // Apply dynamic config overrides
+    for (const [key, value] of this.dynamicConfig.entries()) {
+      this.setNestedValue(exported, key, value);
+    }
+    
+    return exported;
+  }
+
+  /**
+   * Import configuration from object
+   */
+  public async importConfig(config: Record<string, any>): Promise<void> {
+    // Clear dynamic config
+    this.dynamicConfig.clear();
+    
+    // Set all values from imported config
+    this.setConfigFromObject(config);
+  }
+
+  /**
+   * Set nested value in object using dot notation
+   */
+  private setNestedValue(obj: any, key: string, value: any): void {
+    const keys = key.split('.');
+    let current = obj;
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      const k = keys[i];
+      if (!(k in current) || typeof current[k] !== 'object') {
+        current[k] = {};
+      }
+      current = current[k];
+    }
+    
+    current[keys[keys.length - 1]] = value;
+  }
+
+  /**
+   * Set configuration from object recursively
+   */
+  private setConfigFromObject(obj: Record<string, any>, prefix: string = ''): void {
+    for (const [key, value] of Object.entries(obj)) {
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+      
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        this.setConfigFromObject(value, fullKey);
+      } else {
+        this.dynamicConfig.set(fullKey, value);
+      }
+    }
+  }
+
+  /**
+   * Export current configuration (including dynamic config)
+   */
+  public exportConfig(): Record<string, any> {
+    const exported = JSON.parse(JSON.stringify(this.config));
+    
+    // Apply dynamic config overrides
+    for (const [key, value] of this.dynamicConfig.entries()) {
+      this.setNestedValue(exported, key, value);
+    }
+    
+    return exported;
+  }
+
+  /**
+   * Import configuration from an object
+   */
+  public async importConfig(config: Record<string, any>): Promise<void> {
+    // Clear dynamic config
+    this.dynamicConfig.clear();
+    
+    // Set all values from imported config
+    this.setConfigFromObject(config);
+  }
+
+  /**
+   * Set nested value in object using dot notation
+   */
+  private setNestedValue(obj: any, key: string, value: any): void {
+    const keys = key.split('.');
+    let current = obj;
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      const k = keys[i];
+      if (!(k in current) || typeof current[k] !== 'object') {
+        current[k] = {};
+      }
+      current = current[k];
+    }
+    
+    current[keys[keys.length - 1]] = value;
+  }
+
+  /**
+   * Set configuration from object recursively
+   */
+  private setConfigFromObject(obj: Record<string, any>, prefix: string = ''): void {
+    for (const [key, value] of Object.entries(obj)) {
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+      
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        this.setConfigFromObject(value, fullKey);
+      } else {
+        this.dynamicConfig.set(fullKey, value);
+      }
+    }
+  }
+
+  /**
+   * Dispose of the configuration service
+   */
+  public dispose(): void {
+    this.dynamicConfig.clear();
+    // Additional cleanup if needed
   }
 
   /**

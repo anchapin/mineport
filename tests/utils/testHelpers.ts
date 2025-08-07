@@ -89,6 +89,13 @@ export function createMockFileSystem(files: Record<string, string>): void {
           }
           return Promise.reject(new Error(`ENOENT: no such file or directory, stat '${filePath}'`));
         }),
+        access: vi.fn((filePath: string) => {
+          const normalizedPath = filePath.replace(/\\/g, '/');
+          if (files[normalizedPath]) {
+            return Promise.resolve();
+          }
+          return Promise.reject(new Error(`ENOENT: no such file or directory, access '${filePath}'`));
+        }),
       },
       existsSync: vi.fn((filePath: string) => {
         const normalizedPath = filePath.replace(/\\/g, '/');

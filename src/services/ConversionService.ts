@@ -877,6 +877,9 @@ export class ConversionService extends EventEmitter implements IConversionServic
   private extractModId(filePath: string): string {
     // This is a simplified implementation
     // In a real system, we would extract the mod ID from the mod file
+    if (typeof filePath !== 'string') {
+      return 'unknown_mod';
+    }
     const fileName = filePath.split('/').pop() || '';
     const modId = fileName
       .split('.')[0]
@@ -894,6 +897,9 @@ export class ConversionService extends EventEmitter implements IConversionServic
   private extractModName(filePath: string): string {
     // This is a simplified implementation
     // In a real system, we would extract the mod name from the mod file
+    if (typeof filePath !== 'string') {
+      return 'Unknown Mod';
+    }
     const fileName = filePath.split('/').pop() || '';
     const modName = fileName.split('.')[0].replace(/_/g, ' ');
     return modName.charAt(0).toUpperCase() + modName.slice(1) || 'Unknown Mod';
@@ -908,6 +914,61 @@ export class ConversionService extends EventEmitter implements IConversionServic
   private async readFileBuffer(filePath: string): Promise<Buffer> {
     const fs = await import('fs/promises');
     return await fs.readFile(filePath);
+  }
+
+  /**
+   * Process a mod file directly (legacy method for backward compatibility)
+   *
+   * @param modFilePath Path to the mod file
+   * @param options Conversion options
+   * @returns Conversion result
+   * @deprecated Use createConversionJob instead
+   */
+  public async processModFile(
+    modFilePath: string,
+    options: ConversionOptions = {}
+  ): Promise<ConversionResult> {
+    logger.warn('processModFile is deprecated, use createConversionJob instead');
+
+    // Create a temporary output path if not provided
+    const outputPath = options.outputPath || `/tmp/conversion-${Date.now()}`;
+
+    // Create conversion input
+    const input: ConversionInput = {
+      modFile: modFilePath,
+      outputPath,
+      options,
+    };
+
+    // Create and wait for conversion job
+    const job = await this.createConversionJob(input);
+
+    // Wait for job completion
+    return new Promise((resolve, reject) => {
+      const checkStatus = () => {
+        const status = this.getJobStatus(job.id);
+        if (!status) {
+          reject(new Error('Job not found'));
+          return;
+        }
+
+        if (status.status === 'completed') {
+          const result = this.getJobResult(job.id);
+          if (result) {
+            resolve(result);
+          } else {
+            reject(new Error('Job completed but no result available'));
+          }
+        } else if (status.status === 'failed') {
+          reject(new Error('Conversion job failed'));
+        } else {
+          // Still processing, check again
+          setTimeout(checkStatus, 1000);
+        }
+      };
+
+      checkStatus();
+    });
   }
 
   /**

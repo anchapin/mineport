@@ -10,13 +10,37 @@ import {
   LLMTranslationResult,
 } from '../../../../src/types/logic-translation.js';
 
-vi.mock('../../../../src/utils/logger.js', () => ({
-  logger: {
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('../../../../src/utils/logger.js', async () => {
+  const actual = await vi.importActual('../../../../src/utils/logger.js');
+  return {
+    ...actual,
+    default: {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    },
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    })),
+    logger: {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      logStructuredEvent: vi.fn(),
+      logSecurityEvent: vi.fn(),
+      logPerformanceEvent: vi.fn(),
+      logBusinessEvent: vi.fn(),
+      logSystemEvent: vi.fn(),
+    },
+  };
+});
 
 describe('LLMTranslator', () => {
   let translator: LLMTranslator;

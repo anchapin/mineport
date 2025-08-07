@@ -37,7 +37,7 @@ export class ConversionValidationStage implements ValidationStage {
     input: ValidationInput,
     config?: Record<string, any>
   ): Promise<ValidationStageResult> {
-    const startTime = Date.now();
+    const startTime = process.hrtime.bigint();
     const errors: ConversionError[] = [];
     const warnings: ConversionError[] = [];
 
@@ -61,7 +61,7 @@ export class ConversionValidationStage implements ValidationStage {
           passed: true,
           errors,
           warnings,
-          executionTime: Date.now() - startTime,
+          executionTime: Number(process.hrtime.bigint() - startTime) / 1000000,
           metadata: { skipped: true, reason: 'No conversion results' },
         };
       }
@@ -87,7 +87,7 @@ export class ConversionValidationStage implements ValidationStage {
       // Validate output file integrity
       await this.validateOutputFileIntegrity(input.conversionResults, errors, warnings);
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = Number(process.hrtime.bigint() - startTime) / 1000000;
       const passed = errors.length === 0;
 
       logger.debug('Conversion validation completed', {
@@ -116,7 +116,7 @@ export class ConversionValidationStage implements ValidationStage {
         },
       };
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = Number(process.hrtime.bigint() - startTime) / 1000000;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       logger.error('Conversion validation failed', { error: errorMessage });

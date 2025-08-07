@@ -2,20 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConfigurationService } from '../../../src/services/ConfigurationService.js';
 import { JobQueue } from '../../../src/services/JobQueue.js';
 import { WorkerPool } from '../../../src/services/WorkerPool.js';
-import { ResourceAllocator } from '../../../src/services/ResourceAllocator.js';
+import { ResourceAllocator, ResourceAllocationStrategy } from '../../../src/services/ResourceAllocator.js';
 import { CacheService } from '../../../src/services/CacheService.js';
 import { UpdateService } from '../../../src/services/UpdateService.js';
 import { ConversionService } from '../../../src/services/ConversionService.js';
 
-// Mock logger
-vi.mock('../../../src/utils/logger', () => ({
-  createLogger: () => ({
-    info: vi.fn(),
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  }),
-}));
+// Logger and config are now mocked globally in tests/setup.ts
 
 // Mock default config
 vi.mock('../../../config/default', () => ({
@@ -130,7 +122,7 @@ describe('Configuration Integration', () => {
     expect(resourceAllocator['checkInterval']).toBe(60000);
     expect(resourceAllocator['minWorkers']).toBe(2);
     expect(resourceAllocator['maxWorkers']).toBe(15);
-    expect(resourceAllocator['strategy'].name).toBe('conservative');
+    expect(resourceAllocator['strategy']).toBe(ResourceAllocationStrategy.CONSERVATIVE);
 
     // Update configuration and check if ResourceAllocator updates
     configService.set('resources.checkInterval', 90000);

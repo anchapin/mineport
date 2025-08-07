@@ -73,18 +73,31 @@ export class UpdateService extends EventEmitter {
      */
     if (this.configService) {
       // Get default versions from configuration
-      this.apiMappingVersions = this.configService.get('updates.apiMappingVersions', {
+      const defaultVersions = {
         minecraft_java: '1.19.0',
         minecraft_bedrock: '1.19.50',
         forge: '43.1.1',
         fabric: '0.14.9',
-      });
+      };
+      
+      this.apiMappingVersions = this.configService.get('updates.apiMappingVersions', defaultVersions);
+      
+      // Also check for individual version keys
+      for (const key of Object.keys(defaultVersions)) {
+        const individualValue = this.configService.get(`updates.apiMappingVersions.${key}`);
+        if (individualValue !== undefined) {
+          if (!this.apiMappingVersions) {
+            this.apiMappingVersions = {};
+          }
+          this.apiMappingVersions[key] = individualValue;
+        }
+      }
 
       // Get default check interval from configuration
       this.defaultCheckInterval = this.configService.get('updates.checkInterval', 3600000);
 
       // Listen for configuration changes
-      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
+      this.configService.on('configChanged', this.handleConfigUpdate.bind(this));
 
       logger.info('UpdateService initialized with ConfigurationService', {
         apiMappingVersions: this.apiMappingVersions,
@@ -106,21 +119,21 @@ export class UpdateService extends EventEmitter {
   /**
    * Handle configuration updates
    */
-  private handleConfigUpdate(update: { key: string; value: any }): void {
-    if (update.key === 'updates.apiMappingVersions') {
-      this.apiMappingVersions = { ...this.apiMappingVersions, ...update.value };
+  private handleConfigUpdate(key: string, value: any): void {
+    if (key === 'updates.apiMappingVersions') {
+      this.apiMappingVersions = { ...this.apiMappingVersions, ...value };
       logger.info('Updated API mapping versions from configuration', {
         apiMappingVersions: this.apiMappingVersions,
       });
-    } else if (update.key.startsWith('updates.apiMappingVersions.')) {
-      const versionKey = update.key.replace('updates.apiMappingVersions.', '');
-      this.apiMappingVersions[versionKey] = update.value;
+    } else if (key.startsWith('updates.apiMappingVersions.')) {
+      const versionKey = key.replace('updates.apiMappingVersions.', '');
+      this.apiMappingVersions[versionKey] = value;
       logger.info(`Updated API mapping version for ${versionKey} from configuration`, {
         key: versionKey,
-        value: update.value,
+        value: value,
       });
-    } else if (update.key === 'updates.checkInterval') {
-      this.defaultCheckInterval = update.value;
+    } else if (key === 'updates.checkInterval') {
+      this.defaultCheckInterval = value;
       logger.info('Updated default check interval from configuration', {
         defaultCheckInterval: this.defaultCheckInterval,
       });
