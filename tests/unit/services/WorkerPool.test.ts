@@ -63,7 +63,7 @@ describe('WorkerPool Unit Tests', () => {
       expect(customPool).toBeDefined();
 
       // Give the pool time to initialize workers
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // We can test the stats to verify configuration
       const stats = customPool.getStats();
@@ -158,7 +158,7 @@ describe('WorkerPool Unit Tests', () => {
     it('should handle async errors in tasks', async () => {
       const asyncErrorTask: WorkerTask<void, never> = {
         execute: async () => {
-          await new Promise(resolve => setTimeout(resolve, 10));
+          await new Promise((resolve) => setTimeout(resolve, 10));
           throw new Error('Asynchronous error');
         },
         input: undefined,

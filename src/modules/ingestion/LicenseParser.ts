@@ -23,7 +23,7 @@ export enum LicenseType {
   MPL_2 = 'MPL-2.0',
   UNKNOWN = 'Unknown',
   NONE = 'None',
-  AGPL_3 = 'AGPL-3.0'
+  AGPL_3 = 'AGPL-3.0',
 }
 
 /**
@@ -127,8 +127,8 @@ export class LicenseParser {
       identifier: 'GPL-3.0',
       patterns: [
         /GNU GENERAL PUBLIC LICENSE[\s\S]*Version 3/i,
-        /GNU General Public License v3\.0/i, 
-        /www\.gnu\.org\/licenses\/gpl-3\.0/i
+        /GNU General Public License v3\.0/i,
+        /www\.gnu\.org\/licenses\/gpl-3\.0/i,
       ],
       permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
       limitations: ['Liability', 'Warranty'],
@@ -143,8 +143,8 @@ export class LicenseParser {
       identifier: 'GPL-2.0',
       patterns: [
         /GNU GENERAL PUBLIC LICENSE[\s\S]*Version 2/i,
-        /GNU General Public License v2\.0/i, 
-        /www\.gnu\.org\/licenses\/gpl-2\.0/i
+        /GNU General Public License v2\.0/i,
+        /www\.gnu\.org\/licenses\/gpl-2\.0/i,
       ],
       permissions: ['Commercial use', 'Modification', 'Distribution', 'Private use'],
       limitations: ['Liability', 'Warranty'],
@@ -159,8 +159,8 @@ export class LicenseParser {
       identifier: 'LGPL-3.0',
       patterns: [
         /GNU LESSER GENERAL PUBLIC LICENSE[\s\S]*Version 3/i,
-        /GNU Lesser General Public License v3\.0/i, 
-        /www\.gnu\.org\/licenses\/lgpl-3\.0/i
+        /GNU Lesser General Public License v3\.0/i,
+        /www\.gnu\.org\/licenses\/lgpl-3\.0/i,
       ],
       permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
       limitations: ['Liability', 'Warranty'],
@@ -222,7 +222,7 @@ export class LicenseParser {
           limitations: [],
           conditions: [],
           compatible: false,
-          error: 'No license file found'
+          error: 'No license file found',
         };
       }
 
@@ -233,7 +233,12 @@ export class LicenseParser {
       let licenseInfo: LicenseInfo;
 
       // Check if this is a descriptor file or a regular license file
-      if (fileName === 'mods.toml' || fileName === 'fabric.mod.json' || fileName === 'mcmod.info' || fileName === 'package.json') {
+      if (
+        fileName === 'mods.toml' ||
+        fileName === 'fabric.mod.json' ||
+        fileName === 'mcmod.info' ||
+        fileName === 'package.json'
+      ) {
         // This is a descriptor file, extract license info from it
         const extractedLicenseInfo = await this.extractLicenseFromDescriptor(licenseFilePath);
         if (!extractedLicenseInfo) {
@@ -244,7 +249,7 @@ export class LicenseParser {
             limitations: [],
             conditions: [],
             compatible: false,
-            error: 'Failed to extract license information from descriptor file'
+            error: 'Failed to extract license information from descriptor file',
           };
         }
         licenseInfo = extractedLicenseInfo;
@@ -270,7 +275,7 @@ export class LicenseParser {
         limitations: [],
         conditions: [],
         compatible: false,
-        error: `License parsing error: ${(error as Error).message}`
+        error: `License parsing error: ${(error as Error).message}`,
       };
     }
   }
@@ -618,7 +623,7 @@ export class LicenseParser {
       modification: permissions.includes('Modification'),
       distribution: permissions.includes('Distribution'),
       privateUse: permissions.includes('Private use'),
-      patentGrant: permissions.includes('Patent use') || licenseType === LicenseType.APACHE_2
+      patentGrant: permissions.includes('Patent use') || licenseType === LicenseType.APACHE_2,
     };
 
     return {
@@ -631,7 +636,7 @@ export class LicenseParser {
       conditions,
       restrictions,
       compatible: true, // Default to compatible, will be checked separately
-      terms
+      terms,
     };
   }
 
@@ -659,7 +664,12 @@ export class LicenseParser {
     incompatibilityReason?: string;
   } {
     // Licenses that are generally compatible with conversion
-    const compatibleLicenses = [LicenseType.MIT, LicenseType.APACHE_2, LicenseType.BSD_3_CLAUSE, LicenseType.MPL_2];
+    const compatibleLicenses = [
+      LicenseType.MIT,
+      LicenseType.APACHE_2,
+      LicenseType.BSD_3_CLAUSE,
+      LicenseType.MPL_2,
+    ];
 
     // Licenses that may require special handling but are still compatible
     const conditionalLicenses = [LicenseType.LGPL_3];
@@ -713,8 +723,7 @@ export class LicenseParser {
     if (licenseInfo.type === LicenseType.NONE) {
       return {
         compatible: false,
-        incompatibilityReason:
-          'No license found. Cannot determine compatibility for conversion.',
+        incompatibilityReason: 'No license found. Cannot determine compatibility for conversion.',
       };
     }
 
@@ -736,7 +745,7 @@ export class LicenseParser {
       LicenseType.APACHE_2,
       LicenseType.BSD_3_CLAUSE,
       LicenseType.MPL_2,
-      LicenseType.LGPL_3
+      LicenseType.LGPL_3,
     ];
 
     return compatibleLicenses.includes(licenseType);
@@ -750,17 +759,17 @@ export class LicenseParser {
    */
   generateAttribution(licenseInfo: LicenseInfo, modName: string): string {
     const parts = [modName];
-    
+
     if (licenseInfo.author) {
       parts.push(`by ${licenseInfo.author}`);
     }
-    
+
     if (licenseInfo.year) {
       parts.push(`(${licenseInfo.year})`);
     }
-    
+
     parts.push(`is licensed under ${licenseInfo.type}`);
-    
+
     return parts.join(' ');
   }
 
@@ -950,7 +959,7 @@ to accommodate the differences between Java and Bedrock platforms.
 
     // Map common license identifiers to enum values
     const licenseMap: Record<string, LicenseType> = {
-      'mit': LicenseType.MIT,
+      mit: LicenseType.MIT,
       'apache-2.0': LicenseType.APACHE_2,
       'apache 2.0': LicenseType.APACHE_2,
       'gpl-3.0': LicenseType.GPL_3,
@@ -958,7 +967,7 @@ to accommodate the differences between Java and Bedrock platforms.
       'lgpl-3.0': LicenseType.LGPL_3,
       'bsd-3-clause': LicenseType.BSD_3_CLAUSE,
       'mpl-2.0': LicenseType.MPL_2,
-      'agpl-3.0': LicenseType.AGPL_3
+      'agpl-3.0': LicenseType.AGPL_3,
     };
 
     const normalizedIdentifier = cleanIdentifier.toLowerCase();
@@ -968,7 +977,10 @@ to accommodate the differences between Java and Bedrock platforms.
     if (licenseType) {
       // Find the corresponding license in KNOWN_LICENSES
       for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
-        if (license.identifier === cleanIdentifier || license.identifier.toLowerCase() === normalizedIdentifier) {
+        if (
+          license.identifier === cleanIdentifier ||
+          license.identifier.toLowerCase() === normalizedIdentifier
+        ) {
           // Add restrictions based on license type
           let restrictions: string[] = [];
           if (licenseType === LicenseType.APACHE_2) {
@@ -978,7 +990,7 @@ to accommodate the differences between Java and Bedrock platforms.
           } else if (licenseType === LicenseType.LGPL_3) {
             restrictions = ['library-copyleft'];
           }
-          
+
           return {
             type: licenseType,
             text: `This project is licensed under the ${license.identifier} license.`,
@@ -990,7 +1002,7 @@ to accommodate the differences between Java and Bedrock platforms.
           };
         }
       }
-      
+
       // If not found in KNOWN_LICENSES but we have a mapping, create a basic response
       let restrictions: string[] = [];
       if (licenseType === LicenseType.APACHE_2) {
@@ -1000,7 +1012,7 @@ to accommodate the differences between Java and Bedrock platforms.
       } else if (licenseType === LicenseType.LGPL_3) {
         restrictions = ['library-copyleft'];
       }
-      
+
       return {
         type: licenseType,
         text: `This project is licensed under the ${cleanIdentifier} license.`,
@@ -1021,15 +1033,29 @@ to accommodate the differences between Java and Bedrock platforms.
         // Map the identifier to the enum
         let mappedType = LicenseType.UNKNOWN;
         switch (license.identifier) {
-          case 'MIT': mappedType = LicenseType.MIT; break;
-          case 'Apache-2.0': mappedType = LicenseType.APACHE_2; break;
-          case 'GPL-3.0': mappedType = LicenseType.GPL_3; break;
-          case 'GPL-2.0': mappedType = LicenseType.GPL_2; break;
-          case 'LGPL-3.0': mappedType = LicenseType.LGPL_3; break;
-          case 'BSD-3-Clause': mappedType = LicenseType.BSD_3_CLAUSE; break;
-          case 'MPL-2.0': mappedType = LicenseType.MPL_2; break;
+          case 'MIT':
+            mappedType = LicenseType.MIT;
+            break;
+          case 'Apache-2.0':
+            mappedType = LicenseType.APACHE_2;
+            break;
+          case 'GPL-3.0':
+            mappedType = LicenseType.GPL_3;
+            break;
+          case 'GPL-2.0':
+            mappedType = LicenseType.GPL_2;
+            break;
+          case 'LGPL-3.0':
+            mappedType = LicenseType.LGPL_3;
+            break;
+          case 'BSD-3-Clause':
+            mappedType = LicenseType.BSD_3_CLAUSE;
+            break;
+          case 'MPL-2.0':
+            mappedType = LicenseType.MPL_2;
+            break;
         }
-        
+
         return {
           type: mappedType,
           text: `This project is licensed under the ${license.identifier} license.`,

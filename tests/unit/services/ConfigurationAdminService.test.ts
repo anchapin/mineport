@@ -192,7 +192,9 @@ describe('ConfigurationAdminService', () => {
     expect(differences['server.port'].after).toBe(4000);
 
     // Check if database.uri difference exists (it might be nested)
-    const dbUriKey = Object.keys(differences).find(key => key.includes('database') && key.includes('uri'));
+    const dbUriKey = Object.keys(differences).find(
+      (key) => key.includes('database') && key.includes('uri')
+    );
     if (dbUriKey) {
       expect(differences[dbUriKey]).toBeDefined();
       expect(differences[dbUriKey].after).toBe('mongodb://example.com/db');
@@ -214,17 +216,17 @@ describe('ConfigurationAdminService', () => {
 
     // Create three versions with small delays to ensure different timestamps
     const version1 = await adminService.createVersion('Version 1');
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     const version2 = await adminService.createVersion('Version 2');
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     const version3 = await adminService.createVersion('Version 3');
 
     // Check if oldest version was pruned
     const versions = adminService.getVersions();
     expect(versions).toHaveLength(2);
-    
+
     // Check that the two newest versions remain (order may vary)
-    const versionIds = versions.map(v => v.id);
+    const versionIds = versions.map((v) => v.id);
     expect(versionIds).toContain(version2.id);
     expect(versionIds).toContain(version3.id);
     expect(adminService.getVersion(version1.id)).toBeUndefined();

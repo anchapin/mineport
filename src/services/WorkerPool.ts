@@ -72,10 +72,11 @@ export class WorkerPool extends EventEmitter {
     super();
 
     this.configService = options.configService;
-    
+
     // Get initial values from config service or use defaults
-    const initialMaxWorkers = this.configService?.get('workers.maxWorkers') || options.maxWorkers || os.cpus().length;
-    
+    const initialMaxWorkers =
+      this.configService?.get('workers.maxWorkers') || options.maxWorkers || os.cpus().length;
+
     this.options = {
       maxWorkers: initialMaxWorkers,
       minWorkers: options.minWorkers || Math.max(1, Math.floor(os.cpus().length / 2)),
@@ -141,9 +142,14 @@ export class WorkerPool extends EventEmitter {
   /**
    * Run a task (backward compatibility method for tests)
    */
-  async runTask<T, R>(task: { execute: (input: T) => Promise<R>; input: T; priority?: number; id?: string }): Promise<R> {
+  async runTask<T, R>(task: {
+    execute: (input: T) => Promise<R>;
+    input: T;
+    priority?: number;
+    id?: string;
+  }): Promise<R> {
     const taskId = task.id || this.generateTaskId();
-    
+
     // Check if task was cancelled before starting
     if (this.cancelledTasks.has(taskId)) {
       this.cancelledTasks.delete(taskId);
@@ -155,20 +161,20 @@ export class WorkerPool extends EventEmitter {
       this.metrics.totalTasks++;
       this.runningTasks.add(taskId);
       this.updateMetrics();
-      
+
       const result = await task.execute(task.input);
-      
+
       // Check if task was cancelled during execution
       if (this.cancelledTasks.has(taskId)) {
         this.cancelledTasks.delete(taskId);
         this.runningTasks.delete(taskId);
         throw new Error('Task cancelled');
       }
-      
+
       this.metrics.completedTasks++;
       this.runningTasks.delete(taskId);
       this.updateMetrics();
-      
+
       return result;
     } catch (error) {
       // Check if task was cancelled during execution
@@ -177,11 +183,11 @@ export class WorkerPool extends EventEmitter {
         this.runningTasks.delete(taskId);
         throw new Error('Task cancelled');
       }
-      
+
       this.metrics.failedTasks++;
       this.runningTasks.delete(taskId);
       this.updateMetrics();
-      
+
       throw error;
     }
   }
@@ -196,10 +202,9 @@ export class WorkerPool extends EventEmitter {
     const totalWorkers = this.options.maxWorkers;
     const idleWorkers = totalWorkers - busyWorkers;
     const pendingTasks = Math.max(0, this.taskQueue.length);
-    
 
     const metrics = this.getMetrics();
-    
+
     return {
       totalWorkers,
       busyWorkers,
@@ -211,7 +216,7 @@ export class WorkerPool extends EventEmitter {
       activeWorkers: metrics.activeWorkers,
       queuedTasks: metrics.queuedTasks,
       averageTaskTime: metrics.averageTaskTime,
-      throughput: metrics.throughput
+      throughput: metrics.throughput,
     };
   }
 
@@ -221,9 +226,9 @@ export class WorkerPool extends EventEmitter {
   cancelTask(taskId: string): boolean {
     // Mark task as cancelled
     this.cancelledTasks.add(taskId);
-    
+
     // Find and remove task from queue
-    const taskIndex = this.taskQueue.findIndex(task => task.id === taskId);
+    const taskIndex = this.taskQueue.findIndex((task) => task.id === taskId);
     if (taskIndex !== -1) {
       const task = this.taskQueue.splice(taskIndex, 1)[0];
       task.reject(new Error('Task cancelled'));

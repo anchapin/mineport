@@ -9,7 +9,7 @@ export enum UpdateType {
   API_MAPPINGS = 'api_mappings',
   BLOCK_MAPPINGS = 'block_mappings',
   ITEM_MAPPINGS = 'item_mappings',
-  ENTITY_MAPPINGS = 'entity_mappings'
+  ENTITY_MAPPINGS = 'entity_mappings',
 }
 
 /**
@@ -79,9 +79,12 @@ export class UpdateService extends EventEmitter {
         forge: '43.1.1',
         fabric: '0.14.9',
       };
-      
-      this.apiMappingVersions = this.configService.get('updates.apiMappingVersions', defaultVersions);
-      
+
+      this.apiMappingVersions = this.configService.get(
+        'updates.apiMappingVersions',
+        defaultVersions
+      );
+
       // Also check for individual version keys
       for (const key of Object.keys(defaultVersions)) {
         const individualValue = this.configService.get(`updates.apiMappingVersions.${key}`);

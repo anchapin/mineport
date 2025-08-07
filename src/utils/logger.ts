@@ -12,7 +12,7 @@ export function setupLogger() {
   // Handle cases where config might not be available (e.g., in tests)
   const logFile = config?.logging?.file || '/tmp/test.log';
   const logLevel = config?.logging?.level || 'info';
-  
+
   // Ensure log directory exists
   const logDir = path.dirname(logFile);
   /**

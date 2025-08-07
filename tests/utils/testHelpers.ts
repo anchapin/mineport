@@ -1,6 +1,5 @@
 import { vi } from 'vitest';
-import fs from 'fs';
-import path from 'path';
+// Removed unused imports
 
 /**
  * Creates a mock file buffer for testing
@@ -75,7 +74,7 @@ export function createMockFileSystem(files: Record<string, string>): void {
           files[normalizedPath] = content;
           return Promise.resolve();
         }),
-        mkdir: vi.fn((dirPath: string, options: any) => {
+        mkdir: vi.fn((_dirPath: string, _options: any) => {
           return Promise.resolve();
         }),
         stat: vi.fn((filePath: string) => {
@@ -94,7 +93,9 @@ export function createMockFileSystem(files: Record<string, string>): void {
           if (files[normalizedPath]) {
             return Promise.resolve();
           }
-          return Promise.reject(new Error(`ENOENT: no such file or directory, access '${filePath}'`));
+          return Promise.reject(
+            new Error(`ENOENT: no such file or directory, access '${filePath}'`)
+          );
         }),
       },
       existsSync: vi.fn((filePath: string) => {
@@ -112,7 +113,7 @@ export function createMockFileSystem(files: Record<string, string>): void {
         const normalizedPath = filePath.replace(/\\/g, '/');
         files[normalizedPath] = content;
       }),
-      mkdirSync: vi.fn((dirPath: string, options: any) => {
+      mkdirSync: vi.fn((_dirPath: string, _options: any) => {
         return;
       }),
     };
@@ -126,14 +127,14 @@ export function mockUnzipper(fileStructure: Record<string, string>): void {
   vi.mock('unzipper', () => {
     return {
       Open: {
-        buffer: vi.fn(async (buffer: Buffer) => {
+        buffer: vi.fn(async (_buffer: Buffer) => {
           return {
             files: Object.keys(fileStructure).map((filePath) => ({
               path: filePath,
               type: 'File',
               buffer: async () => Buffer.from(fileStructure[filePath]),
             })),
-            extract: vi.fn(async (options: any) => {
+            extract: vi.fn(async (_options: any) => {
               // Mock extraction logic
               return Promise.resolve();
             }),
@@ -200,7 +201,7 @@ export function mockLLMClient(responses: Record<string, any>): void {
     return {
       LLMClient: vi.fn().mockImplementation(() => {
         return {
-          translate: vi.fn((input: string, context: any) => {
+          translate: vi.fn((input: string, _context: any) => {
             const key = input.substring(0, 50); // Use first 50 chars as key
             if (responses[key]) {
               return Promise.resolve(responses[key]);

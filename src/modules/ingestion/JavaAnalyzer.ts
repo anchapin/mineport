@@ -155,16 +155,17 @@ export class JavaAnalyzer {
       return result;
     } catch (error) {
       logger.error('Error analyzing JAR file', { error, jarPath });
-      
+
       // Check if it's a corrupted/invalid ZIP file
       const errorMessage = (error as Error).message;
-      const isCorrupted = errorMessage.includes('Invalid or unsupported zip format') || 
-                         errorMessage.includes('END header') ||
-                         errorMessage.includes('corrupted');
-      
+      const isCorrupted =
+        errorMessage.includes('Invalid or unsupported zip format') ||
+        errorMessage.includes('END header') ||
+        errorMessage.includes('corrupted');
+
       analysisNotes.push({
         type: 'error',
-        message: isCorrupted 
+        message: isCorrupted
           ? `Analysis failed: JAR file appears to be corrupted - ${errorMessage}`
           : `Analysis failed: ${errorMessage}`,
         suggestion: 'Verify the JAR file is valid and accessible',
@@ -226,7 +227,8 @@ export class JavaAnalyzer {
       if (registryNames.size === 0) {
         notes.push({
           type: 'warning',
-          message: 'No registry names found - No mod content detected in the JAR file. This may indicate the file does not contain mod content or uses an unsupported format.',
+          message:
+            'No registry names found - No mod content detected in the JAR file. This may indicate the file does not contain mod content or uses an unsupported format.',
         });
       }
 
@@ -261,25 +263,34 @@ export class JavaAnalyzer {
             if (entry.entryName.endsWith('.java')) {
               // Parse Java source files for registry calls
               const content = entry.getData().toString('utf8');
-              
+
               // Look for Registry.register calls with Identifier
-              const registryMatches = content.match(/Registry\.register\s*\(\s*[^,]+,\s*new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/g);
+              const registryMatches = content.match(
+                /Registry\.register\s*\(\s*[^,]+,\s*new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/g
+              );
               if (registryMatches) {
                 for (const match of registryMatches) {
-                  const identifierMatch = match.match(/new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/);
+                  const identifierMatch = match.match(
+                    /new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/
+                  );
                   if (identifierMatch) {
                     const [, modId, registryName] = identifierMatch;
                     registryNames.push(registryName);
                   }
                 }
               }
-              
+
               // Also look for simple string patterns that might be registry names
-              const stringMatches = content.match(/"([a-z_][a-z0-9_]*(?:_(?:block|item|entity))?)"/g);
+              const stringMatches = content.match(
+                /"([a-z_][a-z0-9_]*(?:_(?:block|item|entity))?)"/g
+              );
               if (stringMatches) {
                 for (const match of stringMatches) {
                   const name = match.slice(1, -1); // Remove quotes
-                  if (name.includes('_') && (name.includes('block') || name.includes('item') || name.includes('entity'))) {
+                  if (
+                    name.includes('_') &&
+                    (name.includes('block') || name.includes('item') || name.includes('entity'))
+                  ) {
                     registryNames.push(name);
                   }
                 }
@@ -515,13 +526,13 @@ export class JavaAnalyzer {
         if (entry.entryName.includes('textures/') && entry.entryName.endsWith('.png')) {
           texturePaths.push(entry.entryName);
         }
-        
+
         // Look for texture references in JSON files
         if (entry.entryName.endsWith('.json')) {
           try {
             const content = entry.getData().toString('utf8');
             const jsonData = JSON.parse(content);
-            
+
             // Extract texture references from JSON
             this.extractTextureReferencesFromJson(jsonData, textureReferences);
           } catch (error) {
@@ -555,7 +566,10 @@ export class JavaAnalyzer {
   private extractTextureReferencesFromJson(obj: any, textureReferences: Set<string>): void {
     if (typeof obj === 'string') {
       // Look for texture reference patterns like "modid:path/to/texture"
-      if (obj.includes(':') && (obj.includes('block/') || obj.includes('item/') || obj.includes('entity/'))) {
+      if (
+        obj.includes(':') &&
+        (obj.includes('block/') || obj.includes('item/') || obj.includes('entity/'))
+      ) {
         textureReferences.add(obj);
       }
     } else if (Array.isArray(obj)) {
@@ -584,7 +598,7 @@ export class JavaAnalyzer {
     ];
 
     let manifestInfo: ManifestInfo | null = null;
-    
+
     for (const manifestFile of manifestFiles) {
       const entry = entries.find((e) => e.entryName === manifestFile.name);
       if (entry) {
@@ -604,7 +618,9 @@ export class JavaAnalyzer {
         if (entry.entryName.endsWith('.java')) {
           try {
             const content = entry.getData().toString('utf8');
-            const identifierMatch = content.match(/new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/);
+            const identifierMatch = content.match(
+              /new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/
+            );
             if (identifierMatch) {
               extractedModId = identifierMatch[1];
               break;
@@ -744,7 +760,7 @@ export class JavaAnalyzer {
   private async parseManifestMF(content: string): Promise<ManifestInfo> {
     const lines = content.split('\n');
     const manifest: Record<string, string> = {};
-    
+
     for (const line of lines) {
       const colonIndex = line.indexOf(':');
       if (colonIndex > 0) {
@@ -832,7 +848,7 @@ export class JavaAnalyzer {
           }
         }
       }
-      
+
       // Recursively check values
       for (const value of Object.values(obj)) {
         this.extractRegistryNamesFromObject(value, registryNames, location);

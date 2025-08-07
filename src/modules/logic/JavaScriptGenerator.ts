@@ -247,15 +247,17 @@ export class JavaScriptGenerator {
         if (!options.includeComments) return '';
         return `${currentIndent}//${node.value}`;
 
-      case 'VariableDeclaration':
+      case 'VariableDeclaration': {
         const declarations = node.declarations
           .map((decl) => this.generateNodeCode(decl, 0, indent, options))
           .join(', ');
         return `${currentIndent}${node.kind} ${declarations}${semicolon}`;
+      }
 
-      case 'VariableDeclarator':
+      case 'VariableDeclarator': {
         const init = node.init ? ` = ${this.generateNodeCode(node.init, 0, indent, options)}` : '';
         return `${this.generateNodeCode(node.id, 0, indent, options)}${init}`;
+      }
 
       case 'Identifier':
         return node.name;
@@ -270,52 +272,58 @@ export class JavaScriptGenerator {
           return String(node.value);
         }
 
-      case 'ImportDeclaration':
+      case 'ImportDeclaration': {
         const specifiers = node.specifiers
           .map((spec) => this.generateNodeCode(spec, 0, indent, options))
           .join(', ');
         return `${currentIndent}import ${specifiers} from ${this.generateNodeCode(node.source, 0, indent, options)}${semicolon}`;
+      }
 
       case 'ImportDefaultSpecifier':
         return this.generateNodeCode(node.local, 0, indent, options);
 
-      case 'FunctionDeclaration':
+      case 'FunctionDeclaration': {
         const params = node.params
           .map((param) => this.generateNodeCode(param, 0, indent, options))
           .join(', ');
         const body = this.generateNodeCode(node.body, depth, indent, options);
         return `${currentIndent}function ${this.generateNodeCode(node.id, 0, indent, options)}(${params}) ${body}`;
+      }
 
-      case 'BlockStatement':
+      case 'BlockStatement': {
         const statements = node.body
           .map((stmt) => this.generateNodeCode(stmt, depth + 1, indent, options))
           .join('\n');
         return `{\n${statements}\n${currentIndent}}`;
+      }
 
       case 'ExpressionStatement':
         return `${currentIndent}${this.generateNodeCode(node.expression, 0, indent, options)}${semicolon}`;
 
-      case 'CallExpression':
+      case 'CallExpression': {
         const args = node.arguments
           .map((arg) => this.generateNodeCode(arg, 0, indent, options))
           .join(', ');
         return `${this.generateNodeCode(node.callee, 0, indent, options)}(${args})`;
+      }
 
-      case 'MemberExpression':
+      case 'MemberExpression': {
         const object = this.generateNodeCode(node.object, 0, indent, options);
         const property = node.computed
           ? `[${this.generateNodeCode(node.property, 0, indent, options)}]`
           : `.${this.generateNodeCode(node.property, 0, indent, options)}`;
         return `${object}${property}`;
+      }
 
-      case 'ArrowFunctionExpression':
+      case 'ArrowFunctionExpression': {
         const arrowParams = node.params
           .map((param) => this.generateNodeCode(param, 0, indent, options))
           .join(', ');
         const arrowBody = this.generateNodeCode(node.body, depth, indent, options);
         return `(${arrowParams}) => ${arrowBody}`;
+      }
 
-      case 'TemplateLiteral':
+      case 'TemplateLiteral': {
         let result = '`';
         for (let i = 0; i < node.expressions.length; i++) {
           result += node.quasis[i].value.raw;
@@ -324,8 +332,9 @@ export class JavaScriptGenerator {
         result += node.quasis[node.quasis.length - 1].value.raw;
         result += '`';
         return result;
+      }
 
-      case 'ObjectExpression':
+      case 'ObjectExpression': {
         if (node.properties.length === 0) {
           return '{}';
         }
@@ -335,20 +344,23 @@ export class JavaScriptGenerator {
           .join(',\n');
 
         return `{\n${properties}\n${currentIndent}}`;
+      }
 
-      case 'Property':
+      case 'Property': {
         const key = node.computed
           ? `[${this.generateNodeCode(node.key, 0, indent, options)}]`
           : this.generateNodeCode(node.key, 0, indent, options);
         const value = this.generateNodeCode(node.value, 0, indent, options);
         return `${key}: ${value}`;
+      }
 
-      case 'ClassDeclaration':
+      case 'ClassDeclaration': {
         const className = this.generateNodeCode(node.id, 0, indent, options);
         const classBody = this.generateNodeCode(node.body, depth, indent, options);
         return `${currentIndent}class ${className} ${classBody}`;
+      }
 
-      case 'ClassBody':
+      case 'ClassBody': {
         if (node.body.length === 0) {
           return '{}';
         }
@@ -358,19 +370,22 @@ export class JavaScriptGenerator {
           .join('\n\n');
 
         return `{\n${methods}\n${currentIndent}}`;
+      }
 
-      case 'MethodDefinition':
+      case 'MethodDefinition': {
         const methodKey = this.generateNodeCode(node.key, 0, indent, options);
         const methodValue = this.generateNodeCode(node.value, depth, indent, options);
         const staticPrefix = node.static ? 'static ' : '';
         return `${currentIndent}${staticPrefix}${methodKey}${methodValue}`;
+      }
 
-      case 'FunctionExpression':
+      case 'FunctionExpression': {
         const funcParams = node.params
           .map((param) => this.generateNodeCode(param, 0, indent, options))
           .join(', ');
         const funcBody = this.generateNodeCode(node.body, depth, indent, options);
         return `function(${funcParams}) ${funcBody}`;
+      }
 
       default:
         return `/* Unsupported node type: ${node.type} */`;

@@ -1,4 +1,8 @@
-import { runBenchmarkSuite, saveBenchmarkResults, updateBenchmarkHistory } from './benchmark-utils.js';
+import {
+  runBenchmarkSuite,
+  saveBenchmarkResults,
+  updateBenchmarkHistory,
+} from './benchmark-utils.js';
 import {
   createTempDirectory,
   cleanupTempDirectory,

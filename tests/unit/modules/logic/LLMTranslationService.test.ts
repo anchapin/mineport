@@ -11,7 +11,11 @@ import {
   TranslationContext,
   LLMTranslationResult,
 } from '../../../../src/modules/logic/LLMTranslationService.js';
-import { MMIRNode, MMIRNodeType, MMIRContext } from '../../../../src/modules/logic/MMIRGenerator.js';
+import {
+  MMIRNode,
+  MMIRNodeType,
+  MMIRContext,
+} from '../../../../src/modules/logic/MMIRGenerator.js';
 import { APIMapping } from '../../../../src/modules/logic/APIMapping.js';
 
 describe('LLMTranslationService', () => {

@@ -48,7 +48,7 @@ describe('WorkerPool Integration Tests', () => {
       });
 
       // Small delay to ensure first task starts
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const promise2 = singleWorkerPool.runTask({
         ...longTask,
@@ -63,7 +63,7 @@ describe('WorkerPool Integration Tests', () => {
 
       // Both tasks should complete successfully
       expect(results).toEqual([1, 1]);
-      
+
       // Second task should start after the first one (with some tolerance)
       expect(startTimes).toHaveLength(2);
       expect(startTimes[1] - startTimes[0]).toBeGreaterThan(50); // At least 50ms apart
@@ -83,7 +83,7 @@ describe('WorkerPool Integration Tests', () => {
       expect(initialStats.totalWorkers).toBeGreaterThan(0);
 
       // Wait for idle timeout plus buffer
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Check that workers were cleaned up
       const finalStats = workerPool.getStats();
@@ -106,7 +106,7 @@ describe('WorkerPool Integration Tests', () => {
       const promises = tasks.map((task) => workerPool.runTask(task));
 
       // Give tasks time to start
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Check stats while tasks are running
       const stats = workerPool.getStats();
@@ -114,7 +114,7 @@ describe('WorkerPool Integration Tests', () => {
       expect(stats.totalWorkers).toBeLessThanOrEqual(2); // Max workers limit
       expect(stats.busyWorkers).toBeGreaterThan(0);
       expect(stats.idleWorkers).toBe(stats.totalWorkers - stats.busyWorkers);
-      
+
       // With 3 tasks and max 2 workers, we should have at least 1 pending task
       expect(stats.pendingTasks).toBeGreaterThanOrEqual(0);
 
@@ -153,7 +153,7 @@ describe('WorkerPool Integration Tests', () => {
       const executionOrder: number[] = [];
 
       // Queue tasks with different priorities (after a small delay to ensure blocking task starts)
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const lowPriorityTask = singleWorkerPool.runTask({
         execute: async () => {
@@ -212,7 +212,7 @@ describe('WorkerPool Integration Tests', () => {
       const taskPromise = workerPool.runTask(task);
 
       // Give the task a moment to start
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Cancel the task
       workerPool.cancelTask(taskId);
@@ -248,7 +248,7 @@ describe('WorkerPool Integration Tests', () => {
       });
 
       // Give tasks time to queue
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Cancel the queued task
       singleWorkerPool.cancelTask(taskId);
@@ -295,9 +295,7 @@ describe('WorkerPool Integration Tests', () => {
       }));
 
       // All tasks should fail
-      const results = await Promise.allSettled(
-        errorTasks.map(task => workerPool.runTask(task))
-      );
+      const results = await Promise.allSettled(errorTasks.map((task) => workerPool.runTask(task)));
 
       results.forEach((result, i) => {
         expect(result.status).toBe('rejected');

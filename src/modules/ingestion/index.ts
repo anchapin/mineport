@@ -13,7 +13,11 @@ import {
   SourceCodeFetchResult,
 } from './SourceCodeFetcher.js';
 import { ModLoaderDetector, ModLoaderType, ModLoaderDetectionResult } from './ModLoaderDetector.js';
-import { LicenseParser, LicenseInfo as LicenseInfoType, LicenseParseResult } from './LicenseParser.js';
+import {
+  LicenseParser,
+  LicenseInfo as LicenseInfoType,
+  LicenseParseResult,
+} from './LicenseParser.js';
 import {
   FeatureCompatibilityAnalyzer,
   FeatureAnalysisResult,

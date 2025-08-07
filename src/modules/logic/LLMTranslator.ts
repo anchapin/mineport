@@ -267,7 +267,7 @@ export class LLMTranslator {
         } catch (jsonError) {
           // JSON parsing failed, fall through to unstructured parsing with warning
           logger.warn('Failed to parse JSON from LLM response', { jsonError });
-          
+
           return {
             code: this.extractCodeFromResponse(response),
             confidence: 0.4,
@@ -301,7 +301,7 @@ export class LLMTranslator {
       // Check if response looks unstructured (no code blocks, no JSON, no clear structure)
       const hasStructure = codeMatch || jsonMatch || confidenceMatch || reasoningMatch;
       const warnings = [];
-      
+
       if (!hasStructure && response.length < 200 && !response.includes('```')) {
         warnings.push({
           type: 'response_parsing_warning',

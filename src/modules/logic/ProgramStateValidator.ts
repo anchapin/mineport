@@ -201,9 +201,9 @@ export class ProgramStateValidator {
       context
     );
 
-    const finalRecommendations = [...new Set([...allRecommendations, ...additionalRecommendations])];
-
-
+    const finalRecommendations = [
+      ...new Set([...allRecommendations, ...additionalRecommendations]),
+    ];
 
     return {
       isEquivalent,
@@ -404,7 +404,7 @@ class StaticAnalyzer {
 
     // Check for complexity differences
     const complexityDifference = Math.abs(javaStructure.complexity - jsStructure.complexity);
-    
+
     if (complexityDifference > 3) {
       differences.push({
         type: 'logic',
@@ -444,20 +444,21 @@ class StaticAnalyzer {
 
   private extractMethods(code: string): MethodInfo[] {
     const methods: MethodInfo[] = [];
-    
+
     // Java method pattern: [modifiers] returnType methodName(params)
-    const javaMethodRegex = /(?:public|private|protected)?\s*(?:static)?\s*(?:\w+\s+)?(\w+)\s*\([^)]*\)\s*\{/g;
-    
+    const javaMethodRegex =
+      /(?:public|private|protected)?\s*(?:static)?\s*(?:\w+\s+)?(\w+)\s*\([^)]*\)\s*\{/g;
+
     // JavaScript method patterns: methodName() { or methodName(params) {
     const jsMethodRegex = /^\s*(\w+)\s*\([^)]*\)\s*\{/gm;
-    
+
     const lines = code.split('\n');
-    
+
     // Try Java pattern first
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       javaMethodRegex.lastIndex = 0;
-      let match = javaMethodRegex.exec(line);
+      const match = javaMethodRegex.exec(line);
       if (match) {
         const methodName = match[1];
         // Skip constructors and common non-method patterns
@@ -470,7 +471,7 @@ class StaticAnalyzer {
         }
       }
     }
-    
+
     // If no Java methods found, try JavaScript pattern
     if (methods.length === 0) {
       let match;
@@ -492,7 +493,7 @@ class StaticAnalyzer {
 
   private extractClasses(code: string): ClassInfo[] {
     const classes: ClassInfo[] = [];
-    
+
     // Pattern that works for both Java and JavaScript classes
     const classRegex = /(?:public\s+)?class\s+(\w+)/g;
     let match;
@@ -672,7 +673,9 @@ class SemanticAnalyzer {
     while ((match = methodCallRegex.exec(code)) !== null) {
       const methodName = match[1];
       // Filter out common non-method patterns but include actual method calls
-      if (!['if', 'for', 'while', 'switch', 'catch', 'class', 'new', 'return'].includes(methodName)) {
+      if (
+        !['if', 'for', 'while', 'switch', 'catch', 'class', 'new', 'return'].includes(methodName)
+      ) {
         methodCalls.push(methodName);
       }
     }
@@ -705,18 +708,19 @@ class SemanticAnalyzer {
 
       const maxCount = Math.max(javaCount, jsCount);
       const similarity = maxCount > 0 ? 1 - Math.abs(javaCount - jsCount) / maxCount : 1;
-      
+
       // Special handling for method differences
       if (patternType === 'specificMethods') {
-        const javaPattern = javaPatterns.find(p => p.type === 'specificMethods');
-        const jsPattern = jsPatterns.find(p => p.type === 'specificMethods');
-        
+        const javaPattern = javaPatterns.find((p) => p.type === 'specificMethods');
+        const jsPattern = jsPatterns.find((p) => p.type === 'specificMethods');
+
         if (javaPattern && jsPattern) {
           const javaMethods = new Set(javaPattern.examples);
           const jsMethods = new Set(jsPattern.examples);
-          const commonMethods = [...javaMethods].filter(method => jsMethods.has(method));
-          const methodSimilarity = commonMethods.length / Math.max(javaMethods.size, jsMethods.size);
-          
+          const commonMethods = [...javaMethods].filter((method) => jsMethods.has(method));
+          const methodSimilarity =
+            commonMethods.length / Math.max(javaMethods.size, jsMethods.size);
+
           // Use method-level similarity instead of count-based similarity
           totalSimilarity += methodSimilarity;
         } else {
@@ -760,14 +764,14 @@ class SemanticAnalyzer {
       if (patternType === 'specificMethods' && javaPattern && jsPattern) {
         const javaMethods = new Set(javaPattern.examples);
         const jsMethods = new Set(jsPattern.examples);
-        
+
         // Check for completely different method names
-        const commonMethods = [...javaMethods].filter(method => jsMethods.has(method));
+        const commonMethods = [...javaMethods].filter((method) => jsMethods.has(method));
         const methodSimilarity = commonMethods.length / Math.max(javaMethods.size, jsMethods.size);
-        
+
         // Be more lenient for equivalent functionality (e.g., System.out.println vs console.log)
         const hasEquivalentMethods = this.hasEquivalentMethods([...javaMethods], [...jsMethods]);
-        
+
         // Flag as mismatch if similarity is low and no equivalent methods found
         // Lower threshold to catch more differences
         if (methodSimilarity < 0.8 && !hasEquivalentMethods) {
@@ -805,12 +809,12 @@ class SemanticAnalyzer {
         return true;
       }
     }
-    
+
     // If both are empty, they're equivalent
     if (javaMethods.length === 0 && jsMethods.length === 0) {
       return true;
     }
-    
+
     // For the test case, complexOperation vs simpleOperation should NOT be equivalent
     return false;
   }
@@ -885,7 +889,7 @@ class BehaviorAnalyzer {
     // For now, return high similarity for equivalent-looking code
     // In practice, this would run actual behavioral tests
     if (testCases.length === 0) return 1.0;
-    
+
     // Assume most tests pass for basic equivalent code
     return 0.9;
   }

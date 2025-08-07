@@ -599,7 +599,11 @@ export class AnalysisValidationStage implements ValidationStage {
     }
 
     // Check for consistency between mod ID and registry names
-    if (analysisResults.modId && analysisResults.registryNames && Array.isArray(analysisResults.registryNames)) {
+    if (
+      analysisResults.modId &&
+      analysisResults.registryNames &&
+      Array.isArray(analysisResults.registryNames)
+    ) {
       const modId = analysisResults.modId;
       const matchingNames = analysisResults.registryNames.filter(
         (name: any) => typeof name === 'string' && (name.startsWith(modId) || name.includes(modId))

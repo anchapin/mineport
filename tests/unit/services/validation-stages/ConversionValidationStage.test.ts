@@ -67,7 +67,9 @@ describe('ConversionValidationStage', () => {
 
       expect(result.passed).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(1);
-      expect(result.errors.some(e => e.message.includes('Addon structure is missing'))).toBe(true);
+      expect(result.errors.some((e) => e.message.includes('Addon structure is missing'))).toBe(
+        true
+      );
     });
 
     it('should fail when behavior pack structure is missing', async () => {
@@ -84,7 +86,9 @@ describe('ConversionValidationStage', () => {
 
       expect(result.passed).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(1);
-      expect(result.errors.some(e => e.message.includes('Behavior pack structure is missing'))).toBe(true);
+      expect(
+        result.errors.some((e) => e.message.includes('Behavior pack structure is missing'))
+      ).toBe(true);
     });
 
     it('should fail when resource pack structure is missing', async () => {
@@ -101,7 +105,9 @@ describe('ConversionValidationStage', () => {
 
       expect(result.passed).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(1);
-      expect(result.errors.some(e => e.message.includes('Resource pack structure is missing'))).toBe(true);
+      expect(
+        result.errors.some((e) => e.message.includes('Resource pack structure is missing'))
+      ).toBe(true);
     });
 
     it('should warn about missing expected directories', async () => {
@@ -434,7 +440,11 @@ describe('ConversionValidationStage', () => {
 
       expect(result.errors.length).toBe(0);
       expect(result.warnings.length).toBeGreaterThanOrEqual(1);
-      expect(result.warnings.some(w => w.message.includes('version should be [major, minor, patch] format'))).toBe(true);
+      expect(
+        result.warnings.some((w) =>
+          w.message.includes('version should be [major, minor, patch] format')
+        )
+      ).toBe(true);
     });
   });
 
@@ -566,7 +576,9 @@ describe('ConversionValidationStage', () => {
 
       expect(result.errors.length).toBe(0);
       expect(result.warnings.length).toBeGreaterThanOrEqual(1);
-      expect(result.warnings.some(w => w.message.includes('not converted to PNG format'))).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes('not converted to PNG format'))).toBe(
+        true
+      );
     });
 
     it('should warn when model is not converted to Bedrock format', async () => {
@@ -609,7 +621,9 @@ describe('ConversionValidationStage', () => {
 
       expect(result.errors.length).toBe(0);
       expect(result.warnings.length).toBeGreaterThanOrEqual(1);
-      expect(result.warnings.some(w => w.message.includes('not converted to Bedrock geometry format'))).toBe(true);
+      expect(
+        result.warnings.some((w) => w.message.includes('not converted to Bedrock geometry format'))
+      ).toBe(true);
     });
 
     it('should warn when sound is not converted to supported format', async () => {
@@ -652,7 +666,9 @@ describe('ConversionValidationStage', () => {
 
       expect(result.errors.length).toBe(0);
       expect(result.warnings.length).toBeGreaterThanOrEqual(1);
-      expect(result.warnings.some(w => w.message.includes('not converted to supported format'))).toBe(true);
+      expect(
+        result.warnings.some((w) => w.message.includes('not converted to supported format'))
+      ).toBe(true);
     });
   });
 
@@ -789,7 +805,7 @@ describe('ConversionValidationStage', () => {
 
       expect(result.errors.length).toBe(0);
       expect(result.warnings.length).toBeGreaterThanOrEqual(1);
-      expect(result.warnings.some(w => w.message.includes('may have syntax errors'))).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes('may have syntax errors'))).toBe(true);
     });
 
     it('should fail when block definition is missing required fields', async () => {
@@ -1061,7 +1077,7 @@ describe('ConversionValidationStage', () => {
 
       expect(result.errors.length).toBe(0);
       expect(result.warnings.length).toBeGreaterThanOrEqual(1);
-      expect(result.warnings.some(w => w.message.includes('is empty'))).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes('is empty'))).toBe(true);
     });
 
     it('should warn about unusually large output files', async () => {
@@ -1104,7 +1120,7 @@ describe('ConversionValidationStage', () => {
 
       expect(result.errors.length).toBe(0);
       expect(result.warnings.length).toBeGreaterThanOrEqual(1);
-      expect(result.warnings.some(w => w.message.includes('unusually large'))).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes('unusually large'))).toBe(true);
     });
   });
 
@@ -1118,7 +1134,7 @@ describe('ConversionValidationStage', () => {
 
       const input: ValidationInput = {
         filePath: 'test.jar',
-        conversionResults: { 
+        conversionResults: {
           addonStructure: {
             behaviorPack: { directories: ['scripts'] },
             resourcePack: { directories: ['textures'] },
@@ -1130,8 +1146,10 @@ describe('ConversionValidationStage', () => {
 
       expect(result.passed).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(1);
-      expect(result.errors.some(e => e.message.includes('Conversion validation execution failed'))).toBe(true);
-      expect(result.errors.some(e => e.severity === ErrorSeverity.ERROR)).toBe(true);
+      expect(
+        result.errors.some((e) => e.message.includes('Conversion validation execution failed'))
+      ).toBe(true);
+      expect(result.errors.some((e) => e.severity === ErrorSeverity.ERROR)).toBe(true);
 
       // Restore the original method
       (stage as any).validateAddonStructure = originalValidateAddonStructure;

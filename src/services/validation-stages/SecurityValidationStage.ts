@@ -205,7 +205,8 @@ export class SecurityValidationStage implements ValidationStage {
     ];
 
     // Skip pattern detection for very large files to avoid memory issues
-    if (fileContent.length > 100 * 1024 * 1024) { // 100MB limit for pattern detection
+    if (fileContent.length > 100 * 1024 * 1024) {
+      // 100MB limit for pattern detection
       warnings.push(
         createConversionError({
           code: createErrorCode(MODULE_ID, 'PATTERN', 999),

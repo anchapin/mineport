@@ -175,7 +175,11 @@ jobs:
         run: |
           echo "Dependencies cache miss, will install fresh"
           # Clean any partial installations
-          rm -rf node_modules/.cache 2>/dev/null || true
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            if (Test-Path "node_modules/.cache") { Remove-Item -Recurse -Force "node_modules/.cache" -ErrorAction SilentlyContinue }
+          else
+            rm -rf node_modules/.cache 2>/dev/null || true
+          fi
 
       - name: Install dependencies
         run: |

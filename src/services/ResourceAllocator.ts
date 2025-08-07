@@ -32,13 +32,13 @@ export enum ResourceType {
   MEMORY = 'memory',
   CPU = 'cpu',
   STORAGE = 'storage',
-  NETWORK = 'network'
+  NETWORK = 'network',
 }
 
 export enum ResourceAllocationStrategy {
   CONSERVATIVE = 'conservative',
   BALANCED = 'balanced',
-  AGGRESSIVE = 'aggressive'
+  AGGRESSIVE = 'aggressive',
 }
 
 export interface TempFileOptions {
@@ -473,15 +473,19 @@ export class ResourceAllocator {
   private maxWorkers: number;
   private configService?: any;
 
-  constructor(config?: string | { 
-    maxMemory?: number; 
-    maxCpu?: number; 
-    maxStorage?: number; 
-    strategy?: ResourceAllocationStrategy;
-    workerPool?: any;
-    jobQueue?: any;
-    configService?: any;
-  }) {
+  constructor(
+    config?:
+      | string
+      | {
+          maxMemory?: number;
+          maxCpu?: number;
+          maxStorage?: number;
+          strategy?: ResourceAllocationStrategy;
+          workerPool?: any;
+          jobQueue?: any;
+          configService?: any;
+        }
+  ) {
     if (typeof config === 'string') {
       // Legacy constructor for temp directory
       this.tempFileManager = new TempFileManager(config);
@@ -495,7 +499,7 @@ export class ResourceAllocator {
     } else if (config) {
       this.tempFileManager = new TempFileManager();
       this.configService = config.configService;
-      
+
       if (this.configService) {
         // Use configuration service values
         this.maxMemory = this.configService.get('resources.maxMemory', 1024);
@@ -504,10 +508,10 @@ export class ResourceAllocator {
         this.checkInterval = this.configService.get('resources.checkInterval', 60000);
         this.minWorkers = this.configService.get('resources.minWorkers', 2);
         this.maxWorkers = this.configService.get('resources.maxWorkers', 10);
-        
+
         const strategyName = this.configService.get('resources.strategy', 'balanced');
         this.strategy = this.getStrategyFromName(strategyName);
-        
+
         // Listen for configuration changes
         this.configService.on('configChanged', (key: string, value: any) => {
           this.handleConfigChange(key, value);
@@ -619,11 +623,13 @@ export class ResourceAllocator {
    */
   allocate(request: ResourceRequest): ResourceAllocation {
     const currentUsage = this.getCurrentUsage();
-    
+
     // Check if resources are available
-    if (currentUsage.memory + request.memory > this.maxMemory ||
-        currentUsage.cpu + request.cpu > this.maxCpu ||
-        currentUsage.storage + request.storage > this.maxStorage) {
+    if (
+      currentUsage.memory + request.memory > this.maxMemory ||
+      currentUsage.cpu + request.cpu > this.maxCpu ||
+      currentUsage.storage + request.storage > this.maxStorage
+    ) {
       throw new Error('Insufficient resources available');
     }
 
@@ -633,7 +639,7 @@ export class ResourceAllocator {
       cpu: request.cpu,
       storage: request.storage,
       createdAt: new Date(),
-      timeout: request.timeout
+      timeout: request.timeout,
     };
 
     this.allocations.set(allocation.id, allocation);
@@ -672,7 +678,7 @@ export class ResourceAllocator {
     return {
       memory: this.maxMemory - currentUsage.memory,
       cpu: this.maxCpu - currentUsage.cpu,
-      storage: this.maxStorage - currentUsage.storage
+      storage: this.maxStorage - currentUsage.storage,
     };
   }
 
@@ -682,7 +688,7 @@ export class ResourceAllocator {
   cleanupExpiredAllocations(): void {
     const now = Date.now();
     for (const [id, allocation] of this.allocations.entries()) {
-      if (allocation.timeout && (now - allocation.createdAt.getTime()) > allocation.timeout) {
+      if (allocation.timeout && now - allocation.createdAt.getTime() > allocation.timeout) {
         this.allocations.delete(id);
       }
     }

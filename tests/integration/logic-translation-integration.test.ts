@@ -319,14 +319,17 @@ describe('Logic Translation Engine Integration', () => {
         public class LargeClass {
           private String[] items = new String[100];
           
-          ${Array.from({ length: 10 }, (_, i) => `
+          ${Array.from(
+            { length: 10 },
+            (_, i) => `
           public void method${i}() {
             for (int j = 0; j < items.length; j++) {
               if (items[j] != null) {
                 System.out.println("Processing: " + items[j]);
               }
             }
-          }`).join('\n')}
+          }`
+          ).join('\n')}
         }
       `;
 

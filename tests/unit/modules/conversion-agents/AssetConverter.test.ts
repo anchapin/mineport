@@ -4,7 +4,11 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AssetConverter } from '../../../../src/modules/conversion-agents/AssetConverter.js';
-import { TextureInfo, SoundInfo, ModelInfo } from '../../../../src/modules/conversion-agents/types.js';
+import {
+  TextureInfo,
+  SoundInfo,
+  ModelInfo,
+} from '../../../../src/modules/conversion-agents/types.js';
 import sharp from 'sharp';
 
 // Mock sharp

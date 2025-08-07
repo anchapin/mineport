@@ -115,7 +115,7 @@ export class ConfigurationService extends EventEmitter {
     // Navigate through nested config object
     const keys = key.split('.');
     let current: any = this.config;
-    
+
     for (const k of keys) {
       if (current && typeof current === 'object' && k in current) {
         current = current[k];
@@ -123,7 +123,7 @@ export class ConfigurationService extends EventEmitter {
         return undefined;
       }
     }
-    
+
     return current;
   }
 
@@ -132,12 +132,12 @@ export class ConfigurationService extends EventEmitter {
    */
   public exportConfig(): Record<string, any> {
     const exported = JSON.parse(JSON.stringify(this.config));
-    
+
     // Apply dynamic config overrides
     for (const [key, value] of this.dynamicConfig.entries()) {
       this.setNestedValue(exported, key, value);
     }
-    
+
     return exported;
   }
 
@@ -147,7 +147,7 @@ export class ConfigurationService extends EventEmitter {
   public async importConfig(config: Record<string, any>): Promise<void> {
     // Clear dynamic config
     this.dynamicConfig.clear();
-    
+
     // Set all values from imported config
     this.setConfigFromObject(config);
   }
@@ -158,7 +158,7 @@ export class ConfigurationService extends EventEmitter {
   private setNestedValue(obj: any, key: string, value: any): void {
     const keys = key.split('.');
     let current = obj;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const k = keys[i];
       if (!(k in current) || typeof current[k] !== 'object') {
@@ -166,7 +166,7 @@ export class ConfigurationService extends EventEmitter {
       }
       current = current[k];
     }
-    
+
     current[keys[keys.length - 1]] = value;
   }
 
@@ -176,7 +176,7 @@ export class ConfigurationService extends EventEmitter {
   private setConfigFromObject(obj: Record<string, any>, prefix: string = ''): void {
     for (const [key, value] of Object.entries(obj)) {
       const fullKey = prefix ? `${prefix}.${key}` : key;
-      
+
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         this.setConfigFromObject(value, fullKey);
       } else {
@@ -190,12 +190,12 @@ export class ConfigurationService extends EventEmitter {
    */
   public exportConfig(): Record<string, any> {
     const exported = JSON.parse(JSON.stringify(this.config));
-    
+
     // Apply dynamic config overrides
     for (const [key, value] of this.dynamicConfig.entries()) {
       this.setNestedValue(exported, key, value);
     }
-    
+
     return exported;
   }
 
@@ -205,7 +205,7 @@ export class ConfigurationService extends EventEmitter {
   public async importConfig(config: Record<string, any>): Promise<void> {
     // Clear dynamic config
     this.dynamicConfig.clear();
-    
+
     // Set all values from imported config
     this.setConfigFromObject(config);
   }
@@ -216,7 +216,7 @@ export class ConfigurationService extends EventEmitter {
   private setNestedValue(obj: any, key: string, value: any): void {
     const keys = key.split('.');
     let current = obj;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const k = keys[i];
       if (!(k in current) || typeof current[k] !== 'object') {
@@ -224,7 +224,7 @@ export class ConfigurationService extends EventEmitter {
       }
       current = current[k];
     }
-    
+
     current[keys[keys.length - 1]] = value;
   }
 
@@ -234,7 +234,7 @@ export class ConfigurationService extends EventEmitter {
   private setConfigFromObject(obj: Record<string, any>, prefix: string = ''): void {
     for (const [key, value] of Object.entries(obj)) {
       const fullKey = prefix ? `${prefix}.${key}` : key;
-      
+
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         this.setConfigFromObject(value, fullKey);
       } else {

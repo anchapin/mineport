@@ -128,7 +128,9 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes('should follow naming conventions'))).toBe(true);
+      expect(
+        result.warnings.some((w) => w.message.includes('should follow naming conventions'))
+      ).toBe(true);
     });
 
     it('should warn about unusually long mod ID', async () => {
@@ -144,7 +146,7 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes('unusually long'))).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes('unusually long'))).toBe(true);
     });
 
     it('should pass with valid mod ID', async () => {
@@ -229,7 +231,9 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors.some(e => e.message.includes('Registry name at index 1 is invalid'))).toBe(true);
+      expect(
+        result.errors.some((e) => e.message.includes('Registry name at index 1 is invalid'))
+      ).toBe(true);
     });
 
     it('should warn about invalid naming conventions', async () => {
@@ -244,7 +248,9 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes("doesn't follow naming conventions"))).toBe(true);
+      expect(
+        result.warnings.some((w) => w.message.includes("doesn't follow naming conventions"))
+      ).toBe(true);
     });
 
     it('should warn about duplicate registry names', async () => {
@@ -259,7 +265,9 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes('Duplicate registry names detected'))).toBe(true);
+      expect(
+        result.warnings.some((w) => w.message.includes('Duplicate registry names detected'))
+      ).toBe(true);
     });
   });
 
@@ -325,7 +333,9 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes("doesn't have a recognized image extension"))).toBe(true);
+      expect(
+        result.warnings.some((w) => w.message.includes("doesn't have a recognized image extension"))
+      ).toBe(true);
     });
 
     it('should warn about missing directory structure', async () => {
@@ -340,7 +350,9 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes('missing directory structure'))).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes('missing directory structure'))).toBe(
+        true
+      );
     });
   });
 
@@ -399,7 +411,9 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes("doesn't follow semantic versioning"))).toBe(true);
+      expect(
+        result.warnings.some((w) => w.message.includes("doesn't follow semantic versioning"))
+      ).toBe(true);
     });
 
     it('should fail when dependencies are malformed', async () => {
@@ -522,7 +536,7 @@ describe('AnalysisValidationStage', () => {
 
       expect(result.passed).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings.some(w => w.message.includes('has invalid type'))).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes('has invalid type'))).toBe(true);
     });
   });
 

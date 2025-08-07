@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConfigurationService } from '../../../src/services/ConfigurationService.js';
 import { JobQueue } from '../../../src/services/JobQueue.js';
 import { WorkerPool } from '../../../src/services/WorkerPool.js';
-import { ResourceAllocator, ResourceAllocationStrategy } from '../../../src/services/ResourceAllocator.js';
+import {
+  ResourceAllocator,
+  ResourceAllocationStrategy,
+} from '../../../src/services/ResourceAllocator.js';
 import { CacheService } from '../../../src/services/CacheService.js';
 import { UpdateService } from '../../../src/services/UpdateService.js';
 import { ConversionService } from '../../../src/services/ConversionService.js';

@@ -66,7 +66,7 @@ export class CacheService {
 
   constructor(options: Partial<CacheOptions & { configService?: any }> = {}) {
     this.configService = options.configService;
-    
+
     if (this.configService) {
       // Use configuration service values
       this.options = {
@@ -74,20 +74,23 @@ export class CacheService {
         maxMemorySize: this.configService.get('cache.maxMemorySize', 100 * 1024 * 1024),
         defaultTTL: this.configService.get('cache.defaultTTL', 3600000),
         enablePersistence: this.configService.get('cache.enablePersistence', true),
-        persistenceDir: this.configService.get('cache.persistenceDir', path.join(process.cwd(), '.cache')),
+        persistenceDir: this.configService.get(
+          'cache.persistenceDir',
+          path.join(process.cwd(), '.cache')
+        ),
         enableMetrics: this.configService.get('cache.enableMetrics', true),
         compressionEnabled: this.configService.get('cache.compressionEnabled', true),
         enabled: this.configService.get('cache.enabled', true),
       };
-      
+
       const defaultTtls = {
         api_mapping: 86400, // 24 hours
         file_validation: 3600, // 1 hour
         java_analysis: 7200, // 2 hours
       };
-      
+
       this.ttlDefaults = this.configService.get('cache.ttlDefaults', defaultTtls);
-      
+
       // Also check for individual ttl keys
       for (const key of Object.keys(defaultTtls)) {
         const individualValue = this.configService.get(`cache.ttlDefaults.${key}`);
@@ -98,7 +101,7 @@ export class CacheService {
           this.ttlDefaults[key] = individualValue;
         }
       }
-      
+
       // Listen for configuration changes
       this.configService.on('configChanged', (key: string, value: any) => {
         this.handleConfigChange(key, value);
@@ -114,7 +117,7 @@ export class CacheService {
         compressionEnabled: options.compressionEnabled ?? true,
         enabled: options.enabled ?? true,
       };
-      
+
       this.ttlDefaults = {
         api_mapping: 86400, // 24 hours
         file_validation: 3600, // 1 hour
@@ -159,13 +162,13 @@ export class CacheService {
    */
   async get<T>(key: string | CacheKey): Promise<T | null> {
     if (!this.enabled) return null;
-    
+
     const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
     const keyString = this.generateKey(cacheKey);
 
     // Try memory cache first
     const memoryEntry = this.memoryCache.get(keyString);
-    
+
     if (memoryEntry && !this.isExpired(memoryEntry)) {
       memoryEntry.lastAccessed = new Date();
       memoryEntry.accessCount++;
@@ -202,11 +205,10 @@ export class CacheService {
    */
   async set<T>(key: string | CacheKey, value: T, ttl?: number): Promise<void> {
     if (!this.enabled) return;
-    
+
     const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
     this.metrics.sets = (this.metrics.sets || 0) + 1;
     const keyString = this.generateKey(cacheKey);
-
 
     const entry: CacheEntry<T> = {
       key: keyString,
@@ -236,7 +238,7 @@ export class CacheService {
    */
   async delete(key: string | CacheKey): Promise<boolean> {
     if (!this.enabled) return false;
-    
+
     const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
     this.metrics.invalidations = (this.metrics.invalidations || 0) + 1;
     const keyString = this.generateKey(cacheKey);
@@ -260,7 +262,7 @@ export class CacheService {
    */
   async has(key: string | CacheKey): Promise<boolean> {
     if (!this.enabled) return false;
-    
+
     const cacheKey = typeof key === 'string' ? this.stringToCacheKey(key) : key;
     const keyString = this.generateKey(cacheKey);
 
@@ -541,7 +543,7 @@ export class CacheService {
    */
   async clearByPrefix(prefix: string): Promise<void> {
     const keysToDelete: string[] = [];
-    
+
     for (const [keyString] of this.memoryCache.entries()) {
       // For string keys, check if the original key (before hashing) starts with prefix
       // We need to reverse-engineer this or store original keys
@@ -578,8 +580,6 @@ export class CacheService {
       identifier: parts.slice(1).join(':') || key,
     };
   }
-
-
 
   /**
    * Handle configuration changes

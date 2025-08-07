@@ -3,7 +3,11 @@ import {
   SourceCodeFetcher,
   RepositoryInfo,
 } from '../../../../src/modules/ingestion/SourceCodeFetcher.js';
-import { createMockGitHubResponse, mockOctokit, resetAllMocks } from '../../../utils/testHelpers.js';
+import {
+  createMockGitHubResponse,
+  mockOctokit,
+  resetAllMocks,
+} from '../../../utils/testHelpers.js';
 import fs from 'fs';
 import path from 'path';
 

@@ -87,25 +87,25 @@ export class MMIRParser {
    */
   private tokenize(javaCode: string): Token[] {
     const tokens: Token[] = [];
-    
+
     // Handle multi-line comments first by processing the entire code
     const multiLineCommentRegex = /\/\*[\s\S]*?\*\//g;
     let processedCode = javaCode;
     const multiLineComments: Array<{ content: string; startLine: number; startCol: number }> = [];
-    
+
     let match;
     while ((match = multiLineCommentRegex.exec(javaCode)) !== null) {
       const beforeMatch = javaCode.substring(0, match.index);
       const lines = beforeMatch.split('\n');
       const startLine = lines.length;
       const startCol = lines[lines.length - 1].length + 1;
-      
+
       multiLineComments.push({
         content: match[0],
         startLine,
-        startCol
+        startCol,
       });
-      
+
       // Replace with placeholder to avoid re-processing
       processedCode = processedCode.replace(match[0], ' '.repeat(match[0].length));
     }
@@ -186,7 +186,6 @@ export class MMIRParser {
     if (startIndex >= tokens.length) return null;
 
     const token = tokens[startIndex];
-
 
     // Handle different statement types
     switch (token.type) {
@@ -333,7 +332,7 @@ export class MMIRParser {
         complexity: this.calculateNodeComplexity(children),
         mappable: this.isMethodMappable(methodName, returnType, parameters),
         returnType,
-        parameters: parameters.map(p => p.name),
+        parameters: parameters.map((p) => p.name),
         modifiers,
       },
     };
@@ -531,7 +530,7 @@ export class MMIRParser {
     if (currentIndex < tokens.length && tokens[currentIndex].value === '(') {
       let parenCount = 1;
       currentIndex++; // Skip opening paren
-      
+
       while (currentIndex < tokens.length && parenCount > 0) {
         if (tokens[currentIndex].value === '(') parenCount++;
         if (tokens[currentIndex].value === ')') parenCount--;
@@ -595,7 +594,6 @@ export class MMIRParser {
    */
   private parseComment(tokens: Token[], startIndex: number): { node: ASTNode; nextIndex: number } {
     const commentToken = tokens[startIndex];
-
 
     const node: ASTNode = {
       type: 'Comment',
@@ -724,7 +722,7 @@ export class MMIRParser {
     // Count code lines based on the specific requirements
     const lines = javaCode.split('\n');
     let lineCount: number;
-    
+
     if (javaCode === '') {
       // Handle completely empty string
       lineCount = 1;
@@ -886,12 +884,12 @@ export class MMIRParser {
 
         // Add complexity based on node type
         const nodeComplexity = this.getNodeComplexityWeight(node.type);
-        
+
         // Only add to cyclomatic complexity for decision points
         if (this.isDecisionPoint(node.type)) {
           cyclomaticComplexity += nodeComplexity;
         }
-        
+
         cognitiveComplexity += nodeComplexity * Math.max(1, depth); // Cognitive complexity increases with nesting
 
         // Recursively calculate for children
@@ -952,14 +950,24 @@ export class MMIRParser {
    * Check if node type represents a decision point for cyclomatic complexity
    */
   private isDecisionPoint(nodeType: string): boolean {
-    return ['IfStatement', 'WhileLoop', 'ForLoop', 'SwitchStatement', 'TryCatch'].includes(nodeType);
+    return ['IfStatement', 'WhileLoop', 'ForLoop', 'SwitchStatement', 'TryCatch'].includes(
+      nodeType
+    );
   }
 
   /**
    * Check if node type increases nesting depth
    */
   private isNestingNode(nodeType: string): boolean {
-    return ['IfStatement', 'WhileLoop', 'ForLoop', 'SwitchStatement', 'TryCatch', 'MethodDeclaration', 'ClassDeclaration'].includes(nodeType);
+    return [
+      'IfStatement',
+      'WhileLoop',
+      'ForLoop',
+      'SwitchStatement',
+      'TryCatch',
+      'MethodDeclaration',
+      'ClassDeclaration',
+    ].includes(nodeType);
   }
 
   /**
@@ -1102,7 +1110,8 @@ export class MMIRParser {
    */
   private getDependencyType(packageName: string): 'minecraft' | 'forge' | 'fabric' | 'external' {
     // Check more specific packages first to avoid conflicts
-    if (packageName.startsWith('net.minecraftforge') || packageName.includes('forge')) return 'forge';
+    if (packageName.startsWith('net.minecraftforge') || packageName.includes('forge'))
+      return 'forge';
     if (packageName.startsWith('net.fabricmc') || packageName.includes('fabric')) return 'fabric';
     if (packageName.startsWith('net.minecraft')) return 'minecraft';
     return 'external';

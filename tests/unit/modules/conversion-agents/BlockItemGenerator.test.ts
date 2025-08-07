@@ -4,7 +4,11 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BlockItemGenerator } from '../../../../src/modules/conversion-agents/BlockItemGenerator.js';
-import { BlockInfo, ItemInfo, RecipeInfo } from '../../../../src/modules/conversion-agents/types.js';
+import {
+  BlockInfo,
+  ItemInfo,
+  RecipeInfo,
+} from '../../../../src/modules/conversion-agents/types.js';
 
 describe('BlockItemGenerator', () => {
   let generator: BlockItemGenerator;

@@ -3,7 +3,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ErrorRecoveryService, RecoveryContext } from '../../../src/services/ErrorRecoveryService.js';
+import {
+  ErrorRecoveryService,
+  RecoveryContext,
+} from '../../../src/services/ErrorRecoveryService.js';
 import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorCollector.js';
 import {
   ConversionError,

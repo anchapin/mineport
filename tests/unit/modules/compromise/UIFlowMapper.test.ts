@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UIFlowMapper, DetectedUIComponent } from '../../../../src/modules/compromise/UIFlowMapper.js';
+import {
+  UIFlowMapper,
+  DetectedUIComponent,
+} from '../../../../src/modules/compromise/UIFlowMapper.js';
 import { Feature } from '../../../../src/types/compromise.js';
 import { Logger } from '../../../../src/utils/logger.js';
 

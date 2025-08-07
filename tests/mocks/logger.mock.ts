@@ -25,7 +25,7 @@ export const createEnhancedLoggerMock = () => ({
 export const loggerMock = {
   // Default export (winston logger instance)
   default: createLoggerMock(),
-  
+
   // Named exports
   setupLogger: vi.fn(() => createLoggerMock()),
   createLogger: vi.fn(() => createLoggerMock()),
