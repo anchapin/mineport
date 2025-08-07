@@ -61,29 +61,29 @@ describe('WorkerPool Unit Tests', () => {
 
       // Test that the pool was created with the right config
       expect(customPool).toBeDefined();
-      
+
       // Give the pool time to initialize workers
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // We can test the stats to verify configuration
       const stats = customPool.getStats();
       expect(stats.totalWorkers).toBeGreaterThanOrEqual(2); // minWorkers should be created
       expect(stats.busyWorkers).toBe(0); // No tasks running yet
       expect(stats.idleWorkers).toBe(stats.totalWorkers); // All workers should be idle
       expect(stats.pendingTasks).toBe(0);
-      
+
       // Clean up
       await customPool.destroy?.();
     });
 
     it('should provide initial statistics', () => {
       const stats = workerPool.getStats();
-      
+
       expect(stats).toHaveProperty('totalWorkers');
       expect(stats).toHaveProperty('busyWorkers');
       expect(stats).toHaveProperty('idleWorkers');
       expect(stats).toHaveProperty('pendingTasks');
-      
+
       expect(typeof stats.totalWorkers).toBe('number');
       expect(typeof stats.busyWorkers).toBe('number');
       expect(typeof stats.idleWorkers).toBe('number');
@@ -182,7 +182,7 @@ describe('WorkerPool Unit Tests', () => {
   describe('API Methods', () => {
     it('should have cancelTask method', () => {
       expect(typeof workerPool.cancelTask).toBe('function');
-      
+
       // Should not throw when cancelling non-existent task
       expect(() => workerPool.cancelTask('non-existent-task')).not.toThrow();
     });
@@ -190,7 +190,7 @@ describe('WorkerPool Unit Tests', () => {
     it('should have getStats method that returns consistent data', () => {
       const stats1 = workerPool.getStats();
       const stats2 = workerPool.getStats();
-      
+
       // Stats should be consistent when called multiple times with no activity
       expect(stats1.totalWorkers).toBe(stats2.totalWorkers);
       expect(stats1.busyWorkers).toBe(stats2.busyWorkers);

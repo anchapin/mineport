@@ -306,7 +306,7 @@ export class LLMTranslator {
         warnings.push({
           type: 'response_parsing_warning',
           message: 'Could not parse structured LLM response',
-          severity: 'warning',
+          severity: 'warning' as const,
           location: { line: segment.context.lineNumber, column: 0, offset: 0 },
           suggestion: 'Verify generated code manually',
         });
