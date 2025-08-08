@@ -2,7 +2,7 @@
  * Type definitions for conversion agents
  */
 
-import { ConversionError, AssetConversionNote } from '../../types/errors';
+import { ConversionError, AssetConversionNote } from '../../types/errors.js';
 
 /**
  * Information about a texture to be converted
@@ -23,7 +23,17 @@ export interface TextureInfo {
 export interface SoundInfo {
   path: string;
   name: string;
-  category: 'ambient' | 'block' | 'hostile' | 'master' | 'music' | 'neutral' | 'player' | 'record' | 'voice' | 'weather';
+  category:
+    | 'ambient'
+    | 'block'
+    | 'hostile'
+    | 'master'
+    | 'music'
+    | 'neutral'
+    | 'player'
+    | 'record'
+    | 'voice'
+    | 'weather';
   buffer: Buffer;
   format: string;
   duration?: number;

@@ -7,9 +7,9 @@ interface Archiver {
   on(event: string, callback: (err?: Error) => void): Archiver;
   /**
    * pipe method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -17,9 +17,9 @@ interface Archiver {
   pipe(destination: NodeJS.WritableStream): Archiver;
   /**
    * directory method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -27,9 +27,9 @@ interface Archiver {
   directory(localPath: string, destPath: string): Archiver;
   /**
    * file method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -37,9 +37,9 @@ interface Archiver {
   file(localPath: string, destPath: string): Archiver;
   /**
    * append method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -47,9 +47,9 @@ interface Archiver {
   append(data: string | Buffer, options: { name: string }): Archiver;
   /**
    * finalize method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -201,7 +201,7 @@ interface BedrockLootTable {
 /**
  * AddonPackager class responsible for generating .mcaddon file structure,
  * assembling components, and including metadata in the package.
- * 
+ *
  * This class handles:
  * 1. Creating the proper directory structure for Bedrock addons
  * 2. Assembling all components (assets, configs, scripts) into the correct locations
@@ -220,45 +220,45 @@ export class AddonPackager {
     const behaviorPackDir = path.join(tempDir, 'behavior_pack');
     const resourcePackDir = path.join(tempDir, 'resource_pack');
     const docsDir = path.join(tempDir, 'documentation');
-    
+
     // Ensure directories exist
     await this.ensureDirectoryExists(tempDir);
     await this.ensureDirectoryExists(behaviorPackDir);
     await this.ensureDirectoryExists(resourcePackDir);
     await this.ensureDirectoryExists(docsDir);
-    
+
     // Generate pack names with version for better identification
     const packName = input.bedrockConfigs.manifests.behaviorPack.header.name;
     const packVersion = input.bedrockConfigs.manifests.behaviorPack.header.version.join('.');
     const sanitizedName = packName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    
+
     // Assemble behavior pack
     await this.assembleBehaviorPack(behaviorPackDir, input);
-    
+
     // Assemble resource pack
     await this.assembleResourcePack(resourcePackDir, input);
-    
+
     // Create documentation
     await this.createDocumentation(docsDir, input);
-    
+
     // Embed license information
     await this.embedLicenseInfo(tempDir, input.licenseInfo);
-    
+
     // Create metadata files
     await this.createMetadataFiles(tempDir, input);
-    
+
     // Create .mcaddon archive
     const mcaddonPath = path.join(input.outputPath, `${sanitizedName}_v${packVersion}.mcaddon`);
-    
+
     await this.createMcaddonArchive(mcaddonPath, tempDir);
-    
+
     return {
       mcaddonFilePath: mcaddonPath,
       behaviorPackPath: behaviorPackDir,
-      resourcePackPath: resourcePackDir
+      resourcePackPath: resourcePackDir,
     };
   }
-  
+
   /**
    * Ensures that a directory exists, creating it if necessary
    * @param directory The directory path to ensure
@@ -266,9 +266,9 @@ export class AddonPackager {
   private async ensureDirectoryExists(directory: string): Promise<void> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -277,7 +277,7 @@ export class AddonPackager {
       fs.mkdirSync(directory, { recursive: true });
     }
   }
-  
+
   /**
    * Assembles the behavior pack components
    * @param directory The directory to assemble the behavior pack in
@@ -289,16 +289,16 @@ export class AddonPackager {
       path.join(directory, 'manifest.json'),
       input.bedrockConfigs.manifests.behaviorPack
     );
-    
+
     // Create scripts directory and write JavaScript files
     const scriptsDir = path.join(directory, 'scripts');
     await this.ensureDirectoryExists(scriptsDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -308,16 +308,16 @@ export class AddonPackager {
       await this.ensureDirectoryExists(path.dirname(scriptPath));
       fs.writeFileSync(scriptPath, script.content);
     }
-    
+
     // Write block definitions
     const blocksDir = path.join(directory, 'blocks');
     await this.ensureDirectoryExists(blocksDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -327,16 +327,16 @@ export class AddonPackager {
       await this.ensureDirectoryExists(path.dirname(blockPath));
       fs.writeFileSync(blockPath, block.content);
     }
-    
+
     // Write item definitions
     const itemsDir = path.join(directory, 'items');
     await this.ensureDirectoryExists(itemsDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -346,16 +346,16 @@ export class AddonPackager {
       await this.ensureDirectoryExists(path.dirname(itemPath));
       fs.writeFileSync(itemPath, item.content);
     }
-    
+
     // Write recipes
     const recipesDir = path.join(directory, 'recipes');
     await this.ensureDirectoryExists(recipesDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -365,16 +365,16 @@ export class AddonPackager {
       await this.ensureDirectoryExists(path.dirname(recipePath));
       fs.writeFileSync(recipePath, recipe.content);
     }
-    
+
     // Write loot tables
     const lootTablesDir = path.join(directory, 'loot_tables');
     await this.ensureDirectoryExists(lootTablesDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -385,7 +385,7 @@ export class AddonPackager {
       fs.writeFileSync(lootTablePath, lootTable.content);
     }
   }
-  
+
   /**
    * Assembles the resource pack components
    * @param directory The directory to assemble the resource pack in
@@ -397,16 +397,16 @@ export class AddonPackager {
       path.join(directory, 'manifest.json'),
       input.bedrockConfigs.manifests.resourcePack
     );
-    
+
     // Write textures
     const texturesDir = path.join(directory, 'textures');
     await this.ensureDirectoryExists(texturesDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -416,16 +416,16 @@ export class AddonPackager {
       await this.ensureDirectoryExists(path.dirname(texturePath));
       fs.writeFileSync(texturePath, texture.content);
     }
-    
+
     // Write models
     const modelsDir = path.join(directory, 'models');
     await this.ensureDirectoryExists(modelsDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -435,16 +435,16 @@ export class AddonPackager {
       await this.ensureDirectoryExists(path.dirname(modelPath));
       fs.writeFileSync(modelPath, model.content);
     }
-    
+
     // Write sounds
     const soundsDir = path.join(directory, 'sounds');
     await this.ensureDirectoryExists(soundsDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -454,16 +454,16 @@ export class AddonPackager {
       await this.ensureDirectoryExists(path.dirname(soundPath));
       fs.writeFileSync(soundPath, sound.content);
     }
-    
+
     // Write particles
     const particlesDir = path.join(directory, 'particles');
     await this.ensureDirectoryExists(particlesDir);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -474,7 +474,7 @@ export class AddonPackager {
       fs.writeFileSync(particlePath, particle.content);
     }
   }
-  
+
   /**
    * Creates a .mcaddon archive from the temporary directory
    * @param mcaddonPath The path to create the .mcaddon file at
@@ -483,55 +483,55 @@ export class AddonPackager {
   private async createMcaddonArchive(mcaddonPath: string, tempDir: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const output = createWriteStream(mcaddonPath);
-      
+
       // Dynamically import archiver to avoid ESM/CommonJS issues
       const archiver = require('archiver');
       const archive = archiver('zip', {
-        zlib: { level: 9 } // Maximum compression
+        zlib: { level: 9 }, // Maximum compression
       });
-      
+
       output.on('close', () => {
         /**
          * resolve method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         resolve();
       });
-      
+
       archive.on('error', (err) => {
         /**
          * reject method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         reject(err);
       });
-      
+
       archive.pipe(output);
-      
+
       // Add the behavior and resource packs to the archive
       archive.directory(path.join(tempDir, 'behavior_pack'), 'behavior_pack');
       archive.directory(path.join(tempDir, 'resource_pack'), 'resource_pack');
-      
+
       // Add documentation directory
       archive.directory(path.join(tempDir, 'documentation'), 'documentation');
-      
+
       // Add metadata.json to the root of the archive
       const metadataPath = path.join(tempDir, 'metadata.json');
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -539,22 +539,22 @@ export class AddonPackager {
       if (fs.existsSync(metadataPath)) {
         archive.file(metadataPath, { name: 'metadata.json' });
       }
-      
+
       // Add a README.txt to the root of the archive with basic installation instructions
-      const readmeTxt = 
+      const readmeTxt =
         'INSTALLATION INSTRUCTIONS\n' +
         '=======================\n\n' +
         '1. Make sure you have Minecraft Bedrock Edition installed\n' +
         '2. Double-click the .mcaddon file to import it into Minecraft\n' +
         '3. Enable the addon in your world settings\n\n' +
         'For more detailed information, see the documentation folder.\n';
-      
+
       archive.append(readmeTxt, { name: 'README.txt' });
-      
+
       archive.finalize();
     });
   }
-  
+
   /**
    * Embeds license information in the package
    * @param directory The directory to embed the license in
@@ -565,20 +565,20 @@ export class AddonPackager {
     const behaviorPackLicensePath = path.join(directory, 'behavior_pack', 'LICENSE');
     const resourcePackLicensePath = path.join(directory, 'resource_pack', 'LICENSE');
     const docsLicensePath = path.join(directory, 'documentation', 'LICENSE');
-    
+
     // Construct license content with attributions
     let licenseContent = `${licenseInfo.text}\n\n`;
     licenseContent += 'Attributions:\n';
-    licenseInfo.attributions.forEach(attribution => {
+    licenseInfo.attributions.forEach((attribution) => {
       licenseContent += `- ${attribution}\n`;
     });
-    
+
     // Write license files
     fs.writeFileSync(behaviorPackLicensePath, licenseContent);
     fs.writeFileSync(resourcePackLicensePath, licenseContent);
     fs.writeFileSync(docsLicensePath, licenseContent);
   }
-  
+
   /**
    * Creates documentation files for the addon
    * @param directory The directory to create documentation in
@@ -590,71 +590,71 @@ export class AddonPackager {
     const packName = input.bedrockConfigs.manifests.behaviorPack.header.name;
     const packDesc = input.bedrockConfigs.manifests.behaviorPack.header.description;
     const packVersion = input.bedrockConfigs.manifests.behaviorPack.header.version.join('.');
-    
+
     let readmeContent = `# ${packName} v${packVersion}\n\n`;
     readmeContent += `${packDesc}\n\n`;
     readmeContent += `This addon was automatically converted from a Minecraft Java Edition mod using the Minecraft Mod Converter.\n\n`;
-    
+
     // Add conversion notes to README
     readmeContent += `## Conversion Notes\n\n`;
-    const infoNotes = input.conversionNotes.filter(note => note.severity === 'info');
-    const warningNotes = input.conversionNotes.filter(note => note.severity === 'warning');
-    const errorNotes = input.conversionNotes.filter(note => note.severity === 'error');
-    
+    const infoNotes = input.conversionNotes.filter((note) => note.severity === 'info');
+    const warningNotes = input.conversionNotes.filter((note) => note.severity === 'warning');
+    const errorNotes = input.conversionNotes.filter((note) => note.severity === 'error');
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (infoNotes.length > 0) {
       readmeContent += `### Information\n\n`;
-      infoNotes.forEach(note => {
+      infoNotes.forEach((note) => {
         readmeContent += `- ${note.message}\n`;
       });
       readmeContent += `\n`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (warningNotes.length > 0) {
       readmeContent += `### Warnings\n\n`;
-      warningNotes.forEach(note => {
+      warningNotes.forEach((note) => {
         readmeContent += `- ${note.message}\n`;
       });
       readmeContent += `\n`;
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (errorNotes.length > 0) {
       readmeContent += `### Errors\n\n`;
-      errorNotes.forEach(note => {
+      errorNotes.forEach((note) => {
         readmeContent += `- ${note.message}\n`;
       });
       readmeContent += `\n`;
     }
-    
+
     // Write README file
     fs.writeFileSync(readmePath, readmeContent);
-    
+
     // Create STRUCTURE.md with information about the addon structure
     const structurePath = path.join(directory, 'STRUCTURE.md');
     let structureContent = `# Addon Structure\n\n`;
@@ -665,18 +665,18 @@ export class AddonPackager {
     structureContent += `- \`items/\`: Contains item definitions\n`;
     structureContent += `- \`recipes/\`: Contains crafting recipes\n`;
     structureContent += `- \`loot_tables/\`: Contains loot tables\n\n`;
-    
+
     structureContent += `## Resource Pack\n\n`;
     structureContent += `- \`manifest.json\`: Contains metadata about the resource pack\n`;
     structureContent += `- \`textures/\`: Contains texture files\n`;
     structureContent += `- \`models/\`: Contains model files\n`;
     structureContent += `- \`sounds/\`: Contains sound files\n`;
     structureContent += `- \`particles/\`: Contains particle definitions\n`;
-    
+
     // Write STRUCTURE file
     fs.writeFileSync(structurePath, structureContent);
   }
-  
+
   /**
    * Creates metadata files for the addon
    * @param directory The directory to create metadata in
@@ -687,7 +687,7 @@ export class AddonPackager {
     // For this example, we'll just check if they exist and create placeholders if not
     const behaviorPackIconPath = path.join(directory, 'behavior_pack', 'pack_icon.png');
     const resourcePackIconPath = path.join(directory, 'resource_pack', 'pack_icon.png');
-    
+
     // Create a simple metadata.json file with information about the conversion
     const metadataPath = path.join(directory, 'metadata.json');
     const metadata = {
@@ -698,29 +698,29 @@ export class AddonPackager {
       conversionDate: new Date().toISOString(),
       converterVersion: '1.0.0', // This should be dynamically determined in a real implementation
       conversionStats: {
-        totalAssets: 
-          input.bedrockAssets.textures.length + 
-          input.bedrockAssets.models.length + 
-          input.bedrockAssets.sounds.length + 
+        totalAssets:
+          input.bedrockAssets.textures.length +
+          input.bedrockAssets.models.length +
+          input.bedrockAssets.sounds.length +
           input.bedrockAssets.particles.length,
         totalScripts: input.bedrockScripts.length,
-        totalDefinitions: 
-          input.bedrockConfigs.definitions.blocks.length + 
+        totalDefinitions:
+          input.bedrockConfigs.definitions.blocks.length +
           input.bedrockConfigs.definitions.items.length,
         totalRecipes: input.bedrockConfigs.recipes.length,
         totalLootTables: input.bedrockConfigs.lootTables.length,
         conversionNotes: {
-          info: input.conversionNotes.filter(note => note.severity === 'info').length,
-          warning: input.conversionNotes.filter(note => note.severity === 'warning').length,
-          error: input.conversionNotes.filter(note => note.severity === 'error').length
-        }
-      }
+          info: input.conversionNotes.filter((note) => note.severity === 'info').length,
+          warning: input.conversionNotes.filter((note) => note.severity === 'warning').length,
+          error: input.conversionNotes.filter((note) => note.severity === 'error').length,
+        },
+      },
     };
-    
+
     // Write metadata file
     await this.writeJsonFile(metadataPath, metadata);
   }
-  
+
   /**
    * Writes a JSON file with proper formatting
    * @param filePath The path to write the file to

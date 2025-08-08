@@ -1,7 +1,19 @@
-import { CompromiseStrategyEngine, StrategyFeedback, StrategyPerformanceReport } from '../../compromise/CompromiseStrategyEngine';
-import { Feature, FeatureType, CompromiseStrategy as CoreCompromiseStrategy } from '../../../types/compromise';
-import { UserPreferences, CompromiseStrategy as UICompromiseStrategy, CompromiseOption } from '../types';
-import { createLogger } from '../../../utils/logger';
+import {
+  CompromiseStrategyEngine,
+  StrategyFeedback,
+  StrategyPerformanceReport,
+} from '../../compromise/CompromiseStrategyEngine.js';
+import {
+  Feature,
+  FeatureType,
+  CompromiseStrategy as CoreCompromiseStrategy,
+} from '../../../types/compromise.js';
+import {
+  UserPreferences,
+  CompromiseStrategy as UICompromiseStrategy,
+  CompromiseOption,
+} from '../types.js';
+import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('CompromisePreferencesService');
 
@@ -15,9 +27,9 @@ export class CompromisePreferencesService {
 
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -29,7 +41,7 @@ export class CompromisePreferencesService {
 
   /**
    * Gets the default user preferences with all available strategies.
-   * 
+   *
    * @returns Default user preferences
    */
   private getDefaultPreferences(): UserPreferences {
@@ -46,13 +58,13 @@ export class CompromisePreferencesService {
               id: 'useParticleEffects',
               name: 'Use Particle Effects',
               value: true,
-              type: 'boolean'
+              type: 'boolean',
             },
             {
               id: 'teleportationDelay',
               name: 'Teleportation Delay (ms)',
               value: 1000,
-              type: 'number'
+              type: 'number',
             },
             {
               id: 'simulationQuality',
@@ -62,10 +74,10 @@ export class CompromisePreferencesService {
               options: [
                 { label: 'Low', value: 'low' },
                 { label: 'Medium', value: 'medium' },
-                { label: 'High', value: 'high' }
-              ]
-            }
-          ]
+                { label: 'High', value: 'high' },
+              ],
+            },
+          ],
         },
         {
           id: 'rendering-stub',
@@ -77,7 +89,7 @@ export class CompromisePreferencesService {
               id: 'includeWarnings',
               name: 'Include Console Warnings',
               value: true,
-              type: 'boolean'
+              type: 'boolean',
             },
             {
               id: 'stubDetail',
@@ -87,10 +99,10 @@ export class CompromisePreferencesService {
               options: [
                 { label: 'Minimal', value: 'minimal' },
                 { label: 'Basic', value: 'basic' },
-                { label: 'Detailed', value: 'detailed' }
-              ]
-            }
-          ]
+                { label: 'Detailed', value: 'detailed' },
+              ],
+            },
+          ],
         },
         {
           id: 'form-mapping',
@@ -102,7 +114,7 @@ export class CompromisePreferencesService {
               id: 'preserveLayout',
               name: 'Preserve Original Layout',
               value: true,
-              type: 'boolean'
+              type: 'boolean',
             },
             {
               id: 'formStyle',
@@ -112,24 +124,24 @@ export class CompromisePreferencesService {
               options: [
                 { label: 'Classic', value: 'classic' },
                 { label: 'Modern', value: 'modern' },
-                { label: 'Minimal', value: 'minimal' }
-              ]
-            }
-          ]
-        }
+                { label: 'Minimal', value: 'minimal' },
+              ],
+            },
+          ],
+        },
       ],
       conversionOptions: {
         generateDebugInfo: false,
         optimizeOutput: true,
         includeComments: true,
-        targetMinecraftVersion: '1.20'
-      }
+        targetMinecraftVersion: '1.20',
+      },
     };
   }
 
   /**
    * Updates user preferences and reconfigures strategies accordingly.
-   * 
+   *
    * @param preferences The new user preferences
    */
   public updatePreferences(preferences: UserPreferences): void {
@@ -140,7 +152,7 @@ export class CompromisePreferencesService {
 
   /**
    * Gets the current user preferences.
-   * 
+   *
    * @returns Current user preferences
    */
   public getPreferences(): UserPreferences {
@@ -154,9 +166,9 @@ export class CompromisePreferencesService {
     // Register custom strategies based on user preferences
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -164,23 +176,23 @@ export class CompromisePreferencesService {
     for (const uiStrategy of this.userPreferences.compromiseStrategies) {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (uiStrategy.isEnabled) {
         const coreStrategy = this.convertUIStrategyToCoreStrategy(uiStrategy);
-        
+
         // Determine feature type based on strategy ID
         const featureType = this.getFeatureTypeFromStrategyId(uiStrategy.id);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -194,11 +206,13 @@ export class CompromisePreferencesService {
 
   /**
    * Converts a UI compromise strategy to a core compromise strategy.
-   * 
+   *
    * @param uiStrategy The UI strategy
    * @returns Core compromise strategy
    */
-  private convertUIStrategyToCoreStrategy(uiStrategy: UICompromiseStrategy): CoreCompromiseStrategy {
+  private convertUIStrategyToCoreStrategy(
+    uiStrategy: UICompromiseStrategy
+  ): CoreCompromiseStrategy {
     return {
       id: uiStrategy.id,
       name: uiStrategy.name,
@@ -210,24 +224,27 @@ export class CompromisePreferencesService {
       apply: (feature: Feature) => {
         // Apply strategy with user-configured options
         return this.applyStrategyWithPreferences(uiStrategy, feature);
-      }
+      },
     };
   }
 
   /**
    * Determines if a strategy is applicable based on user preferences.
-   * 
+   *
    * @param uiStrategy The UI strategy
    * @param feature The feature to check
    * @returns Whether the strategy is applicable
    */
-  private isStrategyApplicableWithPreferences(uiStrategy: UICompromiseStrategy, feature: Feature): boolean {
+  private isStrategyApplicableWithPreferences(
+    uiStrategy: UICompromiseStrategy,
+    feature: Feature
+  ): boolean {
     // Base applicability check
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -239,9 +256,9 @@ export class CompromisePreferencesService {
     // Strategy-specific applicability based on feature type and tier
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -260,19 +277,19 @@ export class CompromisePreferencesService {
 
   /**
    * Applies a strategy with user-configured preferences.
-   * 
+   *
    * @param uiStrategy The UI strategy
    * @param feature The feature to apply the strategy to
    * @returns Strategy result
    */
   private applyStrategyWithPreferences(uiStrategy: UICompromiseStrategy, feature: Feature): any {
     const options = this.getStrategyOptions(uiStrategy);
-    
+
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -284,52 +301,52 @@ export class CompromisePreferencesService {
           name: 'Dimension Simulation',
           description: `Simulates the ${feature.name} dimension using teleportation and visual effects`,
           implementationDetails: this.generateDimensionImplementationDetails(options),
-          limitations: this.generateDimensionLimitations(options)
+          limitations: this.generateDimensionLimitations(options),
         };
-      
+
       case 'rendering-stub':
         return {
           type: 'stubbing',
           name: 'Rendering Stub',
           description: `Stubs out advanced rendering for ${feature.name}`,
           implementationDetails: this.generateRenderingImplementationDetails(options),
-          limitations: this.generateRenderingLimitations(options)
+          limitations: this.generateRenderingLimitations(options),
         };
-      
+
       case 'form-mapping':
         return {
           type: 'approximation',
           name: 'UI Form Mapping',
           description: `Maps ${feature.name} UI to Bedrock forms`,
           implementationDetails: this.generateUIImplementationDetails(options),
-          limitations: this.generateUILimitations(options)
+          limitations: this.generateUILimitations(options),
         };
-      
+
       default:
         return {
           type: 'approximation',
           name: uiStrategy.name,
           description: `Applied ${uiStrategy.name} to ${feature.name}`,
           implementationDetails: 'Custom implementation based on user preferences',
-          limitations: ['Custom strategy limitations apply']
+          limitations: ['Custom strategy limitations apply'],
         };
     }
   }
 
   /**
    * Gets strategy options as a key-value map.
-   * 
+   *
    * @param uiStrategy The UI strategy
    * @returns Options map
    */
   private getStrategyOptions(uiStrategy: UICompromiseStrategy): Map<string, any> {
     const options = new Map<string, any>();
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -337,9 +354,9 @@ export class CompromisePreferencesService {
     if (uiStrategy.options) {
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -348,7 +365,7 @@ export class CompromisePreferencesService {
         options.set(option.id, option.value);
       }
     }
-    
+
     return options;
   }
 
@@ -359,14 +376,14 @@ export class CompromisePreferencesService {
     const useParticles = options.get('useParticleEffects') ?? true;
     const delay = options.get('teleportationDelay') ?? 1000;
     const quality = options.get('simulationQuality') ?? 'medium';
-    
+
     let details = 'Uses teleportation to a designated area';
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -374,9 +391,9 @@ export class CompromisePreferencesService {
     if (useParticles) {
       details += ' with custom particle effects';
     }
-    
+
     details += `. Teleportation delay: ${delay}ms. Quality: ${quality}.`;
-    
+
     return details;
   }
 
@@ -385,18 +402,18 @@ export class CompromisePreferencesService {
    */
   private generateDimensionLimitations(options: Map<string, any>): string[] {
     const limitations = ['No true separate dimension', 'Shared world space with overworld'];
-    
+
     const quality = options.get('simulationQuality') ?? 'medium';
     if (quality === 'low') {
       limitations.push('Reduced visual effects');
     }
-    
+
     const useParticles = options.get('useParticleEffects') ?? true;
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -404,7 +421,7 @@ export class CompromisePreferencesService {
     if (!useParticles) {
       limitations.push('No particle effects');
     }
-    
+
     return limitations;
   }
 
@@ -414,14 +431,14 @@ export class CompromisePreferencesService {
   private generateRenderingImplementationDetails(options: Map<string, any>): string {
     const includeWarnings = options.get('includeWarnings') ?? true;
     const stubDetail = options.get('stubDetail') ?? 'detailed';
-    
+
     let details = `Creates ${stubDetail} stub functions`;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -429,7 +446,7 @@ export class CompromisePreferencesService {
     if (includeWarnings) {
       details += ' with console warnings';
     }
-    
+
     return details;
   }
 
@@ -438,12 +455,12 @@ export class CompromisePreferencesService {
    */
   private generateRenderingLimitations(options: Map<string, any>): string[] {
     const limitations = ['No visual rendering effects', 'Maintains logical functionality only'];
-    
+
     const stubDetail = options.get('stubDetail') ?? 'detailed';
     if (stubDetail === 'minimal') {
       limitations.push('Minimal implementation details');
     }
-    
+
     return limitations;
   }
 
@@ -453,14 +470,14 @@ export class CompromisePreferencesService {
   private generateUIImplementationDetails(options: Map<string, any>): string {
     const preserveLayout = options.get('preserveLayout') ?? true;
     const formStyle = options.get('formStyle') ?? 'modern';
-    
+
     let details = `Converts UI layout to Bedrock ${formStyle} form system`;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -468,7 +485,7 @@ export class CompromisePreferencesService {
     if (preserveLayout) {
       details += ' while preserving original layout structure';
     }
-    
+
     return details;
   }
 
@@ -477,13 +494,13 @@ export class CompromisePreferencesService {
    */
   private generateUILimitations(options: Map<string, any>): string[] {
     const limitations = ['Limited UI customization', 'Different interaction patterns'];
-    
+
     const preserveLayout = options.get('preserveLayout') ?? true;
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -491,22 +508,22 @@ export class CompromisePreferencesService {
     if (!preserveLayout) {
       limitations.push('Original layout structure may be modified');
     }
-    
+
     return limitations;
   }
 
   /**
    * Gets the feature type from a strategy ID.
-   * 
+   *
    * @param strategyId The strategy ID
    * @returns Feature type or null
    */
   private getFeatureTypeFromStrategyId(strategyId: string): FeatureType | null {
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -525,30 +542,30 @@ export class CompromisePreferencesService {
 
   /**
    * Previews the effects of applying strategies with current preferences.
-   * 
+   *
    * @param features The features to preview strategies for
    * @returns Preview results
    */
   public previewStrategyEffects(features: Feature[]): StrategyPreview[] {
     const previews: StrategyPreview[] = [];
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     for (const feature of features) {
       const applicableStrategies = this.getApplicableStrategiesForFeature(feature);
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -556,14 +573,14 @@ export class CompromisePreferencesService {
       if (applicableStrategies.length > 0) {
         const selectedStrategy = applicableStrategies[0]; // Select first applicable
         const previewResult = this.applyStrategyWithPreferences(selectedStrategy, feature);
-        
+
         previews.push({
           featureId: feature.id,
           featureName: feature.name,
           strategyId: selectedStrategy.id,
           strategyName: selectedStrategy.name,
           previewResult,
-          userConfigurable: true
+          userConfigurable: true,
         });
       } else {
         previews.push({
@@ -572,29 +589,29 @@ export class CompromisePreferencesService {
           strategyId: null,
           strategyName: 'No applicable strategy',
           previewResult: null,
-          userConfigurable: false
+          userConfigurable: false,
         });
       }
     }
-    
+
     return previews;
   }
 
   /**
    * Gets applicable strategies for a feature based on user preferences.
-   * 
+   *
    * @param feature The feature
    * @returns Applicable UI strategies
    */
   private getApplicableStrategiesForFeature(feature: Feature): UICompromiseStrategy[] {
-    return this.userPreferences.compromiseStrategies.filter(strategy => 
+    return this.userPreferences.compromiseStrategies.filter((strategy) =>
       this.isStrategyApplicableWithPreferences(strategy, feature)
     );
   }
 
   /**
    * Collects user feedback for a strategy and forwards it to the engine.
-   * 
+   *
    * @param feedback The strategy feedback
    */
   public collectUserFeedback(feedback: StrategyFeedback): void {
@@ -604,7 +621,7 @@ export class CompromisePreferencesService {
 
   /**
    * Gets strategy performance report from the engine.
-   * 
+   *
    * @returns Strategy performance report
    */
   public getStrategyPerformanceReport(): StrategyPerformanceReport {

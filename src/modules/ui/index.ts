@@ -1,9 +1,9 @@
 /**
  * User Interface Module
- * 
+ *
  * This module provides the React-based user interface for the Minecraft Mod Converter.
  * It includes components, pages, hooks, services, and type definitions for the frontend.
- * 
+ *
  * Public API:
  * - components: React components for UI elements
  * - pages: Main application pages
@@ -14,9 +14,9 @@
  */
 
 // Export all submodules
-export * from './components';
-export * from './pages';
-export * from './hooks';
-export * from './services';
-export * from './types';
-export * from './context';
+export * from './components.js';
+export * from './pages.js';
+export * from './hooks.js';
+export * from './services.js';
+export * from './types.js';
+export * from './context.js';

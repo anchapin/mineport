@@ -60,7 +60,11 @@ export interface SystemHealthMetric {
   timestamp: Date;
 }
 
-export type Metric = SecurityMetric | PerformanceMetric | ConversionQualityMetric | SystemHealthMetric;
+export type Metric =
+  | SecurityMetric
+  | PerformanceMetric
+  | ConversionQualityMetric
+  | SystemHealthMetric;
 
 /**
  * Aggregated metrics for reporting
@@ -140,7 +144,7 @@ export class MonitoringService extends EventEmitter {
     super();
     this.config = config;
     this.initializeDefaultAlertRules();
-    
+
     if (config.enableHealthChecks) {
       this.startHealthChecks();
     }
@@ -153,7 +157,7 @@ export class MonitoringService extends EventEmitter {
     const fullMetric: SecurityMetric = {
       ...metric,
       type: 'security_event',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     this.metrics.push(fullMetric);
@@ -163,7 +167,7 @@ export class MonitoringService extends EventEmitter {
     logger.info('Security metric recorded', {
       event: metric.event,
       severity: metric.severity,
-      details: metric.details
+      details: metric.details,
     });
   }
 
@@ -174,7 +178,7 @@ export class MonitoringService extends EventEmitter {
     const fullMetric: PerformanceMetric = {
       ...metric,
       type: 'performance',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     this.metrics.push(fullMetric);
@@ -184,7 +188,7 @@ export class MonitoringService extends EventEmitter {
     logger.debug('Performance metric recorded', {
       operation: metric.operation,
       duration: metric.duration,
-      success: metric.success
+      success: metric.success,
     });
   }
 
@@ -195,7 +199,7 @@ export class MonitoringService extends EventEmitter {
     const fullMetric: ConversionQualityMetric = {
       ...metric,
       type: 'conversion_quality',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     this.metrics.push(fullMetric);
@@ -205,7 +209,7 @@ export class MonitoringService extends EventEmitter {
     logger.info('Conversion quality metric recorded', {
       stage: metric.stage,
       success: metric.success,
-      qualityScore: metric.qualityScore
+      qualityScore: metric.qualityScore,
     });
   }
 
@@ -216,7 +220,7 @@ export class MonitoringService extends EventEmitter {
     const fullMetric: SystemHealthMetric = {
       ...metric,
       type: 'system_health',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     this.metrics.push(fullMetric);
@@ -227,7 +231,7 @@ export class MonitoringService extends EventEmitter {
       logger.warn('System health degraded', {
         component: metric.component,
         status: metric.status,
-        details: metric.details
+        details: metric.details,
       });
     }
   }
@@ -237,20 +241,28 @@ export class MonitoringService extends EventEmitter {
    */
   getMetricsSummary(startTime: Date, endTime: Date): MetricsSummary {
     const filteredMetrics = this.metrics.filter(
-      metric => metric.timestamp >= startTime && metric.timestamp <= endTime
+      (metric) => metric.timestamp >= startTime && metric.timestamp <= endTime
     );
 
-    const securityMetrics = filteredMetrics.filter(m => m.type === 'security_event') as SecurityMetric[];
-    const performanceMetrics = filteredMetrics.filter(m => m.type === 'performance') as PerformanceMetric[];
-    const qualityMetrics = filteredMetrics.filter(m => m.type === 'conversion_quality') as ConversionQualityMetric[];
-    const healthMetrics = filteredMetrics.filter(m => m.type === 'system_health') as SystemHealthMetric[];
+    const securityMetrics = filteredMetrics.filter(
+      (m) => m.type === 'security_event'
+    ) as SecurityMetric[];
+    const performanceMetrics = filteredMetrics.filter(
+      (m) => m.type === 'performance'
+    ) as PerformanceMetric[];
+    const qualityMetrics = filteredMetrics.filter(
+      (m) => m.type === 'conversion_quality'
+    ) as ConversionQualityMetric[];
+    const healthMetrics = filteredMetrics.filter(
+      (m) => m.type === 'system_health'
+    ) as SystemHealthMetric[];
 
     return {
       timeRange: { start: startTime, end: endTime },
       security: this.aggregateSecurityMetrics(securityMetrics),
       performance: this.aggregatePerformanceMetrics(performanceMetrics),
       conversionQuality: this.aggregateQualityMetrics(qualityMetrics),
-      systemHealth: this.aggregateHealthMetrics(healthMetrics)
+      systemHealth: this.aggregateHealthMetrics(healthMetrics),
     };
   }
 
@@ -258,14 +270,14 @@ export class MonitoringService extends EventEmitter {
    * Get all active alerts
    */
   getActiveAlerts(): Alert[] {
-    return this.alerts.filter(alert => !alert.resolved);
+    return this.alerts.filter((alert) => !alert.resolved);
   }
 
   /**
    * Resolve an alert
    */
   resolveAlert(alertId: string): boolean {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert && !alert.resolved) {
       alert.resolved = true;
       alert.resolvedAt = new Date();
@@ -299,15 +311,21 @@ export class MonitoringService extends EventEmitter {
    */
   getHealthStatus(): Record<string, string> {
     const recentHealthMetrics = this.metrics
-      .filter(m => m.type === 'system_health' && 
-               m.timestamp > new Date(Date.now() - 5 * 60 * 1000)) // Last 5 minutes
+      .filter(
+        (m) => m.type === 'system_health' && m.timestamp > new Date(Date.now() - 5 * 60 * 1000)
+      ) // Last 5 minutes
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()) as SystemHealthMetric[];
 
     const componentStatus: Record<string, string> = {};
-    const components = ['file_processor', 'java_analyzer', 'asset_converter', 'validation_pipeline'];
+    const components = [
+      'file_processor',
+      'java_analyzer',
+      'asset_converter',
+      'validation_pipeline',
+    ];
 
     for (const component of components) {
-      const latestMetric = recentHealthMetrics.find(m => m.component === component);
+      const latestMetric = recentHealthMetrics.find((m) => m.component === component);
       componentStatus[component] = latestMetric?.status || 'unknown';
     }
 
@@ -320,9 +338,9 @@ export class MonitoringService extends EventEmitter {
   cleanupOldMetrics(): void {
     const cutoffTime = new Date(Date.now() - this.metricsRetentionPeriod);
     const initialCount = this.metrics.length;
-    
-    this.metrics = this.metrics.filter(metric => metric.timestamp > cutoffTime);
-    
+
+    this.metrics = this.metrics.filter((metric) => metric.timestamp > cutoffTime);
+
     const removedCount = initialCount - this.metrics.length;
     if (removedCount > 0) {
       logger.info('Cleaned up old metrics', { removedCount, totalMetrics: this.metrics.length });
@@ -350,10 +368,12 @@ export class MonitoringService extends EventEmitter {
     // Check memory usage
     const memoryUsageMB = memoryUsage.heapUsed / 1024 / 1024;
     let memoryStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-    
-    if (memoryUsageMB > 1000) { // > 1GB
+
+    if (memoryUsageMB > 1000) {
+      // > 1GB
       memoryStatus = 'unhealthy';
-    } else if (memoryUsageMB > 500) { // > 500MB
+    } else if (memoryUsageMB > 500) {
+      // > 500MB
       memoryStatus = 'degraded';
     }
 
@@ -362,8 +382,8 @@ export class MonitoringService extends EventEmitter {
       status: memoryStatus,
       details: {
         memoryUsage: memoryUsageMB,
-        cpuUsage: (cpuUsage.user + cpuUsage.system) / 1000000 // Convert to seconds
-      }
+        cpuUsage: (cpuUsage.user + cpuUsage.system) / 1000000, // Convert to seconds
+      },
     });
   }
 
@@ -375,8 +395,7 @@ export class MonitoringService extends EventEmitter {
       if (!rule.enabled) continue;
 
       // Check cooldown
-      if (rule.lastTriggered && 
-          Date.now() - rule.lastTriggered.getTime() < rule.cooldown) {
+      if (rule.lastTriggered && Date.now() - rule.lastTriggered.getTime() < rule.cooldown) {
         continue;
       }
 
@@ -392,9 +411,9 @@ export class MonitoringService extends EventEmitter {
   private evaluateAlertRule(rule: AlertRule, metric: Metric): boolean {
     // Simple rule evaluation - in production this would be more sophisticated
     const { condition } = rule;
-    
+
     let value: number | undefined;
-    
+
     // Extract relevant value from metric based on rule condition
     switch (condition.metric) {
       case 'security_threat_count':
@@ -418,12 +437,18 @@ export class MonitoringService extends EventEmitter {
 
     // Evaluate condition
     switch (condition.operator) {
-      case 'gt': return value > condition.threshold;
-      case 'gte': return value >= condition.threshold;
-      case 'lt': return value < condition.threshold;
-      case 'lte': return value <= condition.threshold;
-      case 'eq': return value === condition.threshold;
-      default: return false;
+      case 'gt':
+        return value > condition.threshold;
+      case 'gte':
+        return value >= condition.threshold;
+      case 'lt':
+        return value < condition.threshold;
+      case 'lte':
+        return value <= condition.threshold;
+      case 'eq':
+        return value === condition.threshold;
+      default:
+        return false;
     }
   }
 
@@ -438,18 +463,18 @@ export class MonitoringService extends EventEmitter {
       severity: rule.severity,
       timestamp: new Date(),
       resolved: false,
-      metadata: { metric }
+      metadata: { metric },
     };
 
     this.alerts.push(alert);
     rule.lastTriggered = new Date();
 
     this.emit('alert:triggered', alert);
-    
+
     logger.warn('Alert triggered', {
       alertId: alert.id,
       ruleName: rule.name,
-      severity: alert.severity
+      severity: alert.severity,
     });
 
     // Send webhook notification if configured
@@ -466,16 +491,16 @@ export class MonitoringService extends EventEmitter {
       const response = await fetch(this.config.alertingWebhookUrl!, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           alert: {
             id: alert.id,
             message: alert.message,
             severity: alert.severity,
-            timestamp: alert.timestamp
-          }
-        })
+            timestamp: alert.timestamp,
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -484,9 +509,9 @@ export class MonitoringService extends EventEmitter {
 
       logger.info('Alert webhook sent successfully', { alertId: alert.id });
     } catch (error) {
-      logger.error('Failed to send alert webhook', { 
-        alertId: alert.id, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      logger.error('Failed to send alert webhook', {
+        alertId: alert.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -503,11 +528,11 @@ export class MonitoringService extends EventEmitter {
           metric: 'memory_usage',
           operator: 'gt',
           threshold: 800, // MB
-          timeWindow: 60000 // 1 minute
+          timeWindow: 60000, // 1 minute
         },
         severity: 'high',
         enabled: true,
-        cooldown: 300000 // 5 minutes
+        cooldown: 300000, // 5 minutes
       },
       {
         id: 'security_threat_detected',
@@ -516,11 +541,11 @@ export class MonitoringService extends EventEmitter {
           metric: 'security_threat_count',
           operator: 'gte',
           threshold: 1,
-          timeWindow: 1000 // 1 second
+          timeWindow: 1000, // 1 second
         },
         severity: 'critical',
         enabled: true,
-        cooldown: 60000 // 1 minute
+        cooldown: 60000, // 1 minute
       },
       {
         id: 'slow_performance',
@@ -529,12 +554,12 @@ export class MonitoringService extends EventEmitter {
           metric: 'performance_duration',
           operator: 'gt',
           threshold: 30000, // 30 seconds
-          timeWindow: 60000 // 1 minute
+          timeWindow: 60000, // 1 minute
         },
         severity: 'medium',
         enabled: true,
-        cooldown: 300000 // 5 minutes
-      }
+        cooldown: 300000, // 5 minutes
+      },
     ];
 
     for (const rule of defaultRules) {
@@ -552,7 +577,8 @@ export class MonitoringService extends EventEmitter {
 
     for (const metric of metrics) {
       if (metric.event === 'threat_detected' && metric.details.threatType) {
-        threatsByType[metric.details.threatType] = (threatsByType[metric.details.threatType] || 0) + 1;
+        threatsByType[metric.details.threatType] =
+          (threatsByType[metric.details.threatType] || 0) + 1;
       }
       if (metric.details.scanDuration) {
         totalScanTime += metric.details.scanDuration;
@@ -561,10 +587,10 @@ export class MonitoringService extends EventEmitter {
     }
 
     return {
-      totalScans: metrics.filter(m => m.event === 'scan_completed').length,
-      threatsDetected: metrics.filter(m => m.event === 'threat_detected').length,
+      totalScans: metrics.filter((m) => m.event === 'scan_completed').length,
+      threatsDetected: metrics.filter((m) => m.event === 'threat_detected').length,
       averageScanTime: scanCount > 0 ? totalScanTime / scanCount : 0,
-      threatsByType
+      threatsByType,
     };
   }
 
@@ -583,7 +609,7 @@ export class MonitoringService extends EventEmitter {
       totalOperations: metrics.length,
       averageDuration: metrics.length > 0 ? totalDuration / metrics.length : 0,
       successRate: metrics.length > 0 ? successCount / metrics.length : 0,
-      operationsByType
+      operationsByType,
     };
   }
 
@@ -599,7 +625,7 @@ export class MonitoringService extends EventEmitter {
       } else {
         successCount++;
       }
-      
+
       if (metric.qualityScore !== undefined) {
         totalQualityScore += metric.qualityScore;
         qualityScoreCount++;
@@ -610,7 +636,7 @@ export class MonitoringService extends EventEmitter {
       totalConversions: metrics.length,
       successRate: metrics.length > 0 ? successCount / metrics.length : 0,
       averageQualityScore: qualityScoreCount > 0 ? totalQualityScore / qualityScoreCount : 0,
-      errorsByStage
+      errorsByStage,
     };
   }
 
@@ -624,8 +650,10 @@ export class MonitoringService extends EventEmitter {
     // Get latest status for each component
     const latestByComponent: Record<string, SystemHealthMetric> = {};
     for (const metric of metrics) {
-      if (!latestByComponent[metric.component] || 
-          metric.timestamp > latestByComponent[metric.component].timestamp) {
+      if (
+        !latestByComponent[metric.component] ||
+        metric.timestamp > latestByComponent[metric.component].timestamp
+      ) {
         latestByComponent[metric.component] = metric;
       }
 
@@ -656,7 +684,7 @@ export class MonitoringService extends EventEmitter {
       componentStatus,
       averageMemoryUsage: memoryCount > 0 ? totalMemoryUsage / memoryCount : 0,
       averageCpuUsage: cpuCount > 0 ? totalCpuUsage / cpuCount : 0,
-      overallHealth
+      overallHealth,
     };
   }
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { CompromiseStrategy, UserPreferences } from '../types';
-import { CompromisePreferencesService, StrategyPreview } from '../services/CompromisePreferencesService';
-import { StrategyPreviewPanel } from './StrategyPreviewPanel';
-import { Feature } from '../../../types/compromise';
+import { CompromiseStrategy, UserPreferences } from '../types.js';
+import { CompromisePreferencesService, StrategyPreview } from '../services/CompromisePreferencesService.js';
+import { StrategyPreviewPanel } from './StrategyPreviewPanel.js';
+import { Feature } from '../../../types/compromise.js';
 
 interface SettingsPanelProps {
   preferences: UserPreferences;

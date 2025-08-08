@@ -1,10 +1,10 @@
 /**
  * Smart Compromise Framework Module
- * 
+ *
  * This module implements intelligent compromise strategies for handling features
  * that cannot be directly translated from Java mods to Bedrock addons.
  * It provides simulation, stubbing, and approximation strategies.
- * 
+ *
  * Public API:
  * - CompromiseStrategyEngine: Main engine for selecting and applying compromise strategies
  * - DimensionSimulator: Simulates Java dimension features in Bedrock
@@ -14,11 +14,11 @@
  */
 
 // Export all individual components
-export * from './CompromiseStrategyEngine';
-export * from './DimensionSimulator';
-export * from './RenderingStubGenerator';
-export * from './UIFlowMapper';
-export * from './WarningLogger';
+export * from './CompromiseStrategyEngine.js';
+export * from './DimensionSimulator.js';
+export * from './RenderingStubGenerator.js';
+export * from './UIFlowMapper.js';
+export * from './WarningLogger.js';
 
 // Re-export the main engine as default for convenience
-export { CompromiseStrategyEngine as default } from './CompromiseStrategyEngine';
+export { CompromiseStrategyEngine as default } from './CompromiseStrategyEngine.js';

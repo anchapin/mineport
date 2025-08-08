@@ -1,12 +1,12 @@
-import logger from './logger';
-import { 
-  ConversionError, 
-  ErrorType, 
-  ErrorSeverity, 
-  createConversionError, 
-  createErrorCode 
-} from '../types/errors';
-import { ErrorCollector } from '../services/ErrorCollector';
+import logger from './logger.js';
+import {
+  ConversionError,
+  ErrorType,
+  ErrorSeverity,
+  createConversionError,
+  createErrorCode,
+} from '../types/errors.js';
+import { ErrorCollector } from '../services/ErrorCollector.js';
 
 // Global error collector instance
 export const globalErrorCollector = new ErrorCollector();
@@ -23,9 +23,9 @@ export class ErrorHandler {
     // If it's already a ConversionError, just log it
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -35,7 +35,7 @@ export class ErrorHandler {
       globalErrorCollector.addError(error);
       return error;
     }
-    
+
     // Convert to ConversionError with system type
     const conversionError = createConversionError({
       code: createErrorCode(moduleId || 'SYS', 'ERR', 1),
@@ -46,154 +46,205 @@ export class ErrorHandler {
       details: {
         originalError: error.name,
         stack: error.stack,
-      }
+      },
     });
-    
+
     logger.error(conversionError.message, { error: conversionError });
     globalErrorCollector.addError(conversionError);
     return conversionError;
   }
-  
+
   /**
    * Create a validation error
    */
-  static validationError(message: string, moduleId: string, details?: any, code?: string): ConversionError {
+  static validationError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'VAL', 1),
       type: ErrorType.VALIDATION,
       severity: ErrorSeverity.WARNING,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create an asset error
    */
-  static assetError(message: string, moduleId: string, details?: any, severity: ErrorSeverity = ErrorSeverity.ERROR, code?: string): ConversionError {
+  static assetError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'ASSET', 1),
       type: ErrorType.ASSET,
       severity,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a config error
    */
-  static configError(message: string, moduleId: string, details?: any, severity: ErrorSeverity = ErrorSeverity.ERROR, code?: string): ConversionError {
+  static configError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'CFG', 1),
       type: ErrorType.CONFIG,
       severity,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a logic error
    */
-  static logicError(message: string, moduleId: string, details?: any, severity: ErrorSeverity = ErrorSeverity.ERROR, code?: string): ConversionError {
+  static logicError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'LOGIC', 1),
       type: ErrorType.LOGIC,
       severity,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a system error
    */
-  static systemError(message: string, moduleId: string, details?: any, severity: ErrorSeverity = ErrorSeverity.ERROR, code?: string): ConversionError {
+  static systemError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'SYS', 1),
       type: ErrorType.SYSTEM,
       severity,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a network error
    */
-  static networkError(message: string, moduleId: string, details?: any, severity: ErrorSeverity = ErrorSeverity.ERROR, code?: string): ConversionError {
+  static networkError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'NET', 1),
       type: ErrorType.NETWORK,
       severity,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a resource error
    */
-  static resourceError(message: string, moduleId: string, details?: any, severity: ErrorSeverity = ErrorSeverity.WARNING, code?: string): ConversionError {
+  static resourceError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    severity: ErrorSeverity = ErrorSeverity.WARNING,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'RES', 1),
       type: ErrorType.RESOURCE,
       severity,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a security error
    */
-  static securityError(message: string, moduleId: string, details?: any, code?: string): ConversionError {
+  static securityError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'SEC', 1),
       type: ErrorType.SECURITY,
       severity: ErrorSeverity.CRITICAL,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a user error
    */
-  static userError(message: string, moduleId: string, details?: any, code?: string): ConversionError {
+  static userError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'USER', 1),
       type: ErrorType.USER,
@@ -201,47 +252,58 @@ export class ErrorHandler {
       message,
       moduleOrigin: moduleId,
       details,
-      userMessage: message // For user errors, use the same message
+      userMessage: message, // For user errors, use the same message
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a compromise error
    */
-  static compromiseError(message: string, moduleId: string, details?: any, severity: ErrorSeverity = ErrorSeverity.WARNING, code?: string): ConversionError {
+  static compromiseError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    severity: ErrorSeverity = ErrorSeverity.WARNING,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'COMP', 1),
       type: ErrorType.COMPROMISE,
       severity,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Create a critical error
    */
-  static criticalError(message: string, moduleId: string, details?: any, code?: string): ConversionError {
+  static criticalError(
+    message: string,
+    moduleId: string,
+    details?: any,
+    code?: string
+  ): ConversionError {
     const error = createConversionError({
       code: code || createErrorCode(moduleId, 'CRIT', 1),
       type: ErrorType.SYSTEM,
       severity: ErrorSeverity.CRITICAL,
       message,
       moduleOrigin: moduleId,
-      details
+      details,
     });
-    
+
     globalErrorCollector.addError(error);
     return error;
   }
-  
+
   /**
    * Try to execute a function and handle any errors
    */
@@ -253,23 +315,23 @@ export class ErrorHandler {
     try {
       return await fn();
     } catch (error) {
-      const handledError = errorHandler 
+      const handledError = errorHandler
         ? errorHandler(error instanceof Error ? error : new Error(String(error)))
         : this.handleError(error instanceof Error ? error : new Error(String(error)), moduleId);
-      
+
       throw handledError;
     }
   }
-  
+
   /**
    * Create a user-friendly error response for API endpoints
    */
   static createErrorResponse(error: Error | ConversionError): ErrorResponse {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -281,30 +343,30 @@ export class ErrorHandler {
           message: error.userMessage || error.message,
           type: error.type.toString(),
           code: error.code,
-          severity: error.severity.toString()
+          severity: error.severity.toString(),
         },
       };
     }
-    
+
     return {
       success: false,
       error: {
         message: 'An unexpected error occurred. Please try again later.',
         type: ErrorType.SYSTEM.toString(),
-        severity: ErrorSeverity.ERROR.toString()
+        severity: ErrorSeverity.ERROR.toString(),
       },
     };
   }
-  
+
   /**
    * Type guard to check if an error is a ConversionError
    */
   static isConversionError(error: any): error is ConversionError {
     /**
      * return method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -350,7 +412,7 @@ export function withErrorHandling<T, U>(
         error instanceof Error ? error : new Error(String(error)),
         moduleId
       );
-      
+
       return ErrorHandler.createErrorResponse(handledError);
     }
   };

@@ -1,18 +1,17 @@
 /**
  * MMIRGenerator.test.ts
- * 
+ *
  * Unit tests for the MMIRGenerator class
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  MMIRGenerator, 
-  MMIRNodeType, 
-  MMIRRelationshipType,
+import {
+  MMIRGenerator,
+  MMIRNodeType,
   ForgeModParser,
-  FabricModParser
-} from '../../../../src/modules/logic/MMIRGenerator';
-import { JavaASTNode, JavaParser } from '../../../../src/modules/logic/JavaParser';
+  FabricModParser,
+} from '../../../../src/modules/logic/MMIRGenerator.js';
+import { JavaParser } from '../../../../src/modules/logic/JavaParser.js';
 
 describe('MMIRGenerator', () => {
   let generator: MMIRGenerator;
@@ -44,23 +43,23 @@ describe('MMIRGenerator', () => {
             }
         }
       `;
-      
+
       // Parse the Java source
       const parseResult = javaParser.parseSource(forgeModSource, 'ExampleMod.java');
-      
+
       // Generate MMIR
       const mmirContext = generator.generateMMIR(
         [{ ast: parseResult.ast, sourceFile: 'ExampleMod.java' }],
         'forge',
         { modName: 'Example Mod', modVersion: '1.0.0' }
       );
-      
+
       // Verify the MMIR context
       expect(mmirContext).toBeDefined();
       expect(mmirContext.metadata.modLoader).toBe('forge');
       expect(mmirContext.metadata.modName).toBe('Example Mod');
       expect(mmirContext.metadata.modVersion).toBe('1.0.0');
-      
+
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
       expect(mmirContext.nodes.length).toBeGreaterThan(0);
@@ -83,23 +82,23 @@ describe('MMIRGenerator', () => {
             }
         }
       `;
-      
+
       // Parse the Java source
       const parseResult = javaParser.parseSource(fabricModSource, 'ExampleMod.java');
-      
+
       // Generate MMIR
       const mmirContext = generator.generateMMIR(
         [{ ast: parseResult.ast, sourceFile: 'ExampleMod.java' }],
         'fabric',
         { modId: 'examplemod', modName: 'Example Mod', modVersion: '1.0.0' }
       );
-      
+
       // Verify the MMIR context
       expect(mmirContext).toBeDefined();
       expect(mmirContext.metadata.modLoader).toBe('fabric');
       expect(mmirContext.metadata.modId).toBe('examplemod');
       expect(mmirContext.metadata.modName).toBe('Example Mod');
-      
+
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
       expect(mmirContext.nodes.length).toBeGreaterThan(0);
@@ -135,20 +134,20 @@ describe('ForgeModParser', () => {
             }
         }
       `;
-      
+
       // Parse the Java source
       const parseResult = javaParser.parseSource(forgeModSource, 'ExampleMod.java');
-      
+
       // Parse the AST
-      const { nodes, relationships } = parser.parse(parseResult.ast, 'ExampleMod.java');
-      
+      const { nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
+
       // Verify the results
       expect(nodes.length).toBeGreaterThan(0);
-      
+
       // Find the mod declaration node
-      const modNode = nodes.find(node => node.type === MMIRNodeType.ModDeclaration);
+      const modNode = nodes.find((node) => node.type === MMIRNodeType.ModDeclaration);
       expect(modNode).toBeDefined();
-      
+
       // In a real test, we would verify more aspects of the parsed nodes and relationships
     });
 
@@ -163,17 +162,17 @@ describe('ForgeModParser', () => {
             // Mod class
         }
       `;
-      
+
       // Parse the Java source
       const parseResult = javaParser.parseSource(forgeModSource, 'ExampleMod.java');
-      
+
       // Extract metadata
       const metadata = parser.extractMetadata(parseResult.ast);
-      
+
       // Verify the metadata
       expect(metadata).toBeDefined();
       expect(metadata.modLoader).toBe('forge');
-      
+
       // In a real implementation, we would verify that the modId was extracted correctly
       // but our simplified implementation doesn't actually extract it
     });
@@ -205,20 +204,20 @@ describe('FabricModParser', () => {
             }
         }
       `;
-      
+
       // Parse the Java source
       const parseResult = javaParser.parseSource(fabricModSource, 'ExampleMod.java');
-      
+
       // Parse the AST
-      const { nodes, relationships } = parser.parse(parseResult.ast, 'ExampleMod.java');
-      
+      const { nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
+
       // Verify the results
       expect(nodes.length).toBeGreaterThan(0);
-      
+
       // Find the mod declaration node
-      const modNode = nodes.find(node => node.type === MMIRNodeType.ModDeclaration);
+      const modNode = nodes.find((node) => node.type === MMIRNodeType.ModDeclaration);
       expect(modNode).toBeDefined();
-      
+
       // In a real test, we would verify more aspects of the parsed nodes and relationships
     });
 
@@ -235,17 +234,17 @@ describe('FabricModParser', () => {
             }
         }
       `;
-      
+
       // Parse the Java source
       const parseResult = javaParser.parseSource(fabricModSource, 'ExampleMod.java');
-      
+
       // Extract metadata
       const metadata = parser.extractMetadata(parseResult.ast);
-      
+
       // Verify the metadata
       expect(metadata).toBeDefined();
       expect(metadata.modLoader).toBe('fabric');
-      
+
       // In a real implementation, we would verify more metadata
       // but our simplified implementation doesn't extract much
     });

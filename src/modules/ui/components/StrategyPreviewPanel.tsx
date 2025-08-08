@@ -1,5 +1,5 @@
 import React from 'react';
-import { StrategyPreview } from '../services/CompromisePreferencesService';
+import { StrategyPreview } from '../services/CompromisePreferencesService.js';
 
 interface StrategyPreviewPanelProps {
   previews: StrategyPreview[];

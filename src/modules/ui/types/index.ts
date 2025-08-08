@@ -1,8 +1,8 @@
 /**
  * UI Type Definitions
- * 
+ *
  * TypeScript interfaces and types for the user interface module.
- * 
+ *
  * Public API:
  * - ConversionProgress: Progress tracking for conversion process
  * - UploadState: State management for file uploads
@@ -14,7 +14,15 @@
 
 // Conversion and progress types
 export interface ConversionProgress {
-  stage: 'uploading' | 'validating' | 'analyzing' | 'assets' | 'config' | 'logic' | 'packaging' | 'complete';
+  stage:
+    | 'uploading'
+    | 'validating'
+    | 'analyzing'
+    | 'assets'
+    | 'config'
+    | 'logic'
+    | 'packaging'
+    | 'complete';
   percentage: number;
   currentTask?: string;
   error?: string;
@@ -22,9 +30,9 @@ export interface ConversionProgress {
 
 /**
  * UploadState interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface UploadState {
@@ -38,9 +46,9 @@ export interface UploadState {
 // UI state management types
 /**
  * UIState interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface UIState {
@@ -52,9 +60,9 @@ export interface UIState {
 // Compromise strategy types
 /**
  * CompromiseStrategy interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface CompromiseStrategy {
@@ -67,9 +75,9 @@ export interface CompromiseStrategy {
 
 /**
  * CompromiseOption interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface CompromiseOption {
@@ -83,9 +91,9 @@ export interface CompromiseOption {
 // User preference types
 /**
  * UserPreferences interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface UserPreferences {

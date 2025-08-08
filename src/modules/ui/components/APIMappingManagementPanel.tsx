@@ -6,12 +6,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { APIMapping, MappingFilter } from '../../../types/api';
+import { APIMapping, MappingFilter } from '../../../types/api.js';
 import { 
   MappingValidationResult, 
   BulkOperationResult, 
   MappingStatistics 
-} from '../../../services/APIMappingAdminService';
+} from '../../../services/APIMappingAdminService.js';
 
 interface APIMappingManagementPanelProps {
   onMappingAdd?: (mapping: APIMapping) => Promise<void>;

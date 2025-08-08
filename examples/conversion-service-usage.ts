@@ -1,6 +1,6 @@
 /**
  * Example usage of the ConversionService
- * 
+ *
  * This example demonstrates how to use the ConversionService to create and manage conversion jobs.
  */
 
@@ -13,11 +13,11 @@ import { WorkerPool } from '../src/services/WorkerPool';
 // Create dependencies
 const jobQueue = new JobQueue({ maxConcurrent: 3 });
 const workerPool = new WorkerPool({ maxWorkers: 5 });
-const resourceAllocator = new ResourceAllocator({ 
-  workerPool, 
+const resourceAllocator = new ResourceAllocator({
+  workerPool,
   jobQueue,
   minWorkers: 1,
-  maxWorkers: 5
+  maxWorkers: 5,
 });
 const errorCollector = new ErrorCollector();
 
@@ -26,7 +26,7 @@ const conversionService = new ConversionService({
   jobQueue,
   resourceAllocator,
   errorCollector,
-  statusUpdateInterval: 1000 // Update status every second
+  statusUpdateInterval: 1000, // Update status every second
 });
 
 // Start the service
@@ -38,7 +38,9 @@ conversionService.on('job:created', (job) => {
 });
 
 conversionService.on('job:status', (status) => {
-  console.log(`Job ${status.jobId} status: ${status.status}, progress: ${status.progress}%, stage: ${status.currentStage}`);
+  console.log(
+    `Job ${status.jobId} status: ${status.status}, progress: ${status.progress}%, stage: ${status.currentStage}`
+  );
 });
 
 conversionService.on('job:completed', (data) => {
@@ -58,8 +60,8 @@ const job = conversionService.createConversionJob({
     targetMinecraftVersion: '1.19',
     compromiseStrategy: 'balanced',
     includeDocumentation: true,
-    optimizeAssets: true
-  }
+    optimizeAssets: true,
+  },
 });
 
 console.log(`Created job: ${job.id}`);

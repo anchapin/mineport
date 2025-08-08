@@ -1,6 +1,6 @@
 /**
  * ModLoaderDetector Component
- * 
+ *
  * This component is responsible for identifying whether a Minecraft mod uses Forge or Fabric API.
  * It analyzes the mod's file structure and code imports to determine the mod loader type.
  */
@@ -11,18 +11,18 @@ import logger from '../../utils/logger.js';
 
 /**
  * ModLoaderType type definition.
- * 
+ *
  * TODO: Add detailed description of what this type represents.
- * 
+ *
  * @since 1.0.0
  */
 export type ModLoaderType = 'forge' | 'fabric' | 'unknown';
 
 /**
  * ModLoaderDetectionResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ModLoaderDetectionResult {
@@ -34,9 +34,9 @@ export interface ModLoaderDetectionResult {
 
 /**
  * ModLoaderDetector class.
- * 
+ *
  * TODO: Add detailed description of the class purpose and functionality.
- * 
+ *
  * @since 1.0.0
  */
 export class ModLoaderDetector {
@@ -49,14 +49,14 @@ export class ModLoaderDetector {
     try {
       // First check based on file structure (most reliable)
       const fileStructureResult = await this.detectByFileStructure(extractedModPath);
-      
+
       // For testing purposes, if we have file structure evidence, return it directly
       // This helps our tests that are specifically checking file structure detection
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -64,16 +64,16 @@ export class ModLoaderDetector {
       if (fileStructureResult.confidence > 0) {
         return fileStructureResult;
       }
-      
+
       // If no file structure evidence, check based on imports in source files
       const importsResult = await this.detectByImports(extractedModPath);
-      
+
       // If we have import evidence, return that
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -81,13 +81,13 @@ export class ModLoaderDetector {
       if (importsResult.confidence > 0) {
         return importsResult;
       }
-      
+
       // If no evidence found, return unknown
       return {
         modLoader: 'unknown',
         confidence: 0,
         detectionMethod: 'combined',
-        evidenceFound: []
+        evidenceFound: [],
       };
     } catch (error) {
       logger.error('Error detecting mod loader type', { error });
@@ -97,11 +97,11 @@ export class ModLoaderDetector {
         modLoader: 'unknown',
         confidence: 0,
         detectionMethod: 'combined',
-        evidenceFound: [`Error during detection: ${errorMessage}`]
+        evidenceFound: [`Error during detection: ${errorMessage}`],
       };
     }
   }
-  
+
   /**
    * Detects mod loader type based on file structure
    * @param extractedModPath Path to the extracted mod files
@@ -112,25 +112,29 @@ export class ModLoaderDetector {
       modLoader: 'unknown',
       confidence: 0,
       detectionMethod: 'file_structure',
-      evidenceFound: []
+      evidenceFound: [],
     };
-    
+
     try {
       // Check for Fabric-specific files
-      const hasFabricModJson = await this.fileExists(path.join(extractedModPath, 'fabric.mod.json'));
+      const hasFabricModJson = await this.fileExists(
+        path.join(extractedModPath, 'fabric.mod.json')
+      );
       const hasFabricApiDependency = await this.checkFabricApiDependency(extractedModPath);
-      
+
       // Check for Forge-specific files
-      const hasModsToml = await this.fileExists(path.join(extractedModPath, 'META-INF', 'mods.toml'));
+      const hasModsToml = await this.fileExists(
+        path.join(extractedModPath, 'META-INF', 'mods.toml')
+      );
       const hasMcmodInfo = await this.fileExists(path.join(extractedModPath, 'mcmod.info'));
       const hasForgeCapabilities = await this.checkForgeCapabilities(extractedModPath);
-      
+
       // Evaluate Fabric evidence
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -140,12 +144,12 @@ export class ModLoaderDetector {
         result.confidence += 80;
         result.evidenceFound.push('Found fabric.mod.json file');
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -155,13 +159,13 @@ export class ModLoaderDetector {
         result.confidence += 15;
         result.evidenceFound.push('Found Fabric API dependency');
       }
-      
+
       // Evaluate Forge evidence
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -176,30 +180,33 @@ export class ModLoaderDetector {
           result.evidenceFound.push('Found META-INF/mods.toml file');
         }
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (hasMcmodInfo) {
         // Legacy Forge mods use mcmod.info
-        if (result.modLoader === 'unknown' || (result.modLoader === 'forge' && result.confidence < 80)) {
+        if (
+          result.modLoader === 'unknown' ||
+          (result.modLoader === 'forge' && result.confidence < 80)
+        ) {
           result.modLoader = 'forge';
           result.confidence += 60;
           result.evidenceFound.push('Found mcmod.info file (legacy Forge)');
         }
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -209,17 +216,17 @@ export class ModLoaderDetector {
         result.confidence += 15;
         result.evidenceFound.push('Found Forge capability annotations');
       }
-      
+
       // Cap confidence at 100
       result.confidence = Math.min(result.confidence, 100);
-      
+
       return result;
     } catch (error) {
       logger.error('Error detecting mod loader by file structure', { error });
       return result;
     }
   }
-  
+
   /**
    * Detects mod loader type based on imports in Java source files
    * @param extractedModPath Path to the extracted mod files
@@ -230,13 +237,13 @@ export class ModLoaderDetector {
       modLoader: 'unknown',
       confidence: 0,
       detectionMethod: 'imports',
-      evidenceFound: []
+      evidenceFound: [],
     };
-    
+
     try {
       // Find all .java and .class files
       const javaFiles = await this.findFiles(extractedModPath, ['.java']);
-      
+
       // Define import patterns to search for
       const forgeImportPatterns = [
         // Core Forge packages
@@ -245,14 +252,14 @@ export class ModLoaderDetector {
         'net.minecraftforge.common',
         'net.minecraftforge.api',
         'net.minecraftforge.event',
-        
+
         // Forge annotations and decorators
         '@Mod(',
         '@ObjectHolder',
         '@SubscribeEvent',
         '@OnlyIn(Dist.CLIENT)',
         '@OnlyIn(Dist.DEDICATED_SERVER)',
-        
+
         // Forge classes and interfaces
         'MinecraftForge',
         'FMLCommonHandler',
@@ -260,20 +267,20 @@ export class ModLoaderDetector {
         'ForgeRegistries',
         'ForgeConfigSpec',
         'DeferredRegister',
-        
+
         // Forge events
         'FMLClientSetupEvent',
         'FMLCommonSetupEvent',
         'FMLLoadCompleteEvent',
         'FMLServerStartingEvent',
         'RegistryEvent.Register',
-        
+
         // Forge networking
         'SimpleChannel',
         'NetworkRegistry',
-        'PacketDistributor'
+        'PacketDistributor',
       ];
-      
+
       const fabricImportPatterns = [
         // Core Fabric packages
         'net.fabricmc',
@@ -281,47 +288,47 @@ export class ModLoaderDetector {
         'net.fabricmc.fabric',
         'net.fabricmc.loader',
         'fabric.api',
-        
+
         // Fabric annotations and interfaces
         '@Environment(EnvType.CLIENT)',
         '@Environment(EnvType.SERVER)',
         'ModInitializer',
         'ClientModInitializer',
         'DedicatedServerModInitializer',
-        
+
         // Fabric classes
         'FabricLoader',
         'FabricBlockSettings',
         'FabricItemSettings',
-        
+
         // Fabric events and callbacks
         'ClientTickEvents',
         'ServerTickEvents',
         'WorldTickEvents',
         'UseBlockCallback',
         'UseItemCallback',
-        
+
         // Fabric registries
         'Registry.register',
         'FabricRegistry',
-        
+
         // Fabric networking
         'ServerPlayNetworking',
         'ClientPlayNetworking',
-        'PacketByteBuf'
+        'PacketByteBuf',
       ];
-      
+
       let forgeImportsCount = 0;
       let fabricImportsCount = 0;
-      
+
       // Check a limited number of files to avoid excessive processing
       const filesToCheck = javaFiles.slice(0, 20);
-      
+
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -329,13 +336,13 @@ export class ModLoaderDetector {
       for (const file of filesToCheck) {
         try {
           const content = await fs.readFile(file, 'utf-8');
-          
+
           // Check for Forge imports
           /**
            * for method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -343,26 +350,28 @@ export class ModLoaderDetector {
           for (const pattern of forgeImportPatterns) {
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
              */
             if (content.includes(pattern)) {
               forgeImportsCount++;
-              result.evidenceFound.push(`Found Forge pattern "${pattern}" in ${path.basename(file)}`);
+              result.evidenceFound.push(
+                `Found Forge pattern "${pattern}" in ${path.basename(file)}`
+              );
               break; // Only count one match per file
             }
           }
-          
+
           // Check for Fabric imports
           /**
            * for method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -370,16 +379,18 @@ export class ModLoaderDetector {
           for (const pattern of fabricImportPatterns) {
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
              */
             if (content.includes(pattern)) {
               fabricImportsCount++;
-              result.evidenceFound.push(`Found Fabric pattern "${pattern}" in ${path.basename(file)}`);
+              result.evidenceFound.push(
+                `Found Fabric pattern "${pattern}" in ${path.basename(file)}`
+              );
               break; // Only count one match per file
             }
           }
@@ -388,13 +399,13 @@ export class ModLoaderDetector {
           continue;
         }
       }
-      
+
       // Determine mod loader based on import counts
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -402,28 +413,28 @@ export class ModLoaderDetector {
       if (forgeImportsCount > 0 || fabricImportsCount > 0) {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         if (forgeImportsCount > fabricImportsCount) {
           result.modLoader = 'forge';
-          result.confidence = Math.min(50 + (forgeImportsCount * 5), 90); // Max 90% confidence from imports alone
+          result.confidence = Math.min(50 + forgeImportsCount * 5, 90); // Max 90% confidence from imports alone
         } else {
           result.modLoader = 'fabric';
-          result.confidence = Math.min(50 + (fabricImportsCount * 5), 90); // Max 90% confidence from imports alone
+          result.confidence = Math.min(50 + fabricImportsCount * 5, 90); // Max 90% confidence from imports alone
         }
       }
-      
+
       // Limit the number of evidence items to avoid overwhelming results
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -433,14 +444,14 @@ export class ModLoaderDetector {
         result.evidenceFound = result.evidenceFound.slice(0, 5);
         result.evidenceFound.push(`...and ${evidenceCount - 5} more matches`);
       }
-      
+
       return result;
     } catch (error) {
       logger.error('Error detecting mod loader by imports', { error });
       return result;
     }
   }
-  
+
   /**
    * Combines results from file structure and imports detection
    * @param fileStructureResult Result from file structure detection
@@ -452,40 +463,39 @@ export class ModLoaderDetector {
     importsResult: ModLoaderDetectionResult
   ): ModLoaderDetectionResult {
     // If both methods agree on the mod loader type
-    if (fileStructureResult.modLoader === importsResult.modLoader && 
-        fileStructureResult.modLoader !== 'unknown') {
+    if (
+      fileStructureResult.modLoader === importsResult.modLoader &&
+      fileStructureResult.modLoader !== 'unknown'
+    ) {
       // Boost confidence when both methods agree, but cap at 100%
       return {
         modLoader: fileStructureResult.modLoader,
-        confidence: Math.min(fileStructureResult.confidence + (importsResult.confidence * 0.2), 100),
+        confidence: Math.min(fileStructureResult.confidence + importsResult.confidence * 0.2, 100),
         detectionMethod: 'combined',
-        evidenceFound: [
-          ...fileStructureResult.evidenceFound,
-          ...importsResult.evidenceFound
-        ]
+        evidenceFound: [...fileStructureResult.evidenceFound, ...importsResult.evidenceFound],
       };
     }
-    
+
     // If file structure gave a result but imports didn't
     if (fileStructureResult.modLoader !== 'unknown' && importsResult.modLoader === 'unknown') {
       return {
         modLoader: fileStructureResult.modLoader,
         confidence: fileStructureResult.confidence,
         detectionMethod: 'file_structure', // Keep the original detection method
-        evidenceFound: fileStructureResult.evidenceFound
+        evidenceFound: fileStructureResult.evidenceFound,
       };
     }
-    
+
     // If imports gave a result but file structure didn't
     if (fileStructureResult.modLoader === 'unknown' && importsResult.modLoader !== 'unknown') {
       return {
         modLoader: importsResult.modLoader,
         confidence: importsResult.confidence,
         detectionMethod: 'imports', // Keep the original detection method
-        evidenceFound: importsResult.evidenceFound
+        evidenceFound: importsResult.evidenceFound,
       };
     }
-    
+
     // If they disagree, use the one with higher confidence
     if (fileStructureResult.confidence >= importsResult.confidence) {
       return {
@@ -494,8 +504,8 @@ export class ModLoaderDetector {
         detectionMethod: 'combined',
         evidenceFound: [
           ...fileStructureResult.evidenceFound,
-          `Note: Import analysis suggested ${importsResult.modLoader} (${importsResult.confidence}% confidence)`
-        ]
+          `Note: Import analysis suggested ${importsResult.modLoader} (${importsResult.confidence}% confidence)`,
+        ],
       };
     } else {
       return {
@@ -504,12 +514,12 @@ export class ModLoaderDetector {
         detectionMethod: 'combined',
         evidenceFound: [
           ...importsResult.evidenceFound,
-          `Note: File structure analysis suggested ${fileStructureResult.modLoader} (${fileStructureResult.confidence}% confidence)`
-        ]
+          `Note: File structure analysis suggested ${fileStructureResult.modLoader} (${fileStructureResult.confidence}% confidence)`,
+        ],
       };
     }
   }
-  
+
   /**
    * Checks if a file exists
    * @param filePath Path to the file
@@ -523,7 +533,7 @@ export class ModLoaderDetector {
       return false;
     }
   }
-  
+
   /**
    * Checks for Fabric API dependencies in fabric.mod.json
    * @param extractedModPath Path to the extracted mod files
@@ -531,13 +541,13 @@ export class ModLoaderDetector {
    */
   private async checkFabricApiDependency(extractedModPath: string): Promise<boolean> {
     const fabricModJsonPath = path.join(extractedModPath, 'fabric.mod.json');
-    
+
     try {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -545,63 +555,68 @@ export class ModLoaderDetector {
       if (await this.fileExists(fabricModJsonPath)) {
         const content = await fs.readFile(fabricModJsonPath, 'utf-8');
         const fabricMod = JSON.parse(content);
-        
+
         // Check for Fabric API in dependencies
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
-        if (fabricMod.depends && 
-            (fabricMod.depends['fabric'] || 
-             fabricMod.depends['fabric-api'] || 
-             fabricMod.depends['fabricloader'])) {
+        if (
+          fabricMod.depends &&
+          (fabricMod.depends['fabric'] ||
+            fabricMod.depends['fabric-api'] ||
+            fabricMod.depends['fabricloader'])
+        ) {
           return true;
         }
-        
+
         // Check for Fabric API in recommended dependencies
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
-        if (fabricMod.recommends && 
-            (fabricMod.recommends['fabric'] || 
-             fabricMod.recommends['fabric-api'])) {
+        if (
+          fabricMod.recommends &&
+          (fabricMod.recommends['fabric'] || fabricMod.recommends['fabric-api'])
+        ) {
           return true;
         }
-        
+
         // Check for Fabric API in entrypoints
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
-        if (fabricMod.entrypoints && 
-            (fabricMod.entrypoints.main || 
-             fabricMod.entrypoints.client || 
-             fabricMod.entrypoints.server)) {
+        if (
+          fabricMod.entrypoints &&
+          (fabricMod.entrypoints.main ||
+            fabricMod.entrypoints.client ||
+            fabricMod.entrypoints.server)
+        ) {
           return true;
         }
-        
+
         // Check for Fabric API in mixins
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -615,7 +630,7 @@ export class ModLoaderDetector {
       return false;
     }
   }
-  
+
   /**
    * Checks for Forge capability annotations and other Forge-specific patterns in Java files
    * @param extractedModPath Path to the extracted mod files
@@ -624,46 +639,46 @@ export class ModLoaderDetector {
   private async checkForgeCapabilities(extractedModPath: string): Promise<boolean> {
     try {
       const javaFiles = await this.findFiles(extractedModPath, ['.java']);
-      
+
       // Check a limited number of files
       const filesToCheck = javaFiles.slice(0, 10);
-      
+
       // Define Forge-specific patterns to look for
       const forgePatterns = [
         // Capability system
-        '@Capability', 
-        'ICapabilityProvider', 
+        '@Capability',
+        'ICapabilityProvider',
         '@CapabilityInject',
-        
+
         // Event system
         'MinecraftForge.EVENT_BUS',
         'SubscribeEvent',
         'ForgeEventFactory',
-        
+
         // Registry system
         'RegistryEvent.Register',
         'IForgeRegistryEntry',
         'ObjectHolder',
-        
+
         // Network handling
         'SimpleChannel',
         'NetworkRegistry',
         'FMLNetworkConstants',
-        
+
         // Config
         'ModLoadingContext.get().registerConfig',
         'ForgeConfigSpec',
-        
+
         // Data generation
         'DataGenerator',
-        'GatherDataEvent'
+        'GatherDataEvent',
       ];
-      
+
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -671,13 +686,13 @@ export class ModLoaderDetector {
       for (const file of filesToCheck) {
         try {
           const content = await fs.readFile(file, 'utf-8');
-          
+
           // Check for Forge patterns
           /**
            * for method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -685,9 +700,9 @@ export class ModLoaderDetector {
           for (const pattern of forgePatterns) {
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
@@ -696,40 +711,49 @@ export class ModLoaderDetector {
               return true;
             }
           }
-          
+
           // Check for Forge initialization patterns
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
            */
-          if (content.includes('public void init(FMLCommonSetupEvent') || 
-              content.includes('public void setup(FMLCommonSetupEvent') ||
-              content.includes('public void clientSetup(FMLClientSetupEvent') ||
-              content.includes('public void serverSetup(FMLDedicatedServerSetupEvent')) {
+          if (
+            content.includes('public void init(FMLCommonSetupEvent') ||
+            content.includes('public void setup(FMLCommonSetupEvent') ||
+            content.includes('public void clientSetup(FMLClientSetupEvent') ||
+            content.includes('public void serverSetup(FMLDedicatedServerSetupEvent')
+          ) {
             return true;
           }
         } catch {
           continue;
         }
       }
-      
+
       // Check for Forge-specific directories and files
       const forgeDirs = [
-        path.join(extractedModPath, 'src', 'main', 'resources', 'META-INF', 'accesstransformer.cfg'),
+        path.join(
+          extractedModPath,
+          'src',
+          'main',
+          'resources',
+          'META-INF',
+          'accesstransformer.cfg'
+        ),
         path.join(extractedModPath, 'src', 'main', 'resources', 'pack.mcmeta'),
-        path.join(extractedModPath, 'src', 'generated', 'resources')
+        path.join(extractedModPath, 'src', 'generated', 'resources'),
       ];
-      
+
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -737,9 +761,9 @@ export class ModLoaderDetector {
       for (const dir of forgeDirs) {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -748,13 +772,13 @@ export class ModLoaderDetector {
           return true;
         }
       }
-      
+
       return false;
     } catch {
       return false;
     }
   }
-  
+
   /**
    * Recursively finds files with specified extensions
    * @param dirPath Directory to search in
@@ -763,40 +787,42 @@ export class ModLoaderDetector {
    */
   private async findFiles(dirPath: string, extensions: string[]): Promise<string[]> {
     const result: string[] = [];
-    
+
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
-      
+
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         if (entry.isDirectory()) {
           // Skip certain directories that are unlikely to contain relevant files
-          if (entry.name === 'node_modules' || 
-              entry.name === '.git' || 
-              entry.name === 'build' || 
-              entry.name === 'target') {
+          if (
+            entry.name === 'node_modules' ||
+            entry.name === '.git' ||
+            entry.name === 'build' ||
+            entry.name === 'target'
+          ) {
             continue;
           }
-          
+
           // Recursively search subdirectories
           const subDirFiles = await this.findFiles(fullPath, extensions);
           result.push(...subDirFiles);
@@ -805,9 +831,9 @@ export class ModLoaderDetector {
           const ext = path.extname(entry.name).toLowerCase();
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -820,7 +846,7 @@ export class ModLoaderDetector {
     } catch (error) {
       logger.error('Error finding files', { error, dirPath });
     }
-    
+
     return result;
   }
 }

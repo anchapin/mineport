@@ -1,6 +1,6 @@
 /**
  * Asset-related type definitions
- * 
+ *
  * This file contains interfaces related to assets like textures, models,
  * sounds, and particles used in the conversion process.
  */
@@ -16,9 +16,9 @@ export interface JavaTextureFile {
 
 /**
  * BedrockTextureFile interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface BedrockTextureFile {
@@ -29,9 +29,9 @@ export interface BedrockTextureFile {
 
 /**
  * TextureConversionResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface TextureConversionResult {
@@ -50,9 +50,9 @@ export interface JavaModelFile {
 
 /**
  * BedrockModelFile interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface BedrockModelFile {
@@ -64,9 +64,9 @@ export interface BedrockModelFile {
 
 /**
  * ModelConversionResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ModelConversionResult {
@@ -85,9 +85,9 @@ export interface JavaSoundFile {
 
 /**
  * BedrockSoundFile interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface BedrockSoundFile {
@@ -98,9 +98,9 @@ export interface BedrockSoundFile {
 
 /**
  * SoundConversionResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface SoundConversionResult {
@@ -120,9 +120,9 @@ export interface JavaParticleDefinition {
 
 /**
  * BedrockParticleDefinition interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface BedrockParticleDefinition {
@@ -133,9 +133,9 @@ export interface BedrockParticleDefinition {
 
 /**
  * ParticleConversionResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ParticleConversionResult {

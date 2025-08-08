@@ -1,9 +1,16 @@
 import { EventEmitter } from 'events';
-import { CacheService, CacheInvalidationStrategy } from './CacheService';
-import { ConfigurationService } from './ConfigurationService';
-import { createLogger } from '../utils/logger';
+import { CacheService, CacheInvalidationStrategy } from './CacheService.js';
+import { ConfigurationService } from './ConfigurationService.js';
+import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('UpdateService');
+
+export enum UpdateType {
+  API_MAPPINGS = 'api_mappings',
+  BLOCK_MAPPINGS = 'block_mappings',
+  ITEM_MAPPINGS = 'item_mappings',
+  ENTITY_MAPPINGS = 'entity_mappings',
+}
 
 /**
  * UpdateService provides functionality for updating API mappings and other data
@@ -21,31 +28,31 @@ export class UpdateService extends EventEmitter {
 
   /**
    * Creates a new instance.
-   * 
+   *
    * TODO: Add detailed description of constructor behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @since 1.0.0
    */
   constructor(options: UpdateServiceOptions = {}) {
     /**
      * super method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     super();
-    
+
     this.configService = options.configService;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -54,76 +61,92 @@ export class UpdateService extends EventEmitter {
       this.cacheService = options.cacheService;
       this.cacheInvalidationStrategy = new CacheInvalidationStrategy(options.cacheService);
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (this.configService) {
       // Get default versions from configuration
-      this.apiMappingVersions = this.configService.get('updates.apiMappingVersions', {
-        'minecraft_java': '1.19.0',
-        'minecraft_bedrock': '1.19.50',
-        'forge': '43.1.1',
-        'fabric': '0.14.9',
-      });
-      
+      const defaultVersions = {
+        minecraft_java: '1.19.0',
+        minecraft_bedrock: '1.19.50',
+        forge: '43.1.1',
+        fabric: '0.14.9',
+      };
+
+      this.apiMappingVersions = this.configService.get(
+        'updates.apiMappingVersions',
+        defaultVersions
+      );
+
+      // Also check for individual version keys
+      for (const key of Object.keys(defaultVersions)) {
+        const individualValue = this.configService.get(`updates.apiMappingVersions.${key}`);
+        if (individualValue !== undefined) {
+          if (!this.apiMappingVersions) {
+            this.apiMappingVersions = {};
+          }
+          this.apiMappingVersions[key] = individualValue;
+        }
+      }
+
       // Get default check interval from configuration
       this.defaultCheckInterval = this.configService.get('updates.checkInterval', 3600000);
-      
+
       // Listen for configuration changes
-      this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
-      
-      logger.info('UpdateService initialized with ConfigurationService', { 
+      this.configService.on('configChanged', this.handleConfigUpdate.bind(this));
+
+      logger.info('UpdateService initialized with ConfigurationService', {
         apiMappingVersions: this.apiMappingVersions,
-        defaultCheckInterval: this.defaultCheckInterval
+        defaultCheckInterval: this.defaultCheckInterval,
       });
     } else {
       // Initialize with default versions
       this.apiMappingVersions = {
-        'minecraft_java': '1.19.0',
-        'minecraft_bedrock': '1.19.50',
-        'forge': '43.1.1',
-        'fabric': '0.14.9',
+        minecraft_java: '1.19.0',
+        minecraft_bedrock: '1.19.50',
+        forge: '43.1.1',
+        fabric: '0.14.9',
       };
-      
+
       logger.info('UpdateService initialized with default options');
     }
   }
-  
+
   /**
    * Handle configuration updates
    */
-  private handleConfigUpdate(update: { key: string; value: any }): void {
-    if (update.key === 'updates.apiMappingVersions') {
-      this.apiMappingVersions = { ...this.apiMappingVersions, ...update.value };
-      logger.info('Updated API mapping versions from configuration', { 
-        apiMappingVersions: this.apiMappingVersions 
+  private handleConfigUpdate(key: string, value: any): void {
+    if (key === 'updates.apiMappingVersions') {
+      this.apiMappingVersions = { ...this.apiMappingVersions, ...value };
+      logger.info('Updated API mapping versions from configuration', {
+        apiMappingVersions: this.apiMappingVersions,
       });
-    } else if (update.key.startsWith('updates.apiMappingVersions.')) {
-      const versionKey = update.key.replace('updates.apiMappingVersions.', '');
-      this.apiMappingVersions[versionKey] = update.value;
-      logger.info(`Updated API mapping version for ${versionKey} from configuration`, { 
-        key: versionKey, 
-        value: update.value 
+    } else if (key.startsWith('updates.apiMappingVersions.')) {
+      const versionKey = key.replace('updates.apiMappingVersions.', '');
+      this.apiMappingVersions[versionKey] = value;
+      logger.info(`Updated API mapping version for ${versionKey} from configuration`, {
+        key: versionKey,
+        value: value,
       });
-    } else if (update.key === 'updates.checkInterval') {
-      this.defaultCheckInterval = update.value;
-      logger.info('Updated default check interval from configuration', { 
-        defaultCheckInterval: this.defaultCheckInterval 
+    } else if (key === 'updates.checkInterval') {
+      this.defaultCheckInterval = value;
+      logger.info('Updated default check interval from configuration', {
+        defaultCheckInterval: this.defaultCheckInterval,
       });
-      
+
       // Restart automatic updates if they're running
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -141,17 +164,17 @@ export class UpdateService extends EventEmitter {
   public startAutomaticUpdates(checkIntervalMs?: number): void {
     // Clear any existing intervals
     this.stopAutomaticUpdates();
-    
+
     // Use provided interval or default from configuration
     const interval = checkIntervalMs || this.defaultCheckInterval;
-    
+
     // Set up new interval for API mappings
     this.updateIntervals['api_mappings'] = setInterval(() => {
       this.checkForApiMappingUpdates();
     }, interval);
-    
-    logger.info(`Automatic updates scheduled`, { 
-      intervalSeconds: interval / 1000 
+
+    logger.info(`Automatic updates scheduled`, {
+      intervalSeconds: interval / 1000,
     });
   }
 
@@ -159,12 +182,12 @@ export class UpdateService extends EventEmitter {
    * Stop automatic update checks
    */
   public stopAutomaticUpdates(): void {
-    Object.values(this.updateIntervals).forEach(interval => {
+    Object.values(this.updateIntervals).forEach((interval) => {
       /**
        * clearInterval method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -180,9 +203,9 @@ export class UpdateService extends EventEmitter {
   public async checkForApiMappingUpdates(): Promise<boolean> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -191,53 +214,53 @@ export class UpdateService extends EventEmitter {
       console.log('Update already in progress, skipping check');
       return false;
     }
-    
+
     try {
       this.updateInProgress = true;
       console.log('Checking for API mapping updates...');
-      
+
       // Record check time
       this.lastCheckTime['api_mappings'] = Date.now();
-      
+
       // In a real implementation, this would make an API call to check for updates
       // For this example, we'll simulate finding an update
       const hasUpdate = Math.random() > 0.7; // 30% chance of finding an update
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (hasUpdate) {
         console.log('API mapping updates found, downloading...');
-        
+
         // Simulate download delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         // Simulate new versions
         const newVersions = {
-          'minecraft_java': this.incrementVersion(this.apiMappingVersions['minecraft_java']),
-          'minecraft_bedrock': this.incrementVersion(this.apiMappingVersions['minecraft_bedrock']),
-          'forge': this.incrementVersion(this.apiMappingVersions['forge']),
-          'fabric': this.incrementVersion(this.apiMappingVersions['fabric']),
+          minecraft_java: this.incrementVersion(this.apiMappingVersions['minecraft_java']),
+          minecraft_bedrock: this.incrementVersion(this.apiMappingVersions['minecraft_bedrock']),
+          forge: this.incrementVersion(this.apiMappingVersions['forge']),
+          fabric: this.incrementVersion(this.apiMappingVersions['fabric']),
         };
-        
+
         // Apply updates
         await this.applyApiMappingUpdates(newVersions);
-        
+
         this.emit('update:completed', {
           type: 'api_mappings',
           oldVersions: { ...this.apiMappingVersions },
           newVersions,
         });
-        
+
         // Update stored versions
         this.apiMappingVersions = newVersions;
-        
+
         console.log('API mapping updates applied successfully');
         return true;
       } else {
@@ -271,16 +294,16 @@ export class UpdateService extends EventEmitter {
     // 3. Back up old mappings
     // 4. Apply new mappings
     // 5. Invalidate relevant caches
-    
+
     // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Invalidate caches if cache service is available
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -292,7 +315,7 @@ export class UpdateService extends EventEmitter {
           newVersions['minecraft_java']
         );
       }
-      
+
       if (newVersions['minecraft_bedrock'] !== this.apiMappingVersions['minecraft_bedrock']) {
         await this.cacheInvalidationStrategy.invalidateApiMappingCache(
           newVersions['minecraft_bedrock']
@@ -335,9 +358,9 @@ export class UpdateService extends EventEmitter {
 
 /**
  * UpdateServiceOptions interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface UpdateServiceOptions {
@@ -350,28 +373,28 @@ export interface UpdateServiceOptions {
  */
 export class ApiMappingVersionControl {
   private mappingVersions: Record<string, MappingVersion> = {};
-  
+
   /**
    * Register a new mapping version
    */
   public registerVersion(mappingId: string, version: MappingVersion): void {
     this.mappingVersions[mappingId] = version;
   }
-  
+
   /**
    * Get a specific mapping version
    */
   public getVersion(mappingId: string): MappingVersion | undefined {
     return this.mappingVersions[mappingId];
   }
-  
+
   /**
    * Get all mapping versions
    */
   public getAllVersions(): Record<string, MappingVersion> {
     return { ...this.mappingVersions };
   }
-  
+
   /**
    * Check if a mapping is compatible with a specific Minecraft version
    */
@@ -379,19 +402,21 @@ export class ApiMappingVersionControl {
     const mapping = this.mappingVersions[mappingId];
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (!mapping) return false;
-    
-    return this.compareVersions(minecraftVersion, mapping.minMinecraftVersion) >= 0 &&
-           this.compareVersions(minecraftVersion, mapping.maxMinecraftVersion) <= 0;
+
+    return (
+      this.compareVersions(minecraftVersion, mapping.minMinecraftVersion) >= 0 &&
+      this.compareVersions(minecraftVersion, mapping.maxMinecraftVersion) <= 0
+    );
   }
-  
+
   /**
    * Compare two version strings
    * Returns:
@@ -402,25 +427,25 @@ export class ApiMappingVersionControl {
   private compareVersions(version1: string, version2: string): number {
     const parts1 = version1.split('.').map(Number);
     const parts2 = version2.split('.').map(Number);
-    
+
     for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
       const part1 = i < parts1.length ? parts1[i] : 0;
       const part2 = i < parts2.length ? parts2[i] : 0;
-      
+
       if (part1 !== part2) {
         return part1 - part2;
       }
     }
-    
+
     return 0;
   }
 }
 
 /**
  * MappingVersion interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface MappingVersion {

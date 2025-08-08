@@ -1,17 +1,17 @@
 /**
  * ProgramStateAlignmentValidator.test.ts
- * 
+ *
  * Unit tests for the ProgramStateAlignmentValidator class
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
+import {
   ProgramStateAlignmentValidator,
   ExecutionTrace,
   ProgramStateSnapshot,
-  ValidationResult
-} from '../../../../src/modules/logic/ProgramStateAlignmentValidator';
-import { LLMTranslationResult } from '../../../../src/modules/logic/LLMTranslationService';
+  ValidationResult,
+} from '../../../../src/modules/logic/ProgramStateAlignmentValidator.js';
+import { LLMTranslationResult } from '../../../../src/modules/logic/LLMTranslationService.js';
 
 describe('ProgramStateAlignmentValidator', () => {
   let validator: ProgramStateAlignmentValidator;
@@ -121,24 +121,27 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 10,
-            variables: new Map([['a', '5'], ['b', '10']]),
-            callStack: ['calculateSum', 'main']
+            variables: new Map([
+              ['a', '5'],
+              ['b', '10'],
+            ]),
+            callStack: ['calculateSum', 'main'],
           },
           {
             timestamp: 5,
             functionName: 'calculateSum',
             lineNumber: 15,
             returnValue: '15',
-            callStack: ['calculateSum', 'main']
-          }
+            callStack: ['calculateSum', 'main'],
+          },
         ],
         metadata: {
           sourceFile: 'Example.java',
           executionTime: 10,
-          snapshotCount: 2
-        }
+          snapshotCount: 2,
+        },
       };
-      
+
       const jsTrace: ExecutionTrace = {
         language: 'javascript',
         snapshots: [
@@ -146,22 +149,25 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 5,
-            variables: new Map([['a', 5], ['b', 10]]),
-            callStack: ['calculateSum', 'global']
+            variables: new Map([
+              ['a', 5],
+              ['b', 10],
+            ]),
+            callStack: ['calculateSum', 'global'],
           },
           {
             timestamp: 3,
             functionName: 'calculateSum',
             lineNumber: 8,
             returnValue: 15,
-            callStack: ['calculateSum', 'global']
-          }
+            callStack: ['calculateSum', 'global'],
+          },
         ],
         metadata: {
           sourceFile: 'example.js',
           executionTime: 5,
-          snapshotCount: 2
-        }
+          snapshotCount: 2,
+        },
       };
 
       // Act
@@ -182,17 +188,20 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 10,
-            variables: new Map([['a', '5'], ['b', '10']]),
-            callStack: ['calculateSum', 'main']
-          }
+            variables: new Map([
+              ['a', '5'],
+              ['b', '10'],
+            ]),
+            callStack: ['calculateSum', 'main'],
+          },
         ],
         metadata: {
           sourceFile: 'Example.java',
           executionTime: 10,
-          snapshotCount: 1
-        }
+          snapshotCount: 1,
+        },
       };
-      
+
       const jsTrace: ExecutionTrace = {
         language: 'javascript',
         snapshots: [
@@ -200,15 +209,18 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 5,
-            variables: new Map([['a', 5], ['b', 15]]), // b has different value
-            callStack: ['calculateSum', 'global']
-          }
+            variables: new Map([
+              ['a', 5],
+              ['b', 15],
+            ]), // b has different value
+            callStack: ['calculateSum', 'global'],
+          },
         ],
         metadata: {
           sourceFile: 'example.js',
           executionTime: 5,
-          snapshotCount: 1
-        }
+          snapshotCount: 1,
+        },
       };
 
       // Act
@@ -230,24 +242,27 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 10,
-            variables: new Map([['a', '5'], ['b', '10']]),
-            callStack: ['calculateSum', 'main']
+            variables: new Map([
+              ['a', '5'],
+              ['b', '10'],
+            ]),
+            callStack: ['calculateSum', 'main'],
           },
           {
             timestamp: 5,
             functionName: 'calculateSum',
             lineNumber: 15,
             returnValue: '15',
-            callStack: ['calculateSum', 'main']
-          }
+            callStack: ['calculateSum', 'main'],
+          },
         ],
         metadata: {
           sourceFile: 'Example.java',
           executionTime: 10,
-          snapshotCount: 2
-        }
+          snapshotCount: 2,
+        },
       };
-      
+
       const jsTrace: ExecutionTrace = {
         language: 'javascript',
         snapshots: [
@@ -255,22 +270,25 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 5,
-            variables: new Map([['a', 5], ['b', 10]]),
-            callStack: ['calculateSum', 'global']
+            variables: new Map([
+              ['a', 5],
+              ['b', 10],
+            ]),
+            callStack: ['calculateSum', 'global'],
           },
           {
             timestamp: 3,
             functionName: 'calculateSum',
             lineNumber: 8,
             returnValue: 50, // Different return value
-            callStack: ['calculateSum', 'global']
-          }
+            callStack: ['calculateSum', 'global'],
+          },
         ],
         metadata: {
           sourceFile: 'example.js',
           executionTime: 5,
-          snapshotCount: 2
-        }
+          snapshotCount: 2,
+        },
       };
 
       // Act
@@ -292,24 +310,30 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 10,
-            variables: new Map([['a', '5'], ['b', '10']]),
-            callStack: ['calculateSum', 'main']
+            variables: new Map([
+              ['a', '5'],
+              ['b', '10'],
+            ]),
+            callStack: ['calculateSum', 'main'],
           },
           {
             timestamp: 5,
             functionName: 'calculateProduct',
             lineNumber: 20,
-            variables: new Map([['a', '5'], ['b', '10']]),
-            callStack: ['calculateProduct', 'main']
-          }
+            variables: new Map([
+              ['a', '5'],
+              ['b', '10'],
+            ]),
+            callStack: ['calculateProduct', 'main'],
+          },
         ],
         metadata: {
           sourceFile: 'Example.java',
           executionTime: 10,
-          snapshotCount: 2
-        }
+          snapshotCount: 2,
+        },
       };
-      
+
       const jsTrace: ExecutionTrace = {
         language: 'javascript',
         snapshots: [
@@ -317,16 +341,19 @@ const multiply = (a, b) => {
             timestamp: 0,
             functionName: 'calculateSum',
             lineNumber: 5,
-            variables: new Map([['a', 5], ['b', 10]]),
-            callStack: ['calculateSum', 'global']
-          }
+            variables: new Map([
+              ['a', 5],
+              ['b', 10],
+            ]),
+            callStack: ['calculateSum', 'global'],
+          },
           // calculateProduct is missing
         ],
         metadata: {
           sourceFile: 'example.js',
           executionTime: 5,
-          snapshotCount: 1
-        }
+          snapshotCount: 1,
+        },
       };
 
       // Mock the mapFunctions method to return an empty map
@@ -339,7 +366,9 @@ const multiply = (a, b) => {
       // Assert
       expect(result.isAligned).toBe(false);
       expect(result.divergencePoints.length).toBeGreaterThan(0);
-      expect(result.divergencePoints.some(dp => dp.divergenceType === 'missing_state')).toBe(true);
+      expect(result.divergencePoints.some((dp) => dp.divergenceType === 'missing_state')).toBe(
+        true
+      );
       expect(result.alignmentScore).toBeLessThan(1);
     });
 
@@ -351,18 +380,18 @@ const multiply = (a, b) => {
         metadata: {
           sourceFile: 'Example.java',
           executionTime: 0,
-          snapshotCount: 0
-        }
+          snapshotCount: 0,
+        },
       };
-      
+
       const jsTrace: ExecutionTrace = {
         language: 'javascript',
         snapshots: [],
         metadata: {
           sourceFile: 'example.js',
           executionTime: 0,
-          snapshotCount: 0
-        }
+          snapshotCount: 0,
+        },
       };
 
       // Act
@@ -394,7 +423,7 @@ function add(a, b) {
         isAligned: true,
         divergencePoints: [],
         alignmentScore: 1,
-        recommendations: []
+        recommendations: [],
       });
 
       // Act
@@ -443,19 +472,22 @@ function add(a, b) {
         metadata: {
           tokensUsed: 100,
           processingTime: 500,
-          modelVersion: 'test-model'
-        }
+          modelVersion: 'test-model',
+        },
       };
 
       const validationResult: ValidationResult = {
         isAligned: true,
         divergencePoints: [],
         alignmentScore: 1,
-        recommendations: []
+        recommendations: [],
       };
 
       // Act
-      const refinedTranslation = await validator.refineTranslation(originalTranslation, validationResult);
+      const refinedTranslation = await validator.refineTranslation(
+        originalTranslation,
+        validationResult
+      );
 
       // Assert
       expect(refinedTranslation).toEqual(originalTranslation);
@@ -470,8 +502,8 @@ function add(a, b) {
         metadata: {
           tokensUsed: 100,
           processingTime: 500,
-          modelVersion: 'test-model'
-        }
+          modelVersion: 'test-model',
+        },
       };
 
       const validationResult: ValidationResult = {
@@ -484,7 +516,7 @@ function add(a, b) {
               lineNumber: 15,
               returnValue: '15',
               variables: new Map(),
-              callStack: ['add', 'main']
+              callStack: ['add', 'main'],
             },
             javascriptSnapshot: {
               timestamp: 3,
@@ -492,25 +524,32 @@ function add(a, b) {
               lineNumber: 8,
               returnValue: -5,
               variables: new Map(),
-              callStack: ['add', 'global']
+              callStack: ['add', 'global'],
             },
             divergenceType: 'return_value',
             description: 'Return values differ: Java=15, JS=-5',
-            severity: 'high'
-          }
+            severity: 'high',
+          },
         ],
         alignmentScore: 0.8,
-        recommendations: ['Focus on ensuring return values match between Java and JavaScript implementations']
+        recommendations: [
+          'Focus on ensuring return values match between Java and JavaScript implementations',
+        ],
       };
 
       // Act
-      const refinedTranslation = await validator.refineTranslation(originalTranslation, validationResult);
+      const refinedTranslation = await validator.refineTranslation(
+        originalTranslation,
+        validationResult
+      );
 
       // Assert
       expect(refinedTranslation.translatedCode).toContain('REFINED TRANSLATION');
       expect(refinedTranslation.translatedCode).toContain('Return values differ');
       expect(refinedTranslation.confidence).toBeLessThan(originalTranslation.confidence);
-      expect(refinedTranslation.warnings.length).toBeGreaterThan(originalTranslation.warnings.length);
+      expect(refinedTranslation.warnings.length).toBeGreaterThan(
+        originalTranslation.warnings.length
+      );
       expect(refinedTranslation.metadata).toHaveProperty('refinementApplied', true);
     });
   });
@@ -526,14 +565,14 @@ function add(a, b) {
             functionName: 'add',
             lineNumber: 10,
             variables: { a: '5', b: '10' },
-            callStack: ['add', 'main']
-          }
+            callStack: ['add', 'main'],
+          },
         ],
         metadata: {
           sourceFile: 'Example.java',
           executionTime: 10,
-          snapshotCount: 1
-        }
+          snapshotCount: 1,
+        },
       });
 
       // Act
@@ -559,7 +598,7 @@ function add(a, b) {
       // Arrange
       const invalidTraceJson = JSON.stringify({
         // Missing required fields
-        snapshots: []
+        snapshots: [],
       });
 
       // Act & Assert

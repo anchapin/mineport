@@ -3,9 +3,12 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { APIMappingAdminService, createAPIMappingAdminService } from '../../../src/services/APIMappingAdminService';
-import { APIMapperService } from '../../../src/types/api';
-import { APIMapping } from '../../../src/types/api';
+import {
+  APIMappingAdminService,
+  createAPIMappingAdminService,
+} from '../../../src/services/APIMappingAdminService.js';
+import { APIMapperService } from '../../../src/types/api.js';
+import { APIMapping } from '../../../src/types/api.js';
 
 // Mock dependencies
 vi.mock('../../../src/utils/logger', () => ({
@@ -13,14 +16,14 @@ vi.mock('../../../src/utils/logger', () => ({
     info: vi.fn(),
     debug: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  }))
+    error: vi.fn(),
+  })),
 }));
 
 vi.mock('../../../src/utils/errorHandler', () => ({
   ErrorHandler: {
-    systemError: vi.fn()
-  }
+    systemError: vi.fn(),
+  },
 }));
 
 describe('APIMappingAdminService', () => {
@@ -34,7 +37,7 @@ describe('APIMappingAdminService', () => {
       getMappings: vi.fn().mockResolvedValue([]),
       addMapping: vi.fn().mockResolvedValue(undefined),
       updateMapping: vi.fn().mockResolvedValue(undefined),
-      importMappings: vi.fn().mockResolvedValue({ added: 0, updated: 0, failed: 0, failures: [] })
+      importMappings: vi.fn().mockResolvedValue({ added: 0, updated: 0, failed: 0, failures: [] }),
     };
 
     adminService = new APIMappingAdminService(mockAPIMapperService);
@@ -49,11 +52,11 @@ describe('APIMappingAdminService', () => {
         conversionType: 'direct',
         notes: 'Test mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       const result = adminService.validateMapping(validMapping);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -63,12 +66,12 @@ describe('APIMappingAdminService', () => {
         javaSignature: 'test.signature',
         bedrockEquivalent: 'test.equivalent',
         conversionType: 'direct',
-        notes: 'Test mapping'
+        notes: 'Test mapping',
         // Missing id and version
       } as APIMapping;
 
       const result = adminService.validateMapping(invalidMapping);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Mapping ID is required');
       expect(result.errors).toContain('Version is required');
@@ -82,13 +85,15 @@ describe('APIMappingAdminService', () => {
         conversionType: 'invalid' as any,
         notes: 'Test mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       const result = adminService.validateMapping(invalidMapping);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Invalid conversion type. Must be: direct, wrapper, complex, or impossible');
+      expect(result.errors).toContain(
+        'Invalid conversion type. Must be: direct, wrapper, complex, or impossible'
+      );
     });
 
     it('should warn about missing notes', () => {
@@ -99,11 +104,11 @@ describe('APIMappingAdminService', () => {
         conversionType: 'direct',
         notes: '',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       const result = adminService.validateMapping(mappingWithoutNotes);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.warnings).toContain('Notes are recommended for better documentation');
     });
@@ -116,11 +121,11 @@ describe('APIMappingAdminService', () => {
         conversionType: 'impossible',
         notes: 'Client-side rendering not supported',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       const result = adminService.validateMapping(impossibleMapping);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -133,13 +138,15 @@ describe('APIMappingAdminService', () => {
         conversionType: 'impossible',
         notes: 'Test mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       const result = adminService.validateMapping(inconsistentMapping);
-      
+
       expect(result.isValid).toBe(true);
-      expect(result.warnings).toContain('Impossible conversions should have "UNSUPPORTED" as bedrock equivalent');
+      expect(result.warnings).toContain(
+        'Impossible conversions should have "UNSUPPORTED" as bedrock equivalent'
+      );
     });
 
     it('should reject direct conversions with UNSUPPORTED equivalent', () => {
@@ -150,13 +157,15 @@ describe('APIMappingAdminService', () => {
         conversionType: 'direct',
         notes: 'Test mapping',
         version: '1.0.0',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
 
       const result = adminService.validateMapping(invalidDirectMapping);
-      
+
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Direct conversions cannot have "UNSUPPORTED" as bedrock equivalent');
+      expect(result.errors).toContain(
+        'Direct conversions cannot have "UNSUPPORTED" as bedrock equivalent'
+      );
     });
   });
 
@@ -170,19 +179,19 @@ describe('APIMappingAdminService', () => {
           conversionType: 'direct',
           notes: 'Valid mapping',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           // Missing required fields
           javaSignature: 'invalid.signature',
           bedrockEquivalent: 'invalid.equivalent',
           conversionType: 'direct',
-          notes: 'Invalid mapping'
-        } as APIMapping
+          notes: 'Invalid mapping',
+        } as APIMapping,
       ];
 
       const result = adminService.validateMappings(mappings);
-      
+
       expect(result.valid).toHaveLength(1);
       expect(result.invalid).toHaveLength(1);
       expect(result.valid[0].id).toBe('valid-mapping');
@@ -200,7 +209,7 @@ describe('APIMappingAdminService', () => {
           conversionType: 'direct',
           notes: 'Valid mapping 1',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'valid-mapping-2',
@@ -209,12 +218,12 @@ describe('APIMappingAdminService', () => {
           conversionType: 'wrapper',
           notes: 'Valid mapping 2',
           version: '1.0.0',
-          lastUpdated: new Date()
-        }
+          lastUpdated: new Date(),
+        },
       ];
 
       const result = await adminService.bulkAddMappings(mappings);
-      
+
       expect(result.successful).toBe(2);
       expect(result.failed).toBe(0);
       expect(result.errors).toHaveLength(0);
@@ -230,19 +239,19 @@ describe('APIMappingAdminService', () => {
           conversionType: 'direct',
           notes: 'Valid mapping',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           // Missing required fields
           javaSignature: 'invalid.signature',
           bedrockEquivalent: 'invalid.equivalent',
           conversionType: 'direct',
-          notes: 'Invalid mapping'
-        } as APIMapping
+          notes: 'Invalid mapping',
+        } as APIMapping,
       ];
 
       const result = await adminService.bulkAddMappings(mappings);
-      
+
       expect(result.successful).toBe(1);
       expect(result.failed).toBe(1);
       expect(result.errors).toHaveLength(1);
@@ -258,15 +267,15 @@ describe('APIMappingAdminService', () => {
           conversionType: 'direct',
           notes: 'Test mapping',
           version: '1.0.0',
-          lastUpdated: new Date()
-        }
+          lastUpdated: new Date(),
+        },
       ];
 
       // Mock service to throw error
       mockAPIMapperService.addMapping = vi.fn().mockRejectedValue(new Error('Service error'));
 
       const result = await adminService.bulkAddMappings(mappings);
-      
+
       expect(result.successful).toBe(0);
       expect(result.failed).toBe(1);
       expect(result.errors).toHaveLength(1);
@@ -284,12 +293,12 @@ describe('APIMappingAdminService', () => {
           conversionType: 'wrapper',
           notes: 'Updated mapping',
           version: '1.1.0',
-          lastUpdated: new Date()
-        }
+          lastUpdated: new Date(),
+        },
       ];
 
       const result = await adminService.bulkUpdateMappings(mappings);
-      
+
       expect(result.successful).toBe(1);
       expect(result.failed).toBe(0);
       expect(mockAPIMapperService.updateMapping).toHaveBeenCalledTimes(1);
@@ -306,7 +315,7 @@ describe('APIMappingAdminService', () => {
           conversionType: 'direct',
           notes: 'Test mapping 1',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'mapping-2',
@@ -315,7 +324,7 @@ describe('APIMappingAdminService', () => {
           conversionType: 'direct',
           notes: 'Test mapping 2',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'mapping-3',
@@ -324,14 +333,14 @@ describe('APIMappingAdminService', () => {
           conversionType: 'impossible',
           notes: 'Test mapping 3',
           version: '2.0.0',
-          lastUpdated: new Date()
-        }
+          lastUpdated: new Date(),
+        },
       ];
 
       mockAPIMapperService.getMappings = vi.fn().mockResolvedValue(mockMappings);
 
       const stats = await adminService.getMappingStatistics();
-      
+
       expect(stats.totalMappings).toBe(3);
       expect(stats.byConversionType.direct).toBe(2);
       expect(stats.byConversionType.impossible).toBe(1);
@@ -343,7 +352,7 @@ describe('APIMappingAdminService', () => {
       mockAPIMapperService.getMappings = vi.fn().mockRejectedValue(new Error('Service error'));
 
       const stats = await adminService.getMappingStatistics();
-      
+
       expect(stats.totalMappings).toBe(0);
       expect(stats.byConversionType).toEqual({});
       expect(stats.byVersion).toEqual({});
@@ -360,15 +369,15 @@ describe('APIMappingAdminService', () => {
           conversionType: 'direct',
           notes: 'Test mapping',
           version: '1.0.0',
-          lastUpdated: new Date('2023-01-01')
-        }
+          lastUpdated: new Date('2023-01-01'),
+        },
       ];
 
       mockAPIMapperService.getMappings = vi.fn().mockResolvedValue(mockMappings);
 
       const jsonString = await adminService.exportMappings();
       const exportData = JSON.parse(jsonString);
-      
+
       expect(exportData.mappings).toHaveLength(1);
       expect(exportData.mappings[0].id).toBe('test-mapping');
       expect(exportData.version).toBe('1.0.0');
@@ -388,30 +397,30 @@ describe('APIMappingAdminService', () => {
             conversionType: 'direct',
             notes: 'Imported mapping',
             version: '1.0.0',
-            lastUpdated: new Date().toISOString()
-          }
-        ]
+            lastUpdated: new Date().toISOString(),
+          },
+        ],
       };
 
       const jsonString = JSON.stringify(importData);
       const result = await adminService.importMappingsFromJson(jsonString);
-      
+
       expect(mockAPIMapperService.importMappings).toHaveBeenCalledTimes(1);
       expect(result.added).toBeDefined();
     });
 
     it('should handle invalid JSON format', async () => {
       const invalidJson = '{"invalid": "format"}';
-      
-      await expect(adminService.importMappingsFromJson(invalidJson))
-        .rejects.toThrow('Invalid import format: mappings array not found');
+
+      await expect(adminService.importMappingsFromJson(invalidJson)).rejects.toThrow(
+        'Invalid import format: mappings array not found'
+      );
     });
 
     it('should handle malformed JSON', async () => {
       const malformedJson = '{"invalid": json}';
-      
-      await expect(adminService.importMappingsFromJson(malformedJson))
-        .rejects.toThrow();
+
+      await expect(adminService.importMappingsFromJson(malformedJson)).rejects.toThrow();
     });
   });
 

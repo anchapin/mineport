@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ConversionJob, JobStatus } from '../../../types/services';
+import { ConversionJob, JobStatus } from '../../../types/services.js';
 
 interface JobMonitoringPanelProps {
   /**

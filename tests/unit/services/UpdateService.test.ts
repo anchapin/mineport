@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { UpdateService, UpdateType } from '../../../src/services/UpdateService';
+import { UpdateService, UpdateType } from '../../../src/services/UpdateService.js';
 
 describe('UpdateService', () => {
   let updateService: UpdateService;
@@ -9,7 +9,7 @@ describe('UpdateService', () => {
     // Mock fetch
     mockFetch = vi.fn();
     global.fetch = mockFetch;
-    
+
     // Create update service
     updateService = new UpdateService({
       apiMappingEndpoint: 'https://api.example.com/mappings',
@@ -29,9 +29,9 @@ describe('UpdateService', () => {
         },
       }),
     });
-    
+
     const updates = await updateService.checkForUpdates();
-    
+
     expect(updates).toEqual({
       apiMappings: {
         version: '1.2.0',
@@ -39,14 +39,14 @@ describe('UpdateService', () => {
         lastUpdated: '2023-01-01T00:00:00Z',
       },
     });
-    
+
     expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/mappings', expect.any(Object));
   });
 
   it('should handle update check failures', async () => {
     // Mock failed response
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
-    
+
     await expect(updateService.checkForUpdates()).rejects.toThrow('Network error');
   });
 
@@ -55,27 +55,25 @@ describe('UpdateService', () => {
     const mockDb = {
       updateApiMappings: vi.fn().mockResolvedValue(true),
     };
-    
+
     // Create update service with mock db
     updateService = new UpdateService({
       apiMappingEndpoint: 'https://api.example.com/mappings',
       updateCheckInterval: 86400000,
       db: mockDb as any,
     });
-    
+
     // Mock successful response
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        mappings: [
-          { javaSignature: 'test.Class', bedrockEquivalent: 'test.BedrockClass' },
-        ],
+        mappings: [{ javaSignature: 'test.Class', bedrockEquivalent: 'test.BedrockClass' }],
         version: '1.2.0',
       }),
     });
-    
+
     const result = await updateService.applyUpdate(UpdateType.API_MAPPINGS);
-    
+
     expect(result).toBe(true);
     expect(mockDb.updateApiMappings).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -91,24 +89,24 @@ describe('UpdateService', () => {
   it('should schedule automatic update checks', () => {
     // Mock setInterval
     const setIntervalSpy = vi.spyOn(global, 'setInterval');
-    
+
     // Create update service with automatic checks
     updateService = new UpdateService({
       apiMappingEndpoint: 'https://api.example.com/mappings',
       updateCheckInterval: 86400000,
       autoCheckUpdates: true,
     });
-    
+
     expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 86400000);
   });
 
   it('should notify subscribers of updates', async () => {
     // Create a subscriber
     const subscriber = vi.fn();
-    
+
     // Subscribe to updates
     updateService.subscribe(UpdateType.API_MAPPINGS, subscriber);
-    
+
     // Mock successful response
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -120,10 +118,10 @@ describe('UpdateService', () => {
         },
       }),
     });
-    
+
     // Check for updates
     await updateService.checkForUpdates();
-    
+
     // Subscriber should be notified
     expect(subscriber).toHaveBeenCalledWith({
       version: '1.2.0',
@@ -135,13 +133,13 @@ describe('UpdateService', () => {
   it('should unsubscribe from updates', async () => {
     // Create a subscriber
     const subscriber = vi.fn();
-    
+
     // Subscribe to updates
     const unsubscribe = updateService.subscribe(UpdateType.API_MAPPINGS, subscriber);
-    
+
     // Unsubscribe
     unsubscribe();
-    
+
     // Mock successful response
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -153,10 +151,10 @@ describe('UpdateService', () => {
         },
       }),
     });
-    
+
     // Check for updates
     await updateService.checkForUpdates();
-    
+
     // Subscriber should not be notified
     expect(subscriber).not.toHaveBeenCalled();
   });
@@ -179,16 +177,16 @@ describe('UpdateService', () => {
         },
       ]),
     };
-    
+
     // Create update service with mock db
     updateService = new UpdateService({
       apiMappingEndpoint: 'https://api.example.com/mappings',
       updateCheckInterval: 86400000,
       db: mockDb as any,
     });
-    
+
     const history = await updateService.getUpdateHistory(UpdateType.API_MAPPINGS);
-    
+
     expect(history).toHaveLength(2);
     expect(history[0].version).toBe('1.1.0');
     expect(history[1].version).toBe('1.2.0');
