@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ConversionValidationStage } from '../../../../src/services/validation-stages/ConversionValidationStage.js';
 import { ValidationInput } from '../../../../src/services/ValidationPipeline.js';
-import { ErrorType, ErrorSeverity } from '../../../../src/types/errors.js';
+import { ErrorSeverity } from '../../../../src/types/errors.js';
 
 // Mock logger
 vi.mock('../../../../src/utils/logger', () => ({

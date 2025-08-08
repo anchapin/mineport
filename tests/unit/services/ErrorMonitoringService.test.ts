@@ -12,7 +12,6 @@ import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorColle
 import { AlertingService } from '../../../src/services/AlertingService.js';
 import { MonitoringService } from '../../../src/services/MonitoringService.js';
 import {
-  ConversionError,
   ErrorSeverity,
   ErrorType,
   createConversionError,

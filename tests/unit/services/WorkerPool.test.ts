@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorkerPool, WorkerTask } from '../../../src/services/WorkerPool.js';
 
 describe('WorkerPool Unit Tests', () => {

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ConversionService } from '../../../src/services/ConversionService.js';
 import { JobQueue } from '../../../src/services/JobQueue.js';
 import { ErrorCollector } from '../../../src/services/ErrorCollector.js';
-import { ConversionPipeline } from '../../../src/services/ConversionPipeline.js';
 
 // Mock dependencies
 vi.mock('../../../src/services/ConversionPipeline', () => {

@@ -1,32 +1,12 @@
-import * as path from 'path';
+// import * as path from 'path';
 import * as fs from 'fs/promises';
 import { createLogger } from '../../utils/logger.js';
 import { ErrorHandler } from '../../utils/errorHandler.js';
 import { globalErrorCollector } from '../../utils/errorHandler.js';
-import {
-  TextureConverter,
-  JavaTextureFile,
-  BedrockTextureFile,
-  TextureConversionResult,
-} from './TextureConverter.js';
-import {
-  ModelConverter,
-  JavaModelFile,
-  BedrockModelFile,
-  ModelConversionResult,
-} from './ModelConverter.js';
-import {
-  SoundProcessor,
-  JavaSoundFile,
-  BedrockSoundFile,
-  SoundConversionResult,
-} from './SoundProcessor.js';
-import {
-  ParticleMapper,
-  JavaParticleDefinition,
-  BedrockParticleDefinition,
-  ParticleConversionResult,
-} from './ParticleMapper.js';
+import { TextureConverter } from './TextureConverter.js';
+import { ModelConverter } from './ModelConverter.js';
+import { SoundProcessor } from './SoundProcessor.js';
+import { ParticleMapper } from './ParticleMapper.js';
 import {
   AssetConversionNote,
   ErrorType,

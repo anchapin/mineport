@@ -80,8 +80,8 @@ class MockValidationStage implements ValidationStage {
   }
 
   async validate(
-    input: ValidationInput,
-    config?: Record<string, any>
+    _input: ValidationInput,
+    _config?: Record<string, any>
   ): Promise<ValidationStageResult> {
     if (this.shouldThrow) {
       throw new Error(`Mock stage ${this.name} error`);

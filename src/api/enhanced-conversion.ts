@@ -11,8 +11,6 @@ import { FeatureFlagService, MODPORTER_AI_FEATURES } from '../services/FeatureFl
 import { createLogger } from '../utils/logger.js';
 import {
   FILE_PROCESSOR_ERRORS,
-  JAVA_ANALYZER_ERRORS,
-  ASSET_CONVERTER_ERRORS,
   createConversionError,
   ErrorType,
   ErrorSeverity,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { JobQueue, Job } from '../../../src/services/JobQueue.js';
+import { JobQueue } from '../../../src/services/JobQueue.js';
 
 describe('JobQueue', () => {
   let jobQueue: JobQueue;
@@ -58,7 +58,7 @@ describe('JobQueue', () => {
 
   it('should process next job when one completes', () => {
     const job1 = jobQueue.addJob('test', { data: 'test1' });
-    const job2 = jobQueue.addJob('test', { data: 'test2' });
+    jobQueue.addJob('test', { data: 'test2' }); // job2 - not directly used
     const job3 = jobQueue.addJob('test', { data: 'test3' });
 
     // Initially job3 should be pending
@@ -148,7 +148,7 @@ describe('JobQueue', () => {
   it('should provide queue statistics', () => {
     const job1 = jobQueue.addJob('test', { data: 'test1' });
     const job2 = jobQueue.addJob('test', { data: 'test2' });
-    const job3 = jobQueue.addJob('test', { data: 'test3' });
+    jobQueue.addJob('test', { data: 'test3' }); // job3 - not directly used
 
     jobQueue.completeJob(job1.id);
     jobQueue.failJob(job2.id, new Error('Test error'));

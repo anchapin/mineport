@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   ResourceAllocator,
-  ResourceType,
   ResourceAllocationStrategy,
 } from '../../../src/services/ResourceAllocator.js';
 
@@ -187,7 +186,7 @@ describe('ResourceAllocator', () => {
     mockNow.mockReturnValue(1000);
 
     // Allocate resources with timeout
-    const allocation = resourceAllocator.allocate(
+    resourceAllocator.allocate(
       {
         memory: 256,
         cpu: 1,

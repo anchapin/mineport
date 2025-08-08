@@ -12,7 +12,6 @@ import {
   RecoveryStrategy,
   createConversionError,
   createEnhancedConversionError,
-  createRecoveryActions,
   FILE_PROCESSOR_ERRORS,
 } from '../../../src/types/errors.js';
 
