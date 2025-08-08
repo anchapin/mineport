@@ -15,7 +15,7 @@ import * as fs from 'fs/promises';
 import { createLogger } from '../utils/logger.js';
 import { ErrorHandler, globalErrorCollector } from '../utils/errorHandler.js';
 import { ErrorCollector } from './ErrorCollector.js';
-import { ErrorType, ErrorSeverity, createErrorCode } from '../types/errors.js';
+import { ErrorSeverity, createErrorCode } from '../types/errors.js';
 import { JobQueue, Job } from './JobQueue.js';
 import { ResourceAllocator } from './ResourceAllocator.js';
 import { AssetTranslationModule } from '../modules/assets/AssetTranslationModule.js';

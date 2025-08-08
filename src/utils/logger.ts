@@ -2,7 +2,7 @@ import winston from 'winston';
 import config from '../../config/default.js';
 import path from 'path';
 import fs from 'fs';
-import { ErrorSeverity, ConversionError } from '../types/errors.js';
+// import { ErrorSeverity, ConversionError } from '../types/errors.js';
 import { LoggingConfig } from '../types/config.js';
 
 /**
