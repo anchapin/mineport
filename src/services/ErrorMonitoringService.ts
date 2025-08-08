@@ -5,10 +5,7 @@
  * providing alerting capabilities for critical error conditions.
  */
 
-import {
-  ErrorRateMetrics,
-  SystemHealthStatus,
-} from '../types/errors.js';
+import { ErrorRateMetrics, SystemHealthStatus } from '../types/errors.js';
 import { EnhancedErrorCollector } from './EnhancedErrorCollector.js';
 import { AlertingService } from './AlertingService.js';
 import { MonitoringService } from './MonitoringService.js';

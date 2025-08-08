@@ -8,7 +8,7 @@
 import { Octokit } from 'octokit';
 import fs from 'fs/promises';
 import path from 'path';
-import { createReadStream, createWriteStream } from 'fs';
+import { createReadStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Extract } from 'unzipper';
 import logger from '../../utils/logger.js';

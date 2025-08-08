@@ -29,9 +29,7 @@
  */
 
 import { EventEmitter } from 'events';
-import {
-  ConversionPipeline,
-} from './ConversionPipeline.js';
+import { ConversionPipeline } from './ConversionPipeline.js';
 import { JobQueue, Job } from './JobQueue.js';
 import { ResourceAllocator } from './ResourceAllocator.js';
 import { ErrorCollector } from './ErrorCollector.js';

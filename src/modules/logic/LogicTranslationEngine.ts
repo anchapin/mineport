@@ -13,7 +13,6 @@ import {
   ValidationResult,
   RefinementIteration,
   TranslationWarning,
-  TranslationError,
   CompromiseResult,
 } from '../../types/logic-translation.js';
 import { ASTTranspiler } from './ASTTranspiler.js';
