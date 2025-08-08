@@ -6,12 +6,8 @@
  */
 
 import {
-  ConversionError,
-  ErrorSeverity,
   ErrorRateMetrics,
   SystemHealthStatus,
-  ErrorAggregation,
-  ErrorCategorization,
 } from '../types/errors.js';
 import { EnhancedErrorCollector } from './EnhancedErrorCollector.js';
 import { AlertingService } from './AlertingService.js';

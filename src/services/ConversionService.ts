@@ -31,8 +31,6 @@
 import { EventEmitter } from 'events';
 import {
   ConversionPipeline,
-  ConversionPipelineInput,
-  ConversionPipelineResult,
 } from './ConversionPipeline.js';
 import { JobQueue, Job } from './JobQueue.js';
 import { ResourceAllocator } from './ResourceAllocator.js';
@@ -49,7 +47,7 @@ import {
   JobStatus,
   ConversionService as IConversionService,
 } from '../types/services.js';
-import { ErrorSeverity, createErrorCode, createConversionError } from '../types/errors.js';
+// import { ErrorSeverity, createErrorCode, createConversionError } from '../types/errors.js';
 import { FileProcessor } from '../modules/ingestion/FileProcessor.js';
 import { JavaAnalyzer } from '../modules/ingestion/JavaAnalyzer.js';
 import { AssetConverter } from '../modules/conversion-agents/AssetConverter.js';
@@ -62,7 +60,7 @@ import { WorkerPool } from './WorkerPool.js';
 import { PerformanceMonitor } from './PerformanceMonitor.js';
 
 const logger = createLogger('ConversionService');
-const MODULE_ID = 'CONVERSION';
+// const MODULE_ID = 'CONVERSION';
 
 /**
  * ConversionServiceOptions interface.
