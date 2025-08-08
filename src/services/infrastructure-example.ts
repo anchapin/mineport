@@ -1,6 +1,6 @@
 import { JobQueue } from './JobQueue.js';
 import { WorkerPool } from './WorkerPool.js';
-import { ResourceAllocator, AdaptiveAllocationStrategy } from './ResourceAllocator.js';
+import { ResourceAllocator } from './ResourceAllocator.js';
 
 /**
  * Example of how to use the infrastructure services together

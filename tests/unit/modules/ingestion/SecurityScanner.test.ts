@@ -4,7 +4,6 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import AdmZip from 'adm-zip';
 import { SecurityScanner } from '../../../../src/modules/ingestion/SecurityScanner.js';
 import { SecurityScanOptions } from '../../../../src/types/file-processing.js';

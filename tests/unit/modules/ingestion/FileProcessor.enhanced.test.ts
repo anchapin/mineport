@@ -176,7 +176,7 @@ describe('FileProcessor - Enhanced Tests', () => {
       const results = await Promise.all(promises);
 
       expect(results).toHaveLength(10);
-      results.forEach((result, index) => {
+      results.forEach((result, _index) => {
         expect(result.isValid).toBe(true);
         expect(result.fileType).toBe('jar');
       });

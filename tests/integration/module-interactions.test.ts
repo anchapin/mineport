@@ -3,8 +3,6 @@ import {
   createTempDirectory,
   cleanupTempDirectory,
   createMockJavaMod,
-  createMockConversionInput,
-  createMockConversionErrors,
   validateModuleInteraction,
   createEndToEndScenario,
 } from './helpers.js';

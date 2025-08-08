@@ -65,7 +65,7 @@ describe('JavaParser', () => {
 
       // Mock the validateAST method to simulate finding a Java 9+ feature
       const originalValidateAST = java8Parser.validateAST;
-      java8Parser.validateAST = (ast: JavaASTNode) => {
+      java8Parser.validateAST = (_ast: JavaASTNode) => {
         return [new Error('Private interface methods are not supported in Java 8')];
       };
 
@@ -117,13 +117,6 @@ describe('JavaParser', () => {
 
   describe('AST structure', () => {
     it('should correctly identify class name', () => {
-      const source = `
-        package com.example;
-        
-        public class TestClass {
-        }
-      `;
-
       // Skip the actual parsing for this test and use a mock result
       const mockClassDecl: JavaASTNode = {
         type: 'classDeclaration',
@@ -254,8 +247,8 @@ function findAllNodesByType(node: JavaASTNode, type: string): JavaASTNode[] {
 
 // Add these to the global scope for mocking in tests
 declare global {
-  var findNodeByType: typeof findNodeByType;
-  var findAllNodesByType: typeof findAllNodesByType;
+  let findNodeByType: typeof findNodeByType;
+  let findAllNodesByType: typeof findAllNodesByType;
 }
 
 global.findNodeByType = findNodeByType;

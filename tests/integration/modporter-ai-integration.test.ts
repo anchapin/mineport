@@ -466,7 +466,7 @@ describe('ModPorter-AI Integration Tests', () => {
       const results = await Promise.all(promises);
 
       expect(results).toHaveLength(concurrentRequests);
-      results.forEach((result, index) => {
+      results.forEach((result, _index) => {
         expect(result.success).toBe(true);
         expect(result.result.registryNames).toContain('test_block');
       });

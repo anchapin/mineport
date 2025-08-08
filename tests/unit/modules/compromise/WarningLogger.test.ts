@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   WarningLogger,
   WarningType,
-  FeatureWarning,
 } from '../../../../src/modules/compromise/WarningLogger.js';
 import { Feature } from '../../../../src/types/compromise.js';
 import { Logger } from '../../../../src/utils/logger.js';

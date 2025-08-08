@@ -3,7 +3,6 @@ import {
   ParticleMapper,
   JavaParticleDefinition,
   BedrockParticleDefinition,
-  FallbackStrategyType,
 } from '../../../../src/modules/assets/ParticleMapper.js';
 import * as fs from 'fs/promises';
 

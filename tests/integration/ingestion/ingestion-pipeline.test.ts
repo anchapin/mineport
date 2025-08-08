@@ -91,7 +91,7 @@ describe('Ingestion Pipeline Integration', () => {
             };
           }
 
-          parseRepositoryUrl(url: string) {
+          parseRepositoryUrl(_url: string) {
             return {
               owner: 'test-owner',
               repo: 'test-repo',

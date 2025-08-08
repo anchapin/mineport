@@ -2,12 +2,11 @@
  * Unit tests for LLMTranslator
  */
 
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LLMTranslator } from '../../../../src/modules/logic/LLMTranslator.js';
 import {
   TranslationContext,
   UnmappableCodeSegment,
-  LLMTranslationResult,
 } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
@@ -188,7 +187,6 @@ describe('LLMTranslator', () => {
 
     it('should retry on low confidence translations', async () => {
       let callCount = 0;
-      const originalCallLLM = (translator as any).callLLM;
 
       // Mock the translateSegment method instead to control retry behavior
       const originalTranslateSegment = (translator as any).translateSegment;

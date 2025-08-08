@@ -6,7 +6,7 @@
  * through parallel processing.
  */
 
-import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
+import { Worker } from 'worker_threads';
 import * as path from 'path';
 import * as os from 'os';
 import { EventEmitter } from 'events';

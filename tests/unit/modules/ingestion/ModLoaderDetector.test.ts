@@ -2,11 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   ModLoaderDetector,
   ModLoaderType,
-  DetectionResult,
 } from '../../../../src/modules/ingestion/ModLoaderDetector.js';
 import { createMockFileSystem, resetAllMocks } from '../../../utils/testHelpers.js';
 import fs from 'fs';
-import path from 'path';
 
 describe('ModLoaderDetector', () => {
   let modLoaderDetector: ModLoaderDetector;

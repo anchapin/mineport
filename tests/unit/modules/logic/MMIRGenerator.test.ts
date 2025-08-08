@@ -8,11 +8,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   MMIRGenerator,
   MMIRNodeType,
-  MMIRRelationshipType,
   ForgeModParser,
   FabricModParser,
 } from '../../../../src/modules/logic/MMIRGenerator.js';
-import { JavaASTNode, JavaParser } from '../../../../src/modules/logic/JavaParser.js';
+import { JavaParser } from '../../../../src/modules/logic/JavaParser.js';
 
 describe('MMIRGenerator', () => {
   let generator: MMIRGenerator;
@@ -140,7 +139,7 @@ describe('ForgeModParser', () => {
       const parseResult = javaParser.parseSource(forgeModSource, 'ExampleMod.java');
 
       // Parse the AST
-      const { nodes, relationships } = parser.parse(parseResult.ast, 'ExampleMod.java');
+      const { nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
 
       // Verify the results
       expect(nodes.length).toBeGreaterThan(0);
@@ -210,7 +209,7 @@ describe('FabricModParser', () => {
       const parseResult = javaParser.parseSource(fabricModSource, 'ExampleMod.java');
 
       // Parse the AST
-      const { nodes, relationships } = parser.parse(parseResult.ast, 'ExampleMod.java');
+      const { nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
 
       // Verify the results
       expect(nodes.length).toBeGreaterThan(0);

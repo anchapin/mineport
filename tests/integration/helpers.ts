@@ -34,8 +34,8 @@ export function createMockModFile(
   const modFile = path.join(directory, `${modId}.jar`);
 
   // Create a simple ZIP file structure
-  const JSZip = require('jszip');
-  const zip = new JSZip();
+  const JSZip = await import('jszip');
+  const zip = new JSZip.default();
 
   // Add manifest
   zip.file('META-INF/MANIFEST.MF', `Manifest-Version: 1.0\nModId: ${modId}\nVersion: 1.0.0`);
@@ -280,9 +280,9 @@ export async function verifyAddonStructure(addonPath: string): Promise<boolean> 
     fs.mkdirSync(extractDir, { recursive: true });
 
     // Use JSZip to extract the addon
-    const JSZip = require('jszip');
+    const JSZip = await import('jszip');
     const addonData = fs.readFileSync(addonPath);
-    const zip = await JSZip.loadAsync(addonData);
+    const zip = await JSZip.default.loadAsync(addonData);
 
     // Extract all files
     for (const [filename, file] of Object.entries(zip.files)) {

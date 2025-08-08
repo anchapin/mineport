@@ -2,14 +2,12 @@
  * Unit tests for JavaAnalyzer
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
 import AdmZip from 'adm-zip';
 import {
   JavaAnalyzer,
-  AnalysisResult,
-  ManifestInfo,
 } from '../../../../src/modules/ingestion/JavaAnalyzer.js';
 
 describe('JavaAnalyzer', () => {

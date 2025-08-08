@@ -9,7 +9,6 @@ import {
   resetAllMocks,
 } from '../../../utils/testHelpers.js';
 import fs from 'fs';
-import path from 'path';
 
 describe('SourceCodeFetcher', () => {
   let sourceCodeFetcher: SourceCodeFetcher;
@@ -180,7 +179,7 @@ describe('SourceCodeFetcher', () => {
     };
 
     const outputDir = '/tmp/source-code';
-    const result = await sourceCodeFetcher.fetchSourceCode(repoInfo, outputDir, {
+    await sourceCodeFetcher.fetchSourceCode(repoInfo, outputDir, {
       includePatterns: ['**/*.java'],
       excludePatterns: ['**/blocks/**'],
     });

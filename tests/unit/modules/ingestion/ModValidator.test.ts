@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ModValidator, ValidationResult } from '../../../../src/modules/ingestion/ModValidator.js';
+import { ModValidator } from '../../../../src/modules/ingestion/ModValidator.js';
 import { createMockFileBuffer, mockUnzipper, resetAllMocks } from '../../../utils/testHelpers.js';
 import fs from 'fs';
-import path from 'path';
 
 describe('ModValidator', () => {
   let modValidator: ModValidator;

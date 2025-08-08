@@ -6,7 +6,7 @@
  * memory usage for large mod files.
  */
 
-import { Readable, Transform, pipeline } from 'stream';
+import { Transform, pipeline } from 'stream';
 import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as crypto from 'crypto';
@@ -56,11 +56,10 @@ export class StreamingFileProcessor {
    */
   async processLargeFile(
     filePath: string,
-    validationOptions: FileValidationOptions
+    _validationOptions: FileValidationOptions
   ): Promise<StreamingValidationResult> {
     const startTime = Date.now();
     const startMemory = process.memoryUsage().heapUsed;
-    const chunksProcessed = 0;
     let peakMemoryUsage = startMemory;
 
     try {
@@ -70,7 +69,7 @@ export class StreamingFileProcessor {
       // If file is small enough, use regular processing
       if (stats.size < this.options.chunkSize * 2) {
         const buffer = await fs.readFile(filePath);
-        const result = await this.processSmallFile(buffer, filePath, validationOptions);
+        const result = await this.processSmallFile(buffer, filePath, _validationOptions);
         return {
           ...result,
           streamProcessingTime: Date.now() - startTime,
@@ -83,7 +82,7 @@ export class StreamingFileProcessor {
       const validationResult = await this.createValidationPipeline(
         filePath,
         stats.size,
-        validationOptions
+        _validationOptions
       );
 
       // Track memory usage
@@ -100,7 +99,7 @@ export class StreamingFileProcessor {
       return {
         ...validationResult,
         streamProcessingTime: Date.now() - startTime,
-        chunksProcessed,
+        chunksProcessed: 0,
         peakMemoryUsage: peakMemoryUsage - startMemory,
       };
     } catch (error) {
@@ -115,12 +114,10 @@ export class StreamingFileProcessor {
   private async createValidationPipeline(
     filePath: string,
     fileSize: number,
-    validationOptions: FileValidationOptions
+    _validationOptions: FileValidationOptions
   ): Promise<ValidationResult> {
     const errors: any[] = [];
     const warnings: any[] = [];
-    let bytesProcessed = 0;
-    let chunksProcessed = 0;
 
     // Create hash stream for checksum calculation
     const hashStream = crypto.createHash('sha256');
@@ -130,23 +127,18 @@ export class StreamingFileProcessor {
     let fileTypeDetected = 'unknown';
 
     // Create streaming transforms
-    const self = this;
     const validationTransform = new Transform({
       transform(chunk: Buffer, encoding, callback) {
         try {
           // Check magic number on first chunk
           if (!magicNumberChecked && chunk.length >= 4) {
             const magicNumber = chunk.subarray(0, 4);
-            fileTypeDetected = self.detectFileTypeFromMagic(magicNumber);
+            fileTypeDetected = this.detectFileTypeFromMagic(magicNumber);
             magicNumberChecked = true;
           }
 
           // Update hash
           hashStream.update(chunk);
-
-          // Track progress
-          bytesProcessed += chunk.length;
-          chunksProcessed++;
 
           // Memory management - don't accumulate chunks
           callback(null, null); // Don't pass chunk downstream to save memory

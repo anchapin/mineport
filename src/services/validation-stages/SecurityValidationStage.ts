@@ -402,7 +402,7 @@ export class SecurityValidationStage implements ValidationStage {
 
     // Check for excessive resource usage
     if (conversionResults.metadata) {
-      const { processingTime, memoryUsage, fileCount } = conversionResults.metadata;
+      const { processingTime, fileCount } = conversionResults.metadata;
 
       if (processingTime && processingTime > 300000) {
         // 5 minutes

@@ -5,8 +5,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   ManifestParser,
-  ParsedManifest,
-  ManifestParseResult,
 } from '../../../../src/modules/ingestion/ManifestParser.js';
 
 describe('ManifestParser', () => {

@@ -4,10 +4,6 @@
 
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { LogicTranslationEngine } from '../../../../src/modules/logic/LogicTranslationEngine.js';
-import { ASTTranspiler } from '../../../../src/modules/logic/ASTTranspiler.js';
-import { LLMTranslator } from '../../../../src/modules/logic/LLMTranslator.js';
-import { ProgramStateValidator } from '../../../../src/modules/logic/ProgramStateValidator.js';
-import { MMIRParser } from '../../../../src/modules/logic/MMIRParser.js';
 import {
   TranslationContext,
   MMIRRepresentation,

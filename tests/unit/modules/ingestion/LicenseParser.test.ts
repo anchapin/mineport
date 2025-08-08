@@ -2,11 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   LicenseParser,
   LicenseType,
-  LicenseInfo,
 } from '../../../../src/modules/ingestion/LicenseParser.js';
 import { resetAllMocks } from '../../../utils/testHelpers.js';
 import fs from 'fs/promises';
-import path from 'path';
 
 // Mock fs/promises
 vi.mock('fs/promises');
@@ -176,7 +174,7 @@ describe('LicenseParser', () => {
 
   it('should handle missing license files', async () => {
     // Mock fs.access to not find any license files
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (_filePath: string) => {
       return Promise.reject(new Error('File not found'));
     });
 
@@ -293,7 +291,7 @@ describe('LicenseParser', () => {
 
   it('should extract license from source code headers', async () => {
     // Mock fs.access to not find any license files (will return NONE)
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (_filePath: string) => {
       return Promise.reject(new Error('File not found'));
     });
 

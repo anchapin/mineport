@@ -3,7 +3,7 @@
  * These tests verify basic functionality after deployment
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';

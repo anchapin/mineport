@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CompromisePreferencesService } from '../../../../../src/modules/ui/services/CompromisePreferencesService.js';
-import { CompromiseStrategyEngine } from '../../../../../src/modules/compromise/CompromiseStrategyEngine.js';
 import { Feature } from '../../../../../src/types/compromise.js';
 import { UserPreferences } from '../../../../../src/modules/ui/types.js';
 

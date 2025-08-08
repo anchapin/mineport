@@ -3,8 +3,7 @@ import { ConversionService } from '@services/ConversionService';
 import { FileProcessor } from '@modules/ingestion/FileProcessor';
 import { JavaAnalyzer } from '@modules/ingestion/JavaAnalyzer';
 import { AssetConverter } from '@modules/conversion-agents/AssetConverter';
-import { BedrockArchitect } from '@modules/conversion-agents/BedrockArchitect';
-import { BlockItemGenerator } from '@modules/conversion-agents/BlockItemGenerator';
+
 import { ValidationPipeline } from '@services/ValidationPipeline';
 import { TestDataGenerator, TEST_DATA_PRESETS } from '../fixtures/test-data-generator.js';
 import * as fs from 'fs/promises';
@@ -287,7 +286,7 @@ describe('End-to-End Conversion Tests', () => {
 
       // Verify texture paths are correctly formatted
       result.result.texturePaths.forEach((texturePath) => {
-        expect(texturePath).toMatch(/^assets\/[^\/]+\/textures\/(block|item|entity)\/[^\/]+\.png$/);
+        expect(texturePath).toMatch(/^assets\/[^/]+\/textures\/(block|item|entity)\/[^/]+\.png$/);
       });
     });
 
@@ -306,7 +305,6 @@ describe('End-to-End Conversion Tests', () => {
 
       // Should categorize notes properly
       const infoNotes = result.result.analysisNotes.filter((note) => note.type === 'info');
-      const warningNotes = result.result.analysisNotes.filter((note) => note.type === 'warning');
       const errorNotes = result.result.analysisNotes.filter((note) => note.type === 'error');
 
       expect(infoNotes.length).toBeGreaterThan(0);

@@ -6,7 +6,6 @@ import {
   LootTableConversionResult,
 } from '../../../../src/modules/configuration/LootTableConverter.js';
 import fs from 'fs/promises';
-import path from 'path';
 
 // Mock the fs module
 vi.mock('fs/promises', () => ({

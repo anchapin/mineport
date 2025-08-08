@@ -3,8 +3,6 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import * as fs from 'fs/promises';
-import * as crypto from 'crypto';
 import { FileProcessor } from '../../../../src/modules/ingestion/FileProcessor.js';
 import { FileValidationOptions } from '../../../../src/types/file-processing.js';
 
@@ -13,7 +11,6 @@ vi.mock('fs/promises');
 
 describe('FileProcessor', () => {
   let fileProcessor: FileProcessor;
-  const mockFs = vi.mocked(fs);
 
   beforeEach(() => {
     fileProcessor = new FileProcessor();

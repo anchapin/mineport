@@ -6,7 +6,6 @@ import {
 } from '../../../../src/modules/ingestion/FeatureCompatibilityAnalyzer.js';
 import { createMockFileSystem, resetAllMocks } from '../../../utils/testHelpers.js';
 import fs from 'fs';
-import path from 'path';
 
 describe('FeatureCompatibilityAnalyzer', () => {
   let featureCompatibilityAnalyzer: FeatureCompatibilityAnalyzer;

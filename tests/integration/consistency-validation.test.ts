@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { ConversionError } from '../../src/types/errors.js';
 
 describe('Consistency Validation Tests', () => {
   let moduleFiles: string[];
@@ -53,16 +52,6 @@ describe('Consistency Validation Tests', () => {
 
       for (const moduleFile of moduleFiles) {
         const content = fs.readFileSync(moduleFile, 'utf8');
-
-        // Check for required interface implementations
-        const requiredPatterns = [
-          // All modules should have a class that implements or extends a base interface
-          /class\s+\w+.*(?:implements|extends)\s+\w+/,
-          // All modules should have proper error handling
-          /(?:ConversionError|errors?)\s*:/,
-          // All modules should have success indicators
-          /success\s*:/,
-        ];
 
         const hasClassDeclaration = /export\s+class\s+\w+/.test(content);
         if (!hasClassDeclaration) {
@@ -253,7 +242,6 @@ describe('Consistency Validation Tests', () => {
 
       for (const moduleFile of moduleFiles) {
         const content = fs.readFileSync(moduleFile, 'utf8');
-        const fileName = path.basename(moduleFile, '.ts');
 
         // Skip files that don't create errors
         if (!content.includes('moduleOrigin')) {

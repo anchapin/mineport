@@ -4,7 +4,6 @@ import {
   cleanupTempDirectory,
   loadMockMod,
   validateModuleInteraction,
-  createMockConversionErrors,
 } from '../helpers.js';
 import { AssetTranslationModule } from '../../../src/modules/assets/AssetTranslationModule.js';
 import { LogicTranslationEngine } from '../../../src/modules/logic/LogicTranslationEngine.js';

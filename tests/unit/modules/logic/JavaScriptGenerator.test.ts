@@ -4,7 +4,7 @@
  * Unit tests for the JavaScript Generator module.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   JavaScriptGenerator,
   CodeGenerationOptions,

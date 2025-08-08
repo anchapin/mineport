@@ -4,7 +4,6 @@ import {
   JavaRegistrationCode,
 } from '../../../../src/modules/configuration/BlockItemDefinitionConverter.js';
 import fs from 'fs/promises';
-import path from 'path';
 
 // Mock the fs module
 vi.mock('fs/promises', () => ({

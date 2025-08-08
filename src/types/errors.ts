@@ -506,7 +506,7 @@ export function createEnhancedConversionError(
  */
 export function createRecoveryActions(
   error: ConversionError,
-  context?: Record<string, any>
+  _context?: Record<string, any>
 ): RecoveryAction[] {
   const actions: RecoveryAction[] = [];
 

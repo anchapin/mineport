@@ -7,8 +7,6 @@ import { ASTTranspiler } from '../../../../src/modules/logic/ASTTranspiler.js';
 import {
   MMIRRepresentation,
   TranslationContext,
-  ASTNode,
-  ASTTranspilationResult,
 } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {

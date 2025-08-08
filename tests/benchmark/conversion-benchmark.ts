@@ -3,12 +3,7 @@ import {
   saveBenchmarkResults,
   updateBenchmarkHistory,
 } from './benchmark-utils.js';
-import {
-  createTempDirectory,
-  cleanupTempDirectory,
-  createMockModFile,
-  loadMockMod,
-} from '../integration/helpers.js';
+import { createTempDirectory, cleanupTempDirectory, loadMockMod } from '../integration/helpers.js';
 import { ModValidator } from '../../src/modules/ingestion/ModValidator.js';
 import { FeatureCompatibilityAnalyzer } from '../../src/modules/ingestion/FeatureCompatibilityAnalyzer.js';
 import { TextureConverter } from '../../src/modules/assets/TextureConverter.js';

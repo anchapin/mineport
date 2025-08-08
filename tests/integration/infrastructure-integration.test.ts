@@ -3,8 +3,7 @@
  * Tests integration with existing deployment scripts and infrastructure
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { execSync, spawn } from 'child_process';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import axios from 'axios';

@@ -1,6 +1,5 @@
 import AdmZip from 'adm-zip';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 
 export interface ModTestData {
   name: string;

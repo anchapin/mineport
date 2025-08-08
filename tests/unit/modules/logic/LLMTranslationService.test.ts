@@ -9,7 +9,6 @@ import {
   LLMTranslationService,
   LLMApiConfig,
   TranslationContext,
-  LLMTranslationResult,
 } from '../../../../src/modules/logic/LLMTranslationService.js';
 import {
   MMIRNode,
@@ -35,7 +34,7 @@ describe('LLMTranslationService', () => {
 
     // Mock the private callLLMApi method
     vi.spyOn<any, any>(translationService, 'callLLMApi').mockImplementation(
-      async (prompt: string) => {
+      async (_prompt: string) => {
         return {
           choices: [
             {

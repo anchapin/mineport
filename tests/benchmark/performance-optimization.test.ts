@@ -9,7 +9,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { StreamingFileProcessor } from '../../src/services/StreamingFileProcessor.js';
-import { ResourceAllocator, ResourcePool } from '../../src/services/ResourceAllocator.js';
+import { ResourceAllocator } from '../../src/services/ResourceAllocator.js';
 import { CacheService } from '../../src/services/CacheService.js';
 import { WorkerPool } from '../../src/services/WorkerPool.js';
 import { PerformanceMonitor } from '../../src/services/PerformanceMonitor.js';
@@ -120,7 +120,7 @@ describe('Performance Optimization Tests', () => {
       const pool = allocator.createPool(
         'expensive-resource',
         async () => ({ id: Math.random(), data: Buffer.alloc(1024 * 1024) }), // 1MB objects
-        async (resource) => {
+        async (_resource) => {
           /* cleanup */
         },
         { maxSize: 10, maxIdleTime: 5000 }

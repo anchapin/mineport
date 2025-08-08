@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AddonValidator } from '../../../../src/modules/packaging/AddonValidator.js';
 import * as fs from 'fs';
-import * as path from 'path';
 
 // Mock fs
 vi.mock('fs', () => ({

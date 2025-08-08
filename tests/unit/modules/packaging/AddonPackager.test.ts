@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AddonPackager } from '../../../../src/modules/packaging/AddonPackager.js';
 import * as fs from 'fs';
-import * as path from 'path';
 
 // Create mock write stream
 const mockWriteStream = {
