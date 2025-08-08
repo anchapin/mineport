@@ -120,21 +120,24 @@ export class ModelConverter {
      * @since 1.0.0
      */
     switch (javaModel.type) {
-      case 'block':
+      case 'block': {
         const blockResult = this.convertBlockModel(javaModel);
         modelData = blockResult.data;
         metadata = blockResult.metadata;
         break;
-      case 'item':
+      }
+      case 'item': {
         const itemResult = this.convertItemModel(javaModel);
         modelData = itemResult.data;
         metadata = itemResult.metadata;
         break;
-      case 'entity':
+      }
+      case 'entity': {
         const entityResult = this.convertEntityModel(javaModel);
         modelData = entityResult.data;
         metadata = entityResult.metadata;
         break;
+      }
       default:
         throw new Error(`Unsupported model type: ${javaModel.type}`);
     }

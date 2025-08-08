@@ -86,17 +86,17 @@ export class StandardizedAssetTranslationModule extends BaseModule {
     this.logger.info('Initializing Asset Translation Module...');
 
     // Get configuration
-    const moduleConfig = this.getConfig<AssetTranslationModuleConfig>('assetTranslation', {
-      outputDir: './output/assets',
-      maxConcurrency: 4,
-      debug: false,
-      conversionOptions: {
-        textureFormat: 'png',
-        modelFormat: 'json',
-        soundFormat: 'ogg',
-        particleFormat: 'json',
-      },
-    });
+    // const _moduleConfig = this.getConfig<AssetTranslationModuleConfig>('assetTranslation', {
+    //   outputDir: './output/assets',
+    //   maxConcurrency: 4,
+    //   debug: false,
+    //   conversionOptions: {
+    //     textureFormat: 'png',
+    //     modelFormat: 'json',
+    //     soundFormat: 'ogg',
+    //     particleFormat: 'json',
+    //   },
+    // });
 
     // Initialize converters with configuration
     this.textureConverter = new TextureConverter();

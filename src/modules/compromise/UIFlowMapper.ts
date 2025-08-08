@@ -1,5 +1,5 @@
 import { Feature } from '../../types/compromise.js';
-import { createLogger } from '../../utils/logger.js';
+// import { createLogger } from '../../utils/logger.js';
 
 /**
  * UIFlowMapper provides functionality to analyze Java UI components and map them
@@ -617,7 +617,7 @@ export function create${className}UI() {
     // Add buttons based on the original UI
 ${formMappings
   .filter((mapping) => mapping.bedrockForm.formType === 'button')
-  .map((mapping, index) => `    form.addButton("${mapping.originalComponent.componentName}");`)
+  .map((mapping, _index) => `    form.addButton("${mapping.originalComponent.componentName}");`)
   .join('\n')}
     
     const response = await form.show(player);
@@ -681,7 +681,7 @@ ${formMappings
   .map(
     (
       mapping,
-      index
+      _index
     ) => `      case "${mapping.originalComponent.componentName.toLowerCase().replace(/[^a-zA-Z0-9]/g, '')}":
         await this.show${mapping.originalComponent.componentName.replace(/[^a-zA-Z0-9]/g, '')}Form(player);
         break;`
@@ -704,8 +704,8 @@ ${formMappings
    */
   private createChestFormCode(
     className: string,
-    uiFlow: UIFlow,
-    formMappings: BedrockFormMapping[]
+    _uiFlow: UIFlow,
+    _formMappings: BedrockFormMapping[]
   ): string {
     return `  /**
    * Opens a chest UI for inventory interaction
@@ -819,11 +819,11 @@ ${formMappings
       .setTitle("${className}");
     
     // Add form components based on the original UI
-${labels.map((mapping, index) => `    form.addLabel("${mapping.originalComponent.componentName}");`).join('\n')}
-${textFields.map((mapping, index) => `    form.addInput("${mapping.originalComponent.componentName}", "Enter text here...", "");`).join('\n')}
-${toggles.map((mapping, index) => `    form.addToggle("${mapping.originalComponent.componentName}", false);`).join('\n')}
-${sliders.map((mapping, index) => `    form.addSlider("${mapping.originalComponent.componentName}", 0, 100, 1, 50);`).join('\n')}
-${dropdowns.map((mapping, index) => `    form.addDropdown("${mapping.originalComponent.componentName}", ["Option 1", "Option 2", "Option 3"], 0);`).join('\n')}
+${labels.map((mapping, _index) => `    form.addLabel("${mapping.originalComponent.componentName}");`).join('\n')}
+${textFields.map((mapping, _index) => `    form.addInput("${mapping.originalComponent.componentName}", "Enter text here...", "");`).join('\n')}
+${toggles.map((mapping, _index) => `    form.addToggle("${mapping.originalComponent.componentName}", false);`).join('\n')}
+${sliders.map((mapping, _index) => `    form.addSlider("${mapping.originalComponent.componentName}", 0, 100, 1, 50);`).join('\n')}
+${dropdowns.map((mapping, _index) => `    form.addDropdown("${mapping.originalComponent.componentName}", ["Option 1", "Option 2", "Option 3"], 0);`).join('\n')}
     
     const response = await form.show(player);
     
@@ -912,7 +912,7 @@ ${dropdowns
    * @returns Generated event handler code
    */
   private createEventHandlerCode(feature: Feature, uiFlow: UIFlow): string {
-    const className = this.extractClassName(feature);
+    const _className = this.extractClassName(feature);
 
     // Extract button names from the Java code
     const buttonNames = this.extractButtonNames(uiFlow);

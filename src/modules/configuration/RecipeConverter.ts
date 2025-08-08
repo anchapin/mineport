@@ -132,7 +132,7 @@ export class RecipeConverter {
    * @param modId Mod ID for namespace
    * @returns Promise<JavaRecipe[]> Array of parsed Java recipes
    */
-  async parseJavaRecipes(recipeDir: string, modId: string): Promise<JavaRecipe[]> {
+  async parseJavaRecipes(recipeDir: string, _modId: string): Promise<JavaRecipe[]> {
     try {
       const recipes: JavaRecipe[] = [];
       const recipeFiles = await this.findJsonFiles(recipeDir);

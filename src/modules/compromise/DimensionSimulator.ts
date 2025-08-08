@@ -1,5 +1,5 @@
 import { Feature } from '../../types/compromise.js';
-import { createLogger } from '../../utils/logger.js';
+// import { createLogger } from '../../utils/logger.js';
 
 /**
  * DimensionSimulator provides functionality to simulate custom dimensions in Bedrock Edition
@@ -383,7 +383,7 @@ export function generateStructures() {
 
     let structureCode = '';
 
-    structures.forEach((structure, index) => {
+    structures.forEach((structure, _index) => {
       const offsetX = structure.offsetX || 0;
       const offsetY = structure.offsetY || 0;
       const offsetZ = structure.offsetZ || 0;

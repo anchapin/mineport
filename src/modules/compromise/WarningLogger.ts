@@ -1,5 +1,5 @@
 import { Feature } from '../../types/compromise.js';
-import { createLogger } from '../../utils/logger.js';
+// import { createLogger } from '../../utils/logger.js';
 
 /**
  * WarningLogger provides functionality to create console warnings and detailed comments
@@ -317,7 +317,7 @@ world.beforeEvents.chatSend.subscribe((event) => {
    * @param modName The name of the mod
    * @returns JavaScript code for limitations list
    */
-  private generateLimitationsList(modName: string): string {
+  private generateLimitationsList(_modName: string): string {
     const limitations = [
       { text: '        { text: "§c1.§r Advanced rendering effects are simplified\\n" },\n' },
       {

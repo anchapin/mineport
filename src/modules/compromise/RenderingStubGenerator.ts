@@ -1,5 +1,5 @@
 import { Feature } from '../../types/compromise.js';
-import { createLogger } from '../../utils/logger.js';
+// import { createLogger } from '../../utils/logger.js';
 
 /**
  * RenderingStubGenerator provides functionality to detect advanced rendering code

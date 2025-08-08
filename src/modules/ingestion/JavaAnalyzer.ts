@@ -6,7 +6,7 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
+// import path from 'path';
 import AdmZip from 'adm-zip';
 import * as crypto from 'crypto';
 import logger from '../../utils/logger.js';

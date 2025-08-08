@@ -6,7 +6,7 @@
  * It also validates the generated manifests against Bedrock specifications.
  */
 
-import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 import fs from 'fs/promises';
 import path from 'path';
 import logger from '../../utils/logger.js';

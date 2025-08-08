@@ -546,7 +546,7 @@ export class FeatureCompatibilityAnalyzer {
     javaFiles: string[],
     jsonFiles: string[],
     assetFiles: string[],
-    modLoader: 'forge' | 'fabric' | 'unknown'
+    _modLoader: 'forge' | 'fabric' | 'unknown'
   ): Promise<Feature | null> {
     try {
       const { detectionPatterns } = featureDef;
