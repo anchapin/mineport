@@ -1,24 +1,16 @@
-/**
- * Smart Compromise Framework Module
- *
- * This module implements intelligent compromise strategies for handling features
- * that cannot be directly translated from Java mods to Bedrock addons.
- * It provides simulation, stubbing, and approximation strategies.
- *
- * Public API:
- * - CompromiseStrategyEngine: Main engine for selecting and applying compromise strategies
- * - DimensionSimulator: Simulates Java dimension features in Bedrock
- * - RenderingStubGenerator: Generates stubs for unsupported rendering features
- * - UIFlowMapper: Maps Java UI flows to Bedrock equivalents
- * - WarningLogger: Logs warnings and compromise decisions
- */
+// Core compromise framework
+export { CompromiseStrategy, CompromiseResult, CompromiseOptions, CompromiseStrategyRegistry } from './CompromiseStrategy.js';
+export { CompromiseStrategySelector, StrategySelectionResult, SelectionCriteria, DEFAULT_SELECTION_CRITERIA } from './CompromiseStrategySelector.js';
+export { CompromiseEngine, CompromiseEngineConfig, CompromiseEngineResult, BatchCompromiseResult, DEFAULT_COMPROMISE_ENGINE_CONFIG } from './CompromiseEngine.js';
 
-// Export all individual components
-export * from './CompromiseStrategyEngine.js';
-export * from './DimensionSimulator.js';
-export * from './RenderingStubGenerator.js';
-export * from './UIFlowMapper.js';
-export * from './WarningLogger.js';
+// Reporting and documentation
+export { CompromiseReporter, CompromiseReport, CompromiseReportConfig, DEFAULT_REPORT_CONFIG } from './CompromiseReporter.js';
+export type { CompromiseDetail, FailedFeatureDetail, ManualImplementationStep, AlternativeApproach, ResourceRequirement } from './CompromiseReporter.js';
 
-// Re-export the main engine as default for convenience
-export { CompromiseStrategyEngine as default } from './CompromiseStrategyEngine.js';
+// Specific compromise strategies
+export { DimensionCompromiseStrategy } from './strategies/DimensionCompromiseStrategy.js';
+export { RenderingCompromiseStrategy } from './strategies/RenderingCompromiseStrategy.js';
+export { UICompromiseStrategy } from './strategies/UICompromiseStrategy.js';
+
+// Re-export types from compromise types
+export type { Feature, FeatureType, CompromiseLevel } from '../../types/compromise.js';
