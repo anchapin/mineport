@@ -4,9 +4,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProgramStateValidator } from '../../../../src/modules/logic/ProgramStateValidator.js';
-import {
-  TranslationContext,
-} from '../../../../src/types/logic-translation.js';
+import { TranslationContext } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
   const actual = await vi.importActual('../../../../src/utils/logger.js');

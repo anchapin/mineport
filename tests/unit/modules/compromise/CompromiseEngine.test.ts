@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CompromiseEngine, DEFAULT_COMPROMISE_ENGINE_CONFIG } from '../../../../src/modules/compromise/CompromiseEngine.js';
-import { CompromiseStrategy, CompromiseResult } from '../../../../src/modules/compromise/CompromiseStrategy.js';
+import {
+  CompromiseEngine,
+  DEFAULT_COMPROMISE_ENGINE_CONFIG,
+} from '../../../../src/modules/compromise/CompromiseEngine.js';
+import {
+  CompromiseStrategy,
+  CompromiseResult,
+} from '../../../../src/modules/compromise/CompromiseStrategy.js';
 import { Feature, FeatureType, CompromiseLevel } from '../../../../src/types/compromise.js';
 import { ConversionContext } from '../../../../src/types/modules.js';
 
@@ -27,7 +33,7 @@ class MockCompromiseStrategy extends CompromiseStrategy {
 
   private shouldSucceed: boolean;
 
-  async apply(feature: Feature, context: ConversionContext): Promise<CompromiseResult> {
+  async apply(feature: Feature, _context: ConversionContext): Promise<CompromiseResult> {
     if (!this.shouldSucceed) {
       throw new Error('Mock strategy failure');
     }
@@ -137,7 +143,11 @@ describe('CompromiseEngine', () => {
     });
 
     it('should handle strategy application failures', async () => {
-      const failingStrategy = new MockCompromiseStrategy('FailingStrategy', [FeatureType.GUI], false);
+      const failingStrategy = new MockCompromiseStrategy(
+        'FailingStrategy',
+        [FeatureType.GUI],
+        false
+      );
       engine.registerStrategy(failingStrategy);
 
       const result = await engine.processFeature(mockFeature, mockContext);
@@ -180,7 +190,11 @@ describe('CompromiseEngine', () => {
 
     it('should calculate correct statistics', async () => {
       const mockStrategy = new MockCompromiseStrategy();
-      const failingStrategy = new MockCompromiseStrategy('FailingStrategy', [FeatureType.GUI], false);
+      const failingStrategy = new MockCompromiseStrategy(
+        'FailingStrategy',
+        [FeatureType.GUI],
+        false
+      );
       engine.registerStrategy(mockStrategy);
       engine.registerStrategy(failingStrategy);
 
@@ -249,8 +263,8 @@ describe('CompromiseEngine', () => {
 
       const strategies = engineWithDefaults.getRegisteredStrategies();
       expect(strategies.length).toBeGreaterThan(0);
-      
-      const strategyNames = strategies.map(s => s.getName());
+
+      const strategyNames = strategies.map((s) => s.getName());
       expect(strategyNames).toContain('DimensionCompromise');
       expect(strategyNames).toContain('RenderingCompromise');
       expect(strategyNames).toContain('UICompromise');

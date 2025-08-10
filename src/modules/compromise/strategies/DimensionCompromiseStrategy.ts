@@ -28,7 +28,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
     try {
       // Analyze the dimension feature to determine the best compromise approach
       const analysis = this.analyzeDimensionFeature(feature);
-      
+
       let modifiedFeature: Feature;
       let description: string;
       let impactLevel: CompromiseLevel;
@@ -61,7 +61,9 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
           impactLevel = CompromiseLevel.MEDIUM;
           userExperienceImpact = 45;
           warnings.push('Limited biome variety compared to original dimension');
-          suggestions.push('Focus on unique structures and entities to maintain dimension identity');
+          suggestions.push(
+            'Focus on unique structures and entities to maintain dimension identity'
+          );
           break;
 
         case 'documentation_only':
@@ -126,7 +128,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
     confidence: number;
   }> {
     const analysis = this.analyzeDimensionFeature(feature);
-    
+
     let impactLevel: CompromiseLevel;
     let userExperienceImpact: number;
 
@@ -170,11 +172,11 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
     }
 
     // Check if the feature has properties that indicate it's a custom dimension
-    const hasCustomProperties = feature.properties && (
-      feature.properties.customBiomes ||
-      feature.properties.customWorldGen ||
-      feature.properties.dimensionType
-    );
+    const hasCustomProperties =
+      feature.properties &&
+      (feature.properties.customBiomes ||
+        feature.properties.customWorldGen ||
+        feature.properties.dimensionType);
 
     return hasCustomProperties || feature.name.toLowerCase().includes('dimension');
   }
@@ -183,7 +185,11 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
    * Analyze the dimension feature to determine the best compromise approach
    */
   private analyzeDimensionFeature(feature: Feature): {
-    compromiseType: 'overworld_replacement' | 'nether_adaptation' | 'end_adaptation' | 'documentation_only';
+    compromiseType:
+      | 'overworld_replacement'
+      | 'nether_adaptation'
+      | 'end_adaptation'
+      | 'documentation_only';
     confidence: number;
     alternativesConsidered: string[];
   } {

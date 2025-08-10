@@ -27,7 +27,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
 
     try {
       const analysis = this.analyzeRenderingFeature(feature);
-      
+
       let modifiedFeature: Feature;
       let description: string;
       let impactLevel: CompromiseLevel;
@@ -132,7 +132,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
     confidence: number;
   }> {
     const analysis = this.analyzeRenderingFeature(feature);
-    
+
     let impactLevel: CompromiseLevel;
     let userExperienceImpact: number;
 
@@ -180,10 +180,11 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
 
     // Check for rendering-specific properties
     const properties = feature.properties || {};
-    const hasRenderingProps = properties.shaderType || 
-                             properties.renderLayer || 
-                             properties.particleType ||
-                             properties.customRenderer;
+    const hasRenderingProps =
+      properties.shaderType ||
+      properties.renderLayer ||
+      properties.particleType ||
+      properties.customRenderer;
 
     return hasRenderingProps || this.hasRenderingKeywords(feature.name);
   }
@@ -194,14 +195,19 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
   private hasRenderingKeywords(name: string): boolean {
     const keywords = ['shader', 'render', 'particle', 'effect', 'glow', 'transparency', 'lighting'];
     const lowerName = name.toLowerCase();
-    return keywords.some(keyword => lowerName.includes(keyword));
+    return keywords.some((keyword) => lowerName.includes(keyword));
   }
 
   /**
    * Analyze the rendering feature to determine the best compromise approach
    */
   private analyzeRenderingFeature(feature: Feature): {
-    compromiseType: 'particle_replacement' | 'texture_approximation' | 'model_simplification' | 'behavior_simulation' | 'documentation_stub';
+    compromiseType:
+      | 'particle_replacement'
+      | 'texture_approximation'
+      | 'model_simplification'
+      | 'behavior_simulation'
+      | 'documentation_stub';
     confidence: number;
     alternativesConsidered: string[];
   } {
@@ -369,23 +375,23 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
    */
   private mapToBedrockParticle(feature: Feature): string {
     const properties = feature.properties || {};
-    
+
     if (properties.glowing || properties.light) {
       return 'minecraft:end_rod';
     }
-    
+
     if (properties.fire || properties.flame) {
       return 'minecraft:basic_flame_particle';
     }
-    
+
     if (properties.smoke) {
       return 'minecraft:basic_smoke_particle';
     }
-    
+
     if (properties.sparkle || properties.magic) {
       return 'minecraft:villager_happy';
     }
-    
+
     return 'minecraft:heart_particle'; // Default fallback
   }
 
@@ -443,12 +449,12 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
   private extractVisualCues(feature: Feature): string[] {
     const cues: string[] = [];
     const properties = feature.properties || {};
-    
+
     if (properties.glowing) cues.push('glowing_effect');
     if (properties.moving) cues.push('movement_animation');
     if (properties.pulsing) cues.push('pulsing_animation');
     if (properties.rotating) cues.push('rotation_animation');
-    
+
     return cues;
   }
 }

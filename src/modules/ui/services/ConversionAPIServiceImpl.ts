@@ -437,7 +437,7 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @param input Conversion input
    * @returns Promise resolving to mock conversion job
    */
-  private async mockStartConversion(input: ConversionInput): Promise<ConversionJob> {
+  private async mockStartConversion(_input: ConversionInput): Promise<ConversionJob> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -530,7 +530,7 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @param jobId Job ID
    * @returns Promise resolving to mock cancel result
    */
-  private async mockCancelConversion(jobId: string): Promise<boolean> {
+  private async mockCancelConversion(_jobId: string): Promise<boolean> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 

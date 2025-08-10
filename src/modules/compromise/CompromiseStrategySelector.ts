@@ -98,7 +98,7 @@ export class CompromiseStrategySelector {
         try {
           const impact = await strategy.estimateImpact(feature, context);
           const score = this.calculateScore(strategy, impact, criteria, options);
-          
+
           return {
             strategy,
             impact,
@@ -126,7 +126,7 @@ export class CompromiseStrategySelector {
 
     // Filter out failed evaluations and sort by score
     const validEvaluations = evaluations
-      .filter(eval => eval.error === null && eval.score > 0)
+      .filter((eval) => eval.error === null && eval.score > 0)
       .sort((a, b) => b.score - a.score);
 
     if (validEvaluations.length === 0) {
@@ -138,7 +138,7 @@ export class CompromiseStrategySelector {
     }
 
     const best = validEvaluations[0];
-    const alternatives = validEvaluations.slice(1, 4).map(eval => ({
+    const alternatives = validEvaluations.slice(1, 4).map((eval) => ({
       strategy: eval.strategy,
       score: eval.score,
       reason: this.getAlternativeReason(eval, best),
@@ -163,7 +163,10 @@ export class CompromiseStrategySelector {
     options: CompromiseOptions
   ): number {
     // Check if strategy exceeds maximum acceptable impact
-    if (this.getImpactLevelValue(impact.impactLevel) > this.getImpactLevelValue(options.maxImpactLevel)) {
+    if (
+      this.getImpactLevelValue(impact.impactLevel) >
+      this.getImpactLevelValue(options.maxImpactLevel)
+    ) {
       return 0; // Disqualify strategies that exceed max impact
     }
 
@@ -202,32 +205,41 @@ export class CompromiseStrategySelector {
    */
   private getImpactLevelValue(level: CompromiseLevel): number {
     switch (level) {
-      case CompromiseLevel.NONE: return 0;
-      case CompromiseLevel.LOW: return 1;
-      case CompromiseLevel.MEDIUM: return 2;
-      case CompromiseLevel.HIGH: return 3;
-      case CompromiseLevel.CRITICAL: return 4;
-      default: return 4;
+      case CompromiseLevel.NONE:
+        return 0;
+      case CompromiseLevel.LOW:
+        return 1;
+      case CompromiseLevel.MEDIUM:
+        return 2;
+      case CompromiseLevel.HIGH:
+        return 3;
+      case CompromiseLevel.CRITICAL:
+        return 4;
+      default:
+        return 4;
     }
   }
 
   /**
    * Calculate compatibility score based on user preferences
    */
-  private calculateCompatibilityScore(strategy: CompromiseStrategy, options: CompromiseOptions): number {
+  private calculateCompatibilityScore(
+    strategy: CompromiseStrategy,
+    options: CompromiseOptions
+  ): number {
     let score = 0.5; // Base score
 
     // Adjust based on strategy characteristics and user preferences
     const strategyName = strategy.getName().toLowerCase();
-    
+
     if (options.userPreferences.preferPerformance && strategyName.includes('performance')) {
       score += 0.2;
     }
-    
+
     if (options.userPreferences.preferCompatibility && strategyName.includes('compatibility')) {
       score += 0.2;
     }
-    
+
     if (options.userPreferences.preferVisualFidelity && strategyName.includes('visual')) {
       score += 0.2;
     }
@@ -270,8 +282,8 @@ export class CompromiseStrategySelector {
   ): string {
     const strategy = evaluation.strategy;
     const impact = evaluation.impact;
-    
-    let reasoning = `Selected "${strategy.getName()}" strategy because: `;
+
+    const reasoning = `Selected "${strategy.getName()}" strategy because: `;
     const reasons: string[] = [];
 
     if (impact.impactLevel === CompromiseLevel.LOW) {
@@ -308,11 +320,11 @@ export class CompromiseStrategySelector {
     if (altImpact.impactLevel > bestImpact.impactLevel) {
       return 'Higher impact level than selected strategy';
     }
-    
+
     if (altImpact.userExperienceImpact > bestImpact.userExperienceImpact + 20) {
       return 'Significantly worse user experience impact';
     }
-    
+
     if (altImpact.confidence < bestImpact.confidence - 20) {
       return 'Lower confidence in successful application';
     }

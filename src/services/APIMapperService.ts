@@ -7,7 +7,7 @@
 
 import { APIMapping, APIMapperService, MappingFilter, ImportResult } from '../types/api.js';
 import { createLogger } from '../utils/logger.js';
-import { ErrorHandler, globalErrorCollector } from '../utils/errorHandler.js';
+import { ErrorHandler } from '../utils/errorHandler.js';
 import { ErrorSeverity, createErrorCode } from '../types/errors.js';
 import { ConfigurationService } from './ConfigurationService.js';
 

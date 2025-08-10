@@ -71,8 +71,7 @@ export abstract class CompromiseStrategy {
    * Check if this strategy can handle the given feature
    */
   canHandle(feature: Feature, context: ConversionContext): boolean {
-    return this.supportedFeatureTypes.includes(feature.type) &&
-           this.isApplicable(feature, context);
+    return this.supportedFeatureTypes.includes(feature.type) && this.isApplicable(feature, context);
   }
 
   /**
@@ -152,7 +151,7 @@ export class CompromiseStrategyRegistry {
    * Get strategies that can handle a specific feature
    */
   getApplicableStrategies(feature: Feature, context: ConversionContext): CompromiseStrategy[] {
-    return this.getAll().filter(strategy => strategy.canHandle(feature, context));
+    return this.getAll().filter((strategy) => strategy.canHandle(feature, context));
   }
 
   /**

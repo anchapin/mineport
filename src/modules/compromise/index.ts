@@ -1,11 +1,38 @@
 // Core compromise framework
-export { CompromiseStrategy, CompromiseResult, CompromiseOptions, CompromiseStrategyRegistry } from './CompromiseStrategy.js';
-export { CompromiseStrategySelector, StrategySelectionResult, SelectionCriteria, DEFAULT_SELECTION_CRITERIA } from './CompromiseStrategySelector.js';
-export { CompromiseEngine, CompromiseEngineConfig, CompromiseEngineResult, BatchCompromiseResult, DEFAULT_COMPROMISE_ENGINE_CONFIG } from './CompromiseEngine.js';
+export {
+  CompromiseStrategy,
+  CompromiseResult,
+  CompromiseOptions,
+  CompromiseStrategyRegistry,
+} from './CompromiseStrategy.js';
+export {
+  CompromiseStrategySelector,
+  StrategySelectionResult,
+  SelectionCriteria,
+  DEFAULT_SELECTION_CRITERIA,
+} from './CompromiseStrategySelector.js';
+export {
+  CompromiseEngine,
+  CompromiseEngineConfig,
+  CompromiseEngineResult,
+  BatchCompromiseResult,
+  DEFAULT_COMPROMISE_ENGINE_CONFIG,
+} from './CompromiseEngine.js';
 
 // Reporting and documentation
-export { CompromiseReporter, CompromiseReport, CompromiseReportConfig, DEFAULT_REPORT_CONFIG } from './CompromiseReporter.js';
-export type { CompromiseDetail, FailedFeatureDetail, ManualImplementationStep, AlternativeApproach, ResourceRequirement } from './CompromiseReporter.js';
+export {
+  CompromiseReporter,
+  CompromiseReport,
+  CompromiseReportConfig,
+  DEFAULT_REPORT_CONFIG,
+} from './CompromiseReporter.js';
+export type {
+  CompromiseDetail,
+  FailedFeatureDetail,
+  ManualImplementationStep,
+  AlternativeApproach,
+  ResourceRequirement,
+} from './CompromiseReporter.js';
 
 // Specific compromise strategies
 export { DimensionCompromiseStrategy } from './strategies/DimensionCompromiseStrategy.js';

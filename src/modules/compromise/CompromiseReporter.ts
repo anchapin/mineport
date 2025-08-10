@@ -205,7 +205,7 @@ export class CompromiseReporter {
 
       if (compromise.warnings.length > 0) {
         report += `### Warnings\n\n`;
-        compromise.warnings.forEach(warning => {
+        compromise.warnings.forEach((warning) => {
           report += `- ${warning}\n`;
         });
         report += '\n';
@@ -213,7 +213,7 @@ export class CompromiseReporter {
 
       if (compromise.suggestions.length > 0) {
         report += `### Suggestions\n\n`;
-        compromise.suggestions.forEach(suggestion => {
+        compromise.suggestions.forEach((suggestion) => {
           report += `- ${suggestion}\n`;
         });
         report += '\n';
@@ -222,7 +222,7 @@ export class CompromiseReporter {
       report += `## No Compromise Applied\n\n`;
       if (result.errors.length > 0) {
         report += `### Errors\n\n`;
-        result.errors.forEach(error => {
+        result.errors.forEach((error) => {
           report += `- ${error}\n`;
         });
         report += '\n';
@@ -252,7 +252,9 @@ export class CompromiseReporter {
     }
 
     if (stats.averageImpact > 60) {
-      recommendations.push('High average impact detected - consider alternative conversion approaches');
+      recommendations.push(
+        'High average impact detected - consider alternative conversion approaches'
+      );
       recommendations.push('Review user requirements to determine acceptable impact levels');
     }
 
@@ -261,11 +263,14 @@ export class CompromiseReporter {
       recommendations.push('Consider excluding critical impact features from automated conversion');
     }
 
-    const topStrategy = Object.entries(batchResult.summary.strategiesUsed)
-      .sort(([,a], [,b]) => b - a)[0];
-    
+    const topStrategy = Object.entries(batchResult.summary.strategiesUsed).sort(
+      ([, a], [, b]) => b - a
+    )[0];
+
     if (topStrategy && topStrategy[1] > stats.totalFeatures * 0.3) {
-      recommendations.push(`${topStrategy[0]} strategy is heavily used - consider optimizing this approach`);
+      recommendations.push(
+        `${topStrategy[0]} strategy is heavily used - consider optimizing this approach`
+      );
     }
 
     return recommendations;
@@ -276,8 +281,8 @@ export class CompromiseReporter {
    */
   private extractSuccessfulCompromises(results: CompromiseEngineResult[]): CompromiseDetail[] {
     return results
-      .filter(r => r.compromiseApplied && r.compromiseResult)
-      .map(r => ({
+      .filter((r) => r.compromiseApplied && r.compromiseResult)
+      .map((r) => ({
         feature: r.originalFeature,
         strategy: r.compromiseResult!.metadata.strategyUsed,
         impact: {
@@ -296,8 +301,8 @@ export class CompromiseReporter {
    */
   private extractFailedFeatures(results: CompromiseEngineResult[]): FailedFeatureDetail[] {
     return results
-      .filter(r => !r.compromiseApplied)
-      .map(r => ({
+      .filter((r) => !r.compromiseApplied)
+      .map((r) => ({
         feature: r.originalFeature,
         errors: r.errors,
         strategiesConsidered: r.metadata.strategiesConsidered,
@@ -309,10 +314,12 @@ export class CompromiseReporter {
    * Extract high impact features
    */
   private extractHighImpactFeatures(results: CompromiseEngineResult[]): CompromiseDetail[] {
-    return this.extractSuccessfulCompromises(results)
-      .filter(detail => detail.impact.level === CompromiseLevel.HIGH || 
-                       detail.impact.level === CompromiseLevel.CRITICAL ||
-                       detail.impact.userExperience > 70);
+    return this.extractSuccessfulCompromises(results).filter(
+      (detail) =>
+        detail.impact.level === CompromiseLevel.HIGH ||
+        detail.impact.level === CompromiseLevel.CRITICAL ||
+        detail.impact.userExperience > 70
+    );
   }
 
   /**
@@ -320,9 +327,9 @@ export class CompromiseReporter {
    */
   private generateManualSteps(results: CompromiseEngineResult[]): ManualImplementationStep[] {
     const steps: ManualImplementationStep[] = [];
-    
+
     results
-      .filter(r => r.compromiseResult?.metadata.requiresManualImplementation)
+      .filter((r) => r.compromiseResult?.metadata.requiresManualImplementation)
       .forEach((r, index) => {
         const feature = r.originalFeature;
         steps.push({
@@ -344,12 +351,14 @@ export class CompromiseReporter {
    */
   private generateAlternativeApproaches(results: CompromiseEngineResult[]): AlternativeApproach[] {
     const approaches: AlternativeApproach[] = [];
-    
+
     results
-      .filter(r => r.strategySelection?.alternatives && r.strategySelection.alternatives.length > 0)
-      .forEach(r => {
+      .filter(
+        (r) => r.strategySelection?.alternatives && r.strategySelection.alternatives.length > 0
+      )
+      .forEach((r) => {
         const feature = r.originalFeature;
-        r.strategySelection!.alternatives.forEach(alt => {
+        r.strategySelection!.alternatives.forEach((alt) => {
           approaches.push({
             feature: feature.name,
             approach: alt.strategy.getName(),
@@ -369,12 +378,12 @@ export class CompromiseReporter {
    */
   private generateResourceRequirements(results: CompromiseEngineResult[]): ResourceRequirement[] {
     const requirements: ResourceRequirement[] = [];
-    
+
     // Documentation requirements
     const docFeatures = results
-      .filter(r => r.compromiseResult?.metadata.requiresManualImplementation)
-      .map(r => r.originalFeature.name);
-    
+      .filter((r) => r.compromiseResult?.metadata.requiresManualImplementation)
+      .map((r) => r.originalFeature.name);
+
     if (docFeatures.length > 0) {
       requirements.push({
         type: 'documentation',
@@ -386,10 +395,13 @@ export class CompromiseReporter {
 
     // Skill requirements
     const complexFeatures = results
-      .filter(r => r.compromiseResult?.impactLevel === CompromiseLevel.HIGH ||
-                  r.compromiseResult?.impactLevel === CompromiseLevel.CRITICAL)
-      .map(r => r.originalFeature.name);
-    
+      .filter(
+        (r) =>
+          r.compromiseResult?.impactLevel === CompromiseLevel.HIGH ||
+          r.compromiseResult?.impactLevel === CompromiseLevel.CRITICAL
+      )
+      .map((r) => r.originalFeature.name);
+
     if (complexFeatures.length > 0) {
       requirements.push({
         type: 'skills',
@@ -407,17 +419,17 @@ export class CompromiseReporter {
    */
   private generateFeatureRecommendations(result: CompromiseEngineResult): string[] {
     const recommendations: string[] = [];
-    
+
     if (result.metadata.strategiesConsidered === 0) {
       recommendations.push('No applicable strategies found - consider custom implementation');
     } else {
       recommendations.push('Review available strategies and their requirements');
     }
-    
+
     if (result.errors.includes('No applicable compromise strategy found')) {
       recommendations.push('Feature may require complete redesign for Bedrock compatibility');
     }
-    
+
     return recommendations;
   }
 
@@ -464,33 +476,33 @@ export class CompromiseReporter {
   private generateMarkdownReport(report: CompromiseReport): string {
     let md = `# Compromise Report\n\n`;
     md += `Generated: ${report.metadata.generatedAt.toISOString()}\n\n`;
-    
+
     md += `## Summary\n\n`;
     md += `- **Total Features:** ${report.metadata.totalFeatures}\n`;
     md += `- **Compromises Applied:** ${report.metadata.compromisesApplied}\n`;
     md += `- **Success Rate:** ${report.metadata.successRate.toFixed(1)}%\n`;
     md += `- **Average Impact:** ${report.metadata.averageImpact.toFixed(1)}%\n\n`;
-    
+
     md += `## Impact Distribution\n\n`;
     Object.entries(report.summary.impactDistribution).forEach(([level, count]) => {
       md += `- **${level}:** ${count}\n`;
     });
     md += '\n';
-    
+
     md += `## Strategies Used\n\n`;
     Object.entries(report.summary.strategiesUsed).forEach(([strategy, count]) => {
       md += `- **${strategy}:** ${count}\n`;
     });
     md += '\n';
-    
+
     if (report.summary.recommendations.length > 0) {
       md += `## Recommendations\n\n`;
-      report.summary.recommendations.forEach(rec => {
+      report.summary.recommendations.forEach((rec) => {
         md += `- ${rec}\n`;
       });
       md += '\n';
     }
-    
+
     return md;
   }
 
@@ -541,33 +553,33 @@ export class CompromiseReporter {
   private estimateImplementationTime(feature: Feature): string {
     const difficulty = this.assessDifficulty(feature);
     switch (difficulty) {
-      case 'easy': return '1-2 hours';
-      case 'medium': return '4-8 hours';
-      case 'hard': return '1-3 days';
-      default: return '4-8 hours';
+      case 'easy':
+        return '1-2 hours';
+      case 'medium':
+        return '4-8 hours';
+      case 'hard':
+        return '1-3 days';
+      default:
+        return '4-8 hours';
     }
   }
 
   private getRequiredSkills(feature: Feature): string[] {
     const skills = ['Bedrock development'];
-    
+
     if (feature.type.includes('UI')) {
       skills.push('UI/UX design');
     }
-    
+
     if (feature.type.includes('RENDERING')) {
       skills.push('Shader programming');
     }
-    
+
     return skills;
   }
 
   private getRequiredResources(feature: Feature): string[] {
-    return [
-      'Bedrock documentation',
-      'Development environment',
-      'Testing devices',
-    ];
+    return ['Bedrock documentation', 'Development environment', 'Testing devices'];
   }
 
   private assessComplexity(impactLevel: CompromiseLevel): 'low' | 'medium' | 'high' {

@@ -2,7 +2,10 @@ import { Feature, FeatureType, CompromiseLevel } from '../../types/compromise.js
 import { ConversionContext } from '../../types/modules.js';
 import { CompromiseStrategy, CompromiseOptions, CompromiseResult } from './CompromiseStrategy.js';
 import { CompromiseStrategyRegistry } from './CompromiseStrategy.js';
-import { CompromiseStrategySelector, StrategySelectionResult } from './CompromiseStrategySelector.js';
+import {
+  CompromiseStrategySelector,
+  StrategySelectionResult,
+} from './CompromiseStrategySelector.js';
 import { DimensionCompromiseStrategy } from './strategies/DimensionCompromiseStrategy.js';
 import { RenderingCompromiseStrategy } from './strategies/RenderingCompromiseStrategy.js';
 import { UICompromiseStrategy } from './strategies/UICompromiseStrategy.js';
@@ -109,7 +112,7 @@ export class CompromiseEngine {
     }
 
     if (this.config.customStrategies) {
-      this.config.customStrategies.forEach(strategy => {
+      this.config.customStrategies.forEach((strategy) => {
         this.registry.register(strategy);
       });
     }
@@ -148,11 +151,7 @@ export class CompromiseEngine {
       }
 
       // Select the best strategy
-      const strategySelection = await this.selector.selectStrategy(
-        feature,
-        context,
-        mergedOptions
-      );
+      const strategySelection = await this.selector.selectStrategy(feature, context, mergedOptions);
 
       if (!strategySelection) {
         errors.push('No applicable compromise strategy found');
@@ -191,7 +190,7 @@ export class CompromiseEngine {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       errors.push(errorMessage);
-      
+
       logger.error('Failed to process feature for compromise', {
         featureName: feature.name,
         error: errorMessage,
@@ -239,7 +238,7 @@ export class CompromiseEngine {
       }
 
       // Collect common issues
-      result.errors.forEach(error => {
+      result.errors.forEach((error) => {
         if (!commonIssues.includes(error)) {
           commonIssues.push(error);
         }
@@ -303,7 +302,7 @@ export class CompromiseEngine {
   private needsCompromise(feature: Feature, context: ConversionContext): boolean {
     // Check if feature has properties indicating it needs compromise
     const properties = feature.properties || {};
-    
+
     // Features marked as incompatible
     if (properties.incompatible || properties.needsCompromise) {
       return true;
@@ -339,7 +338,7 @@ export class CompromiseEngine {
         });
 
         const result = await strategy.apply(feature, context, options);
-        
+
         if (result.success) {
           return result;
         } else {
@@ -360,7 +359,7 @@ export class CompromiseEngine {
 
         if (attempt < this.config.maxAttempts) {
           // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
         }
       }
     }
@@ -372,18 +371,21 @@ export class CompromiseEngine {
   /**
    * Calculate statistics for batch processing results
    */
-  private calculateStatistics(results: CompromiseEngineResult[]): BatchCompromiseResult['statistics'] {
+  private calculateStatistics(
+    results: CompromiseEngineResult[]
+  ): BatchCompromiseResult['statistics'] {
     const totalFeatures = results.length;
-    const compromisesApplied = results.filter(r => r.compromiseApplied).length;
+    const compromisesApplied = results.filter((r) => r.compromiseApplied).length;
     const successRate = totalFeatures > 0 ? (compromisesApplied / totalFeatures) * 100 : 0;
 
     // Calculate average impact
     const impactValues = results
-      .filter(r => r.compromiseResult)
-      .map(r => r.compromiseResult!.userExperienceImpact);
-    const averageImpact = impactValues.length > 0 
-      ? impactValues.reduce((sum, impact) => sum + impact, 0) / impactValues.length 
-      : 0;
+      .filter((r) => r.compromiseResult)
+      .map((r) => r.compromiseResult!.userExperienceImpact);
+    const averageImpact =
+      impactValues.length > 0
+        ? impactValues.reduce((sum, impact) => sum + impact, 0) / impactValues.length
+        : 0;
 
     // Calculate impact distribution
     const impactDistribution: Record<CompromiseLevel, number> = {
@@ -395,8 +397,8 @@ export class CompromiseEngine {
     };
 
     results
-      .filter(r => r.compromiseResult)
-      .forEach(r => {
+      .filter((r) => r.compromiseResult)
+      .forEach((r) => {
         const level = r.compromiseResult!.impactLevel;
         impactDistribution[level]++;
       });

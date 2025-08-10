@@ -27,7 +27,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
 
     try {
       const analysis = this.analyzeUIFeature(feature);
-      
+
       let modifiedFeature: Feature;
       let description: string;
       let impactLevel: CompromiseLevel;
@@ -140,7 +140,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
     confidence: number;
   }> {
     const analysis = this.analyzeUIFeature(feature);
-    
+
     let impactLevel: CompromiseLevel;
     let userExperienceImpact: number;
 
@@ -192,10 +192,11 @@ export class UICompromiseStrategy extends CompromiseStrategy {
 
     // Check for UI-specific properties
     const properties = feature.properties || {};
-    const hasUIProps = properties.guiType || 
-                      properties.interfaceElements || 
-                      properties.customUI ||
-                      properties.hudElements;
+    const hasUIProps =
+      properties.guiType ||
+      properties.interfaceElements ||
+      properties.customUI ||
+      properties.hudElements;
 
     return hasUIProps || this.hasUIKeywords(feature.name);
   }
@@ -206,14 +207,20 @@ export class UICompromiseStrategy extends CompromiseStrategy {
   private hasUIKeywords(name: string): boolean {
     const keywords = ['gui', 'hud', 'menu', 'interface', 'screen', 'panel', 'dialog', 'window'];
     const lowerName = name.toLowerCase();
-    return keywords.some(keyword => lowerName.includes(keyword));
+    return keywords.some((keyword) => lowerName.includes(keyword));
   }
 
   /**
    * Analyze the UI feature to determine the best compromise approach
    */
   private analyzeUIFeature(feature: Feature): {
-    compromiseType: 'inventory_adaptation' | 'chat_command_replacement' | 'book_interface' | 'entity_interaction' | 'scoreboard_display' | 'documentation_guide';
+    compromiseType:
+      | 'inventory_adaptation'
+      | 'chat_command_replacement'
+      | 'book_interface'
+      | 'entity_interaction'
+      | 'scoreboard_display'
+      | 'documentation_guide';
     confidence: number;
     alternativesConsidered: string[];
   } {
@@ -417,7 +424,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
 
   private determineContainerType(feature: Feature): string {
     const properties = feature.properties || {};
-    
+
     if (properties.slotCount && properties.slotCount <= 27) {
       return 'chest';
     } else if (properties.slotCount && properties.slotCount <= 54) {
@@ -427,7 +434,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
     } else if (properties.hasFurnace) {
       return 'furnace';
     }
-    
+
     return 'generic_9x3'; // Default container
   }
 
@@ -444,7 +451,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
   private generateCommandMappings(feature: Feature): any {
     const properties = feature.properties || {};
     const commands: any = {};
-    
+
     if (properties.buttons) {
       properties.buttons.forEach((button: any, index: number) => {
         commands[`action${index + 1}`] = {
@@ -453,14 +460,16 @@ export class UICompromiseStrategy extends CompromiseStrategy {
         };
       });
     }
-    
+
     return commands;
   }
 
   private generateHelpText(feature: Feature): string {
-    return `Commands for ${feature.name}:\n` +
-           `Use /function commands to access functionality.\n` +
-           `Type /help ${feature.name} for detailed usage.`;
+    return (
+      `Commands for ${feature.name}:\n` +
+      `Use /function commands to access functionality.\n` +
+      `Type /help ${feature.name} for detailed usage.`
+    );
   }
 
   private generateBookContent(feature: Feature): any {
@@ -478,13 +487,15 @@ export class UICompromiseStrategy extends CompromiseStrategy {
 
   private generateTradeOffers(feature: Feature): any[] {
     const properties = feature.properties || {};
-    return properties.tradeOffers || [
-      {
-        wants: [{ item: 'emerald', quantity: 1 }],
-        gives: [{ item: 'paper', quantity: 1 }],
-        description: `Access ${feature.name} functionality`,
-      },
-    ];
+    return (
+      properties.tradeOffers || [
+        {
+          wants: [{ item: 'emerald', quantity: 1 }],
+          gives: [{ item: 'paper', quantity: 1 }],
+          description: `Access ${feature.name} functionality`,
+        },
+      ]
+    );
   }
 
   private generateDialogueTree(feature: Feature): any {
@@ -502,11 +513,13 @@ export class UICompromiseStrategy extends CompromiseStrategy {
 
   private generateScoreboardObjectives(feature: Feature): any[] {
     const properties = feature.properties || {};
-    return properties.hudElements?.map((element: any) => ({
-      name: element.name,
-      displayName: element.displayName || element.name,
-      type: element.type || 'dummy',
-    })) || [];
+    return (
+      properties.hudElements?.map((element: any) => ({
+        name: element.name,
+        displayName: element.displayName || element.name,
+        type: element.type || 'dummy',
+      })) || []
+    );
   }
 
   private generateDisplayFormat(feature: Feature): any {

@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CompromiseStrategySelector, DEFAULT_SELECTION_CRITERIA } from '../../../../src/modules/compromise/CompromiseStrategySelector.js';
-import { CompromiseStrategyRegistry, CompromiseStrategy } from '../../../../src/modules/compromise/CompromiseStrategy.js';
+import {
+  CompromiseStrategySelector,
+  DEFAULT_SELECTION_CRITERIA,
+} from '../../../../src/modules/compromise/CompromiseStrategySelector.js';
+import {
+  CompromiseStrategyRegistry,
+  CompromiseStrategy,
+} from '../../../../src/modules/compromise/CompromiseStrategy.js';
 import { Feature, FeatureType, CompromiseLevel } from '../../../../src/types/compromise.js';
 import { ConversionContext } from '../../../../src/types/modules.js';
 
@@ -119,7 +125,7 @@ describe('CompromiseStrategySelector', () => {
     it('should select the best strategy based on criteria', async () => {
       const lowImpactStrategy = new LowImpactStrategy();
       const highImpactStrategy = new HighImpactStrategy();
-      
+
       registry.register(lowImpactStrategy);
       registry.register(highImpactStrategy);
 
@@ -168,7 +174,7 @@ describe('CompromiseStrategySelector', () => {
     it('should exclude strategies that exceed max impact level', async () => {
       const lowImpactStrategy = new LowImpactStrategy();
       const highImpactStrategy = new HighImpactStrategy();
-      
+
       registry.register(lowImpactStrategy);
       registry.register(highImpactStrategy);
 
@@ -196,7 +202,7 @@ describe('CompromiseStrategySelector', () => {
     it('should handle strategy evaluation failures gracefully', async () => {
       const failingStrategy = new FailingStrategy();
       const workingStrategy = new LowImpactStrategy();
-      
+
       registry.register(failingStrategy);
       registry.register(workingStrategy);
 
@@ -248,7 +254,7 @@ describe('CompromiseStrategySelector', () => {
     it('should include alternatives in the result', async () => {
       const lowImpactStrategy = new LowImpactStrategy();
       const highImpactStrategy = new HighImpactStrategy();
-      
+
       registry.register(lowImpactStrategy);
       registry.register(highImpactStrategy);
 
@@ -279,14 +285,14 @@ describe('CompromiseStrategySelector', () => {
     it('should use custom selection criteria', async () => {
       const lowImpactStrategy = new LowImpactStrategy();
       const highImpactStrategy = new HighImpactStrategy();
-      
+
       registry.register(lowImpactStrategy);
       registry.register(highImpactStrategy);
 
       const customCriteria = {
         ...DEFAULT_SELECTION_CRITERIA,
         confidenceWeight: 0.8, // Heavily weight confidence
-        impactWeight: 0.1,     // De-emphasize impact
+        impactWeight: 0.1, // De-emphasize impact
       };
 
       const options = {
@@ -304,7 +310,12 @@ describe('CompromiseStrategySelector', () => {
         },
       };
 
-      const result = await selector.selectStrategy(mockFeature, mockContext, options, customCriteria);
+      const result = await selector.selectStrategy(
+        mockFeature,
+        mockContext,
+        options,
+        customCriteria
+      );
 
       expect(result).toBeDefined();
       // With high confidence weight, low impact strategy should still win due to higher confidence
@@ -316,7 +327,7 @@ describe('CompromiseStrategySelector', () => {
     it('should prefer strategies with lower impact levels', async () => {
       const lowImpactStrategy = new LowImpactStrategy();
       const highImpactStrategy = new HighImpactStrategy();
-      
+
       registry.register(lowImpactStrategy);
       registry.register(highImpactStrategy);
 
@@ -339,9 +350,11 @@ describe('CompromiseStrategySelector', () => {
 
       expect(result).toBeDefined();
       expect(result!.strategy).toBe(lowImpactStrategy);
-      
+
       // Find the high impact alternative
-      const highImpactAlternative = result!.alternatives.find(alt => alt.strategy === highImpactStrategy);
+      const highImpactAlternative = result!.alternatives.find(
+        (alt) => alt.strategy === highImpactStrategy
+      );
       expect(highImpactAlternative).toBeDefined();
       expect(result!.score).toBeGreaterThan(highImpactAlternative!.score);
     });
@@ -351,7 +364,7 @@ describe('CompromiseStrategySelector', () => {
       // and being selected over the high impact strategy
       const lowImpactStrategy = new LowImpactStrategy(); // 90% confidence
       const highImpactStrategy = new HighImpactStrategy(); // 70% confidence
-      
+
       registry.register(lowImpactStrategy);
       registry.register(highImpactStrategy);
 
