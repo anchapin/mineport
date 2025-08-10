@@ -4,16 +4,15 @@
  */
 
 import { Request, Response } from 'express';
-import { HealthCheckService } from '../services/HealthCheckService';
-import { Logger } from '../utils/logger';
+import { HealthCheckService } from '../services/HealthCheckService.js';
+import { createLogger } from '../utils/logger.js';
 
 export class HealthAPI {
   private healthCheckService: HealthCheckService;
-  private logger: Logger;
+  private logger = createLogger('HealthAPI');
 
   constructor(healthCheckService: HealthCheckService) {
     this.healthCheckService = healthCheckService;
-    this.logger = new Logger('HealthAPI');
   }
 
   /**
@@ -23,7 +22,7 @@ export class HealthAPI {
   public async health(req: Request, res: Response): Promise<void> {
     try {
       const healthResult = await this.healthCheckService.performHealthCheck();
-      
+
       // Set appropriate HTTP status code based on health status
       let statusCode = 200;
       if (healthResult.status === 'degraded') {
@@ -38,7 +37,7 @@ export class HealthAPI {
         version: process.env.npm_package_version || '1.0.0',
         uptime: process.uptime(),
         checks: healthResult.checks,
-        summary: healthResult.summary
+        summary: healthResult.summary,
       });
     } catch (error) {
       this.logger.error('Health check endpoint failed:', error);
@@ -46,7 +45,7 @@ export class HealthAPI {
         status: 'unhealthy',
         timestamp: new Date(),
         error: 'Health check failed',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -58,18 +57,18 @@ export class HealthAPI {
   public async ready(req: Request, res: Response): Promise<void> {
     try {
       const isReady = await this.healthCheckService.isReady();
-      
+
       if (isReady) {
         res.status(200).json({
           status: 'ready',
           timestamp: new Date(),
-          message: 'Service is ready to accept requests'
+          message: 'Service is ready to accept requests',
         });
       } else {
         res.status(503).json({
           status: 'not-ready',
           timestamp: new Date(),
-          message: 'Service is not ready to accept requests'
+          message: 'Service is not ready to accept requests',
         });
       }
     } catch (error) {
@@ -78,7 +77,7 @@ export class HealthAPI {
         status: 'not-ready',
         timestamp: new Date(),
         error: 'Readiness check failed',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -95,7 +94,7 @@ export class HealthAPI {
         timestamp: new Date(),
         pid: process.pid,
         uptime: process.uptime(),
-        memory: process.memoryUsage()
+        memory: process.memoryUsage(),
       });
     } catch (error) {
       this.logger.error('Liveness probe failed:', error);
@@ -103,7 +102,7 @@ export class HealthAPI {
         status: 'dead',
         timestamp: new Date(),
         error: 'Liveness check failed',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -117,7 +116,7 @@ export class HealthAPI {
       const healthResult = await this.healthCheckService.performHealthCheck();
       const memUsage = process.memoryUsage();
       const cpuUsage = process.cpuUsage();
-      
+
       const metrics = {
         timestamp: new Date(),
         system: {
@@ -125,31 +124,31 @@ export class HealthAPI {
           pid: process.pid,
           platform: process.platform,
           arch: process.arch,
-          nodeVersion: process.version
+          nodeVersion: process.version,
         },
         memory: {
           rss: memUsage.rss,
           heapTotal: memUsage.heapTotal,
           heapUsed: memUsage.heapUsed,
           external: memUsage.external,
-          arrayBuffers: memUsage.arrayBuffers
+          arrayBuffers: memUsage.arrayBuffers,
         },
         cpu: {
           user: cpuUsage.user,
-          system: cpuUsage.system
+          system: cpuUsage.system,
         },
         health: {
           status: healthResult.status,
           totalChecks: healthResult.summary.total,
           healthyChecks: healthResult.summary.healthy,
           degradedChecks: healthResult.summary.degraded,
-          unhealthyChecks: healthResult.summary.unhealthy
+          unhealthyChecks: healthResult.summary.unhealthy,
         },
-        probes: this.healthCheckService.getReadinessProbes().map(probe => ({
+        probes: this.healthCheckService.getReadinessProbes().map((probe) => ({
           name: probe.name,
           timeout: probe.timeout,
-          critical: probe.critical
-        }))
+          critical: probe.critical,
+        })),
       };
 
       res.status(200).json(metrics);
@@ -158,7 +157,7 @@ export class HealthAPI {
       res.status(500).json({
         error: 'Metrics collection failed',
         message: error.message,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
   }
@@ -177,19 +176,19 @@ export class HealthAPI {
           {
             name: 'environment-variables',
             status: 'passed',
-            message: 'All required environment variables are set'
+            message: 'All required environment variables are set',
           },
           {
             name: 'feature-flags',
             status: 'passed',
-            message: 'Feature flags configuration is valid'
+            message: 'Feature flags configuration is valid',
           },
           {
             name: 'database-config',
             status: 'passed',
-            message: 'Database configuration is valid'
-          }
-        ]
+            message: 'Database configuration is valid',
+          },
+        ],
       };
 
       res.status(200).json(validationResults);
@@ -199,7 +198,7 @@ export class HealthAPI {
         valid: false,
         error: 'Configuration validation failed',
         message: error.message,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
   }

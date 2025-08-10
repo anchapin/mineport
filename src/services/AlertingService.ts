@@ -10,7 +10,7 @@ export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
 /**
  * Alert types
  */
-export type AlertType = 
+export type AlertType =
   | 'security_threat'
   | 'performance_degradation'
   | 'system_health'
@@ -114,7 +114,7 @@ export class AlertingService extends EventEmitter {
       timestamp: new Date(),
       resolved: false,
       metadata,
-      source
+      source,
     };
 
     this.alerts.set(alert.id, alert);
@@ -133,7 +133,7 @@ export class AlertingService extends EventEmitter {
       {
         event: 'threat_detected',
         severity: severity,
-        details: metadata
+        details: metadata,
       },
       `Alert created: ${title}`,
       { alertId: alert.id, type, source }
@@ -166,7 +166,7 @@ export class AlertingService extends EventEmitter {
       alertId: alert.id,
       type: alert.type,
       severity: alert.severity,
-      resolvedBy
+      resolvedBy,
     });
 
     return true;
@@ -176,21 +176,21 @@ export class AlertingService extends EventEmitter {
    * Get all active alerts
    */
   getActiveAlerts(): Alert[] {
-    return Array.from(this.alerts.values()).filter(alert => !alert.resolved);
+    return Array.from(this.alerts.values()).filter((alert) => !alert.resolved);
   }
 
   /**
    * Get alerts by type
    */
   getAlertsByType(type: AlertType): Alert[] {
-    return Array.from(this.alerts.values()).filter(alert => alert.type === type);
+    return Array.from(this.alerts.values()).filter((alert) => alert.type === type);
   }
 
   /**
    * Get alerts by severity
    */
   getAlertsBySeverity(severity: AlertSeverity): Alert[] {
-    return Array.from(this.alerts.values()).filter(alert => alert.severity === severity);
+    return Array.from(this.alerts.values()).filter((alert) => alert.severity === severity);
   }
 
   /**
@@ -235,8 +235,7 @@ export class AlertingService extends EventEmitter {
       if (!rule.enabled) continue;
 
       // Check cooldown period
-      if (rule.lastTriggered && 
-          Date.now() - rule.lastTriggered.getTime() < rule.cooldownPeriod) {
+      if (rule.lastTriggered && Date.now() - rule.lastTriggered.getTime() < rule.cooldownPeriod) {
         continue;
       }
 
@@ -264,7 +263,7 @@ export class AlertingService extends EventEmitter {
       {
         threatType,
         fileName,
-        ...details
+        ...details,
       },
       'security_scanner'
     );
@@ -288,7 +287,7 @@ export class AlertingService extends EventEmitter {
         operation,
         duration,
         threshold,
-        ...details
+        ...details,
       },
       'performance_monitor'
     );
@@ -303,7 +302,7 @@ export class AlertingService extends EventEmitter {
     details: Record<string, any> = {}
   ): Promise<Alert> {
     const severity: AlertSeverity = status === 'unhealthy' ? 'high' : 'medium';
-    
+
     return this.createAlert(
       'system_health',
       severity,
@@ -312,7 +311,7 @@ export class AlertingService extends EventEmitter {
       {
         component,
         status,
-        ...details
+        ...details,
       },
       'health_monitor'
     );
@@ -328,7 +327,7 @@ export class AlertingService extends EventEmitter {
     details: Record<string, any> = {}
   ): Promise<Alert> {
     const severity: AlertSeverity = usage > threshold * 1.5 ? 'high' : 'medium';
-    
+
     return this.createAlert(
       'resource_usage',
       severity,
@@ -338,7 +337,7 @@ export class AlertingService extends EventEmitter {
         resource,
         usage,
         threshold,
-        ...details
+        ...details,
       },
       'resource_monitor'
     );
@@ -385,7 +384,7 @@ export class AlertingService extends EventEmitter {
       logger.error('Failed to execute alert action', {
         actionType: action.type,
         alertId: alert.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -393,9 +392,13 @@ export class AlertingService extends EventEmitter {
   /**
    * Execute webhook action
    */
-  private async executeWebhookAction(action: AlertAction, alert: Alert, rule: AlertRule): Promise<void> {
+  private async executeWebhookAction(
+    action: AlertAction,
+    alert: Alert,
+    rule: AlertRule
+  ): Promise<void> {
     const { url, headers = {}, timeout = 5000 } = action.config;
-    
+
     if (!url) {
       logger.warn('Webhook action missing URL', { alertId: alert.id });
       return;
@@ -405,7 +408,7 @@ export class AlertingService extends EventEmitter {
       alert,
       rule,
       timestamp: new Date(),
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
     };
 
     const controller = new AbortController();
@@ -416,10 +419,10 @@ export class AlertingService extends EventEmitter {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...headers
+          ...headers,
         },
         body: JSON.stringify(payload),
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -431,7 +434,7 @@ export class AlertingService extends EventEmitter {
       logger.info('Webhook alert sent successfully', {
         alertId: alert.id,
         url,
-        status: response.status
+        status: response.status,
       });
     } catch (error) {
       clearTimeout(timeoutId);
@@ -442,16 +445,20 @@ export class AlertingService extends EventEmitter {
   /**
    * Execute email action (placeholder - would integrate with email service)
    */
-  private async executeEmailAction(action: AlertAction, alert: Alert, rule: AlertRule): Promise<void> {
+  private async executeEmailAction(
+    action: AlertAction,
+    alert: Alert,
+    _rule: AlertRule
+  ): Promise<void> {
     const { to, subject, template } = action.config;
-    
+
     logger.info('Email alert would be sent', {
       alertId: alert.id,
       to,
       subject: subject || `Alert: ${alert.title}`,
-      template
+      template,
     });
-    
+
     // In a real implementation, this would integrate with an email service
     // like SendGrid, AWS SES, or similar
   }
@@ -459,9 +466,13 @@ export class AlertingService extends EventEmitter {
   /**
    * Execute log action
    */
-  private async executeLogAction(action: AlertAction, alert: Alert, rule: AlertRule): Promise<void> {
+  private async executeLogAction(
+    action: AlertAction,
+    alert: Alert,
+    rule: AlertRule
+  ): Promise<void> {
     const { level = 'warn' } = action.config;
-    
+
     logger[level as keyof typeof logger]('Alert triggered', {
       alertId: alert.id,
       type: alert.type,
@@ -469,23 +480,27 @@ export class AlertingService extends EventEmitter {
       title: alert.title,
       message: alert.message,
       metadata: alert.metadata,
-      ruleId: rule.id
+      ruleId: rule.id,
     });
   }
 
   /**
    * Execute Slack action (placeholder - would integrate with Slack API)
    */
-  private async executeSlackAction(action: AlertAction, alert: Alert, rule: AlertRule): Promise<void> {
+  private async executeSlackAction(
+    action: AlertAction,
+    alert: Alert,
+    _rule: AlertRule
+  ): Promise<void> {
     const { channel, webhookUrl, username = 'Mineport Alerts' } = action.config;
-    
+
     logger.info('Slack alert would be sent', {
       alertId: alert.id,
       channel,
       webhookUrl: webhookUrl ? '[CONFIGURED]' : '[NOT CONFIGURED]',
-      username
+      username,
     });
-    
+
     // In a real implementation, this would send to Slack via webhook or API
   }
 
@@ -508,18 +523,26 @@ export class AlertingService extends EventEmitter {
     const value = this.getMetricValue(condition.metric, metric);
     if (value === undefined) return false;
 
-    const threshold = typeof condition.threshold === 'string' 
-      ? parseFloat(condition.threshold) 
-      : condition.threshold;
+    const threshold =
+      typeof condition.threshold === 'string'
+        ? parseFloat(condition.threshold)
+        : condition.threshold;
 
     switch (condition.operator) {
-      case 'gt': return value > threshold;
-      case 'gte': return value >= threshold;
-      case 'lt': return value < threshold;
-      case 'lte': return value <= threshold;
-      case 'eq': return value === threshold;
-      case 'neq': return value !== threshold;
-      default: return false;
+      case 'gt':
+        return value > threshold;
+      case 'gte':
+        return value >= threshold;
+      case 'lt':
+        return value < threshold;
+      case 'lte':
+        return value <= threshold;
+      case 'eq':
+        return value === threshold;
+      case 'neq':
+        return value !== threshold;
+      default:
+        return false;
     }
   }
 
@@ -529,7 +552,7 @@ export class AlertingService extends EventEmitter {
   private getMetricValue(path: string, metric: Record<string, any>): number | undefined {
     const keys = path.split('.');
     let value = metric;
-    
+
     for (const key of keys) {
       if (value && typeof value === 'object' && key in value) {
         value = value[key];
@@ -537,7 +560,7 @@ export class AlertingService extends EventEmitter {
         return undefined;
       }
     }
-    
+
     return typeof value === 'number' ? value : undefined;
   }
 
@@ -546,7 +569,7 @@ export class AlertingService extends EventEmitter {
    */
   private async triggerRule(rule: AlertRule, metric: Record<string, any>): Promise<void> {
     rule.lastTriggered = new Date();
-    
+
     await this.createAlert(
       rule.type,
       rule.severity,
@@ -555,7 +578,7 @@ export class AlertingService extends EventEmitter {
       {
         ruleId: rule.id,
         ruleName: rule.name,
-        triggerMetric: metric
+        triggerMetric: metric,
       },
       'alert_rule'
     );
@@ -582,8 +605,8 @@ export class AlertingService extends EventEmitter {
           {
             metric: 'severity',
             operator: 'eq',
-            threshold: 'critical'
-          }
+            threshold: 'critical',
+          },
         ],
         severity: 'critical',
         cooldownPeriod: 60000, // 1 minute
@@ -591,16 +614,16 @@ export class AlertingService extends EventEmitter {
           {
             type: 'webhook',
             config: {
-              url: this.config.alertingWebhookUrl
+              url: this.config.alertingWebhookUrl,
             },
-            enabled: this.config.alertingEnabled
+            enabled: this.config.alertingEnabled,
           },
           {
             type: 'log',
             config: { level: 'error' },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       },
       {
         id: 'performance_degradation_high',
@@ -611,8 +634,8 @@ export class AlertingService extends EventEmitter {
           {
             metric: 'duration',
             operator: 'gt',
-            threshold: 30000 // 30 seconds
-          }
+            threshold: 30000, // 30 seconds
+          },
         ],
         severity: 'high',
         cooldownPeriod: 300000, // 5 minutes
@@ -620,9 +643,9 @@ export class AlertingService extends EventEmitter {
           {
             type: 'log',
             config: { level: 'warn' },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       },
       {
         id: 'system_health_unhealthy',
@@ -633,8 +656,8 @@ export class AlertingService extends EventEmitter {
           {
             metric: 'status',
             operator: 'eq',
-            threshold: 'unhealthy'
-          }
+            threshold: 'unhealthy',
+          },
         ],
         severity: 'high',
         cooldownPeriod: 300000, // 5 minutes
@@ -642,16 +665,16 @@ export class AlertingService extends EventEmitter {
           {
             type: 'webhook',
             config: {
-              url: this.config.alertingWebhookUrl
+              url: this.config.alertingWebhookUrl,
             },
-            enabled: this.config.alertingEnabled
+            enabled: this.config.alertingEnabled,
           },
           {
             type: 'log',
             config: { level: 'error' },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       },
       {
         id: 'high_memory_usage',
@@ -662,8 +685,8 @@ export class AlertingService extends EventEmitter {
           {
             metric: 'memoryUsage',
             operator: 'gt',
-            threshold: 800 // MB
-          }
+            threshold: 800, // MB
+          },
         ],
         severity: 'medium',
         cooldownPeriod: 600000, // 10 minutes
@@ -671,10 +694,10 @@ export class AlertingService extends EventEmitter {
           {
             type: 'log',
             config: { level: 'warn' },
-            enabled: true
-          }
-        ]
-      }
+            enabled: true,
+          },
+        ],
+      },
     ];
 
     for (const rule of defaultRules) {

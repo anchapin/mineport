@@ -1,13 +1,13 @@
 /**
  * API-related type definitions
- * 
+ *
  * This file contains interfaces related to API mappings and services
  * that translate between Java and Bedrock APIs.
  */
 
 /**
  * Represents an API mapping between Java and Bedrock
- * 
+ *
  * This interface aligns with the design document's API Mapping Models specification.
  */
 export interface APIMapping {
@@ -26,15 +26,15 @@ export interface APIMapping {
 
 /**
  * Interface for API mapping service
- * 
+ *
  * This interface aligns with the design document's APIMapperService specification.
  */
 export interface APIMapperService {
   /**
    * getMapping method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -42,9 +42,9 @@ export interface APIMapperService {
   getMapping(javaSignature: string): APIMapping | undefined;
   /**
    * getMappings method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -52,9 +52,9 @@ export interface APIMapperService {
   getMappings(filter?: MappingFilter): APIMapping[];
   /**
    * addMapping method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -62,9 +62,9 @@ export interface APIMapperService {
   addMapping(mapping: APIMapping): Promise<void>;
   /**
    * updateMapping method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -72,9 +72,9 @@ export interface APIMapperService {
   updateMapping(mapping: APIMapping): Promise<void>;
   /**
    * importMappings method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0

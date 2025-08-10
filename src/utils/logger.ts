@@ -2,20 +2,24 @@ import winston from 'winston';
 import config from '../../config/default.js';
 import path from 'path';
 import fs from 'fs';
-import { ErrorSeverity, ConversionError } from '../types/errors.js';
+// import { ErrorSeverity, ConversionError } from '../types/errors.js';
 import { LoggingConfig } from '../types/config.js';
 
 /**
  * Setup the logger with enhanced error handling
  */
 export function setupLogger() {
+  // Handle cases where config might not be available (e.g., in tests)
+  const logFile = config?.logging?.file || '/tmp/test.log';
+  const logLevel = config?.logging?.level || 'info';
+
   // Ensure log directory exists
-  const logDir = path.dirname(config.logging.file);
+  const logDir = path.dirname(logFile);
   /**
    * if method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -28,9 +32,9 @@ export function setupLogger() {
   const errorFormat = winston.format((info) => {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -43,9 +47,9 @@ export function setupLogger() {
     }
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -63,13 +67,13 @@ export function setupLogger() {
   });
 
   const logger = winston.createLogger({
-    level: config.logging.level,
+    level: logLevel,
     format: winston.format.combine(
       /**
        * errorFormat method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -81,19 +85,16 @@ export function setupLogger() {
     ),
     defaultMeta: { service: 'minecraft-mod-converter' },
     transports: [
-      new winston.transports.File({ 
-        filename: config.logging.file,
+      new winston.transports.File({
+        filename: logFile,
         level: 'info',
       }),
-      new winston.transports.File({ 
-        filename: path.join(path.dirname(config.logging.file), 'error.log'),
+      new winston.transports.File({
+        filename: path.join(path.dirname(logFile), 'error.log'),
         level: 'error',
       }),
       new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.simple()
-        ),
+        format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
       }),
     ],
   });
@@ -103,13 +104,13 @@ export function setupLogger() {
 
 /**
  * Create a logger for a specific module
- * 
+ *
  * @param moduleId The module identifier
  * @returns A logger instance for the module
  */
 export function createLogger(moduleId: string) {
   const logger = setupLogger();
-  
+
   return {
     info: (message: string, meta?: any) => {
       logger.info(message, { moduleId, ...meta });
@@ -125,7 +126,7 @@ export function createLogger(moduleId: string) {
     },
     verbose: (message: string, meta?: any) => {
       logger.verbose(message, { moduleId, ...meta });
-    }
+    },
   };
 }
 
@@ -156,7 +157,12 @@ process.on('unhandledRejection', (reason, promise) => {
  */
 export interface SecurityEvent {
   type: 'security';
-  event: 'threat_detected' | 'scan_completed' | 'file_quarantined' | 'malware_detected' | 'access_denied';
+  event:
+    | 'threat_detected'
+    | 'scan_completed'
+    | 'file_quarantined'
+    | 'malware_detected'
+    | 'access_denied';
   severity: 'low' | 'medium' | 'high' | 'critical';
   userId?: string;
   fileName?: string;
@@ -215,12 +221,16 @@ class EnhancedLogger {
   /**
    * Log a structured event
    */
-  logStructuredEvent(event: StructuredLogEvent, message: string, additionalData?: Record<string, any>): void {
+  logStructuredEvent(
+    event: StructuredLogEvent,
+    message: string,
+    additionalData?: Record<string, any>
+  ): void {
     const logData = {
       message,
       eventType: event.type,
       event: event,
-      ...additionalData
+      ...additionalData,
     };
 
     // Determine log level based on event type and severity
@@ -252,28 +262,44 @@ class EnhancedLogger {
   /**
    * Log a security event
    */
-  logSecurityEvent(event: Omit<SecurityEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+  logSecurityEvent(
+    event: Omit<SecurityEvent, 'type'>,
+    message: string,
+    additionalData?: Record<string, any>
+  ): void {
     this.logStructuredEvent({ ...event, type: 'security' }, message, additionalData);
   }
 
   /**
    * Log a performance event
    */
-  logPerformanceEvent(event: Omit<PerformanceEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+  logPerformanceEvent(
+    event: Omit<PerformanceEvent, 'type'>,
+    message: string,
+    additionalData?: Record<string, any>
+  ): void {
     this.logStructuredEvent({ ...event, type: 'performance' }, message, additionalData);
   }
 
   /**
    * Log a business event
    */
-  logBusinessEvent(event: Omit<BusinessEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+  logBusinessEvent(
+    event: Omit<BusinessEvent, 'type'>,
+    message: string,
+    additionalData?: Record<string, any>
+  ): void {
     this.logStructuredEvent({ ...event, type: 'business' }, message, additionalData);
   }
 
   /**
    * Log a system event
    */
-  logSystemEvent(event: Omit<SystemEvent, 'type'>, message: string, additionalData?: Record<string, any>): void {
+  logSystemEvent(
+    event: Omit<SystemEvent, 'type'>,
+    message: string,
+    additionalData?: Record<string, any>
+  ): void {
     this.logStructuredEvent({ ...event, type: 'system' }, message, additionalData);
   }
 
@@ -301,7 +327,10 @@ export const logger = new EnhancedLogger(setupLogger());
 /**
  * Create an enhanced logger for a specific module
  */
-export function createEnhancedLogger(moduleId: string, config?: Partial<LoggingConfig>): EnhancedLogger {
+export function createEnhancedLogger(
+  moduleId: string,
+  config?: Partial<LoggingConfig>
+): EnhancedLogger {
   const baseLogger = setupLogger();
   const childLogger = baseLogger.child({ moduleId });
   return new EnhancedLogger(childLogger, config);

@@ -1,15 +1,15 @@
 /**
  * API Mapper Service
- * 
+ *
  * Service for managing and providing access to Java-to-Bedrock API mappings.
  * Implements database integration, versioning, and caching for API mappings.
  */
 
-import { APIMapping, APIMapperService, MappingFilter, ImportResult } from '../types/api';
-import { createLogger } from '../utils/logger';
-import { ErrorHandler, globalErrorCollector } from '../utils/errorHandler';
-import { ErrorSeverity, createErrorCode } from '../types/errors';
-import { ConfigurationService } from './ConfigurationService';
+import { APIMapping, APIMapperService, MappingFilter, ImportResult } from '../types/api.js';
+import { createLogger } from '../utils/logger.js';
+import { ErrorHandler } from '../utils/errorHandler.js';
+import { ErrorSeverity, createErrorCode } from '../types/errors.js';
+import { ConfigurationService } from './ConfigurationService.js';
 
 const logger = createLogger('APIMapperService');
 const MODULE_ID = 'API_MAPPER';
@@ -20,9 +20,9 @@ const MODULE_ID = 'API_MAPPER';
 interface MappingDatabase {
   /**
    * get method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -30,9 +30,9 @@ interface MappingDatabase {
   get(id: string): Promise<APIMapping | undefined>;
   /**
    * getBySignature method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -40,9 +40,9 @@ interface MappingDatabase {
   getBySignature(javaSignature: string): Promise<APIMapping | undefined>;
   /**
    * getAll method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -50,9 +50,9 @@ interface MappingDatabase {
   getAll(filter?: MappingFilter): Promise<APIMapping[]>;
   /**
    * save method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -60,9 +60,9 @@ interface MappingDatabase {
   save(mapping: APIMapping): Promise<void>;
   /**
    * update method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -70,9 +70,9 @@ interface MappingDatabase {
   update(mapping: APIMapping): Promise<void>;
   /**
    * delete method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -80,9 +80,9 @@ interface MappingDatabase {
   delete(id: string): Promise<void>;
   /**
    * count method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -100,9 +100,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
   /**
    * get method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -113,9 +113,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
   /**
    * getBySignature method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -127,9 +127,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
   /**
    * getAll method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -139,9 +139,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -149,43 +149,44 @@ class InMemoryMappingDatabase implements MappingDatabase {
     if (filter) {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (filter.conversionType) {
-        mappings = mappings.filter(m => m.conversionType === filter.conversionType);
+        mappings = mappings.filter((m) => m.conversionType === filter.conversionType);
       }
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (filter.version) {
-        mappings = mappings.filter(m => m.version === filter.version);
+        mappings = mappings.filter((m) => m.version === filter.version);
       }
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (filter.search) {
         const searchLower = filter.search.toLowerCase();
-        mappings = mappings.filter(m => 
-          m.javaSignature.toLowerCase().includes(searchLower) ||
-          m.bedrockEquivalent.toLowerCase().includes(searchLower) ||
-          m.notes.toLowerCase().includes(searchLower)
+        mappings = mappings.filter(
+          (m) =>
+            m.javaSignature.toLowerCase().includes(searchLower) ||
+            m.bedrockEquivalent.toLowerCase().includes(searchLower) ||
+            m.notes.toLowerCase().includes(searchLower)
         );
       }
     }
@@ -195,9 +196,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
   /**
    * save method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -209,9 +210,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
   /**
    * update method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -220,9 +221,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
     const existing = this.mappings.get(mapping.id);
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -241,9 +242,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
   /**
    * delete method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -252,9 +253,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
     const mapping = this.mappings.get(id);
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -267,9 +268,9 @@ class InMemoryMappingDatabase implements MappingDatabase {
 
   /**
    * count method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -291,9 +292,9 @@ export class APIMapperServiceImpl implements APIMapperService {
 
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -301,14 +302,14 @@ export class APIMapperServiceImpl implements APIMapperService {
   constructor(configService: ConfigurationService, database?: MappingDatabase) {
     this.configService = configService;
     this.database = database || new InMemoryMappingDatabase();
-    
+
     // Load configuration
     this.cacheEnabled = this.configService.get('apiMapper.cacheEnabled', true);
     this.cacheMaxSize = this.configService.get('apiMapper.cacheMaxSize', 1000);
-    
+
     logger.info('APIMapperService initialized', {
       cacheEnabled: this.cacheEnabled,
-      cacheMaxSize: this.cacheMaxSize
+      cacheMaxSize: this.cacheMaxSize,
     });
 
     // Initialize with default mappings
@@ -323,9 +324,9 @@ export class APIMapperServiceImpl implements APIMapperService {
       // Check cache first
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -337,12 +338,12 @@ export class APIMapperServiceImpl implements APIMapperService {
 
       // Query database
       const mapping = await this.database.getBySignature(javaSignature);
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -355,8 +356,10 @@ export class APIMapperServiceImpl implements APIMapperService {
       return mapping;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error(`Error retrieving mapping for signature ${javaSignature}: ${errorMessage}`, { error });
-      
+      logger.error(`Error retrieving mapping for signature ${javaSignature}: ${errorMessage}`, {
+        error,
+      });
+
       ErrorHandler.systemError(
         `Failed to retrieve API mapping: ${errorMessage}`,
         MODULE_ID,
@@ -364,16 +367,16 @@ export class APIMapperServiceImpl implements APIMapperService {
         ErrorSeverity.ERROR,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         createErrorCode(MODULE_ID, 'GET_MAPPING', 1)
       );
-      
+
       return undefined;
     }
   }
@@ -389,7 +392,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error retrieving mappings: ${errorMessage}`, { error, filter });
-      
+
       ErrorHandler.systemError(
         `Failed to retrieve API mappings: ${errorMessage}`,
         MODULE_ID,
@@ -397,16 +400,16 @@ export class APIMapperServiceImpl implements APIMapperService {
         ErrorSeverity.ERROR,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         createErrorCode(MODULE_ID, 'GET_MAPPINGS', 1)
       );
-      
+
       return [];
     }
   }
@@ -418,14 +421,14 @@ export class APIMapperServiceImpl implements APIMapperService {
     try {
       // Validate mapping
       this.validateMapping(mapping);
-      
+
       // Check if mapping already exists
       const existing = await this.database.getBySignature(mapping.javaSignature);
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -436,16 +439,16 @@ export class APIMapperServiceImpl implements APIMapperService {
 
       // Set metadata
       mapping.lastUpdated = new Date();
-      
+
       // Save to database
       await this.database.save(mapping);
-      
+
       // Update cache
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -458,7 +461,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error adding mapping: ${errorMessage}`, { error, mapping });
-      
+
       ErrorHandler.systemError(
         `Failed to add API mapping: ${errorMessage}`,
         MODULE_ID,
@@ -466,16 +469,16 @@ export class APIMapperServiceImpl implements APIMapperService {
         ErrorSeverity.ERROR,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         createErrorCode(MODULE_ID, 'ADD_MAPPING', 1)
       );
-      
+
       throw error;
     }
   }
@@ -487,19 +490,19 @@ export class APIMapperServiceImpl implements APIMapperService {
     try {
       // Validate mapping
       this.validateMapping(mapping);
-      
+
       // Update metadata
       mapping.lastUpdated = new Date();
-      
+
       // Update in database
       await this.database.update(mapping);
-      
+
       // Update cache
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -512,7 +515,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error updating mapping: ${errorMessage}`, { error, mapping });
-      
+
       ErrorHandler.systemError(
         `Failed to update API mapping: ${errorMessage}`,
         MODULE_ID,
@@ -520,16 +523,16 @@ export class APIMapperServiceImpl implements APIMapperService {
         ErrorSeverity.ERROR,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         createErrorCode(MODULE_ID, 'UPDATE_MAPPING', 1)
       );
-      
+
       throw error;
     }
   }
@@ -542,16 +545,16 @@ export class APIMapperServiceImpl implements APIMapperService {
       added: 0,
       updated: 0,
       failed: 0,
-      failures: []
+      failures: [],
     };
 
     logger.info(`Starting import of ${mappings.length} mappings`);
 
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -560,15 +563,15 @@ export class APIMapperServiceImpl implements APIMapperService {
       try {
         // Validate mapping
         this.validateMapping(mapping);
-        
+
         // Check if mapping exists
         const existing = await this.database.getBySignature(mapping.javaSignature);
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -578,13 +581,13 @@ export class APIMapperServiceImpl implements APIMapperService {
           mapping.lastUpdated = new Date();
           await this.database.update({ ...mapping, id: existing.id });
           result.updated++;
-          
+
           // Update cache
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -597,13 +600,13 @@ export class APIMapperServiceImpl implements APIMapperService {
           mapping.lastUpdated = new Date();
           await this.database.save(mapping);
           result.added++;
-          
+
           // Update cache
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -617,9 +620,9 @@ export class APIMapperServiceImpl implements APIMapperService {
         result.failed++;
         result.failures.push({
           mapping,
-          reason: errorMessage
+          reason: errorMessage,
         });
-        
+
         logger.warn(`Failed to import mapping ${mapping.javaSignature}: ${errorMessage}`);
       }
     }
@@ -643,7 +646,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     return {
       size: this.cache.size,
       maxSize: this.cacheMaxSize,
-      enabled: this.cacheEnabled
+      enabled: this.cacheEnabled,
     };
   }
 
@@ -661,9 +664,9 @@ export class APIMapperServiceImpl implements APIMapperService {
   private validateMapping(mapping: APIMapping): void {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -673,9 +676,9 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -685,9 +688,9 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -697,9 +700,9 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -709,9 +712,9 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -721,9 +724,9 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -739,9 +742,9 @@ export class APIMapperServiceImpl implements APIMapperService {
   private addToCache(signature: string, mapping: APIMapping): void {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -753,9 +756,9 @@ export class APIMapperServiceImpl implements APIMapperService {
       const firstKey = this.cache.keys().next().value;
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -784,8 +787,8 @@ export class APIMapperServiceImpl implements APIMapperService {
           lastUpdated: new Date(),
           exampleUsage: {
             java: '@SubscribeEvent\npublic void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) { ... }',
-            bedrock: 'system.events.playerJoin.subscribe(event => { ... });'
-          }
+            bedrock: 'system.events.playerJoin.subscribe(event => { ... });',
+          },
         },
         {
           id: 'player-leave-event',
@@ -794,7 +797,7 @@ export class APIMapperServiceImpl implements APIMapperService {
           conversionType: 'direct',
           notes: 'Player leave event mapping',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'entity-position',
@@ -803,7 +806,7 @@ export class APIMapperServiceImpl implements APIMapperService {
           conversionType: 'direct',
           notes: 'Entity position property',
           version: '1.0.0',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         },
         {
           id: 'world-set-block',
@@ -815,8 +818,9 @@ export class APIMapperServiceImpl implements APIMapperService {
           lastUpdated: new Date(),
           exampleUsage: {
             java: 'world.setBlockState(pos, Blocks.STONE.getDefaultState());',
-            bedrock: 'const block = dimension.getBlock(pos);\nblock.setPermutation(BlockPermutation.resolve("minecraft:stone"));'
-          }
+            bedrock:
+              'const block = dimension.getBlock(pos);\nblock.setPermutation(BlockPermutation.resolve("minecraft:stone"));',
+          },
         },
         {
           id: 'client-rendering',
@@ -825,8 +829,8 @@ export class APIMapperServiceImpl implements APIMapperService {
           conversionType: 'impossible',
           notes: 'Client-side rendering is not supported in Bedrock scripting',
           version: '1.0.0',
-          lastUpdated: new Date()
-        }
+          lastUpdated: new Date(),
+        },
       ];
 
       // Check if mappings already exist to avoid duplicates
@@ -834,9 +838,9 @@ export class APIMapperServiceImpl implements APIMapperService {
       if (existingCount === 0) {
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -849,7 +853,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error initializing default mappings: ${errorMessage}`, { error });
-      
+
       ErrorHandler.systemError(
         `Failed to initialize default API mappings: ${errorMessage}`,
         MODULE_ID,
@@ -857,9 +861,9 @@ export class APIMapperServiceImpl implements APIMapperService {
         ErrorSeverity.WARNING,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0

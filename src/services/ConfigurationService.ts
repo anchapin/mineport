@@ -1,29 +1,42 @@
-import { 
-  ModPorterAIConfig, 
-  ConfigValidationResult, 
-  ConfigValidationError, 
-  ConfigValidationWarning 
+import {
+  ModPorterAIConfig,
+  ConfigValidationResult,
+  ConfigValidationError,
+  ConfigValidationWarning,
 } from '../types/config.js';
 import { logger } from '../utils/logger.js';
+import { EventEmitter } from 'events';
 
 /**
  * Configuration service for ModPorter-AI integration components
  * Handles environment-based configuration loading and validation
  */
-export class ConfigurationService {
+export interface ConfigurationServiceOptions {
+  watchForChanges?: boolean;
+}
+
+export class ConfigurationService extends EventEmitter {
   private config: ModPorterAIConfig;
   private static instance: ConfigurationService;
+  private options: ConfigurationServiceOptions;
+  private dynamicConfig: Map<string, any> = new Map();
 
-  private constructor() {
+  constructor(options: ConfigurationServiceOptions = {}) {
+    super();
+    this.options = options;
     this.config = this.loadConfiguration();
     this.validateConfiguration();
   }
 
-  public static getInstance(): ConfigurationService {
+  private static createSingleton() {
     if (!ConfigurationService.instance) {
       ConfigurationService.instance = new ConfigurationService();
     }
     return ConfigurationService.instance;
+  }
+
+  public static getInstance(): ConfigurationService {
+    return ConfigurationService.createSingleton();
   }
 
   /**
@@ -83,15 +96,171 @@ export class ConfigurationService {
   }
 
   /**
+   * Set a configuration value dynamically
+   */
+  public set(key: string, value: any): void {
+    this.dynamicConfig.set(key, value);
+    this.emit('config:updated', { key, value });
+    this.emit('configChanged', key, value);
+  }
+
+  /**
+   * Get a configuration value (checks dynamic config first, then static config)
+   */
+  public get(key: string): any {
+    if (this.dynamicConfig.has(key)) {
+      return this.dynamicConfig.get(key);
+    }
+
+    // Navigate through nested config object
+    const keys = key.split('.');
+    let current: any = this.config;
+
+    for (const k of keys) {
+      if (current && typeof current === 'object' && k in current) {
+        current = current[k];
+      } else {
+        return undefined;
+      }
+    }
+
+    return current;
+  }
+
+  /**
+   * Export current configuration (including dynamic config)
+   */
+  public exportConfig(): Record<string, any> {
+    const exported = JSON.parse(JSON.stringify(this.config));
+
+    // Apply dynamic config overrides
+    for (const [key, value] of this.dynamicConfig.entries()) {
+      this.setNestedValue(exported, key, value);
+    }
+
+    return exported;
+  }
+
+  /**
+   * Import configuration from object
+   */
+  public async importConfig(config: Record<string, any>): Promise<void> {
+    // Clear dynamic config
+    this.dynamicConfig.clear();
+
+    // Set all values from imported config
+    this.setConfigFromObject(config);
+  }
+
+  /**
+   * Set nested value in object using dot notation
+   */
+  private setNestedValue(obj: any, key: string, value: any): void {
+    const keys = key.split('.');
+    let current = obj;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      const k = keys[i];
+      if (!(k in current) || typeof current[k] !== 'object') {
+        current[k] = {};
+      }
+      current = current[k];
+    }
+
+    current[keys[keys.length - 1]] = value;
+  }
+
+  /**
+   * Set configuration from object recursively
+   */
+  private setConfigFromObject(obj: Record<string, any>, prefix: string = ''): void {
+    for (const [key, value] of Object.entries(obj)) {
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        this.setConfigFromObject(value, fullKey);
+      } else {
+        this.dynamicConfig.set(fullKey, value);
+      }
+    }
+  }
+
+  /**
+   * Export current configuration (including dynamic config)
+   */
+  public exportConfig(): Record<string, any> {
+    const exported = JSON.parse(JSON.stringify(this.config));
+
+    // Apply dynamic config overrides
+    for (const [key, value] of this.dynamicConfig.entries()) {
+      this.setNestedValue(exported, key, value);
+    }
+
+    return exported;
+  }
+
+  /**
+   * Import configuration from an object
+   */
+  public async importConfig(config: Record<string, any>): Promise<void> {
+    // Clear dynamic config
+    this.dynamicConfig.clear();
+
+    // Set all values from imported config
+    this.setConfigFromObject(config);
+  }
+
+  /**
+   * Set nested value in object using dot notation
+   */
+  private setNestedValue(obj: any, key: string, value: any): void {
+    const keys = key.split('.');
+    let current = obj;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      const k = keys[i];
+      if (!(k in current) || typeof current[k] !== 'object') {
+        current[k] = {};
+      }
+      current = current[k];
+    }
+
+    current[keys[keys.length - 1]] = value;
+  }
+
+  /**
+   * Set configuration from object recursively
+   */
+  private setConfigFromObject(obj: Record<string, any>, prefix: string = ''): void {
+    for (const [key, value] of Object.entries(obj)) {
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        this.setConfigFromObject(value, fullKey);
+      } else {
+        this.dynamicConfig.set(fullKey, value);
+      }
+    }
+  }
+
+  /**
+   * Dispose of the configuration service
+   */
+  public dispose(): void {
+    this.dynamicConfig.clear();
+    // Additional cleanup if needed
+  }
+
+  /**
    * Reload configuration from environment
    */
   public reloadConfiguration(): void {
     const newConfig = this.loadConfiguration();
     const validation = this.validateConfigurationObject(newConfig);
-    
+
     if (!validation.isValid) {
-      logger.error('Configuration reload failed validation', { 
-        errors: validation.errors 
+      logger.error('Configuration reload failed validation', {
+        errors: validation.errors,
       });
       throw new Error('Invalid configuration');
     }
@@ -110,41 +279,49 @@ export class ConfigurationService {
         allowedMimeTypes: this.getEnvArray('MODPORTER_ALLOWED_MIME_TYPES', [
           'application/java-archive',
           'application/zip',
-          'application/x-zip-compressed'
+          'application/x-zip-compressed',
         ]),
         enableMalwareScanning: this.getEnvBoolean('MODPORTER_ENABLE_MALWARE_SCAN', true),
         tempDirectory: this.getEnvString('MODPORTER_TEMP_DIR', './temp'),
         scanTimeout: this.getEnvNumber('MODPORTER_SCAN_TIMEOUT', 30000),
         maxCompressionRatio: this.getEnvNumber('MODPORTER_MAX_COMPRESSION_RATIO', 100),
-        maxExtractedSize: this.getEnvNumber('MODPORTER_MAX_EXTRACTED_SIZE', 1024 * 1024 * 1024) // 1GB
+        maxExtractedSize: this.getEnvNumber('MODPORTER_MAX_EXTRACTED_SIZE', 1024 * 1024 * 1024), // 1GB
       },
       javaAnalyzer: {
         extractionStrategies: this.getEnvArray('MODPORTER_EXTRACTION_STRATEGIES', [
-          'classFiles', 'jsonFiles', 'langFiles', 'modelFiles'
+          'classFiles',
+          'jsonFiles',
+          'langFiles',
+          'modelFiles',
         ]),
         analysisTimeout: this.getEnvNumber('MODPORTER_ANALYSIS_TIMEOUT', 60000),
         enableBytecodeAnalysis: this.getEnvBoolean('MODPORTER_ENABLE_BYTECODE_ANALYSIS', true),
         maxClassFilesToAnalyze: this.getEnvNumber('MODPORTER_MAX_CLASS_FILES', 1000),
         enableMultiStrategyExtraction: this.getEnvBoolean('MODPORTER_MULTI_STRATEGY', true),
-        fallbackToBasicAnalysis: this.getEnvBoolean('MODPORTER_FALLBACK_BASIC', true)
+        fallbackToBasicAnalysis: this.getEnvBoolean('MODPORTER_FALLBACK_BASIC', true),
       },
       assetConverter: {
         textureOptimization: this.getEnvBoolean('MODPORTER_TEXTURE_OPTIMIZATION', true),
-        modelConversionQuality: this.getEnvString('MODPORTER_MODEL_QUALITY', 'balanced') as 'fast' | 'balanced' | 'high',
+        modelConversionQuality: this.getEnvString('MODPORTER_MODEL_QUALITY', 'balanced') as
+          | 'fast'
+          | 'balanced'
+          | 'high',
         soundConversionFormat: this.getEnvString('MODPORTER_SOUND_FORMAT', 'ogg') as 'ogg' | 'wav',
         maxTextureSize: this.getEnvNumber('MODPORTER_MAX_TEXTURE_SIZE', 1024),
         enableParallelConversion: this.getEnvBoolean('MODPORTER_PARALLEL_CONVERSION', true),
-        outputDirectory: this.getEnvString('MODPORTER_OUTPUT_DIR', './output')
+        outputDirectory: this.getEnvString('MODPORTER_OUTPUT_DIR', './output'),
       },
       validationPipeline: {
         enableStrictValidation: this.getEnvBoolean('MODPORTER_STRICT_VALIDATION', false),
         maxValidationTime: this.getEnvNumber('MODPORTER_MAX_VALIDATION_TIME', 120000),
         requiredStages: this.getEnvArray('MODPORTER_REQUIRED_STAGES', [
-          'security', 'analysis', 'conversion'
+          'security',
+          'analysis',
+          'conversion',
         ]),
         enableParallelValidation: this.getEnvBoolean('MODPORTER_PARALLEL_VALIDATION', true),
         failFast: this.getEnvBoolean('MODPORTER_FAIL_FAST', false),
-        validationTimeout: this.getEnvNumber('MODPORTER_VALIDATION_TIMEOUT', 30000)
+        validationTimeout: this.getEnvNumber('MODPORTER_VALIDATION_TIMEOUT', 30000),
       },
       securityScanner: {
         enableZipBombDetection: this.getEnvBoolean('MODPORTER_ZIP_BOMB_DETECTION', true),
@@ -152,7 +329,7 @@ export class ConfigurationService {
         enableMalwarePatternScanning: this.getEnvBoolean('MODPORTER_MALWARE_PATTERN_SCAN', true),
         maxScanTime: this.getEnvNumber('MODPORTER_MAX_SCAN_TIME', 30000),
         threatDatabasePath: this.getEnvString('MODPORTER_THREAT_DB_PATH'),
-        quarantineDirectory: this.getEnvString('MODPORTER_QUARANTINE_DIR', './quarantine')
+        quarantineDirectory: this.getEnvString('MODPORTER_QUARANTINE_DIR', './quarantine'),
       },
       monitoring: {
         enableMetrics: this.getEnvBoolean('MODPORTER_ENABLE_METRICS', true),
@@ -162,18 +339,22 @@ export class ConfigurationService {
         enableHealthChecks: this.getEnvBoolean('MODPORTER_ENABLE_HEALTH_CHECKS', true),
         healthCheckInterval: this.getEnvNumber('MODPORTER_HEALTH_CHECK_INTERVAL', 30000),
         alertingEnabled: this.getEnvBoolean('MODPORTER_ALERTING_ENABLED', false),
-        alertingWebhookUrl: this.getEnvString('MODPORTER_ALERTING_WEBHOOK_URL')
+        alertingWebhookUrl: this.getEnvString('MODPORTER_ALERTING_WEBHOOK_URL'),
       },
       logging: {
-        level: this.getEnvString('MODPORTER_LOG_LEVEL', 'info') as 'debug' | 'info' | 'warn' | 'error',
+        level: this.getEnvString('MODPORTER_LOG_LEVEL', 'info') as
+          | 'debug'
+          | 'info'
+          | 'warn'
+          | 'error',
         format: this.getEnvString('MODPORTER_LOG_FORMAT', 'json') as 'json' | 'text',
         enableStructuredLogging: this.getEnvBoolean('MODPORTER_STRUCTURED_LOGGING', true),
         enableSecurityEventLogging: this.getEnvBoolean('MODPORTER_SECURITY_EVENT_LOGGING', true),
         enablePerformanceLogging: this.getEnvBoolean('MODPORTER_PERFORMANCE_LOGGING', true),
         logDirectory: this.getEnvString('MODPORTER_LOG_DIR', './logs'),
         maxLogFileSize: this.getEnvNumber('MODPORTER_MAX_LOG_FILE_SIZE', 10 * 1024 * 1024), // 10MB
-        maxLogFiles: this.getEnvNumber('MODPORTER_MAX_LOG_FILES', 5)
-      }
+        maxLogFiles: this.getEnvNumber('MODPORTER_MAX_LOG_FILES', 5),
+      },
     };
   }
 
@@ -182,17 +363,17 @@ export class ConfigurationService {
    */
   private validateConfiguration(): void {
     const validation = this.validateConfigurationObject(this.config);
-    
+
     if (!validation.isValid) {
-      logger.error('Configuration validation failed', { 
-        errors: validation.errors 
+      logger.error('Configuration validation failed', {
+        errors: validation.errors,
       });
       throw new Error('Invalid configuration');
     }
 
     if (validation.warnings.length > 0) {
-      logger.warn('Configuration validation warnings', { 
-        warnings: validation.warnings 
+      logger.warn('Configuration validation warnings', {
+        warnings: validation.warnings,
       });
     }
 
@@ -211,15 +392,16 @@ export class ConfigurationService {
       errors.push({
         field: 'fileProcessor.maxFileSize',
         message: 'Max file size must be greater than 0',
-        value: config.fileProcessor.maxFileSize
+        value: config.fileProcessor.maxFileSize,
       });
     }
 
-    if (config.fileProcessor.maxFileSize > 1024 * 1024 * 1024) { // 1GB
+    if (config.fileProcessor.maxFileSize > 1024 * 1024 * 1024) {
+      // 1GB
       warnings.push({
         field: 'fileProcessor.maxFileSize',
         message: 'Max file size is very large, consider reducing for performance',
-        value: config.fileProcessor.maxFileSize
+        value: config.fileProcessor.maxFileSize,
       });
     }
 
@@ -227,7 +409,7 @@ export class ConfigurationService {
       errors.push({
         field: 'fileProcessor.allowedMimeTypes',
         message: 'At least one MIME type must be allowed',
-        value: config.fileProcessor.allowedMimeTypes
+        value: config.fileProcessor.allowedMimeTypes,
       });
     }
 
@@ -236,7 +418,7 @@ export class ConfigurationService {
       errors.push({
         field: 'javaAnalyzer.analysisTimeout',
         message: 'Analysis timeout must be greater than 0',
-        value: config.javaAnalyzer.analysisTimeout
+        value: config.javaAnalyzer.analysisTimeout,
       });
     }
 
@@ -244,7 +426,7 @@ export class ConfigurationService {
       errors.push({
         field: 'javaAnalyzer.maxClassFilesToAnalyze',
         message: 'Max class files to analyze must be greater than 0',
-        value: config.javaAnalyzer.maxClassFilesToAnalyze
+        value: config.javaAnalyzer.maxClassFilesToAnalyze,
       });
     }
 
@@ -254,7 +436,7 @@ export class ConfigurationService {
       errors.push({
         field: 'assetConverter.modelConversionQuality',
         message: `Model conversion quality must be one of: ${validQualities.join(', ')}`,
-        value: config.assetConverter.modelConversionQuality
+        value: config.assetConverter.modelConversionQuality,
       });
     }
 
@@ -263,7 +445,7 @@ export class ConfigurationService {
       errors.push({
         field: 'assetConverter.soundConversionFormat',
         message: `Sound conversion format must be one of: ${validFormats.join(', ')}`,
-        value: config.assetConverter.soundConversionFormat
+        value: config.assetConverter.soundConversionFormat,
       });
     }
 
@@ -272,16 +454,19 @@ export class ConfigurationService {
       errors.push({
         field: 'validationPipeline.maxValidationTime',
         message: 'Max validation time must be greater than 0',
-        value: config.validationPipeline.maxValidationTime
+        value: config.validationPipeline.maxValidationTime,
       });
     }
 
     // Validate monitoring config
-    if (config.monitoring.enableMetrics && (config.monitoring.metricsPort <= 0 || config.monitoring.metricsPort > 65535)) {
+    if (
+      config.monitoring.enableMetrics &&
+      (config.monitoring.metricsPort <= 0 || config.monitoring.metricsPort > 65535)
+    ) {
       errors.push({
         field: 'monitoring.metricsPort',
         message: 'Metrics port must be between 1 and 65535',
-        value: config.monitoring.metricsPort
+        value: config.monitoring.metricsPort,
       });
     }
 
@@ -291,7 +476,7 @@ export class ConfigurationService {
       errors.push({
         field: 'logging.level',
         message: `Log level must be one of: ${validLogLevels.join(', ')}`,
-        value: config.logging.level
+        value: config.logging.level,
       });
     }
 
@@ -300,14 +485,14 @@ export class ConfigurationService {
       errors.push({
         field: 'logging.format',
         message: `Log format must be one of: ${validLogFormats.join(', ')}`,
-        value: config.logging.format
+        value: config.logging.format,
       });
     }
 
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -333,6 +518,9 @@ export class ConfigurationService {
   private getEnvArray(key: string, defaultValue: string[]): string[] {
     const value = process.env[key];
     if (value === undefined) return defaultValue;
-    return value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
   }
 }

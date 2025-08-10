@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConversionProgress } from '../types';
+import { ConversionProgress } from '../types.js';
 
 interface StatusDisplayProps {
   progress: ConversionProgress;
@@ -33,7 +33,7 @@ export const StatusDisplay: React.FC<StatusDisplayProps> = ({ progress }) => {
     if (progress.error) {
       return '❌';
     }
-    
+
     switch (progress.stage) {
       case 'complete':
         return '✅';
@@ -44,14 +44,10 @@ export const StatusDisplay: React.FC<StatusDisplayProps> = ({ progress }) => {
 
   return (
     <div className={`status-display ${progress.error ? 'error' : progress.stage}`}>
-      <div className="status-icon">
-        {getStatusIcon()}
-      </div>
+      <div className="status-icon">{getStatusIcon()}</div>
       <div className="status-content">
         <h3 className="status-title">{getStatusMessage()}</h3>
-        {progress.currentTask && (
-          <p className="status-detail">{progress.currentTask}</p>
-        )}
+        {progress.currentTask && <p className="status-detail">{progress.currentTask}</p>}
         {progress.error && (
           <div className="status-error">
             <p>{progress.error}</p>

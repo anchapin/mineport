@@ -1,0 +1,524 @@
+name: Security Posture Monitoring
+
+on:
+  schedule:
+    # Run security posture assessment daily at 3 AM UTC
+    - cron: '0 3 * * *'
+    # Update security policies weekly on Sundays at 1 AM UTC
+    - cron: '0 1 * * 0'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'assess'
+        type: choice
+        options:
+          - assess
+          - enforce
+          - update-policies
+          - report
+      report_period:
+        description: 'Report period (for report action)'
+        required: false
+        default: 'weekly'
+        type: choice
+        options:
+          - daily
+          - weekly
+          - monthly
+      policy_source:
+        description: 'Policy update source (for update-policies action)'
+        required: false
+        default: 'automatic'
+        type: choice
+        options:
+          - automatic
+          - manual
+          - threat-intelligence
+          - compliance-update
+  push:
+    branches: [main]
+    paths:
+      - 'security-config/**'
+      - '.github/workflows/security-posture.yml'
+      - 'scripts/security-posture-monitor.js'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'security-config/**'
+      - '.github/workflows/security-posture.yml'
+      - 'scripts/security-posture-monitor.js'
+
+env:
+  NODE_VERSION: '20.x'
+  SECURITY_POSTURE_ENCRYPTION_KEY: ${{ secrets.SECURITY_POSTURE_ENCRYPTION_KEY }}
+
+jobs:
+  security-posture-assessment:
+    name: Security Posture Assessment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.action == 'assess' || github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      issues: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Initialize security posture monitoring
+        run: |
+          node scripts/security-posture-monitor.js init
+          echo "Security posture monitoring system initialized"
+          
+      - name: Download security scan results
+        uses: actions/download-artifact@v4
+        with:
+          name: security-scan-results
+          path: security-results/
+        continue-on-error: true
+        
+      - name: Download audit logs
+        uses: actions/download-artifact@v4
+        with:
+          name: audit-logs
+          path: audit-logs/
+        continue-on-error: true
+        
+      - name: Download vulnerability scan results
+        uses: actions/download-artifact@v4
+        with:
+          name: vulnerability-scan-results
+          path: vulnerability-results/
+        continue-on-error: true
+        
+      - name: Run security posture assessment
+        id: assessment
+        run: |
+          echo "Running comprehensive security posture assessment..."
+          node scripts/security-posture-monitor.js assess > security-posture-assessment.json
+          
+          # Extract key metrics for GitHub Actions
+          OVERALL_SCORE=$(jq -r '.overall_score' security-posture-assessment.json)
+          RISK_LEVEL=$(jq -r '.risk_level' security-posture-assessment.json)
+          VIOLATIONS=$(jq -r '.policy_violations | length' security-posture-assessment.json)
+          
+          echo "overall_score=$OVERALL_SCORE" >> $GITHUB_OUTPUT
+          echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
+          echo "violations=$VIOLATIONS" >> $GITHUB_OUTPUT
+          
+          echo "Security Posture Assessment completed:"
+          echo "- Overall Score: $OVERALL_SCORE/100"
+          echo "- Risk Level: $RISK_LEVEL"
+          echo "- Policy Violations: $VIOLATIONS"
+          
+      - name: Create security posture summary
+        run: |
+          echo "## Security Posture Assessment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Overall Score**: ${{ steps.assessment.outputs.overall_score }}/100" >> $GITHUB_STEP_SUMMARY
+          echo "- **Risk Level**: ${{ steps.assessment.outputs.risk_level }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Policy Violations**: ${{ steps.assessment.outputs.violations }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Add category breakdown
+          echo "### Category Breakdown" >> $GITHUB_STEP_SUMMARY
+          jq -r '.categories | to_entries[] | "- **\(.key | gsub("_"; " ") | ascii_upcase)**: \(.value.score)/100"' security-posture-assessment.json >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Add critical findings
+          CRITICAL_FINDINGS=$(jq -r '[.categories[].findings[] | select(.impact == "critical")] | length' security-posture-assessment.json)
+          if [ "$CRITICAL_FINDINGS" -gt 0 ]; then
+            echo "### Critical Findings" >> $GITHUB_STEP_SUMMARY
+            jq -r '.categories[].findings[] | select(.impact == "critical") | "- **\(.type)**: \(.description)"' security-posture-assessment.json >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Check security thresholds
+        run: |
+          OVERALL_SCORE=${{ steps.assessment.outputs.overall_score }}
+          RISK_LEVEL=${{ steps.assessment.outputs.risk_level }}
+          
+          if [ "$OVERALL_SCORE" -lt 60 ] || [ "$RISK_LEVEL" = "critical" ]; then
+            echo "❌ Security posture is below acceptable threshold"
+            echo "Overall Score: $OVERALL_SCORE (minimum: 60)"
+            echo "Risk Level: $RISK_LEVEL (maximum: high)"
+            exit 1
+          elif [ "$OVERALL_SCORE" -lt 80 ] || [ "$RISK_LEVEL" = "high" ]; then
+            echo "⚠️ Security posture needs improvement"
+            echo "Overall Score: $OVERALL_SCORE (target: 80+)"
+            echo "Risk Level: $RISK_LEVEL (target: medium or low)"
+          else
+            echo "✅ Security posture is acceptable"
+            echo "Overall Score: $OVERALL_SCORE"
+            echo "Risk Level: $RISK_LEVEL"
+          fi
+          
+      - name: Upload security posture assessment
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-posture-assessment-${{ github.run_id }}
+          path: |
+            security-posture-assessment.json
+            security-posture/
+          retention-days: 90
+          
+      - name: Create security issue for critical findings
+        if: steps.assessment.outputs.risk_level == 'critical'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const assessment = JSON.parse(fs.readFileSync('security-posture-assessment.json', 'utf8'));
+            
+            const criticalFindings = [];
+            for (const [category, data] of Object.entries(assessment.categories)) {
+              for (const finding of data.findings) {
+                if (finding.impact === 'critical') {
+                  criticalFindings.push(`**${category.replace(/_/g, ' ').toUpperCase()}**: ${finding.description}`);
+                }
+              }
+            }
+            
+            if (criticalFindings.length > 0) {
+              const issueBody = `
+            ## Critical Security Posture Issues Detected
+            
+            **Overall Score**: ${assessment.overall_score}/100
+            **Risk Level**: ${assessment.risk_level.toUpperCase()}
+            **Assessment Date**: ${assessment.timestamp}
+            
+            ### Critical Findings
+            
+            ${criticalFindings.join('\n')}
+            
+            ### Recommendations
+            
+            ${assessment.recommendations.slice(0, 5).map(rec => `- ${rec.description || rec.recommendation}`).join('\n')}
+            
+            ### Action Required
+            
+            This issue was automatically created due to critical security posture findings. Please review and address these issues immediately.
+            
+            **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              `;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 Critical Security Posture Issues - Score: ${assessment.overall_score}/100`,
+                body: issueBody,
+                labels: ['security', 'critical', 'automated']
+              });
+            }
+
+  policy-enforcement:
+    name: Security Policy Enforcement
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'enforce' || github.event_name == 'push'
+    needs: [security-posture-assessment]
+    
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      pull-requests: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Initialize security posture monitoring
+        run: |
+          node scripts/security-posture-monitor.js init
+          echo "Security posture monitoring system initialized"
+          
+      - name: Enforce security policies
+        id: enforcement
+        run: |
+          echo "Enforcing security policies..."
+          
+          # Create enforcement context
+          CONTEXT=$(cat << EOF
+          {
+            "event": "${{ github.event_name }}",
+            "ref": "${{ github.ref }}",
+            "actor": "${{ github.actor }}",
+            "repository": "${{ github.repository }}",
+            "pull_request": ${{ github.event_name == 'pull_request' && 'true' || 'false' }},
+            "commit_sha": "${{ github.sha }}"
+          }
+          EOF
+          )
+          
+          node scripts/security-posture-monitor.js enforce "$CONTEXT" > policy-enforcement-results.json
+          
+          # Extract enforcement results
+          VIOLATIONS=$(jq -r '.violations | length' policy-enforcement-results.json)
+          ENFORCEMENTS=$(jq -r '.enforcements | length' policy-enforcement-results.json)
+          COMPLIANT=$(jq -r '.compliant' policy-enforcement-results.json)
+          
+          echo "violations=$VIOLATIONS" >> $GITHUB_OUTPUT
+          echo "enforcements=$ENFORCEMENTS" >> $GITHUB_OUTPUT
+          echo "compliant=$COMPLIANT" >> $GITHUB_OUTPUT
+          
+          echo "Policy Enforcement completed:"
+          echo "- Violations: $VIOLATIONS"
+          echo "- Enforcements Applied: $ENFORCEMENTS"
+          echo "- Compliant: $COMPLIANT"
+          
+      - name: Block non-compliant changes
+        if: steps.enforcement.outputs.compliant == 'false' && github.event_name == 'pull_request'
+        run: |
+          echo "❌ Security policy violations detected. Blocking merge."
+          echo "Violations found: ${{ steps.enforcement.outputs.violations }}"
+          
+          # Add comment to PR
+          jq -r '.violations[] | "- **\(.policy_name)** (\(.severity)): \(.violation)"' policy-enforcement-results.json > violations.txt
+          
+          echo "The following security policy violations were detected:" > pr-comment.txt
+          echo "" >> pr-comment.txt
+          cat violations.txt >> pr-comment.txt
+          echo "" >> pr-comment.txt
+          echo "Please address these violations before merging." >> pr-comment.txt
+          
+          exit 1
+          
+      - name: Upload policy enforcement results
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-enforcement-results-${{ github.run_id }}
+          path: |
+            policy-enforcement-results.json
+          retention-days: 90
+
+  policy-updates:
+    name: Security Policy Updates
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 1 * * 0' || github.event.inputs.action == 'update-policies'
+    
+    permissions:
+      contents: write
+      security-events: write
+      actions: read
+      pull-requests: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Initialize security posture monitoring
+        run: |
+          node scripts/security-posture-monitor.js init
+          echo "Security posture monitoring system initialized"
+          
+      - name: Update security policies
+        id: updates
+        run: |
+          SOURCE="${{ github.event.inputs.policy_source || 'automatic' }}"
+          echo "Updating security policies from source: $SOURCE"
+          
+          node scripts/security-posture-monitor.js update-policies "$SOURCE" > policy-updates.json
+          
+          UPDATES_COUNT=$(jq -r 'length' policy-updates.json)
+          echo "updates_count=$UPDATES_COUNT" >> $GITHUB_OUTPUT
+          
+          echo "Policy updates completed: $UPDATES_COUNT updates applied"
+          
+      - name: Commit policy updates
+        if: steps.updates.outputs.updates_count > 0
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          git add security-config/
+          git commit -m "chore: update security policies (automated)
+          
+          - Applied ${{ steps.updates.outputs.updates_count }} policy updates
+          - Source: ${{ github.event.inputs.policy_source || 'automatic' }}
+          - Workflow: ${{ github.workflow }}
+          - Run: ${{ github.run_id }}"
+          
+      - name: Create pull request for policy updates
+        if: steps.updates.outputs.updates_count > 0
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update security policies (automated)"
+          title: "🔒 Automated Security Policy Updates"
+          body: |
+            ## Automated Security Policy Updates
+            
+            This PR contains automated updates to security policies.
+            
+            **Updates Applied**: ${{ steps.updates.outputs.updates_count }}
+            **Source**: ${{ github.event.inputs.policy_source || 'automatic' }}
+            **Generated**: ${{ github.run_id }}
+            
+            ### Changes
+            
+            The following policy updates were applied:
+            
+            ```json
+            $(cat policy-updates.json | jq -r '.[] | "- \(.policy_id): \(.description)"')
+            ```
+            
+            ### Review Required
+            
+            Please review these policy changes before merging to ensure they align with organizational security requirements.
+            
+          branch: security-policy-updates-${{ github.run_id }}
+          labels: |
+            security
+            automated
+            policies
+          draft: false
+
+  security-posture-report:
+    name: Security Posture Report
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'report' || github.event.schedule == '0 3 * * *'
+    needs: [security-posture-assessment]
+    
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Initialize security posture monitoring
+        run: |
+          node scripts/security-posture-monitor.js init
+          echo "Security posture monitoring system initialized"
+          
+      - name: Generate security posture report
+        run: |
+          PERIOD="${{ github.event.inputs.report_period || 'weekly' }}"
+          echo "Generating security posture report for period: $PERIOD"
+          
+          node scripts/security-posture-monitor.js report "$PERIOD" > security-posture-report.json
+          
+          REPORT_ID=$(jq -r '.id' security-posture-report.json)
+          echo "Security posture report generated: $REPORT_ID"
+          
+      - name: Upload security posture report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-posture-report-${{ github.run_id }}
+          path: |
+            security-posture-report.json
+            security-posture/
+          retention-days: 365 # Keep reports for 1 year
+          
+      - name: Notify security team
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#security'
+          text: |
+            Security Posture Monitoring Update
+            Status: ${{ job.status }}
+            Action: ${{ github.event.inputs.action || 'scheduled assessment' }}
+            Repository: ${{ github.repository }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  validate-security-config:
+    name: Validate Security Configuration
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Validate security posture monitor
+        run: |
+          echo "Validating security posture monitor configuration..."
+          node -c scripts/security-posture-monitor.js
+          echo "✅ Security posture monitor syntax is valid"
+          
+      - name: Test security posture monitor initialization
+        run: |
+          echo "Testing security posture monitor initialization..."
+          node scripts/security-posture-monitor.js init
+          echo "✅ Security posture monitor initialized successfully"
+          
+      - name: Validate security policies
+        run: |
+          echo "Validating security policies..."
+          if [ -d "security-config/policies" ]; then
+            for policy_file in security-config/policies/*.json; do
+              if [ -f "$policy_file" ]; then
+                echo "Validating policy: $policy_file"
+                jq empty "$policy_file" && echo "✅ Valid JSON" || echo "❌ Invalid JSON"
+              fi
+            done
+          else
+            echo "No security policies found to validate"
+          fi
+          
+      - name: Check required directories
+        run: |
+          echo "Checking required directories..."
+          [ -d "security-config" ] && echo "✅ Security config directory exists" || echo "❌ Security config directory missing"
+          [ -d "security-posture" ] && echo "✅ Security posture directory exists" || echo "❌ Security posture directory missing"

@@ -1,39 +1,43 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CacheService, CacheKeyGenerator, CacheInvalidationStrategy } from '../../../src/services/CacheService';
+import {
+  CacheService,
+  CacheKeyGenerator,
+  CacheInvalidationStrategy,
+} from '../../../src/services/CacheService.js';
 
 describe('CacheService', () => {
   let cacheService: CacheService;
 
   beforeEach(() => {
-    cacheService = new CacheService({ enabled: true });
+    cacheService = new CacheService({ enabled: true, enablePersistence: false });
     cacheService.resetMetrics();
   });
 
   it('should store and retrieve values', async () => {
     const key = 'test:key';
     const value = { data: 'test value' };
-    
+
     await cacheService.set(key, value);
     const retrieved = await cacheService.get(key);
-    
+
     expect(retrieved).toEqual(value);
   });
 
   it('should handle cache misses', async () => {
     const key = 'nonexistent:key';
     const value = await cacheService.get(key);
-    
+
     expect(value).toBeNull();
   });
 
   it('should delete values', async () => {
     const key = 'test:key';
     const value = { data: 'test value' };
-    
+
     await cacheService.set(key, value);
     await cacheService.delete(key);
     const retrieved = await cacheService.get(key);
-    
+
     expect(retrieved).toBeNull();
   });
 
@@ -41,20 +45,20 @@ describe('CacheService', () => {
     const key1 = 'test:key1';
     const key2 = 'test:key2';
     const value = { data: 'test value' };
-    
+
     // Set two values
     await cacheService.set(key1, value);
     await cacheService.set(key2, value);
-    
+
     // Get one existing and one non-existing value
     await cacheService.get(key1);
     await cacheService.get('nonexistent');
-    
+
     // Delete one value
     await cacheService.delete(key2);
-    
+
     const metrics = cacheService.getMetrics();
-    
+
     expect(metrics.sets).toBe(2);
     expect(metrics.hits).toBe(1);
     expect(metrics.misses).toBe(1);
@@ -64,29 +68,29 @@ describe('CacheService', () => {
   it('should respect the enabled flag', async () => {
     const key = 'test:key';
     const value = { data: 'test value' };
-    
+
     // Set with cache enabled
     await cacheService.set(key, value);
     let retrieved = await cacheService.get(key);
     expect(retrieved).toEqual(value);
-    
+
     // Disable cache
     cacheService.setEnabled(false);
-    
+
     // Should return null even though value exists
     retrieved = await cacheService.get(key);
     expect(retrieved).toBeNull();
-    
+
     // Should not store new values
     await cacheService.set('new:key', { data: 'new value' });
-    
+
     // Re-enable cache
     cacheService.setEnabled(true);
-    
+
     // Original value should still exist
     retrieved = await cacheService.get(key);
     expect(retrieved).toEqual(value);
-    
+
     // New value should not exist
     retrieved = await cacheService.get('new:key');
     expect(retrieved).toBeNull();
@@ -122,7 +126,7 @@ describe('CacheInvalidationStrategy', () => {
   beforeEach(() => {
     cacheService = new CacheService({ enabled: true });
     invalidationStrategy = new CacheInvalidationStrategy(cacheService);
-    
+
     // Set up some test data
     vi.spyOn(cacheService, 'clearByPrefix');
   });

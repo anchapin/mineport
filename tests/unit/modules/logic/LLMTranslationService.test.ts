@@ -1,18 +1,21 @@
 /**
  * LLMTranslationService.test.ts
- * 
+ *
  * Unit tests for the LLMTranslationService class
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
+import {
   LLMTranslationService,
   LLMApiConfig,
   TranslationContext,
-  LLMTranslationResult
-} from '../../../../src/modules/logic/LLMTranslationService';
-import { MMIRNode, MMIRNodeType, MMIRContext } from '../../../../src/modules/logic/MMIRGenerator';
-import { APIMapping } from '../../../../src/modules/logic/APIMapping';
+} from '../../../../src/modules/logic/LLMTranslationService.js';
+import {
+  MMIRNode,
+  MMIRNodeType,
+  MMIRContext,
+} from '../../../../src/modules/logic/MMIRGenerator.js';
+import { APIMapping } from '../../../../src/modules/logic/APIMapping.js';
 
 describe('LLMTranslationService', () => {
   let translationService: LLMTranslationService;
@@ -24,18 +27,19 @@ describe('LLMTranslationService', () => {
       model: 'gpt-4',
       maxTokens: 2048,
       temperature: 0.3,
-      timeout: 30000
+      timeout: 30000,
     };
-    
+
     translationService = new LLMTranslationService(defaultConfig);
-    
+
     // Mock the private callLLMApi method
-    vi.spyOn<any, any>(translationService, 'callLLMApi').mockImplementation(async (prompt: string) => {
-      return {
-        choices: [
-          {
-            message: {
-              content: `
+    vi.spyOn<any, any>(translationService, 'callLLMApi').mockImplementation(
+      async (_prompt: string) => {
+        return {
+          choices: [
+            {
+              message: {
+                content: `
 // Translated code
 import { system } from "@minecraft/server";
 
@@ -47,16 +51,17 @@ system.events.playerJoin.subscribe(event => {
   const player = event.player;
   console.log(\`Player joined: \${player.name}\`);
 });
-`
-            }
-          }
-        ],
-        usage: {
-          total_tokens: 150
-        },
-        model: defaultConfig.model
-      };
-    });
+`,
+              },
+            },
+          ],
+          usage: {
+            total_tokens: 150,
+          },
+          model: defaultConfig.model,
+        };
+      }
+    );
   });
 
   describe('translateCode', () => {
@@ -74,23 +79,23 @@ system.events.playerJoin.subscribe(event => {
           type: MMIRNodeType.EventHandler,
           properties: {
             methodName: 'onPlayerJoin',
-            eventType: 'PlayerEvent.PlayerLoggedInEvent'
+            eventType: 'PlayerEvent.PlayerLoggedInEvent',
           },
-          children: []
+          children: [],
         },
         apiMappings: [
           {
             javaSignature: 'PlayerEvent.PlayerLoggedInEvent',
             bedrockEquivalent: 'system.events.playerJoin',
             conversionType: 'direct',
-            notes: 'Player join event mapping'
-          }
+            notes: 'Player join event mapping',
+          },
         ],
         modContext: {
           modId: 'testmod',
           modLoader: 'forge',
-          minecraftVersion: '1.16.5'
-        }
+          minecraftVersion: '1.16.5',
+        },
       };
 
       const result = await translationService.translateCode(context);
@@ -115,16 +120,16 @@ system.events.playerJoin.subscribe(event => {
           id: 'node_1',
           type: MMIRNodeType.Method,
           properties: {
-            methodName: 'brokenMethod'
+            methodName: 'brokenMethod',
           },
-          children: []
+          children: [],
         },
         apiMappings: [],
         modContext: {
           modId: 'testmod',
           modLoader: 'forge',
-          minecraftVersion: '1.16.5'
-        }
+          minecraftVersion: '1.16.5',
+        },
       };
 
       const result = await translationService.translateCode(context);
@@ -140,10 +145,10 @@ system.events.playerJoin.subscribe(event => {
     it('should allow adding and retrieving knowledge', () => {
       const key = 'test_knowledge';
       const value = 'This is test knowledge';
-      
+
       translationService.addKnowledge(key, value);
       const retrievedValue = translationService.getKnowledge(key);
-      
+
       expect(retrievedValue).toBe(value);
     });
 
@@ -154,23 +159,23 @@ system.events.playerJoin.subscribe(event => {
           id: 'node_1',
           type: MMIRNodeType.Method,
           properties: {
-            methodName: 'testMethod'
+            methodName: 'testMethod',
           },
-          children: []
+          children: [],
         },
         apiMappings: [],
         modContext: {
           modId: 'testmod',
           modLoader: 'forge',
-          minecraftVersion: '1.16.5'
-        }
+          minecraftVersion: '1.16.5',
+        },
       };
 
       // Spy on the preparePrompt method
       const preparePromptSpy = vi.spyOn<any, any>(translationService, 'preparePrompt');
-      
+
       await translationService.translateCode(context);
-      
+
       // Check that the prompt includes knowledge base entries
       const prompt = preparePromptSpy.mock.results[0].value;
       expect(prompt).toContain('Java classes typically become JavaScript constructor functions');
@@ -192,10 +197,10 @@ system.events.playerJoin.subscribe(event => {
           modLoaderVersion: '36.2.0',
           authors: ['TestAuthor'],
           description: 'A test mod',
-          license: 'MIT'
-        }
+          license: 'MIT',
+        },
       };
-      
+
       const unmappableNodes: MMIRNode[] = [
         {
           id: 'node_1',
@@ -205,12 +210,12 @@ system.events.playerJoin.subscribe(event => {
             startLine: 10,
             startColumn: 1,
             endLine: 15,
-            endColumn: 1
+            endColumn: 1,
           },
           properties: {
-            methodName: 'complexMethod'
+            methodName: 'complexMethod',
           },
-          children: []
+          children: [],
         },
         {
           id: 'node_2',
@@ -220,34 +225,34 @@ system.events.playerJoin.subscribe(event => {
             startLine: 20,
             startColumn: 1,
             endLine: 25,
-            endColumn: 1
+            endColumn: 1,
           },
           properties: {
-            description: 'Unknown node'
+            description: 'Unknown node',
           },
-          children: []
-        }
+          children: [],
+        },
       ];
-      
+
       const apiMappings: APIMapping[] = [];
-      
+
       const results = await translationService.translateUnmappableNodes(
         mmirContext,
         unmappableNodes,
         apiMappings
       );
-      
+
       expect(results.size).toBe(2);
       expect(results.has('node_1')).toBe(true);
       expect(results.has('node_2')).toBe(true);
-      
+
       const result1 = results.get('node_1');
       expect(result1?.translatedCode).toBeDefined();
-      
+
       const result2 = results.get('node_2');
       expect(result2?.translatedCode).toBeDefined();
     });
-    
+
     it('should handle nodes without source location', async () => {
       const mmirContext: MMIRContext = {
         nodes: [],
@@ -261,32 +266,32 @@ system.events.playerJoin.subscribe(event => {
           modLoaderVersion: '36.2.0',
           authors: ['TestAuthor'],
           description: 'A test mod',
-          license: 'MIT'
-        }
+          license: 'MIT',
+        },
       };
-      
+
       const unmappableNodes: MMIRNode[] = [
         {
           id: 'node_1',
           type: MMIRNodeType.Method,
           properties: {
-            methodName: 'methodWithoutLocation'
+            methodName: 'methodWithoutLocation',
           },
-          children: []
-        }
+          children: [],
+        },
       ];
-      
+
       const apiMappings: APIMapping[] = [];
-      
+
       const results = await translationService.translateUnmappableNodes(
         mmirContext,
         unmappableNodes,
         apiMappings
       );
-      
+
       expect(results.size).toBe(1);
       expect(results.has('node_1')).toBe(true);
-      
+
       const result = results.get('node_1');
       expect(result?.translatedCode).toContain('Unable to translate node');
       expect(result?.warnings).toContain('No source location available for this node');

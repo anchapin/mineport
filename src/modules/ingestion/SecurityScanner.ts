@@ -1,6 +1,6 @@
 /**
  * Security scanner for detecting threats in uploaded files
- * 
+ *
  * This module provides comprehensive security scanning capabilities including:
  * - ZIP bomb detection
  * - Path traversal prevention
@@ -12,12 +12,12 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import AdmZip from 'adm-zip';
-import { 
-  SecurityScanResult, 
-  ThreatInfo, 
-  SecurityScanOptions, 
-  TempFileInfo 
-} from '../../types/file-processing';
+import {
+  SecurityScanResult,
+  ThreatInfo,
+  SecurityScanOptions,
+  TempFileInfo,
+} from '../../types/file-processing.js';
 
 export class SecurityScanner {
   private static readonly DEFAULT_OPTIONS: SecurityScanOptions = {
@@ -26,12 +26,21 @@ export class SecurityScanner {
     enableMalwarePatternDetection: true,
     maxCompressionRatio: 100,
     maxExtractedSize: 1024 * 1024 * 1024, // 1GB
-    scanTimeout: 30000 // 30 seconds
+    scanTimeout: 30000, // 30 seconds
   };
 
   private static readonly DANGEROUS_PATHS = [
-    '../', '..\\', '/etc/', '/root/', 'C:\\Windows\\', 
-    '/usr/', '/var/', '/tmp/', '/boot/', '/sys/', '/proc/'
+    '../',
+    '..\\',
+    '/etc/',
+    '/root/',
+    'C:\\Windows\\',
+    '/usr/',
+    '/var/',
+    '/tmp/',
+    '/boot/',
+    '/sys/',
+    '/proc/',
   ];
 
   private static readonly SUSPICIOUS_PATTERNS = [
@@ -48,7 +57,7 @@ export class SecurityScanner {
     Buffer.from('sun.misc.Unsafe'),
     Buffer.from('java.lang.reflect'),
     Buffer.from('java.net.Socket'),
-    Buffer.from('java.net.ServerSocket')
+    Buffer.from('java.net.ServerSocket'),
   ];
 
   private options: SecurityScanOptions;
@@ -68,12 +77,12 @@ export class SecurityScanner {
     try {
       // Create temporary file for analysis
       const tempFile = await this.writeToTempFile(file, filename);
-      
+
       try {
         // Run security checks with timeout
         await Promise.race([
           this.performSecurityChecks(tempFile, threats),
-          this.createTimeoutPromise()
+          this.createTimeoutPromise(),
         ]);
       } finally {
         await tempFile.cleanup();
@@ -83,23 +92,22 @@ export class SecurityScanner {
         isSafe: threats.length === 0,
         threats,
         scanTime: Date.now() - startTime,
-        scanId
+        scanId,
       };
-
     } catch (error) {
       // If scanning fails, treat as potentially unsafe
       threats.push({
         type: 'suspicious_pattern',
         description: `Security scan failed: ${error.message}`,
         severity: 'medium',
-        details: { suspiciousFiles: [error.message] }
+        details: { suspiciousFiles: [error.message] },
       });
 
       return {
         isSafe: false,
         threats,
         scanTime: Date.now() - startTime,
-        scanId
+        scanId,
       };
     }
   }
@@ -107,9 +115,12 @@ export class SecurityScanner {
   /**
    * Perform all security checks on the temporary file
    */
-  private async performSecurityChecks(tempFile: TempFileInfo, threats: ThreatInfo[]): Promise<void> {
+  private async performSecurityChecks(
+    tempFile: TempFileInfo,
+    threats: ThreatInfo[]
+  ): Promise<void> {
     // Check for ZIP bomb
-    if (this.options.enableZipBombDetection && await this.isZipFile(tempFile.path)) {
+    if (this.options.enableZipBombDetection && (await this.isZipFile(tempFile.path))) {
       const zipBombThreat = await this.checkZipBomb(tempFile.path);
       if (zipBombThreat) {
         threats.push(zipBombThreat);
@@ -117,7 +128,7 @@ export class SecurityScanner {
     }
 
     // Check for path traversal
-    if (this.options.enablePathTraversalDetection && await this.isArchiveFile(tempFile.path)) {
+    if (this.options.enablePathTraversalDetection && (await this.isArchiveFile(tempFile.path))) {
       const pathTraversalThreats = await this.checkPathTraversal(tempFile.path);
       threats.push(...pathTraversalThreats);
     }
@@ -136,7 +147,7 @@ export class SecurityScanner {
     try {
       const zip = new AdmZip(filePath);
       const entries = zip.getEntries();
-      
+
       let totalUncompressedSize = 0;
       let totalCompressedSize = 0;
 
@@ -145,18 +156,21 @@ export class SecurityScanner {
         totalCompressedSize += entry.header.compressedSize;
       }
 
-      const compressionRatio = totalCompressedSize > 0 ? totalUncompressedSize / totalCompressedSize : 0;
+      const compressionRatio =
+        totalCompressedSize > 0 ? totalUncompressedSize / totalCompressedSize : 0;
 
-      if (compressionRatio > this.options.maxCompressionRatio || 
-          totalUncompressedSize > this.options.maxExtractedSize) {
+      if (
+        compressionRatio > this.options.maxCompressionRatio ||
+        totalUncompressedSize > this.options.maxExtractedSize
+      ) {
         return {
           type: 'zip_bomb',
           description: `Potential ZIP bomb detected - compression ratio: ${compressionRatio.toFixed(2)}, uncompressed size: ${totalUncompressedSize} bytes`,
           severity: 'high',
           details: {
             compressionRatio,
-            extractedSize: totalUncompressedSize
-          }
+            extractedSize: totalUncompressedSize,
+          },
         };
       }
 
@@ -166,7 +180,7 @@ export class SecurityScanner {
       return {
         type: 'zip_bomb',
         description: `Unable to analyze ZIP file structure: ${error.message}`,
-        severity: 'medium'
+        severity: 'medium',
       };
     }
   }
@@ -176,7 +190,7 @@ export class SecurityScanner {
    */
   private async checkPathTraversal(filePath: string): Promise<ThreatInfo[]> {
     const threats: ThreatInfo[] = [];
-    
+
     try {
       const zip = new AdmZip(filePath);
       const entries = zip.getEntries();
@@ -184,7 +198,7 @@ export class SecurityScanner {
 
       for (const entry of entries) {
         const entryPath = entry.entryName;
-        
+
         // Check for dangerous path patterns
         for (const dangerousPath of SecurityScanner.DANGEROUS_PATHS) {
           if (entryPath.includes(dangerousPath)) {
@@ -211,16 +225,15 @@ export class SecurityScanner {
           description: `Path traversal attempt detected in ${suspiciousPaths.length} entries`,
           severity: 'high',
           details: {
-            paths: suspiciousPaths.slice(0, 10) // Limit to first 10 for readability
-          }
+            paths: suspiciousPaths.slice(0, 10), // Limit to first 10 for readability
+          },
         });
       }
-
     } catch (error) {
       threats.push({
         type: 'path_traversal',
         description: `Unable to analyze archive paths: ${error.message}`,
-        severity: 'medium'
+        severity: 'medium',
       });
     }
 
@@ -232,7 +245,7 @@ export class SecurityScanner {
    */
   private async checkMaliciousPatterns(filePath: string): Promise<ThreatInfo[]> {
     const threats: ThreatInfo[] = [];
-    
+
     try {
       if (await this.isArchiveFile(filePath)) {
         // For archives, check contents
@@ -244,7 +257,7 @@ export class SecurityScanner {
         for (const entry of entries) {
           if (!entry.isDirectory) {
             const content = entry.getData();
-            
+
             for (const pattern of SecurityScanner.SUSPICIOUS_PATTERNS) {
               if (content.includes(pattern)) {
                 suspiciousFiles.push(entry.entryName);
@@ -262,8 +275,8 @@ export class SecurityScanner {
             severity: 'medium',
             details: {
               suspiciousFiles: suspiciousFiles.slice(0, 5),
-              patterns: Array.from(new Set(foundPatterns)).slice(0, 5)
-            }
+              patterns: Array.from(new Set(foundPatterns)).slice(0, 5),
+            },
           });
         }
       } else {
@@ -283,17 +296,16 @@ export class SecurityScanner {
             description: `Suspicious code patterns detected`,
             severity: 'medium',
             details: {
-              patterns: Array.from(new Set(foundPatterns))
-            }
+              patterns: Array.from(new Set(foundPatterns)),
+            },
           });
         }
       }
-
     } catch (error) {
       threats.push({
         type: 'suspicious_pattern',
         description: `Unable to scan for malicious patterns: ${error.message}`,
-        severity: 'low'
+        severity: 'low',
       });
     }
 
@@ -325,7 +337,7 @@ export class SecurityScanner {
         } catch (error) {
           // Ignore cleanup errors
         }
-      }
+      },
     };
   }
 
@@ -335,7 +347,7 @@ export class SecurityScanner {
   private async isZipFile(filePath: string): Promise<boolean> {
     try {
       const buffer = await fs.readFile(filePath, { encoding: null });
-      const zipMagic = Buffer.from([0x50, 0x4B, 0x03, 0x04]);
+      const zipMagic = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
       return buffer.subarray(0, 4).equals(zipMagic);
     } catch {
       return false;

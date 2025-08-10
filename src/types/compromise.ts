@@ -14,7 +14,15 @@ export interface Feature {
 /**
  * Types of features that may require compromise strategies.
  */
-export type FeatureType = 'dimension' | 'rendering' | 'ui' | 'entity' | 'block' | 'item' | 'world' | 'other';
+export type FeatureType =
+  | 'dimension'
+  | 'rendering'
+  | 'ui'
+  | 'entity'
+  | 'block'
+  | 'item'
+  | 'world'
+  | 'other';
 
 /**
  * Represents a strategy for compromising on features that cannot be directly translated.

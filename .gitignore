@@ -13,6 +13,25 @@ npm-debug.log*
 # Coverage directory
 coverage/
 
+# Cache directories
+.cache/
+*.cache
+.vitest-cache/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Test results
+test-results/
+test-results.xml
+
+# Temporary directories
+temp/
+tmp/
+
+# JAR files (test artifacts)
+*.jar
+
 # Environment variables
 .env
 .env.local
