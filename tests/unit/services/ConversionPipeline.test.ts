@@ -5,7 +5,6 @@ import { JobQueue } from '../../../src/services/JobQueue.js';
 import { ResourceAllocator } from '../../../src/services/ResourceAllocator.js';
 import { ErrorType, ErrorSeverity } from '../../../src/types/errors.js';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 
 // Mock dependencies
 vi.mock('fs/promises');
@@ -391,7 +390,7 @@ describe('ConversionPipeline', () => {
       pipeline.setJobQueue(jobQueue);
 
       // Mock the convert method
-      const convertSpy = vi.spyOn(pipeline, 'convert').mockResolvedValue({
+      vi.spyOn(pipeline, 'convert').mockResolvedValue({
         success: true,
         outputPath: '/path/to/output',
         errorSummary: {
@@ -424,7 +423,7 @@ describe('ConversionPipeline', () => {
       pipeline.setJobQueue(jobQueue);
 
       // Mock the convert method to throw an error
-      const convertSpy = vi.spyOn(pipeline, 'convert').mockRejectedValue(new Error('Test error'));
+      vi.spyOn(pipeline, 'convert').mockRejectedValue(new Error('Test error'));
 
       // Verify that the job queue's on method was called
       expect(jobQueue.on).toHaveBeenCalledWith('job:process', expect.any(Function));

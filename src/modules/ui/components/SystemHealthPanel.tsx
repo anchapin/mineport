@@ -1,6 +1,6 @@
 /**
  * System Health Panel Component
- * 
+ *
  * This component displays system health information and error metrics
  * for monitoring the conversion system's performance and stability.
  */
@@ -16,10 +16,7 @@ export interface SystemHealthPanelProps {
 /**
  * System Health Panel Component
  */
-export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
-  health,
-  errorMetrics
-}) => {
+export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ health, errorMetrics }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   /**
@@ -27,11 +24,16 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
    */
   const getHealthColor = (status: string): string => {
     switch (status) {
-      case 'healthy': return '#4CAF50';
-      case 'degraded': return '#FF9800';
-      case 'critical': return '#F44336';
-      case 'failing': return '#D32F2F';
-      default: return '#9E9E9E';
+      case 'healthy':
+        return '#4CAF50';
+      case 'degraded':
+        return '#FF9800';
+      case 'critical':
+        return '#F44336';
+      case 'failing':
+        return '#D32F2F';
+      default:
+        return '#9E9E9E';
     }
   };
 
@@ -40,11 +42,16 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
    */
   const getHealthIcon = (status: string): string => {
     switch (status) {
-      case 'healthy': return '🟢';
-      case 'degraded': return '🟡';
-      case 'critical': return '🟠';
-      case 'failing': return '🔴';
-      default: return '⚪';
+      case 'healthy':
+        return '🟢';
+      case 'degraded':
+        return '🟡';
+      case 'critical':
+        return '🟠';
+      case 'failing':
+        return '🔴';
+      default:
+        return '⚪';
     }
   };
 
@@ -53,10 +60,14 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
    */
   const getComponentIcon = (status: string): string => {
     switch (status) {
-      case 'healthy': return '✅';
-      case 'degraded': return '⚠️';
-      case 'failing': return '❌';
-      default: return '❓';
+      case 'healthy':
+        return '✅';
+      case 'degraded':
+        return '⚠️';
+      case 'failing':
+        return '❌';
+      default:
+        return '❓';
     }
   };
 
@@ -78,23 +89,14 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
     <div className="system-health-panel">
       <div className="health-header">
         <div className="health-status">
-          <span className="health-icon">
-            {getHealthIcon(health.overall)}
-          </span>
-          <span className="health-text">
-            System Health: {health.overall.toUpperCase()}
-          </span>
+          <span className="health-icon">{getHealthIcon(health.overall)}</span>
+          <span className="health-text">System Health: {health.overall.toUpperCase()}</span>
           {health.degradationLevel > 0 && (
-            <span className="degradation-badge">
-              Level {health.degradationLevel}
-            </span>
+            <span className="degradation-badge">Level {health.degradationLevel}</span>
           )}
         </div>
-        
-        <button
-          className="expand-toggle"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
+
+        <button className="expand-toggle" onClick={() => setIsExpanded(!isExpanded)}>
           {isExpanded ? '▼' : '▶'} {isExpanded ? 'Hide' : 'Show'} Details
         </button>
       </div>
@@ -133,7 +135,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
                     <span className="component-name">{componentName}</span>
                     <span className="component-status">{componentHealth.status}</span>
                   </div>
-                  
+
                   <div className="component-metrics">
                     <div className="metric">
                       <span className="metric-label">Errors:</span>
@@ -175,7 +177,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
           {errorMetrics && (
             <div className="health-section">
               <h4>Error Metrics</h4>
-              
+
               <div className="metrics-overview">
                 <div className="metric-card">
                   <div className="metric-value">{errorMetrics.totalErrors}</div>
@@ -187,8 +189,11 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
                 </div>
                 <div className="metric-card">
                   <div className="metric-value">
-                    {errorMetrics.trend === 'increasing' ? '📈' : 
-                     errorMetrics.trend === 'decreasing' ? '📉' : '➡️'}
+                    {errorMetrics.trend === 'increasing'
+                      ? '📈'
+                      : errorMetrics.trend === 'decreasing'
+                        ? '📉'
+                        : '➡️'}
                   </div>
                   <div className="metric-label">{errorMetrics.trend}</div>
                 </div>
@@ -242,9 +247,11 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
                     <span className="threshold-value">
                       {errorMetrics.threshold.warning} errors/min
                     </span>
-                    <span className={`threshold-status ${
-                      errorMetrics.errorRate >= errorMetrics.threshold.warning ? 'exceeded' : 'ok'
-                    }`}>
+                    <span
+                      className={`threshold-status ${
+                        errorMetrics.errorRate >= errorMetrics.threshold.warning ? 'exceeded' : 'ok'
+                      }`}
+                    >
                       {errorMetrics.errorRate >= errorMetrics.threshold.warning ? '⚠️' : '✅'}
                     </span>
                   </div>
@@ -253,9 +260,13 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
                     <span className="threshold-value">
                       {errorMetrics.threshold.critical} errors/min
                     </span>
-                    <span className={`threshold-status ${
-                      errorMetrics.errorRate >= errorMetrics.threshold.critical ? 'exceeded' : 'ok'
-                    }`}>
+                    <span
+                      className={`threshold-status ${
+                        errorMetrics.errorRate >= errorMetrics.threshold.critical
+                          ? 'exceeded'
+                          : 'ok'
+                      }`}
+                    >
                       {errorMetrics.errorRate >= errorMetrics.threshold.critical ? '🚨' : '✅'}
                     </span>
                   </div>
@@ -283,18 +294,10 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({
           <div className="health-section">
             <h4>System Actions</h4>
             <div className="action-buttons">
-              <button className="action-button">
-                🔄 Refresh Health Check
-              </button>
-              <button className="action-button">
-                📊 View Detailed Metrics
-              </button>
-              <button className="action-button">
-                🧹 Clear Error History
-              </button>
-              <button className="action-button">
-                📧 Send Health Report
-              </button>
+              <button className="action-button">🔄 Refresh Health Check</button>
+              <button className="action-button">📊 View Detailed Metrics</button>
+              <button className="action-button">🧹 Clear Error History</button>
+              <button className="action-button">📧 Send Health Report</button>
             </div>
           </div>
         </div>

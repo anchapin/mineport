@@ -432,7 +432,7 @@ export class EnhancedErrorCollector extends ErrorCollector implements IEnhancedE
    */
   private async executeRetryStrategy(
     error: EnhancedConversionError,
-    action: RecoveryAction
+    _action: RecoveryAction
   ): Promise<RecoveryResult> {
     // For retry strategy, we would typically re-execute the failed operation
     // This is a simplified implementation - in practice, this would involve
@@ -474,8 +474,8 @@ export class EnhancedErrorCollector extends ErrorCollector implements IEnhancedE
    * Execute skip recovery strategy
    */
   private async executeSkipStrategy(
-    error: EnhancedConversionError,
-    action: RecoveryAction
+    _error: EnhancedConversionError,
+    _action: RecoveryAction
   ): Promise<RecoveryResult> {
     return {
       success: true,
@@ -522,8 +522,8 @@ export class EnhancedErrorCollector extends ErrorCollector implements IEnhancedE
    * Execute abort recovery strategy
    */
   private async executeAbortStrategy(
-    error: EnhancedConversionError,
-    action: RecoveryAction
+    _error: EnhancedConversionError,
+    _action: RecoveryAction
   ): Promise<RecoveryResult> {
     return {
       success: false,

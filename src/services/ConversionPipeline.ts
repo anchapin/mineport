@@ -310,27 +310,21 @@ export class ConversionPipeline {
 
       // Convert block/item definitions
       const definitionConverter = new BlockItemDefinitionConverter();
-      const definitionResult = await definitionConverter.convert(
-        validationResult.modInfo.config,
-        behaviorPackPath,
-        { modId: input.modId }
-      );
+      await definitionConverter.convert(validationResult.modInfo.config, behaviorPackPath, {
+        modId: input.modId,
+      });
 
       // Convert recipes
       const recipeConverter = new RecipeConverter();
-      const recipeResult = await recipeConverter.convert(
-        validationResult.modInfo.config,
-        behaviorPackPath,
-        { modId: input.modId }
-      );
+      await recipeConverter.convert(validationResult.modInfo.config, behaviorPackPath, {
+        modId: input.modId,
+      });
 
       // Convert loot tables
       const lootTableConverter = new LootTableConverter();
-      const lootTableResult = await lootTableConverter.convert(
-        validationResult.modInfo.config,
-        behaviorPackPath,
-        { modId: input.modId }
-      );
+      await lootTableConverter.convert(validationResult.modInfo.config, behaviorPackPath, {
+        modId: input.modId,
+      });
 
       // Embed license
       const licenseEmbedder = new LicenseEmbedder();

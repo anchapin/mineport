@@ -1,6 +1,6 @@
 /**
  * ConversionContext
- * 
+ *
  * This context provides state management for the conversion process.
  */
 
@@ -42,15 +42,15 @@ const defaultUserPreferences: UserPreferences = {
           id: 'visual-effects',
           name: 'Visual Effects',
           value: true,
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           id: 'structure-generation',
           name: 'Structure Generation',
           value: true,
-          type: 'boolean'
-        }
-      ]
+          type: 'boolean',
+        },
+      ],
     },
     {
       id: 'rendering-stubbing',
@@ -66,34 +66,34 @@ const defaultUserPreferences: UserPreferences = {
           options: [
             { label: 'Warning Only', value: 'warning' },
             { label: 'Basic Approximation', value: 'basic' },
-            { label: 'Detailed Placeholder', value: 'detailed' }
-          ]
-        }
-      ]
+            { label: 'Detailed Placeholder', value: 'detailed' },
+          ],
+        },
+      ],
     },
     {
       id: 'ui-flow-mapping',
       name: 'UI/HUD Flow Mapping',
       description: 'Maps Java UI components to Bedrock form types',
       isEnabled: true,
-      options: []
-    }
+      options: [],
+    },
   ],
   conversionOptions: {
     generateDebugInfo: false,
     optimizeOutput: true,
     includeComments: true,
-    targetMinecraftVersion: '1.20.0'
-  }
+    targetMinecraftVersion: '1.20.0',
+  },
 };
 
 // Initial state
 const initialState: ConversionState = {
   uploadState: {
     isUploading: false,
-    progress: 0
+    progress: 0,
   },
-  userPreferences: defaultUserPreferences
+  userPreferences: defaultUserPreferences,
 };
 
 // Reducer function
@@ -105,58 +105,58 @@ function conversionReducer(state: ConversionState, action: ConversionAction): Co
         uploadState: {
           ...state.uploadState,
           file: action.payload,
-          error: undefined
-        }
+          error: undefined,
+        },
       };
-    
+
     case 'SET_SOURCE_REPO':
       return {
         ...state,
         uploadState: {
           ...state.uploadState,
-          sourceRepo: action.payload
-        }
+          sourceRepo: action.payload,
+        },
       };
-    
+
     case 'SET_UPLOAD_STATE':
       return {
         ...state,
         uploadState: {
           ...state.uploadState,
-          ...action.payload
-        }
+          ...action.payload,
+        },
       };
-    
+
     case 'SET_CONVERSION_PROGRESS':
       return {
         ...state,
-        conversionProgress: action.payload
+        conversionProgress: action.payload,
       };
-    
+
     case 'SET_CONVERSION_JOB':
       return {
         ...state,
-        conversionJob: action.payload
+        conversionJob: action.payload,
       };
-    
+
     case 'SET_CONVERSION_RESULT':
       return {
         ...state,
-        conversionResult: action.payload
+        conversionResult: action.payload,
       };
-    
+
     case 'SET_USER_PREFERENCES':
       return {
         ...state,
-        userPreferences: action.payload
+        userPreferences: action.payload,
       };
-    
+
     case 'RESET_STATE':
       return {
         ...initialState,
-        userPreferences: state.userPreferences // Preserve user preferences
+        userPreferences: state.userPreferences, // Preserve user preferences
       };
-    
+
     default:
       return state;
   }
@@ -185,39 +185,39 @@ interface ConversionProviderProps {
 
 export const ConversionProvider: React.FC<ConversionProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(conversionReducer, initialState);
-  
+
   const setFile = useCallback((file: File) => {
     dispatch({ type: 'SET_FILE', payload: file });
   }, []);
-  
+
   const setSourceRepo = useCallback((repo: string) => {
     dispatch({ type: 'SET_SOURCE_REPO', payload: repo });
   }, []);
-  
+
   const setUploadState = useCallback((uploadState: Partial<UploadState>) => {
     dispatch({ type: 'SET_UPLOAD_STATE', payload: uploadState });
   }, []);
-  
+
   const setConversionProgress = useCallback((progress: ConversionProgress) => {
     dispatch({ type: 'SET_CONVERSION_PROGRESS', payload: progress });
   }, []);
-  
+
   const setConversionJob = useCallback((job: ConversionJob) => {
     dispatch({ type: 'SET_CONVERSION_JOB', payload: job });
   }, []);
-  
+
   const setConversionResult = useCallback((result: ConversionResult) => {
     dispatch({ type: 'SET_CONVERSION_RESULT', payload: result });
   }, []);
-  
+
   const setUserPreferences = useCallback((preferences: UserPreferences) => {
     dispatch({ type: 'SET_USER_PREFERENCES', payload: preferences });
   }, []);
-  
+
   const resetState = useCallback(() => {
     dispatch({ type: 'RESET_STATE' });
   }, []);
-  
+
   const value = {
     state,
     setFile,
@@ -227,23 +227,19 @@ export const ConversionProvider: React.FC<ConversionProviderProps> = ({ children
     setConversionJob,
     setConversionResult,
     setUserPreferences,
-    resetState
+    resetState,
   };
-  
-  return (
-    <ConversionContext.Provider value={value}>
-      {children}
-    </ConversionContext.Provider>
-  );
+
+  return <ConversionContext.Provider value={value}>{children}</ConversionContext.Provider>;
 };
 
 // Custom hook to use the context
 export const useConversionContext = (): ConversionContextType => {
   const context = useContext(ConversionContext);
-  
+
   if (context === undefined) {
     throw new Error('useConversionContext must be used within a ConversionProvider');
   }
-  
+
   return context;
 };

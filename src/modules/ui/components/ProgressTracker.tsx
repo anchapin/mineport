@@ -14,10 +14,10 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({ progress }) =>
     { id: 'config', label: 'Config' },
     { id: 'logic', label: 'Logic' },
     { id: 'packaging', label: 'Packaging' },
-    { id: 'complete', label: 'Complete' }
+    { id: 'complete', label: 'Complete' },
   ];
 
-  const currentStageIndex = stages.findIndex(stage => stage.id === progress.stage);
+  const currentStageIndex = stages.findIndex((stage) => stage.id === progress.stage);
 
   return (
     <div className="progress-tracker">
@@ -25,15 +25,13 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({ progress }) =>
         {stages.map((stage, index) => {
           const isActive = index === currentStageIndex;
           const isCompleted = index < currentStageIndex;
-          
+
           return (
-            <div 
-              key={stage.id} 
+            <div
+              key={stage.id}
               className={`stage ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
             >
-              <div className="stage-indicator">
-                {isCompleted ? '✓' : index + 1}
-              </div>
+              <div className="stage-indicator">{isCompleted ? '✓' : index + 1}</div>
               <div className="stage-label">{stage.label}</div>
               {index < stages.length - 1 && (
                 <div className={`stage-connector ${isCompleted ? 'completed' : ''}`} />
@@ -42,25 +40,14 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({ progress }) =>
           );
         })}
       </div>
-      
+
       <div className="progress-bar-container">
-        <div 
-          className="progress-bar" 
-          style={{ width: `${progress.percentage}%` }}
-        />
+        <div className="progress-bar" style={{ width: `${progress.percentage}%` }} />
       </div>
-      
-      {progress.currentTask && (
-        <div className="current-task">
-          {progress.currentTask}
-        </div>
-      )}
-      
-      {progress.error && (
-        <div className="progress-error">
-          Error: {progress.error}
-        </div>
-      )}
+
+      {progress.currentTask && <div className="current-task">{progress.currentTask}</div>}
+
+      {progress.error && <div className="progress-error">Error: {progress.error}</div>}
     </div>
   );
 };

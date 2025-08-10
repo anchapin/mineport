@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AlertingService, Alert, AlertRule } from '../../../src/services/AlertingService.js';
+import { AlertingService, AlertRule } from '../../../src/services/AlertingService.js';
 import { MonitoringConfig } from '../../../src/types/config.js';
 
 // Mock fetch for webhook testing

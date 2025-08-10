@@ -8,7 +8,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   ProgramStateAlignmentValidator,
   ExecutionTrace,
-  ProgramStateSnapshot,
   ValidationResult,
 } from '../../../../src/modules/logic/ProgramStateAlignmentValidator.js';
 import { LLMTranslationResult } from '../../../../src/modules/logic/LLMTranslationService.js';

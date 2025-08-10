@@ -154,7 +154,6 @@ export class ModuleRegistryImpl implements ModuleRegistry {
   public async stopAll(): Promise<void> {
     logger.info('Stopping all modules...');
 
-    const modules = this.getAll();
     const reverseOrder = [...this.initializationOrder].reverse();
 
     /**
@@ -188,7 +187,6 @@ export class ModuleRegistryImpl implements ModuleRegistry {
   public async destroyAll(): Promise<void> {
     logger.info('Destroying all modules...');
 
-    const modules = this.getAll();
     const reverseOrder = [...this.initializationOrder].reverse();
 
     /**

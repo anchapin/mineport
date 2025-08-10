@@ -856,7 +856,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
-    for (const [jobId, activeJob] of this.activeJobs.entries()) {
+    for (const [, activeJob] of this.activeJobs.entries()) {
       if (activeJob.job.status === 'processing') {
         // Emit status update event
         this.emit('job:status', activeJob.status);

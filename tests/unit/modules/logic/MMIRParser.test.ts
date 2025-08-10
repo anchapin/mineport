@@ -4,7 +4,6 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MMIRParser } from '../../../../src/modules/logic/MMIRParser.js';
-import { MMIRRepresentation } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
   const actual = await vi.importActual('../../../../src/utils/logger.js');
@@ -291,7 +290,6 @@ describe('MMIRParser', () => {
       // Check that some nodes are marked as mappable/unmappable
       const nodes = flattenAST(result.ast);
       const mappableNodes = nodes.filter((node) => node.metadata?.mappable === true);
-      const unmappableNodes = nodes.filter((node) => node.metadata?.mappable === false);
 
       expect(mappableNodes.length).toBeGreaterThan(0);
       // Note: unmappable detection is simplified in current implementation

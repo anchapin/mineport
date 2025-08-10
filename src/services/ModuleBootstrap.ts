@@ -11,7 +11,6 @@ import { StandardizedAssetTranslationModule } from '../modules/assets/Standardiz
 import { ConfigurationService } from './ConfigurationService.js';
 import { ErrorCollector } from './ErrorCollector.js';
 import { createLogger } from '../utils/logger.js';
-import type { Logger } from '../utils/logger.js';
 
 const logger = createLogger('ModuleBootstrap');
 

@@ -1,6 +1,6 @@
 /**
  * ResultsDashboard Component
- * 
+ *
  * This component displays the results of a conversion.
  */
 
@@ -10,7 +10,7 @@ import { useConversionContext } from '../context/ConversionContext.js';
 export const ResultsDashboard: React.FC = () => {
   const { state } = useConversionContext();
   const { conversionResult } = state;
-  
+
   if (!conversionResult) {
     return (
       <div className="results-dashboard">
@@ -20,11 +20,11 @@ export const ResultsDashboard: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="results-dashboard">
       <h1>Conversion Results</h1>
-      
+
       <div className="results-summary">
         <h2>Summary</h2>
         <div className="summary-status">
@@ -32,7 +32,7 @@ export const ResultsDashboard: React.FC = () => {
             {conversionResult.success ? 'Success' : 'Failed'}
           </span>
         </div>
-        
+
         <div className="summary-errors">
           <h3>Error Summary</h3>
           <ul className="error-counts">
@@ -59,7 +59,7 @@ export const ResultsDashboard: React.FC = () => {
           </ul>
         </div>
       </div>
-      
+
       {conversionResult.criticalErrors && conversionResult.criticalErrors.length > 0 && (
         <div className="critical-errors">
           <h2>Critical Issues</h2>
@@ -92,22 +92,18 @@ export const ResultsDashboard: React.FC = () => {
           </ul>
         </div>
       )}
-      
+
       <div className="download-section">
         <h2>Downloads</h2>
         {conversionResult.downloadUrl && (
-          <a 
-            href={conversionResult.downloadUrl} 
-            className="download-button"
-            download
-          >
+          <a href={conversionResult.downloadUrl} className="download-button" download>
             Download Addon (.mcaddon)
           </a>
         )}
-        
+
         {conversionResult.reportUrl && (
-          <a 
-            href={conversionResult.reportUrl} 
+          <a
+            href={conversionResult.reportUrl}
             className="report-button"
             target="_blank"
             rel="noopener noreferrer"
@@ -116,12 +112,9 @@ export const ResultsDashboard: React.FC = () => {
           </a>
         )}
       </div>
-      
+
       <div className="action-buttons">
-        <button 
-          className="new-conversion-button"
-          onClick={() => window.history.back()}
-        >
+        <button className="new-conversion-button" onClick={() => window.history.back()}>
           Start New Conversion
         </button>
       </div>

@@ -8,7 +8,7 @@ import {
   createAPIMapperService,
 } from '../../../src/services/APIMapperService.js';
 import { ConfigurationService } from '../../../src/services/ConfigurationService.js';
-import { APIMapping, MappingFilter, ImportResult } from '../../../src/types/api.js';
+import { APIMapping, MappingFilter } from '../../../src/types/api.js';
 
 // Mock dependencies
 vi.mock('../../../src/utils/logger', () => ({

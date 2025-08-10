@@ -1,6 +1,6 @@
 /**
  * Conversion Configuration Panel Component
- * 
+ *
  * This component provides configuration options for the enhanced conversion system,
  * allowing users to customize conversion settings and specialized agent behavior.
  */
@@ -21,7 +21,7 @@ export interface ConversionConfigPanelProps {
 export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
   options,
   onOptionsChange,
-  featureFlagService
+  featureFlagService,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [availableFeatures, setAvailableFeatures] = useState<Record<string, boolean>>({});
@@ -35,7 +35,7 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
         enhancedFileProcessing: await featureFlagService.isEnabled('enhanced_file_processing'),
         multiStrategyAnalysis: await featureFlagService.isEnabled('multi_strategy_analysis'),
         specializedAgents: await featureFlagService.isEnabled('specialized_conversion_agents'),
-        comprehensiveValidation: await featureFlagService.isEnabled('comprehensive_validation')
+        comprehensiveValidation: await featureFlagService.isEnabled('comprehensive_validation'),
       };
       setAvailableFeatures(features);
     } catch (error) {
@@ -49,7 +49,7 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
   const handleOptionChange = (key: keyof ConversionOptions, value: any) => {
     const updatedOptions = {
       ...options,
-      [key]: value
+      [key]: value,
     };
     onOptionsChange(updatedOptions);
   };
@@ -62,8 +62,8 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
       ...options,
       [parentKey]: {
         ...(options as any)[parentKey],
-        [childKey]: value
-      }
+        [childKey]: value,
+      },
     };
     onOptionsChange(updatedOptions);
   };
@@ -77,10 +77,7 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
     <div className="conversion-config-panel">
       <div className="config-header">
         <h3>Conversion Settings</h3>
-        <button
-          className="expand-toggle"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
+        <button className="expand-toggle" onClick={() => setIsExpanded(!isExpanded)}>
           {isExpanded ? '▼' : '▶'} {isExpanded ? 'Hide' : 'Show'} Advanced Options
         </button>
       </div>
@@ -122,7 +119,9 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
             />
             Optimize Assets
           </label>
-          <p className="config-hint">Compress textures and optimize models for better performance</p>
+          <p className="config-hint">
+            Compress textures and optimize models for better performance
+          </p>
         </div>
       </div>
 
@@ -144,7 +143,9 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
                   />
                   Enable Security Scanning
                 </label>
-                <p className="config-hint">Perform comprehensive security scans including malware detection</p>
+                <p className="config-hint">
+                  Perform comprehensive security scans including malware detection
+                </p>
               </div>
 
               <div className="config-group">
@@ -174,7 +175,9 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
                   />
                   Enable Bytecode Analysis
                 </label>
-                <p className="config-hint">Analyze compiled bytecode for better registry extraction</p>
+                <p className="config-hint">
+                  Analyze compiled bytecode for better registry extraction
+                </p>
               </div>
 
               <div className="config-group">
@@ -204,7 +207,9 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
                   />
                   Asset Converter Agent
                 </label>
-                <p className="config-hint">Specialized agent for texture, model, and sound conversion</p>
+                <p className="config-hint">
+                  Specialized agent for texture, model, and sound conversion
+                </p>
               </div>
 
               <div className="config-group">
@@ -224,11 +229,15 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
                   <input
                     type="checkbox"
                     checked={options.enableBlockItemGenerator || true}
-                    onChange={(e) => handleOptionChange('enableBlockItemGenerator', e.target.checked)}
+                    onChange={(e) =>
+                      handleOptionChange('enableBlockItemGenerator', e.target.checked)
+                    }
                   />
                   Block/Item Generator Agent
                 </label>
-                <p className="config-hint">Specialized agent for block and item definition creation</p>
+                <p className="config-hint">
+                  Specialized agent for block and item definition creation
+                </p>
               </div>
             </div>
           )}
@@ -246,7 +255,9 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
                   />
                   Enable Strict Validation
                 </label>
-                <p className="config-hint">Perform comprehensive validation with strict quality checks</p>
+                <p className="config-hint">
+                  Perform comprehensive validation with strict quality checks
+                </p>
               </div>
 
               <div className="config-group">
@@ -257,7 +268,9 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
                   min="30"
                   max="600"
                   value={options.validationTimeout || 180}
-                  onChange={(e) => handleOptionChange('validationTimeout', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleOptionChange('validationTimeout', parseInt(e.target.value))
+                  }
                 />
               </div>
             </div>
@@ -283,7 +296,9 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
                 <input
                   type="checkbox"
                   checked={options.preserveIntermediateFiles || false}
-                  onChange={(e) => handleOptionChange('preserveIntermediateFiles', e.target.checked)}
+                  onChange={(e) =>
+                    handleOptionChange('preserveIntermediateFiles', e.target.checked)
+                  }
                 />
                 Preserve Intermediate Files
               </label>

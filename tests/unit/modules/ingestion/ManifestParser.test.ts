@@ -3,9 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  ManifestParser,
-} from '../../../../src/modules/ingestion/ManifestParser.js';
+import { ManifestParser } from '../../../../src/modules/ingestion/ManifestParser.js';
 
 describe('ManifestParser', () => {
   let parser: ManifestParser;

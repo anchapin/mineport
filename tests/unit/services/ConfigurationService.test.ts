@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConfigurationService } from '../../../src/services/ConfigurationService.js';
 import { ModPorterAIConfig } from '../../../src/types/config.js';
 

@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  LicenseParser,
-  LicenseType,
-} from '../../../../src/modules/ingestion/LicenseParser.js';
+import { LicenseParser, LicenseType } from '../../../../src/modules/ingestion/LicenseParser.js';
 import { resetAllMocks } from '../../../utils/testHelpers.js';
 import fs from 'fs/promises';
 

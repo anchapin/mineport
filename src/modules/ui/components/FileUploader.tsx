@@ -7,14 +7,14 @@ interface FileUploaderProps {
   uploadState: UploadState;
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ 
-  onFileSelected, 
-  onSourceRepoChange, 
-  uploadState 
+export const FileUploader: React.FC<FileUploaderProps> = ({
+  onFileSelected,
+  onSourceRepoChange,
+  uploadState,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       onFileSelected(e.target.files[0]);
@@ -33,7 +33,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       onFileSelected(e.dataTransfer.files[0]);
     }
@@ -52,26 +52,28 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   return (
     <div className="file-uploader">
       <h2>Upload Minecraft Java Mod</h2>
-      
-      <div 
+
+      <div
         className={`upload-area ${isDragging ? 'dragging' : ''} ${uploadState.file ? 'has-file' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={triggerFileInput}
       >
-        <input 
-          type="file" 
+        <input
+          type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
           accept=".jar"
           style={{ display: 'none' }}
         />
-        
+
         {uploadState.file ? (
           <div className="file-info">
             <span className="file-name">{uploadState.file.name}</span>
-            <span className="file-size">({(uploadState.file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+            <span className="file-size">
+              ({(uploadState.file.size / (1024 * 1024)).toFixed(2)} MB)
+            </span>
           </div>
         ) : (
           <div className="upload-prompt">
@@ -83,9 +85,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
       <div className="source-repo-input">
         <label htmlFor="source-repo">GitHub Repository URL (Optional):</label>
-        <input 
-          type="text" 
-          id="source-repo" 
+        <input
+          type="text"
+          id="source-repo"
           placeholder="https://github.com/username/repo"
           value={uploadState.sourceRepo || ''}
           onChange={handleRepoChange}
@@ -93,16 +95,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <p className="hint">Providing the source repository helps with better conversion results</p>
       </div>
 
-      {uploadState.error && (
-        <div className="error-message">
-          {uploadState.error}
-        </div>
-      )}
+      {uploadState.error && <div className="error-message">{uploadState.error}</div>}
 
-      <button 
+      <button
         className="upload-button"
         disabled={!uploadState.file || uploadState.isUploading}
-        onClick={() => {/* Submit logic will be handled by parent component */}}
+        onClick={() => {
+          /* Submit logic will be handled by parent component */
+        }}
       >
         {uploadState.isUploading ? 'Uploading...' : 'Start Conversion'}
       </button>

@@ -6,8 +6,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProgramStateValidator } from '../../../../src/modules/logic/ProgramStateValidator.js';
 import {
   TranslationContext,
-  ValidationResult,
-  FunctionalDifference,
 } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
@@ -243,7 +241,6 @@ describe('ProgramStateValidator', () => {
       });
 
       // Mock the analysis methods to take longer than timeout
-      const originalAnalyze = (shortTimeoutValidator as any).staticAnalyzer.analyze;
       (shortTimeoutValidator as any).staticAnalyzer.analyze = vi.fn().mockImplementation(() => {
         return new Promise((resolve) => setTimeout(resolve, 200));
       });

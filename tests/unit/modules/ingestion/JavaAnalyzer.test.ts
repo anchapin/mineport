@@ -6,9 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
 import AdmZip from 'adm-zip';
-import {
-  JavaAnalyzer,
-} from '../../../../src/modules/ingestion/JavaAnalyzer.js';
+import { JavaAnalyzer } from '../../../../src/modules/ingestion/JavaAnalyzer.js';
 
 describe('JavaAnalyzer', () => {
   let analyzer: JavaAnalyzer;

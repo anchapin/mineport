@@ -1,16 +1,16 @@
 /**
  * API Mapping Management Panel
- * 
+ *
  * Admin interface component for managing API mappings.
  * Provides functionality for viewing, adding, editing, and importing/exporting mappings.
  */
 
 import React, { useState, useEffect } from 'react';
 import { APIMapping, MappingFilter } from '../../../types/api.js';
-import { 
-  MappingValidationResult, 
-  BulkOperationResult, 
-  MappingStatistics 
+import {
+  MappingValidationResult,
+  BulkOperationResult,
+  MappingStatistics,
 } from '../../../services/APIMappingAdminService.js';
 
 interface APIMappingManagementPanelProps {
@@ -32,7 +32,7 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
   onMappingsExport,
   onValidateMapping,
   onGetStatistics,
-  onGetMappings
+  onGetMappings,
 }) => {
   const [mappings, setMappings] = useState<APIMapping[]>([]);
   const [statistics, setStatistics] = useState<MappingStatistics | null>(null);
@@ -51,10 +51,10 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
 
   const loadMappings = async () => {
     if (!onGetMappings) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await onGetMappings(filter);
       setMappings(result);
@@ -67,7 +67,7 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
 
   const loadStatistics = async () => {
     if (!onGetStatistics) return;
-    
+
     try {
       const stats = await onGetStatistics();
       setStatistics(stats);
@@ -78,17 +78,17 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
 
   const handleMappingSubmit = async (mapping: APIMapping) => {
     if (!onMappingAdd && !onMappingUpdate) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       if (isEditing && onMappingUpdate) {
         await onMappingUpdate(mapping);
       } else if (!isEditing && onMappingAdd) {
         await onMappingAdd(mapping);
       }
-      
+
       setSelectedMapping(null);
       setIsEditing(false);
       await loadMappings();
@@ -102,12 +102,12 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
 
   const handleMappingDelete = async (mappingId: string) => {
     if (!onMappingDelete) return;
-    
+
     if (!confirm('Are you sure you want to delete this mapping?')) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       await onMappingDelete(mappingId);
       await loadMappings();
@@ -121,10 +121,10 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
 
   const handleExport = async () => {
     if (!onMappingsExport) return;
-    
+
     try {
       const jsonData = await onMappingsExport(filter);
-      
+
       // Create download link
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -142,13 +142,13 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!onMappingsImport) return;
-    
+
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const jsonData = await file.text();
       await onMappingsImport(jsonData);
@@ -163,7 +163,7 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
 
   const validateCurrentMapping = () => {
     if (!selectedMapping || !onValidateMapping) return;
-    
+
     const result = onValidateMapping(selectedMapping);
     setValidationResult(result);
   };
@@ -173,7 +173,7 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
       <div className="panel-header">
         <h2>API Mapping Management</h2>
         <div className="panel-actions">
-          <button 
+          <button
             onClick={() => {
               setSelectedMapping({
                 id: '',
@@ -182,7 +182,7 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                 conversionType: 'direct',
                 notes: '',
                 version: '1.0.0',
-                lastUpdated: new Date()
+                lastUpdated: new Date(),
               });
               setIsEditing(false);
               setValidationResult(null);
@@ -196,21 +196,12 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
           </button>
           <label className="btn btn-secondary">
             Import Mappings
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              style={{ display: 'none' }}
-            />
+            <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
           </label>
         </div>
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {error && <div className="error-message">{error}</div>}
 
       {/* Statistics Panel */}
       {statistics && (
@@ -247,7 +238,9 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
         <div className="filter-controls">
           <select
             value={filter.conversionType || ''}
-            onChange={(e) => setFilter({ ...filter, conversionType: e.target.value as any || undefined })}
+            onChange={(e) =>
+              setFilter({ ...filter, conversionType: (e.target.value as any) || undefined })
+            }
           >
             <option value="">All Types</option>
             <option value="direct">Direct</option>
@@ -255,14 +248,14 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
             <option value="complex">Complex</option>
             <option value="impossible">Impossible</option>
           </select>
-          
+
           <input
             type="text"
             placeholder="Search..."
             value={filter.search || ''}
             onChange={(e) => setFilter({ ...filter, search: e.target.value || undefined })}
           />
-          
+
           <input
             type="text"
             placeholder="Version..."
@@ -342,7 +335,7 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                 Cancel
               </button>
             </div>
-            
+
             <div className="modal-body">
               <form
                 onSubmit={(e) => {
@@ -366,7 +359,9 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                   <input
                     type="text"
                     value={selectedMapping.javaSignature}
-                    onChange={(e) => setSelectedMapping({ ...selectedMapping, javaSignature: e.target.value })}
+                    onChange={(e) =>
+                      setSelectedMapping({ ...selectedMapping, javaSignature: e.target.value })
+                    }
                     required
                     placeholder="e.g., net.minecraft.entity.Entity.getPosition"
                   />
@@ -377,7 +372,9 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                   <input
                     type="text"
                     value={selectedMapping.bedrockEquivalent}
-                    onChange={(e) => setSelectedMapping({ ...selectedMapping, bedrockEquivalent: e.target.value })}
+                    onChange={(e) =>
+                      setSelectedMapping({ ...selectedMapping, bedrockEquivalent: e.target.value })
+                    }
                     required
                     placeholder="e.g., entity.location or UNSUPPORTED"
                   />
@@ -387,7 +384,12 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                   <label>Conversion Type:</label>
                   <select
                     value={selectedMapping.conversionType}
-                    onChange={(e) => setSelectedMapping({ ...selectedMapping, conversionType: e.target.value as any })}
+                    onChange={(e) =>
+                      setSelectedMapping({
+                        ...selectedMapping,
+                        conversionType: e.target.value as any,
+                      })
+                    }
                     required
                   >
                     <option value="direct">Direct</option>
@@ -402,7 +404,9 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                   <input
                     type="text"
                     value={selectedMapping.version}
-                    onChange={(e) => setSelectedMapping({ ...selectedMapping, version: e.target.value })}
+                    onChange={(e) =>
+                      setSelectedMapping({ ...selectedMapping, version: e.target.value })
+                    }
                     required
                     placeholder="e.g., 1.0.0"
                   />
@@ -412,7 +416,9 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                   <label>Notes:</label>
                   <textarea
                     value={selectedMapping.notes}
-                    onChange={(e) => setSelectedMapping({ ...selectedMapping, notes: e.target.value })}
+                    onChange={(e) =>
+                      setSelectedMapping({ ...selectedMapping, notes: e.target.value })
+                    }
                     rows={3}
                     placeholder="Description of the mapping and any special considerations"
                   />
@@ -424,13 +430,15 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                       <label>Java Example:</label>
                       <textarea
                         value={selectedMapping.exampleUsage.java}
-                        onChange={(e) => setSelectedMapping({
-                          ...selectedMapping,
-                          exampleUsage: {
-                            ...selectedMapping.exampleUsage!,
-                            java: e.target.value
-                          }
-                        })}
+                        onChange={(e) =>
+                          setSelectedMapping({
+                            ...selectedMapping,
+                            exampleUsage: {
+                              ...selectedMapping.exampleUsage!,
+                              java: e.target.value,
+                            },
+                          })
+                        }
                         rows={2}
                         placeholder="Java code example"
                       />
@@ -440,13 +448,15 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                       <label>Bedrock Example:</label>
                       <textarea
                         value={selectedMapping.exampleUsage.bedrock}
-                        onChange={(e) => setSelectedMapping({
-                          ...selectedMapping,
-                          exampleUsage: {
-                            ...selectedMapping.exampleUsage!,
-                            bedrock: e.target.value
-                          }
-                        })}
+                        onChange={(e) =>
+                          setSelectedMapping({
+                            ...selectedMapping,
+                            exampleUsage: {
+                              ...selectedMapping.exampleUsage!,
+                              bedrock: e.target.value,
+                            },
+                          })
+                        }
                         rows={2}
                         placeholder="Bedrock JavaScript code example"
                       />
@@ -455,11 +465,15 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                 )}
 
                 <div className="form-actions">
-                  <button type="button" onClick={validateCurrentMapping} className="btn btn-secondary">
+                  <button
+                    type="button"
+                    onClick={validateCurrentMapping}
+                    className="btn btn-secondary"
+                  >
                     Validate
                   </button>
                   <button type="submit" className="btn btn-primary" disabled={loading}>
-                    {loading ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
+                    {loading ? 'Saving...' : isEditing ? 'Update' : 'Add'}
                   </button>
                 </div>
               </form>
@@ -468,27 +482,33 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
               {validationResult && (
                 <div className="validation-results">
                   <h4>Validation Results</h4>
-                  <div className={`validation-status ${validationResult.isValid ? 'valid' : 'invalid'}`}>
+                  <div
+                    className={`validation-status ${validationResult.isValid ? 'valid' : 'invalid'}`}
+                  >
                     Status: {validationResult.isValid ? 'Valid' : 'Invalid'}
                   </div>
-                  
+
                   {validationResult.errors.length > 0 && (
                     <div className="validation-errors">
                       <h5>Errors:</h5>
                       <ul>
                         {validationResult.errors.map((error, index) => (
-                          <li key={index} className="error">{error}</li>
+                          <li key={index} className="error">
+                            {error}
+                          </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  
+
                   {validationResult.warnings.length > 0 && (
                     <div className="validation-warnings">
                       <h5>Warnings:</h5>
                       <ul>
                         {validationResult.warnings.map((warning, index) => (
-                          <li key={index} className="warning">{warning}</li>
+                          <li key={index} className="warning">
+                            {warning}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -603,7 +623,8 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
           margin-top: 10px;
         }
 
-        th, td {
+        th,
+        td {
           padding: 8px 12px;
           text-align: left;
           border-bottom: 1px solid #dee2e6;
@@ -629,10 +650,18 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
           font-weight: 500;
         }
 
-        .type-direct { color: #28a745; }
-        .type-wrapper { color: #ffc107; }
-        .type-complex { color: #fd7e14; }
-        .type-impossible { color: #dc3545; }
+        .type-direct {
+          color: #28a745;
+        }
+        .type-wrapper {
+          color: #ffc107;
+        }
+        .type-complex {
+          color: #fd7e14;
+        }
+        .type-impossible {
+          color: #dc3545;
+        }
 
         .actions {
           display: flex;

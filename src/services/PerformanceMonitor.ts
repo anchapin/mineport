@@ -9,6 +9,7 @@
 import * as os from 'os';
 import * as process from 'process';
 import { EventEmitter } from 'events';
+import { PerformanceObserver } from 'perf_hooks';
 import logger from '../utils/logger.js';
 
 export interface PerformanceMetrics {
@@ -290,7 +291,6 @@ export class PerformanceMonitor extends EventEmitter {
     // Monitor GC events if available (Node.js 14+)
     if (process.versions.node && parseInt(process.versions.node.split('.')[0]) >= 14) {
       try {
-        const { PerformanceObserver } = require('perf_hooks');
         const obs = new PerformanceObserver((list: any) => {
           const entries = list.getEntries();
           for (const entry of entries) {

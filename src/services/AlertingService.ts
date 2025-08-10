@@ -448,7 +448,7 @@ export class AlertingService extends EventEmitter {
   private async executeEmailAction(
     action: AlertAction,
     alert: Alert,
-    rule: AlertRule
+    _rule: AlertRule
   ): Promise<void> {
     const { to, subject, template } = action.config;
 
@@ -490,7 +490,7 @@ export class AlertingService extends EventEmitter {
   private async executeSlackAction(
     action: AlertAction,
     alert: Alert,
-    rule: AlertRule
+    _rule: AlertRule
   ): Promise<void> {
     const { channel, webhookUrl, username = 'Mineport Alerts' } = action.config;
 

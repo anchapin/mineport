@@ -18,14 +18,14 @@ const mockJobs: ConversionJob[] = [
         targetMinecraftVersion: '1.19',
         compromiseStrategy: 'balanced',
         includeDocumentation: true,
-        optimizeAssets: true
-      }
+        optimizeAssets: true,
+      },
     },
     status: 'pending',
     progress: 0,
     priority: 1,
     createdAt: new Date('2023-01-01T10:00:00Z'),
-    updatedAt: new Date('2023-01-01T10:00:00Z')
+    updatedAt: new Date('2023-01-01T10:00:00Z'),
   },
   {
     id: 'job_2',
@@ -36,14 +36,14 @@ const mockJobs: ConversionJob[] = [
         targetMinecraftVersion: '1.19',
         compromiseStrategy: 'balanced',
         includeDocumentation: true,
-        optimizeAssets: true
-      }
+        optimizeAssets: true,
+      },
     },
     status: 'processing',
     progress: 45,
     priority: 2,
     createdAt: new Date('2023-01-01T09:30:00Z'),
-    updatedAt: new Date('2023-01-01T09:35:00Z')
+    updatedAt: new Date('2023-01-01T09:35:00Z'),
   },
   {
     id: 'job_3',
@@ -54,16 +54,16 @@ const mockJobs: ConversionJob[] = [
         targetMinecraftVersion: '1.19',
         compromiseStrategy: 'balanced',
         includeDocumentation: true,
-        optimizeAssets: true
-      }
+        optimizeAssets: true,
+      },
     },
     status: 'completed',
     progress: 100,
     priority: 1,
     createdAt: new Date('2023-01-01T08:00:00Z'),
     updatedAt: new Date('2023-01-01T08:10:00Z'),
-    completedAt: new Date('2023-01-01T08:10:00Z')
-  }
+    completedAt: new Date('2023-01-01T08:10:00Z'),
+  },
 ];
 
 // Mock functions
@@ -123,7 +123,7 @@ describe('JobMonitoringPanel', () => {
 
     // Filter by completed status
     fireEvent.change(screen.getByLabelText(/filter by status/i), {
-      target: { value: 'completed' }
+      target: { value: 'completed' },
     });
 
     // Check that only completed job is displayed

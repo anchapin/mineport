@@ -312,7 +312,6 @@ export class CacheService {
    * Cleanup expired entries
    */
   async cleanup(): Promise<void> {
-    const now = new Date();
     const expiredKeys: string[] = [];
 
     // Check memory cache
@@ -563,7 +562,7 @@ export class CacheService {
   /**
    * Check if a hashed key matches a prefix (simplified approach)
    */
-  private keyMatchesPrefix(hashedKey: string, prefix: string): boolean {
+  private keyMatchesPrefix(_hashedKey: string, _prefix: string): boolean {
     // Since we hash keys, we can't easily match prefixes
     // For now, we'll store a mapping or use a different approach
     // This is a simplified implementation
