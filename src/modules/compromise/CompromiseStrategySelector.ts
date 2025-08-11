@@ -1,6 +1,6 @@
-import { Feature, FeatureType, CompromiseLevel } from '../../types/compromise.js';
+import { Feature, CompromiseLevel } from '../../types/compromise.js';
 import { ConversionContext } from '../../types/modules.js';
-import { CompromiseStrategy, CompromiseOptions, CompromiseResult } from './CompromiseStrategy.js';
+import { CompromiseStrategy, CompromiseOptions } from './CompromiseStrategy.js';
 import { CompromiseStrategyRegistry } from './CompromiseStrategy.js';
 import { logger } from '../../utils/logger.js';
 
@@ -126,7 +126,7 @@ export class CompromiseStrategySelector {
 
     // Filter out failed evaluations and sort by score
     const validEvaluations = evaluations
-      .filter((eval) => eval.error === null && eval.score > 0)
+      .filter((evaluation) => evaluation.error === null && evaluation.score > 0)
       .sort((a, b) => b.score - a.score);
 
     if (validEvaluations.length === 0) {
@@ -138,10 +138,10 @@ export class CompromiseStrategySelector {
     }
 
     const best = validEvaluations[0];
-    const alternatives = validEvaluations.slice(1, 4).map((eval) => ({
-      strategy: eval.strategy,
-      score: eval.score,
-      reason: this.getAlternativeReason(eval, best),
+    const alternatives = validEvaluations.slice(1, 4).map((evaluation) => ({
+      strategy: evaluation.strategy,
+      score: evaluation.score,
+      reason: this.getAlternativeReason(evaluation, best),
     }));
 
     return {
@@ -277,8 +277,8 @@ export class CompromiseStrategySelector {
    */
   private generateReasoning(
     evaluation: { strategy: CompromiseStrategy; impact: any; score: number },
-    criteria: SelectionCriteria,
-    options: CompromiseOptions
+    _criteria: SelectionCriteria,
+    _options: CompromiseOptions
   ): string {
     const strategy = evaluation.strategy;
     const impact = evaluation.impact;

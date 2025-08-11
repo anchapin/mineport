@@ -332,7 +332,7 @@ world.beforeEvents.chatSend.subscribe((event) => {
       if (index <= 7) {
         // Limit to a reasonable number of items
         limitations.push({
-          text: `        { text: \"§c${index}.§r ${warning.featureName}: ${warning.details}\\n\" },\n`,
+          text: `        { text: "§c${index}.§r ${warning.featureName}: ${warning.details}\\n" },\n`,
         });
         index++;
       }

@@ -1,6 +1,6 @@
 import { Feature, CompromiseLevel } from '../../types/compromise.js';
 import { CompromiseEngineResult, BatchCompromiseResult } from './CompromiseEngine.js';
-import { CompromiseResult } from './CompromiseStrategy.js';
+// import { CompromiseResult } from './CompromiseStrategy.js';
 import { logger } from '../../utils/logger.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -578,7 +578,7 @@ export class CompromiseReporter {
     return skills;
   }
 
-  private getRequiredResources(feature: Feature): string[] {
+  private getRequiredResources(_feature: Feature): string[] {
     return ['Bedrock documentation', 'Development environment', 'Testing devices'];
   }
 

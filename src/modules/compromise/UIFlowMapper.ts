@@ -912,7 +912,7 @@ ${dropdowns
    * @returns Generated event handler code
    */
   private createEventHandlerCode(feature: Feature, uiFlow: UIFlow): string {
-    const _className = this.extractClassName(feature);
+    // const _className = this.extractClassName(feature);
 
     // Extract button names from the Java code
     const buttonNames = this.extractButtonNames(uiFlow);
