@@ -11,7 +11,6 @@ import {
   UnmappableCodeSegment,
   APIMapping,
   TranslationWarning,
-  SourcePosition,
 } from '../../types/logic-translation.js';
 import { logger } from '../../utils/logger.js';
 
@@ -450,7 +449,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'ClassDeclaration',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const className = node.value || 'UnknownClass';
           return `// Transpiled class: ${className}\nclass ${className} {\n  constructor() {\n    // Class initialization\n  }\n}`;
         },
@@ -463,8 +462,8 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'MethodDeclaration',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
-          const methodName = node.value || 'unknownMethod';
+        transform: (_node: ASTNode, _context: TranslationContext) => {
+          const methodName = _node.value || 'unknownMethod';
           return `  ${methodName}() {\n    // Method implementation\n  }`;
         },
         confidence: 0.8,
@@ -476,7 +475,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'IfStatement',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (_node: ASTNode, _context: TranslationContext) => {
           return `if (condition) {\n  // If body\n}`;
         },
         confidence: 0.95,
@@ -488,7 +487,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'ForLoop',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (_node: ASTNode, _context: TranslationContext) => {
           return `for (let i = 0; i < length; i++) {\n  // Loop body\n}`;
         },
         confidence: 0.9,
@@ -500,7 +499,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'WhileLoop',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (_node: ASTNode, _context: TranslationContext) => {
           return `while (condition) {\n  // Loop body\n}`;
         },
         confidence: 0.9,
@@ -512,7 +511,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'MethodCall',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const methodName = node.value || 'unknownMethod';
           return `${methodName}();`;
         },
@@ -525,7 +524,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'Assignment',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const variableName = node.value || 'variable';
           return `let ${variableName} = value;`;
         },
@@ -538,7 +537,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'FieldDeclaration',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const fieldName = node.value || 'field';
           return `  ${fieldName} = null;`;
         },
@@ -551,7 +550,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'Comment',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const comment = node.value || '';
           if (comment.startsWith('//')) {
             return comment;
