@@ -325,7 +325,7 @@ export class WorkerPool extends EventEmitter {
     }
 
     // Cancel all running jobs
-    for (const [jobId, _workerId] of this.jobWorkerMap.entries()) {
+    for (const [jobId] of this.jobWorkerMap.entries()) {
       this.cancelJob(jobId);
     }
 
