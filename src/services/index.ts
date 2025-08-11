@@ -38,6 +38,9 @@ export * from './ModuleBootstrap.js';
 export * from './APIMapperService.js';
 export * from './APIMappingAdminService.js';
 export * from './FeatureFlagService.js';
+export * from './JobQueueService.js';
+export * from './ResourceManager.js';
+export * from './JobStatusStore.js';
 
 // Export validation stages
 export * from './validation-stages.js';
