@@ -22,11 +22,11 @@ describe('PriorityQueue', () => {
 
     it('should enqueue and dequeue single item', () => {
       queue.enqueue('test', 1);
-      
+
       expect(queue.isEmpty).toBe(false);
       expect(queue.size).toBe(1);
       expect(queue.peek()).toBe('test');
-      
+
       const item = queue.dequeue();
       expect(item).toBe('test');
       expect(queue.isEmpty).toBe(true);
@@ -75,10 +75,10 @@ describe('PriorityQueue', () => {
         { value: 'high1', priority: 2 },
         { value: 'urgent2', priority: 1 },
         { value: 'low1', priority: 4 },
-        { value: 'high2', priority: 2 }
+        { value: 'high2', priority: 2 },
       ];
 
-      items.forEach(item => queue.enqueue(item.value, item.priority));
+      items.forEach((item) => queue.enqueue(item.value, item.priority));
 
       expect(queue.dequeue()).toBe('urgent1');
       expect(queue.dequeue()).toBe('urgent2');
@@ -116,16 +116,16 @@ describe('PriorityQueue', () => {
     });
 
     it('should remove specific items', () => {
-      const removed = queue.remove(item => item === 'medium');
+      const removed = queue.remove((item) => item === 'medium');
       expect(removed).toBe(true);
       expect(queue.size).toBe(2);
-      
+
       const array = queue.toArray();
       expect(array).toEqual(['high', 'low']);
     });
 
     it('should return false when removing non-existent item', () => {
-      const removed = queue.remove(item => item === 'nonexistent');
+      const removed = queue.remove((item) => item === 'nonexistent');
       expect(removed).toBe(false);
       expect(queue.size).toBe(3);
     });
@@ -134,8 +134,8 @@ describe('PriorityQueue', () => {
   describe('Edge Cases', () => {
     it('should handle removing from single-item queue', () => {
       queue.enqueue('only', 1);
-      const removed = queue.remove(item => item === 'only');
-      
+      const removed = queue.remove((item) => item === 'only');
+
       expect(removed).toBe(true);
       expect(queue.isEmpty).toBe(true);
     });
@@ -143,8 +143,8 @@ describe('PriorityQueue', () => {
     it('should handle removing last item', () => {
       queue.enqueue('first', 1);
       queue.enqueue('last', 2);
-      
-      const removed = queue.remove(item => item === 'last');
+
+      const removed = queue.remove((item) => item === 'last');
       expect(removed).toBe(true);
       expect(queue.size).toBe(1);
       expect(queue.peek()).toBe('first');
@@ -152,25 +152,24 @@ describe('PriorityQueue', () => {
 
     it('should handle large number of items', () => {
       const itemCount = 1000;
-      
+
       // Add items with random priorities
       for (let i = 0; i < itemCount; i++) {
         const priority = Math.floor(Math.random() * 10) + 1;
         queue.enqueue(`item-${i}`, priority);
       }
-      
+
       expect(queue.size).toBe(itemCount);
-      
+
       // Dequeue all items and verify they come out in priority order
-      let lastPriority = 0;
       let count = 0;
-      
+
       while (!queue.isEmpty) {
         const item = queue.dequeue();
         expect(item).toBeDefined();
         count++;
       }
-      
+
       expect(count).toBe(itemCount);
     });
   });
@@ -184,15 +183,15 @@ describe('PriorityQueue', () => {
 
     it('should handle complex objects', () => {
       const jobQueue = new PriorityQueue<TestJob>();
-      
+
       const jobs: TestJob[] = [
         { id: 'job1', priority: 2, data: { type: 'conversion' } },
         { id: 'job2', priority: 1, data: { type: 'validation' } },
-        { id: 'job3', priority: 3, data: { type: 'analysis' } }
+        { id: 'job3', priority: 3, data: { type: 'analysis' } },
       ];
-      
-      jobs.forEach(job => jobQueue.enqueue(job, job.priority));
-      
+
+      jobs.forEach((job) => jobQueue.enqueue(job, job.priority));
+
       expect(jobQueue.dequeue()?.id).toBe('job2');
       expect(jobQueue.dequeue()?.id).toBe('job1');
       expect(jobQueue.dequeue()?.id).toBe('job3');
@@ -200,22 +199,22 @@ describe('PriorityQueue', () => {
 
     it('should remove complex objects by predicate', () => {
       const jobQueue = new PriorityQueue<TestJob>();
-      
+
       const jobs: TestJob[] = [
         { id: 'job1', priority: 1, data: { type: 'conversion' } },
         { id: 'job2', priority: 2, data: { type: 'validation' } },
-        { id: 'job3', priority: 3, data: { type: 'conversion' } }
+        { id: 'job3', priority: 3, data: { type: 'conversion' } },
       ];
-      
-      jobs.forEach(job => jobQueue.enqueue(job, job.priority));
-      
+
+      jobs.forEach((job) => jobQueue.enqueue(job, job.priority));
+
       // Remove all conversion jobs
-      let removed = jobQueue.remove(job => job.data.type === 'conversion');
+      let removed = jobQueue.remove((job) => job.data.type === 'conversion');
       expect(removed).toBe(true);
-      
-      removed = jobQueue.remove(job => job.data.type === 'conversion');
+
+      removed = jobQueue.remove((job) => job.data.type === 'conversion');
       expect(removed).toBe(true);
-      
+
       expect(jobQueue.size).toBe(1);
       expect(jobQueue.peek()?.id).toBe('job2');
     });

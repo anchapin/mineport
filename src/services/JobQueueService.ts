@@ -3,7 +3,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Job, JobData, JobType, JobPriority, JobStatusUpdate, QueueStats } from '../types/job.js';
+import { Job, JobData, JobPriority, JobStatusUpdate, QueueStats } from '../types/job.js';
 import { PriorityQueue } from '../utils/PriorityQueue.js';
 import { WorkerPool } from './WorkerPool.js';
 import { ResourceManager } from './ResourceManager.js';
@@ -30,19 +30,19 @@ export class JobQueueService extends EventEmitter {
 
   constructor(config: Partial<JobQueueConfig> = {}) {
     super();
-    
+
     this.config = {
       maxConcurrentJobs: config.maxConcurrentJobs || 4,
       defaultJobTimeout: config.defaultJobTimeout || 300000, // 5 minutes
       retryDelayMs: config.retryDelayMs || 5000, // 5 seconds
       maxRetries: config.maxRetries || 3,
       enableRealTimeUpdates: config.enableRealTimeUpdates || true,
-      queueProcessingInterval: config.queueProcessingInterval || 1000 // 1 second
+      queueProcessingInterval: config.queueProcessingInterval || 1000, // 1 second
     };
 
     this.queue = new PriorityQueue<Job>();
     this.workerPool = new WorkerPool({
-      maxWorkers: this.config.maxConcurrentJobs
+      maxWorkers: this.config.maxConcurrentJobs,
     });
     this.resourceManager = new ResourceManager();
     this.statusStore = new JobStatusStore();
@@ -56,13 +56,13 @@ export class JobQueueService extends EventEmitter {
     if (!jobData || !jobData.type || !jobData.priority) {
       throw new Error('Invalid job data: type and priority are required');
     }
-    
+
     if (!jobData.payload || !jobData.options) {
       throw new Error('Invalid job data: payload and options are required');
     }
-    
+
     const job = this.createJob(jobData);
-    
+
     // Validate created job
     const validationResult = this.validateJob(job);
     if (!validationResult.isValid) {
@@ -72,21 +72,21 @@ export class JobQueueService extends EventEmitter {
     // Add to queue with priority
     const priority = this.getPriorityValue(job.priority);
     this.queue.enqueue(job, priority);
-    
+
     // Save to status store
     await this.statusStore.saveJob(job);
-    
+
     logger.info(`Job ${job.id} enqueued with priority ${job.priority}`, {
       type: job.type,
-      queueSize: this.queue.size
+      queueSize: this.queue.size,
     });
 
     // Emit job enqueued event
     this.emit('jobEnqueued', { jobId: job.id, type: job.type, priority: job.priority });
-    
+
     // Try to process immediately if resources are available
     this.processQueue();
-    
+
     return job.id;
   }
 
@@ -96,7 +96,7 @@ export class JobQueueService extends EventEmitter {
 
   async cancelJob(jobId: string): Promise<boolean> {
     const job = await this.statusStore.getJob(jobId);
-    
+
     if (!job) {
       logger.warn(`Cannot cancel job ${jobId}: job not found`);
       return false;
@@ -114,12 +114,12 @@ export class JobQueueService extends EventEmitter {
         logger.error(`Failed to cancel running job ${jobId} in worker pool`);
         return false;
       }
-      
+
       // Release resources
       await this.resourceManager.releaseResources(jobId);
     } else if (job.status === 'pending') {
       // Remove from queue
-      const removed = this.queue.remove(queuedJob => queuedJob.id === jobId);
+      const removed = this.queue.remove((queuedJob) => queuedJob.id === jobId);
       if (!removed) {
         logger.warn(`Job ${jobId} not found in queue for cancellation`);
       }
@@ -132,13 +132,13 @@ export class JobQueueService extends EventEmitter {
 
     logger.info(`Job ${jobId} cancelled successfully`);
     this.emit('jobCancelled', { jobId });
-    
+
     return true;
   }
 
   async retryJob(jobId: string): Promise<boolean> {
     const job = await this.statusStore.getJob(jobId);
-    
+
     if (!job) {
       logger.warn(`Cannot retry job ${jobId}: job not found`);
       return false;
@@ -164,23 +164,23 @@ export class JobQueueService extends EventEmitter {
     // Add back to queue
     const priority = this.getPriorityValue(job.priority);
     this.queue.enqueue(job, priority);
-    
+
     await this.statusStore.updateJob(job);
 
     logger.info(`Job ${jobId} queued for retry (attempt ${job.retryCount}/${job.maxRetries})`);
     this.emit('jobRetried', { jobId, retryCount: job.retryCount });
-    
+
     return true;
   }
 
   async getQueueStats(): Promise<QueueStats> {
     const baseStats = await this.statusStore.getQueueStats();
     const workerStats = this.workerPool.getWorkerStats();
-    
+
     return {
       ...baseStats,
       queueLength: this.queue.size,
-      activeWorkers: workerStats.busyWorkers
+      activeWorkers: workerStats.busyWorkers,
     };
   }
 
@@ -211,7 +211,7 @@ export class JobQueueService extends EventEmitter {
 
   private createJob(jobData: JobData): Job {
     const now = new Date();
-    
+
     return {
       id: `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: jobData.type,
@@ -229,9 +229,9 @@ export class JobQueueService extends EventEmitter {
           resourceRequirements: jobData.options?.resourceRequirements || {
             memory: 1024, // 1GB default
             cpu: 1, // 1 core default
-            disk: 512 // 512MB default
-          }
-        }
+            disk: 512, // 512MB default
+          },
+        },
       },
       progress: {
         stage: 'Queued',
@@ -239,12 +239,12 @@ export class JobQueueService extends EventEmitter {
         details: {
           currentStep: 'Waiting in queue',
           totalSteps: 1,
-          completedSteps: 0
-        }
+          completedSteps: 0,
+        },
       },
       createdAt: now,
       retryCount: 0,
-      maxRetries: jobData.options?.maxRetries || this.config.maxRetries
+      maxRetries: jobData.options?.maxRetries || this.config.maxRetries,
     };
   }
 
@@ -273,7 +273,11 @@ export class JobQueueService extends EventEmitter {
         errors.push('Resource requirements are required');
       } else {
         const req = options.resourceRequirements;
-        if (typeof req.memory !== 'number' || typeof req.cpu !== 'number' || typeof req.disk !== 'number') {
+        if (
+          typeof req.memory !== 'number' ||
+          typeof req.cpu !== 'number' ||
+          typeof req.disk !== 'number'
+        ) {
           errors.push('Resource requirements must be numbers');
         }
       }
@@ -281,7 +285,7 @@ export class JobQueueService extends EventEmitter {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -290,7 +294,7 @@ export class JobQueueService extends EventEmitter {
       urgent: 1,
       high: 2,
       normal: 3,
-      low: 4
+      low: 4,
     };
     return priorityMap[priority];
   }
@@ -330,18 +334,23 @@ export class JobQueueService extends EventEmitter {
       details: {
         currentStep: 'Starting job',
         totalSteps: 5,
-        completedSteps: 0
-      }
+        completedSteps: 0,
+      },
     };
 
     await this.statusStore.updateJob(job);
-    
+
     if (this.config.enableRealTimeUpdates) {
       this.emit('jobStatusUpdate', { jobId, status: 'running', workerId });
     }
   }
 
-  private async handleJobCompleted(jobId: string, workerId: string, result: any, processingTime: number): Promise<void> {
+  private async handleJobCompleted(
+    jobId: string,
+    workerId: string,
+    result: any,
+    processingTime: number
+  ): Promise<void> {
     const job = await this.statusStore.getJob(jobId);
     if (!job) return;
 
@@ -355,15 +364,15 @@ export class JobQueueService extends EventEmitter {
         currentStep: 'Job completed successfully',
         totalSteps: 5,
         completedSteps: 5,
-        processingRate: processingTime
-      }
+        processingRate: processingTime,
+      },
     };
 
     await this.statusStore.updateJob(job);
     await this.resourceManager.releaseResources(jobId);
 
     logger.info(`Job ${jobId} completed successfully in ${processingTime}ms`);
-    
+
     if (this.config.enableRealTimeUpdates) {
       this.emit('jobStatusUpdate', { jobId, status: 'completed', result, processingTime });
     }
@@ -372,7 +381,12 @@ export class JobQueueService extends EventEmitter {
     this.processQueue();
   }
 
-  private async handleJobFailed(jobId: string, workerId: string, error: Error, processingTime: number): Promise<void> {
+  private async handleJobFailed(
+    jobId: string,
+    workerId: string,
+    error: Error,
+    processingTime: number
+  ): Promise<void> {
     const job = await this.statusStore.getJob(jobId);
     if (!job) return;
 
@@ -380,29 +394,31 @@ export class JobQueueService extends EventEmitter {
       code: 'JOB_EXECUTION_FAILED',
       message: error.message,
       stack: error.stack,
-      recoverable: job.retryCount < job.maxRetries
+      recoverable: job.retryCount < job.maxRetries,
     };
 
     await this.resourceManager.releaseResources(jobId);
 
     // Check if we should retry
     if (job.retryCount < job.maxRetries) {
-      logger.warn(`Job ${jobId} failed, scheduling retry ${job.retryCount + 1}/${job.maxRetries}`, error);
-      
+      logger.warn(
+        `Job ${jobId} failed, scheduling retry ${job.retryCount + 1}/${job.maxRetries}`,
+        error
+      );
+
       // Schedule retry after delay
       setTimeout(async () => {
         await this.retryJob(jobId);
       }, this.config.retryDelayMs);
-      
     } else {
       // Mark as permanently failed
       job.status = 'failed';
       job.completedAt = new Date();
-      
+
       await this.statusStore.updateJob(job);
-      
+
       logger.error(`Job ${jobId} permanently failed after ${job.maxRetries} retries`, error);
-      
+
       if (this.config.enableRealTimeUpdates) {
         this.emit('jobStatusUpdate', { jobId, status: 'failed', error: job.error });
       }
@@ -418,7 +434,7 @@ export class JobQueueService extends EventEmitter {
 
     job.progress = progress;
     await this.statusStore.updateJob(job);
-    
+
     if (this.config.enableRealTimeUpdates) {
       this.emit('jobProgress', { jobId, progress });
     }
@@ -426,14 +442,14 @@ export class JobQueueService extends EventEmitter {
 
   private async handleWorkerTimeout(workerId: string, jobId: string): Promise<void> {
     logger.error(`Worker ${workerId} timed out while processing job ${jobId}`);
-    
+
     const job = await this.statusStore.getJob(jobId);
     if (!job) return;
 
     job.error = {
       code: 'WORKER_TIMEOUT',
       message: `Worker ${workerId} timed out`,
-      recoverable: job.retryCount < job.maxRetries
+      recoverable: job.retryCount < job.maxRetries,
     };
 
     await this.resourceManager.releaseResources(jobId);
@@ -452,7 +468,7 @@ export class JobQueueService extends EventEmitter {
 
   private startQueueProcessing(): void {
     this.isProcessing = true;
-    
+
     this.processingInterval = setInterval(() => {
       if (this.isProcessing) {
         this.processQueue();
@@ -502,7 +518,7 @@ export class JobQueueService extends EventEmitter {
 
   destroy(): void {
     this.isProcessing = false;
-    
+
     if (this.processingInterval) {
       clearInterval(this.processingInterval);
       this.processingInterval = null;

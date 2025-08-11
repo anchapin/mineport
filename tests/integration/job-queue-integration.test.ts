@@ -4,9 +4,9 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { JobQueueService } from '../../src/services/JobQueueService.js';
-import { ResourceManager } from '../../src/services/ResourceManager.js';
-import { WorkerPool } from '../../src/services/WorkerPool.js';
-import { JobStatusStore } from '../../src/services/JobStatusStore.js';
+// import { ResourceManager } from '../../src/services/ResourceManager.js';
+// import { WorkerPool } from '../../src/services/WorkerPool.js';
+// import { JobStatusStore } from '../../src/services/JobStatusStore.js';
 import { JobData } from '../../src/types/job.js';
 
 // Mock logger
@@ -15,8 +15,8 @@ vi.mock('../../src/utils/logger.js', () => ({
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
-    debug: vi.fn()
-  }
+    debug: vi.fn(),
+  },
 }));
 
 describe('JobQueue Integration Tests', () => {
@@ -30,7 +30,7 @@ describe('JobQueue Integration Tests', () => {
       retryDelayMs: 200,
       maxRetries: 1,
       enableRealTimeUpdates: true,
-      queueProcessingInterval: 100
+      queueProcessingInterval: 100,
     });
   });
 
@@ -45,7 +45,7 @@ describe('JobQueue Integration Tests', () => {
         priority: 'normal',
         payload: {
           modFile: 'test-mod.jar',
-          options: { preserveAssets: true }
+          options: { preserveAssets: true },
         },
         options: {
           timeout: 3000,
@@ -54,9 +54,9 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 256,
             cpu: 1,
-            disk: 128
-          }
-        }
+            disk: 128,
+          },
+        },
       };
 
       // Enqueue job
@@ -68,8 +68,12 @@ describe('JobQueue Integration Tests', () => {
       let attempts = 0;
       const maxAttempts = 20; // 4 seconds max wait
 
-      while (job && !['completed', 'failed', 'cancelled'].includes(job.status) && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+      while (
+        job &&
+        !['completed', 'failed', 'cancelled'].includes(job.status) &&
+        attempts < maxAttempts
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
         job = await jobQueue.getJobStatus(jobId);
         attempts++;
       }
@@ -100,9 +104,9 @@ describe('JobQueue Integration Tests', () => {
             resourceRequirements: {
               memory: 128,
               cpu: 1,
-              disk: 64
-            }
-          }
+              disk: 64,
+            },
+          },
         };
 
         const jobId = await jobQueue.enqueueJob(jobData);
@@ -110,16 +114,14 @@ describe('JobQueue Integration Tests', () => {
       }
 
       // Wait for all jobs to complete
-      await new Promise(resolve => setTimeout(resolve, 4000));
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
       // Check final states
-      const finalJobs = await Promise.all(
-        jobIds.map(id => jobQueue.getJobStatus(id))
-      );
+      const finalJobs = await Promise.all(jobIds.map((id) => jobQueue.getJobStatus(id)));
 
       // At least some jobs should have completed
-      const finalStates = finalJobs.filter(job => 
-        job && ['completed', 'failed'].includes(job.status)
+      const finalStates = finalJobs.filter(
+        (job) => job && ['completed', 'failed'].includes(job.status)
       );
       expect(finalStates.length).toBeGreaterThan(0);
     }, 8000);
@@ -134,8 +136,8 @@ describe('JobQueue Integration Tests', () => {
           timeout: 2000,
           maxRetries: 0,
           priority: 'low',
-          resourceRequirements: { memory: 128, cpu: 1, disk: 64 }
-        }
+          resourceRequirements: { memory: 128, cpu: 1, disk: 64 },
+        },
       });
 
       const urgentPriorityJob = await jobQueue.enqueueJob({
@@ -146,8 +148,8 @@ describe('JobQueue Integration Tests', () => {
           timeout: 2000,
           maxRetries: 0,
           priority: 'urgent',
-          resourceRequirements: { memory: 128, cpu: 1, disk: 64 }
-        }
+          resourceRequirements: { memory: 128, cpu: 1, disk: 64 },
+        },
       });
 
       // Jobs should be created successfully
@@ -155,12 +157,12 @@ describe('JobQueue Integration Tests', () => {
       expect(urgentPriorityJob).toBeDefined();
 
       // Wait for processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Verify both jobs exist
       const lowJob = await jobQueue.getJobStatus(lowPriorityJob);
       const urgentJob = await jobQueue.getJobStatus(urgentPriorityJob);
-      
+
       expect(lowJob).toBeDefined();
       expect(urgentJob).toBeDefined();
     }, 6000);
@@ -180,9 +182,9 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 2048, // Most of available memory
             cpu: 1,
-            disk: 1024
-          }
-        }
+            disk: 1024,
+          },
+        },
       };
 
       // Create a second job that would exceed resources
@@ -197,23 +199,23 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 1536, // Would exceed available memory with first job
             cpu: 1,
-            disk: 512
-          }
-        }
+            disk: 512,
+          },
+        },
       };
 
       const job1Id = await jobQueue.enqueueJob(largeJobData);
       const job2Id = await jobQueue.enqueueJob(secondJobData);
 
       // Wait a bit for processing to start
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const job1 = await jobQueue.getJobStatus(job1Id);
       const job2 = await jobQueue.getJobStatus(job2Id);
 
       // First job should be running or completed
       expect(job1?.status).toMatch(/running|completed/);
-      
+
       // Second job should still be pending due to resource constraints
       // (unless first job completed very quickly)
       if (job1?.status === 'running') {
@@ -224,7 +226,7 @@ describe('JobQueue Integration Tests', () => {
     it('should process queued jobs when resources become available', async () => {
       // This test verifies that jobs waiting for resources get processed
       // when resources are freed up by completing jobs
-      
+
       const quickJobData: JobData = {
         type: 'validation', // Typically faster
         priority: 'normal',
@@ -236,9 +238,9 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 1024,
             cpu: 1,
-            disk: 512
-          }
-        }
+            disk: 512,
+          },
+        },
       };
 
       const waitingJobData: JobData = {
@@ -252,9 +254,9 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 1024,
             cpu: 1,
-            disk: 512
-          }
-        }
+            disk: 512,
+          },
+        },
       };
 
       // Enqueue multiple jobs to fill worker capacity
@@ -265,14 +267,12 @@ describe('JobQueue Integration Tests', () => {
       }
 
       // Wait for jobs to process
-      await new Promise(resolve => setTimeout(resolve, 6000));
+      await new Promise((resolve) => setTimeout(resolve, 6000));
 
       // All jobs should eventually complete
-      const finalStates = await Promise.all(
-        jobIds.map(id => jobQueue.getJobStatus(id))
-      );
+      const finalStates = await Promise.all(jobIds.map((id) => jobQueue.getJobStatus(id)));
 
-      finalStates.forEach(job => {
+      finalStates.forEach((job) => {
         expect(job?.status).toMatch(/completed|failed/);
       });
     });
@@ -291,9 +291,9 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 512,
             cpu: 1,
-            disk: 256
-          }
-        }
+            disk: 256,
+          },
+        },
       };
 
       const jobId = await jobQueue.enqueueJob(jobData);
@@ -303,14 +303,14 @@ describe('JobQueue Integration Tests', () => {
       let attempts = 0;
 
       while (job && !['completed', 'failed', 'cancelled'].includes(job.status) && attempts < 30) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
         job = await jobQueue.getJobStatus(jobId);
         attempts++;
       }
 
       // Job should eventually reach a final state
       expect(job?.status).toMatch(/completed|failed/);
-      
+
       // If it failed, verify error information is captured
       if (job?.status === 'failed') {
         expect(job.error).toBeDefined();
@@ -332,13 +332,13 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 256,
             cpu: 1,
-            disk: 128
-          }
-        }
+            disk: 128,
+          },
+        },
       };
 
       const jobId = await jobQueue.enqueueJob(jobData);
-      
+
       // Verify job was created with correct retry settings
       const job = await jobQueue.getJobStatus(jobId);
       expect(job?.maxRetries).toBe(2);
@@ -360,29 +360,29 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 512,
             cpu: 1,
-            disk: 256
-          }
-        }
+            disk: 256,
+          },
+        },
       };
 
       const jobId = await jobQueue.enqueueJob(jobData);
 
       // Pause the queue
       await jobQueue.pauseQueue();
-      
+
       // Wait a bit
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Job should still be pending (queue is paused)
       let job = await jobQueue.getJobStatus(jobId);
       expect(job?.status).toBe('pending');
 
       // Resume the queue
       await jobQueue.resumeQueue();
-      
+
       // Wait for job to process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       // Job should now be processed
       job = await jobQueue.getJobStatus(jobId);
       expect(job?.status).toMatch(/running|completed|failed/);
@@ -400,15 +400,15 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 512,
             cpu: 1,
-            disk: 256
-          }
-        }
+            disk: 256,
+          },
+        },
       };
 
       const jobId = await jobQueue.enqueueJob(jobData);
 
       // Wait for job to start
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Cancel the job
       const cancelled = await jobQueue.cancelJob(jobId);
@@ -424,7 +424,7 @@ describe('JobQueue Integration Tests', () => {
     it('should handle burst of job submissions', async () => {
       const jobCount = 20;
       const startTime = Date.now();
-      
+
       // Submit many jobs quickly
       const jobPromises = [];
       for (let i = 0; i < jobCount; i++) {
@@ -439,11 +439,11 @@ describe('JobQueue Integration Tests', () => {
             resourceRequirements: {
               memory: 128,
               cpu: 1,
-              disk: 64
-            }
-          }
+              disk: 64,
+            },
+          },
         };
-        
+
         jobPromises.push(jobQueue.enqueueJob(jobData));
       }
 
@@ -454,7 +454,7 @@ describe('JobQueue Integration Tests', () => {
       expect(enqueueTime).toBeLessThan(2000); // Should enqueue quickly
 
       // Wait for processing to complete
-      await new Promise(resolve => setTimeout(resolve, 8000));
+      await new Promise((resolve) => setTimeout(resolve, 8000));
 
       // Check final statistics
       const stats = await jobQueue.getQueueStats();
@@ -476,9 +476,9 @@ describe('JobQueue Integration Tests', () => {
             resourceRequirements: {
               memory: 256,
               cpu: 1,
-              disk: 128
-            }
-          }
+              disk: 128,
+            },
+          },
         });
         jobIds.push(jobId);
       }
@@ -486,7 +486,7 @@ describe('JobQueue Integration Tests', () => {
       // Perform many status checks
       const startTime = Date.now();
       const statusPromises = [];
-      
+
       for (let i = 0; i < 50; i++) {
         const randomJobId = jobIds[Math.floor(Math.random() * jobIds.length)];
         statusPromises.push(jobQueue.getJobStatus(randomJobId));
@@ -512,15 +512,15 @@ describe('JobQueue Integration Tests', () => {
           resourceRequirements: {
             memory: 512,
             cpu: 1,
-            disk: 256
-          }
-        }
+            disk: 256,
+          },
+        },
       };
 
       const jobId = await jobQueue.enqueueJob(jobData);
 
       // Wait for job to process
-      await new Promise(resolve => setTimeout(resolve, 4000));
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
       // Verify consistency between different data sources
       const job = await jobQueue.getJobStatus(jobId);

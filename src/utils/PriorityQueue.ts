@@ -29,7 +29,7 @@ export class PriorityQueue<T> {
       item,
       priority,
       insertedAt: new Date(),
-      sequence: this.sequenceCounter++
+      sequence: this.sequenceCounter++,
     };
 
     this.heap.push(queueItem);
@@ -65,14 +65,12 @@ export class PriorityQueue<T> {
   }
 
   toArray(): T[] {
-    return this.heap
-      .sort((a, b) => this.compare(a, b))
-      .map(item => item.item);
+    return this.heap.sort((a, b) => this.compare(a, b)).map((item) => item.item);
   }
 
   remove(predicate: (item: T) => boolean): boolean {
-    const index = this.heap.findIndex(queueItem => predicate(queueItem.item));
-    
+    const index = this.heap.findIndex((queueItem) => predicate(queueItem.item));
+
     if (index === -1) {
       return false;
     }
@@ -92,7 +90,7 @@ export class PriorityQueue<T> {
   private heapifyUp(index: number): void {
     while (index > 0) {
       const parentIndex = Math.floor((index - 1) / 2);
-      
+
       if (this.compare(this.heap[index], this.heap[parentIndex]) >= 0) {
         break;
       }
@@ -103,27 +101,27 @@ export class PriorityQueue<T> {
   }
 
   private heapifyDown(index: number): void {
+    let currentIndex = index;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
-      let minIndex = index;
-      const leftChild = 2 * index + 1;
-      const rightChild = 2 * index + 2;
+      let minIndex = currentIndex;
+      const leftChild = 2 * currentIndex + 1;
+      const rightChild = 2 * currentIndex + 2;
 
-      if (leftChild < this._size && 
-          this.compare(this.heap[leftChild], this.heap[minIndex]) < 0) {
+      if (leftChild < this._size && this.compare(this.heap[leftChild], this.heap[minIndex]) < 0) {
         minIndex = leftChild;
       }
 
-      if (rightChild < this._size && 
-          this.compare(this.heap[rightChild], this.heap[minIndex]) < 0) {
+      if (rightChild < this._size && this.compare(this.heap[rightChild], this.heap[minIndex]) < 0) {
         minIndex = rightChild;
       }
 
-      if (minIndex === index) {
+      if (minIndex === currentIndex) {
         break;
       }
 
-      this.swap(index, minIndex);
-      index = minIndex;
+      this.swap(currentIndex, minIndex);
+      currentIndex = minIndex;
     }
   }
 

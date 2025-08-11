@@ -17,8 +17,8 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
 
   async apply(
     feature: Feature,
-    context: ConversionContext,
-    options: CompromiseOptions
+    _context: ConversionContext,
+    _options: CompromiseOptions
   ): Promise<CompromiseResult> {
     logger.info('Applying dimension compromise strategy', {
       featureName: feature.name,
@@ -121,7 +121,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
 
   async estimateImpact(
     feature: Feature,
-    context: ConversionContext
+    _context: ConversionContext
   ): Promise<{
     impactLevel: CompromiseLevel;
     userExperienceImpact: number;
@@ -165,7 +165,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
     return 'Handles custom dimensions by adapting them to existing Bedrock dimensions or providing implementation guidance';
   }
 
-  protected isApplicable(feature: Feature, context: ConversionContext): boolean {
+  protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
     // Check if this is a custom dimension that needs compromise
     if (feature.type !== FeatureType.DIMENSION && feature.type !== FeatureType.WORLD_GENERATION) {
       return false;

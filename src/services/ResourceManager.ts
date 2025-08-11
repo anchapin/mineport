@@ -40,14 +40,14 @@ export class ResourceManager {
       totalCpu: systemResources?.totalCpu || 4, // 4 cores default
       availableCpu: systemResources?.availableCpu || 3, // 3 cores default
       totalDisk: systemResources?.totalDisk || 51200, // 50GB default
-      availableDisk: systemResources?.availableDisk || 40960 // 40GB default
+      availableDisk: systemResources?.availableDisk || 40960, // 40GB default
     };
 
     // Store initial available resources
     this.initialAvailableResources = {
       memory: this.systemResources.availableMemory,
       cpu: this.systemResources.availableCpu,
-      disk: this.systemResources.availableDisk
+      disk: this.systemResources.availableDisk,
     };
 
     this.startMonitoring();
@@ -55,17 +55,17 @@ export class ResourceManager {
 
   async allocateResources(job: Job): Promise<ResourceAllocation | null> {
     const requirements = job.payload.options.resourceRequirements;
-    
+
     // Validate resource requirements
     if (requirements.memory < 0 || requirements.cpu < 0 || requirements.disk < 0) {
       logger.warn(`Invalid resource requirements for job ${job.id}`, requirements);
       return null;
     }
-    
+
     if (!this.canAllocateResources(requirements)) {
       logger.warn(`Cannot allocate resources for job ${job.id}`, {
         required: requirements,
-        available: this.getAvailableResources()
+        available: this.getAvailableResources(),
       });
       return null;
     }
@@ -75,7 +75,7 @@ export class ResourceManager {
       cpu: requirements.cpu,
       disk: requirements.disk,
       workerId: `worker-${Date.now()}`,
-      allocatedAt: new Date()
+      allocatedAt: new Date(),
     };
 
     this.allocations.set(job.id, allocation);
@@ -87,7 +87,7 @@ export class ResourceManager {
 
   async releaseResources(jobId: string): Promise<void> {
     const allocation = this.allocations.get(jobId);
-    
+
     if (!allocation) {
       logger.warn(`No resource allocation found for job ${jobId}`);
       return;
@@ -101,7 +101,7 @@ export class ResourceManager {
 
   canAllocateResources(requirements: ResourceRequirements): boolean {
     const available = this.getAvailableResources();
-    
+
     return (
       available.memory >= requirements.memory &&
       available.cpu >= requirements.cpu &&
@@ -114,7 +114,7 @@ export class ResourceManager {
     return {
       memory: this.systemResources.availableMemory,
       cpu: this.systemResources.availableCpu,
-      disk: this.systemResources.availableDisk
+      disk: this.systemResources.availableDisk,
     };
   }
 
@@ -123,7 +123,7 @@ export class ResourceManager {
       (total, allocation) => ({
         memory: total.memory + allocation.memory,
         cpu: total.cpu + allocation.cpu,
-        disk: total.disk + allocation.disk
+        disk: total.disk + allocation.disk,
       }),
       { memory: 0, cpu: 0, disk: 0 }
     );
@@ -133,11 +133,11 @@ export class ResourceManager {
 
   getResourceUtilization(): { memory: number; cpu: number; disk: number } {
     const allocated = this.getTotalAllocatedResources();
-    
+
     return {
       memory: (allocated.memory / this.systemResources.totalMemory) * 100,
       cpu: (allocated.cpu / this.systemResources.totalCpu) * 100,
-      disk: (allocated.disk / this.systemResources.totalDisk) * 100
+      disk: (allocated.disk / this.systemResources.totalDisk) * 100,
     };
   }
 
@@ -148,11 +148,10 @@ export class ResourceManager {
   async optimizeResourceAllocation(): Promise<void> {
     // Identify underutilized allocations
     const currentTime = new Date();
-    const staleAllocations = Array.from(this.allocations.entries())
-      .filter(([_, allocation]) => {
-        const ageMinutes = (currentTime.getTime() - allocation.allocatedAt.getTime()) / (1000 * 60);
-        return ageMinutes > 30; // Consider allocations older than 30 minutes as potentially stale
-      });
+    const staleAllocations = Array.from(this.allocations.entries()).filter(([_, allocation]) => {
+      const ageMinutes = (currentTime.getTime() - allocation.allocatedAt.getTime()) / (1000 * 60);
+      return ageMinutes > 30; // Consider allocations older than 30 minutes as potentially stale
+    });
 
     if (staleAllocations.length > 0) {
       logger.info(`Found ${staleAllocations.length} potentially stale resource allocations`);
@@ -174,13 +173,19 @@ export class ResourceManager {
     // Update available resources based on current allocations
     // Available = Initial Available - Allocated (but never go below 0)
     const allocated = this.getTotalAllocatedResources();
-    
-    this.systemResources.availableMemory = Math.max(0, 
-      this.initialAvailableResources.memory - allocated.memory);
-    this.systemResources.availableCpu = Math.max(0, 
-      this.initialAvailableResources.cpu - allocated.cpu);
-    this.systemResources.availableDisk = Math.max(0, 
-      this.initialAvailableResources.disk - allocated.disk);
+
+    this.systemResources.availableMemory = Math.max(
+      0,
+      this.initialAvailableResources.memory - allocated.memory
+    );
+    this.systemResources.availableCpu = Math.max(
+      0,
+      this.initialAvailableResources.cpu - allocated.cpu
+    );
+    this.systemResources.availableDisk = Math.max(
+      0,
+      this.initialAvailableResources.disk - allocated.disk
+    );
   }
 
   private startMonitoring(): void {
@@ -188,13 +193,13 @@ export class ResourceManager {
     if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
       return;
     }
-    
+
     this.monitoringInterval = setInterval(() => {
       const monitoringData: ResourceMonitoringData = {
         timestamp: new Date(),
         systemResources: { ...this.systemResources },
         allocatedResources: this.getTotalAllocatedResources(),
-        utilizationPercentage: this.getResourceUtilization()
+        utilizationPercentage: this.getResourceUtilization(),
       };
 
       this.monitoringData.push(monitoringData);

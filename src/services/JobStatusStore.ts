@@ -23,7 +23,7 @@ export class JobStatusStore {
       persistToDisk: config.persistToDisk || false,
       maxJobHistory: config.maxJobHistory || 10000,
       cleanupInterval: config.cleanupInterval || 3600000, // 1 hour
-      storageLocation: config.storageLocation || './job-storage'
+      storageLocation: config.storageLocation || './job-storage',
     };
 
     this.startCleanupProcess();
@@ -31,26 +31,26 @@ export class JobStatusStore {
 
   async saveJob(job: Job): Promise<void> {
     this.jobs.set(job.id, { ...job });
-    
+
     const statusUpdate: JobStatusUpdate = {
       jobId: job.id,
       status: job.status,
       progress: job.progress,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
+
     this.addToHistory(statusUpdate);
-    
+
     if (this.config.persistToDisk) {
       await this.persistJob(job);
     }
-    
+
     logger.debug(`Job ${job.id} saved with status: ${job.status}`);
   }
 
   async updateJob(job: Job): Promise<void> {
     const existingJob = this.jobs.get(job.id);
-    
+
     if (!existingJob) {
       logger.warn(`Attempted to update non-existent job: ${job.id}`);
       return;
@@ -58,22 +58,22 @@ export class JobStatusStore {
 
     // Update the job
     this.jobs.set(job.id, { ...job });
-    
+
     const statusUpdate: JobStatusUpdate = {
       jobId: job.id,
       status: job.status,
       progress: job.progress,
       error: job.error,
       result: job.result,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
+
     this.addToHistory(statusUpdate);
-    
+
     if (this.config.persistToDisk) {
       await this.persistJob(job);
     }
-    
+
     logger.debug(`Job ${job.id} updated with status: ${job.status}`);
   }
 
@@ -84,97 +84,94 @@ export class JobStatusStore {
 
   async deleteJob(jobId: string): Promise<boolean> {
     const deleted = this.jobs.delete(jobId);
-    
+
     if (deleted) {
       // Remove from history as well
-      this.jobHistory = this.jobHistory.filter(update => update.jobId !== jobId);
-      
+      this.jobHistory = this.jobHistory.filter((update) => update.jobId !== jobId);
+
       if (this.config.persistToDisk) {
         await this.removePersistedJob(jobId);
       }
-      
+
       logger.debug(`Job ${jobId} deleted`);
     }
-    
+
     return deleted;
   }
 
   async getAllJobs(): Promise<Job[]> {
-    return Array.from(this.jobs.values()).map(job => ({ ...job }));
+    return Array.from(this.jobs.values()).map((job) => ({ ...job }));
   }
 
   async getJobsByStatus(status: Job['status']): Promise<Job[]> {
     return Array.from(this.jobs.values())
-      .filter(job => job.status === status)
-      .map(job => ({ ...job }));
+      .filter((job) => job.status === status)
+      .map((job) => ({ ...job }));
   }
 
   async getJobsByType(type: Job['type']): Promise<Job[]> {
     return Array.from(this.jobs.values())
-      .filter(job => job.type === type)
-      .map(job => ({ ...job }));
+      .filter((job) => job.type === type)
+      .map((job) => ({ ...job }));
   }
 
   async getJobHistory(jobId?: string, limit?: number): Promise<JobStatusUpdate[]> {
-    let history = jobId 
-      ? this.jobHistory.filter(update => update.jobId === jobId)
+    let history = jobId
+      ? this.jobHistory.filter((update) => update.jobId === jobId)
       : this.jobHistory;
-    
+
     // Sort by timestamp descending (most recent first)
     history = history.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    
+
     if (limit) {
       history = history.slice(0, limit);
     }
-    
-    return history.map(update => ({ ...update }));
+
+    return history.map((update) => ({ ...update }));
   }
 
   async getQueueStats(): Promise<QueueStats> {
     const jobs = Array.from(this.jobs.values());
-    
+
     const stats: QueueStats = {
       totalJobs: jobs.length,
-      pendingJobs: jobs.filter(job => job.status === 'pending').length,
-      runningJobs: jobs.filter(job => job.status === 'running').length,
-      completedJobs: jobs.filter(job => job.status === 'completed').length,
-      failedJobs: jobs.filter(job => job.status === 'failed').length,
-      queueLength: jobs.filter(job => job.status === 'pending').length,
+      pendingJobs: jobs.filter((job) => job.status === 'pending').length,
+      runningJobs: jobs.filter((job) => job.status === 'running').length,
+      completedJobs: jobs.filter((job) => job.status === 'completed').length,
+      failedJobs: jobs.filter((job) => job.status === 'failed').length,
+      queueLength: jobs.filter((job) => job.status === 'pending').length,
       activeWorkers: 0, // This would be provided by WorkerPool
-      averageProcessingTime: this.calculateAverageProcessingTime(jobs)
+      averageProcessingTime: this.calculateAverageProcessingTime(jobs),
     };
-    
+
     return stats;
   }
 
   async cleanupOldJobs(olderThanHours: number = 24): Promise<number> {
-    const cutoffTime = new Date(Date.now() - (olderThanHours * 60 * 60 * 1000));
+    const cutoffTime = new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
     const jobsToDelete: string[] = [];
-    
+
     for (const [jobId, job] of this.jobs.entries()) {
       // Only cleanup completed, failed, or cancelled jobs
-      if (['completed', 'failed', 'cancelled'].includes(job.status) && 
-          job.createdAt < cutoffTime) {
+      if (['completed', 'failed', 'cancelled'].includes(job.status) && job.createdAt < cutoffTime) {
         jobsToDelete.push(jobId);
       }
     }
-    
+
     for (const jobId of jobsToDelete) {
       await this.deleteJob(jobId);
     }
-    
+
     // Also cleanup old history entries
-    this.jobHistory = this.jobHistory.filter(update => 
-      update.timestamp > cutoffTime
-    );
-    
+    this.jobHistory = this.jobHistory.filter((update) => update.timestamp > cutoffTime);
+
     logger.info(`Cleaned up ${jobsToDelete.length} old jobs`);
     return jobsToDelete.length;
   }
 
   private addToHistory(statusUpdate: JobStatusUpdate): void {
     this.jobHistory.push(statusUpdate);
-    
+
     // Keep history within limits
     if (this.jobHistory.length > this.config.maxJobHistory) {
       this.jobHistory = this.jobHistory.slice(-this.config.maxJobHistory);
@@ -182,19 +179,19 @@ export class JobStatusStore {
   }
 
   private calculateAverageProcessingTime(jobs: Job[]): number {
-    const completedJobs = jobs.filter(job => 
-      job.status === 'completed' && job.startedAt && job.completedAt
+    const completedJobs = jobs.filter(
+      (job) => job.status === 'completed' && job.startedAt && job.completedAt
     );
-    
+
     if (completedJobs.length === 0) {
       return 0;
     }
-    
+
     const totalTime = completedJobs.reduce((sum, job) => {
       const processingTime = job.completedAt!.getTime() - job.startedAt!.getTime();
       return sum + processingTime;
     }, 0);
-    
+
     return totalTime / completedJobs.length;
   }
 
@@ -224,10 +221,10 @@ export class JobStatusStore {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
-    
+
     this.jobs.clear();
     this.jobHistory = [];
-    
+
     logger.info('Job status store destroyed');
   }
 }

@@ -12,8 +12,8 @@ vi.mock('../../../src/utils/logger.js', () => ({
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
-    debug: vi.fn()
-  }
+    debug: vi.fn(),
+  },
 }));
 
 describe('ResourceManager', () => {
@@ -27,7 +27,7 @@ describe('ResourceManager', () => {
       totalCpu: 4,
       availableCpu: 3,
       totalDisk: 51200,
-      availableDisk: 40960
+      availableDisk: 40960,
     });
 
     mockJob = {
@@ -46,9 +46,9 @@ describe('ResourceManager', () => {
           resourceRequirements: {
             memory: 1024,
             cpu: 1,
-            disk: 512
-          }
-        }
+            disk: 512,
+          },
+        },
       },
       progress: {
         stage: 'Queued',
@@ -56,12 +56,12 @@ describe('ResourceManager', () => {
         details: {
           currentStep: 'Waiting',
           totalSteps: 1,
-          completedSteps: 0
-        }
+          completedSteps: 0,
+        },
       },
       createdAt: new Date(),
       retryCount: 0,
-      maxRetries: 3
+      maxRetries: 3,
     };
   });
 
@@ -72,7 +72,7 @@ describe('ResourceManager', () => {
   describe('Resource Allocation', () => {
     it('should allocate resources for a job', async () => {
       const allocation = await resourceManager.allocateResources(mockJob);
-      
+
       expect(allocation).toBeDefined();
       expect(allocation?.memory).toBe(1024);
       expect(allocation?.cpu).toBe(1);
@@ -83,9 +83,9 @@ describe('ResourceManager', () => {
 
     it('should update available resources after allocation', async () => {
       const initialAvailable = resourceManager.getAvailableResources();
-      
+
       await resourceManager.allocateResources(mockJob);
-      
+
       const afterAllocation = resourceManager.getAvailableResources();
       expect(afterAllocation.memory).toBe(initialAvailable.memory - 1024);
       expect(afterAllocation.cpu).toBe(initialAvailable.cpu - 1);
@@ -104,10 +104,10 @@ describe('ResourceManager', () => {
             resourceRequirements: {
               memory: 10000, // More than available
               cpu: 1,
-              disk: 512
-            }
-          }
-        }
+              disk: 512,
+            },
+          },
+        },
       };
 
       const allocation = await resourceManager.allocateResources(largeJob);
@@ -128,9 +128,9 @@ describe('ResourceManager', () => {
       expect(allocation3).toBeDefined();
 
       const available = resourceManager.getAvailableResources();
-      expect(available.memory).toBe(6144 - (3 * 1024));
+      expect(available.memory).toBe(6144 - 3 * 1024);
       expect(available.cpu).toBe(3 - 3);
-      expect(available.disk).toBe(40960 - (3 * 512));
+      expect(available.disk).toBe(40960 - 3 * 512);
     });
   });
 
@@ -138,9 +138,9 @@ describe('ResourceManager', () => {
     it('should release resources for a job', async () => {
       await resourceManager.allocateResources(mockJob);
       const beforeRelease = resourceManager.getAvailableResources();
-      
+
       await resourceManager.releaseResources(mockJob.id);
-      
+
       const afterRelease = resourceManager.getAvailableResources();
       expect(afterRelease.memory).toBe(beforeRelease.memory + 1024);
       expect(afterRelease.cpu).toBe(beforeRelease.cpu + 1);
@@ -172,7 +172,7 @@ describe('ResourceManager', () => {
   describe('Resource Monitoring', () => {
     it('should calculate resource utilization', async () => {
       await resourceManager.allocateResources(mockJob);
-      
+
       const utilization = resourceManager.getResourceUtilization();
       expect(utilization.memory).toBeCloseTo((1024 / 8192) * 100, 2);
       expect(utilization.cpu).toBeCloseTo((1 / 4) * 100, 2);
@@ -194,11 +194,11 @@ describe('ResourceManager', () => {
 
     it('should provide monitoring data', async () => {
       // Wait a bit for monitoring to collect data
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const monitoringData = resourceManager.getMonitoringData();
       expect(Array.isArray(monitoringData)).toBe(true);
-      
+
       if (monitoringData.length > 0) {
         const data = monitoringData[0];
         expect(data.timestamp).toBeInstanceOf(Date);
@@ -214,13 +214,13 @@ describe('ResourceManager', () => {
       const smallRequirements: ResourceRequirements = {
         memory: 512,
         cpu: 1,
-        disk: 256
+        disk: 256,
       };
 
       const largeRequirements: ResourceRequirements = {
         memory: 10000,
         cpu: 1,
-        disk: 256
+        disk: 256,
       };
 
       expect(resourceManager.canAllocateResources(smallRequirements)).toBe(true);
@@ -233,7 +233,7 @@ describe('ResourceManager', () => {
       const requirements: ResourceRequirements = {
         memory: 5000, // Should still fit
         cpu: 1,
-        disk: 1000
+        disk: 1000,
       };
 
       expect(resourceManager.canAllocateResources(requirements)).toBe(true);
@@ -241,7 +241,7 @@ describe('ResourceManager', () => {
       const tooLargeRequirements: ResourceRequirements = {
         memory: 6000, // Won't fit after first allocation
         cpu: 1,
-        disk: 1000
+        disk: 1000,
       };
 
       expect(resourceManager.canAllocateResources(tooLargeRequirements)).toBe(false);
@@ -257,7 +257,7 @@ describe('ResourceManager', () => {
     it('should handle edge cases in optimization', async () => {
       // Allocate some resources first
       await resourceManager.allocateResources(mockJob);
-      
+
       // Run optimization
       await expect(resourceManager.optimizeResourceAllocation()).resolves.toBeUndefined();
     });
@@ -274,10 +274,10 @@ describe('ResourceManager', () => {
             resourceRequirements: {
               memory: -1, // Invalid
               cpu: 0,
-              disk: -100
-            }
-          }
-        }
+              disk: -100,
+            },
+          },
+        },
       };
 
       const allocation = await resourceManager.allocateResources(invalidJob);
@@ -294,10 +294,10 @@ describe('ResourceManager', () => {
             resourceRequirements: {
               memory: 0,
               cpu: 0,
-              disk: 0
-            }
-          }
-        }
+              disk: 0,
+            },
+          },
+        },
       };
 
       const allocation = await resourceManager.allocateResources(zeroJob);
@@ -314,13 +314,13 @@ describe('ResourceManager', () => {
     });
 
     it('should stop monitoring on destroy', async () => {
-      const initialDataLength = resourceManager.getMonitoringData().length;
-      
+      const _initialDataLength = resourceManager.getMonitoringData().length;
+
       resourceManager.destroy();
-      
+
       // Wait a bit to ensure monitoring has stopped
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Monitoring data should not increase after destroy
       const finalDataLength = resourceManager.getMonitoringData().length;
       expect(finalDataLength).toBe(0); // Should be cleared on destroy

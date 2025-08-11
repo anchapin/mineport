@@ -17,8 +17,8 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
 
   async apply(
     feature: Feature,
-    context: ConversionContext,
-    options: CompromiseOptions
+    _context: ConversionContext,
+    _options: CompromiseOptions
   ): Promise<CompromiseResult> {
     logger.info('Applying rendering compromise strategy', {
       featureName: feature.name,
@@ -125,7 +125,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
 
   async estimateImpact(
     feature: Feature,
-    context: ConversionContext
+    _context: ConversionContext
   ): Promise<{
     impactLevel: CompromiseLevel;
     userExperienceImpact: number;
@@ -173,7 +173,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
     return 'Handles custom rendering effects by approximating them with available Bedrock rendering features';
   }
 
-  protected isApplicable(feature: Feature, context: ConversionContext): boolean {
+  protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
     if (!this.supportedFeatureTypes.includes(feature.type)) {
       return false;
     }
@@ -410,7 +410,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
   /**
    * Generate geometry simplification instructions
    */
-  private generateGeometrySimplification(feature: Feature): any {
+  private generateGeometrySimplification(_feature: Feature): any {
     return {
       maxVertices: 1000, // Bedrock model limits
       simplificationLevel: 'medium',
