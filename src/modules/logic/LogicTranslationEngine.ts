@@ -99,7 +99,6 @@ export class LogicTranslationEngine {
         );
         finalCode = refinementResult.code;
         finalValidation = refinementResult.validation;
-        refinementIterations = refinementResult.iterations;
       }
 
       // Step 7: Generate metadata and results

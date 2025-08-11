@@ -15,7 +15,6 @@ import {
   FieldDeclaration,
   Parameter,
   SourcePosition,
-  NodeMetadata,
 } from '../../types/logic-translation.js';
 import { logger } from '../../utils/logger.js';
 
@@ -118,7 +117,7 @@ export class MMIRParser {
       if (trimmedLine.length === 0) continue; // Skip empty lines
 
       // Enhanced tokenization to better handle Java constructs
-      const tokenRegex = /(\/\/.*|"[^"]*"|\w+|[{}();,.\[\]<>=!&|+\-*/])/g;
+      const tokenRegex = /(\/\/.*|"[^"]*"|\w+|[{}();,.[\]<>=!&|+\-*/])/g;
       let tokenMatch;
 
       while ((tokenMatch = tokenRegex.exec(line)) !== null) {
@@ -346,7 +345,7 @@ export class MMIRParser {
   private parseFieldDeclaration(
     tokens: Token[],
     startIndex: number,
-    modifiers: string[]
+    _modifiers: string[]
   ): { node: ASTNode; nextIndex: number } {
     let currentIndex = startIndex;
 

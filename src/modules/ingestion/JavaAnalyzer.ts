@@ -87,7 +87,7 @@ export class JavaAnalyzer {
   ];
 
   private static readonly TEXTURE_PATTERNS = [
-    /assets\/[^\/]+\/textures\/(.+\.png)/g,
+    /assets\/[^/]+\/textures\/(.+\.png)/g,
     /textures\/(.+\.png)/g,
     /\.png$/,
   ];
@@ -475,7 +475,7 @@ export class JavaAnalyzer {
               for (const textureKey of Object.keys(data.textures)) {
                 const texturePath = data.textures[textureKey];
                 if (typeof texturePath === 'string') {
-                  const textureMatch = texturePath.match(/([^\/]+)$/);
+                  const textureMatch = texturePath.match(/([^/]+)$/);
                   if (textureMatch) {
                     const textureName = textureMatch[1].replace('.png', '');
                     registryNames.push(textureName);
