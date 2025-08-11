@@ -385,7 +385,7 @@ export class JobQueueService extends EventEmitter {
     jobId: string,
     workerId: string,
     error: Error,
-    processingTime: number
+    _processingTime: number
   ): Promise<void> {
     const job = await this.statusStore.getJob(jobId);
     if (!job) return;

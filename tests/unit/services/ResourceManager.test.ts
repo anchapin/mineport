@@ -314,7 +314,7 @@ describe('ResourceManager', () => {
     });
 
     it('should stop monitoring on destroy', async () => {
-      const _initialDataLength = resourceManager.getMonitoringData().length;
+      resourceManager.getMonitoringData().length;
 
       resourceManager.destroy();
 

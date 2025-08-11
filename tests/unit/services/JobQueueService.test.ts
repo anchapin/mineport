@@ -211,7 +211,7 @@ describe('JobQueueService', () => {
     });
 
     it('should not retry jobs that exceed retry limit', async () => {
-      const _jobId = await jobQueue.enqueueJob(mockJobData);
+      await jobQueue.enqueueJob(mockJobData);
 
       // This would require internal manipulation to test properly
       expect(typeof jobQueue.retryJob).toBe('function');
@@ -319,7 +319,7 @@ describe('JobQueueService', () => {
 
   describe('Event Handling', () => {
     it('should emit real-time status updates when enabled', async () => {
-      const _jobId = await jobQueue.enqueueJob(mockJobData);
+      await jobQueue.enqueueJob(mockJobData);
 
       // Listen for status updates
       const statusUpdates: any[] = [];
