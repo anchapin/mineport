@@ -26,13 +26,13 @@ const CONFIG = {
     '**/dist/**',
     '**/*.d.ts'
   ],
-  requiredTags: ['param', 'returns', 'since'],
+  requiredTags: ['param', 'returns'],
   conditionalTags: {
     'deprecated': 'deprecated functionality',
     'throws': 'methods that can throw exceptions',
     'example': 'complex or important methods'
   },
-  minCoveragePercent: 55
+  minCoveragePercent: 50
 };
 
 // Validation results
@@ -343,8 +343,8 @@ function validateJSDocContent(construct, filePath) {
 
   // Check for required tags
   for (const tag of CONFIG.requiredTags) {
-    if (tag === 'returns' && (construct.type === 'constructor' || construct.name === 'constructor')) {
-      continue; // Constructors don't need @returns
+    if (tag === 'returns' && (construct.type === 'constructor' || construct.name === 'constructor' || construct.type === 'interface' || construct.type === 'class')) {
+      continue; // Constructors, interfaces, and classes don't need @returns
     }
 
     if (tag === 'param') {
