@@ -6,7 +6,7 @@
  * both languages to capture program state and provides feedback for translation refinement.
  */
 
-import { MMIRNode, MMIRContext } from './MMIRGenerator.js';
+// import type { MMIRNode, MMIRContext } from './MMIRGenerator.js';
 import { LLMTranslationResult } from './LLMTranslationService.js';
 
 /**
@@ -321,7 +321,7 @@ ${jsCode}
     // Instrument function declarations
     instrumentedCode = instrumentedCode.replace(
       /(function\s+)(\w+)(\s*\()(.*?)(\)\s*\{)/g,
-      (match, funcKeyword, funcName, openParen, params, closeParen) => {
+      (match, funcKeyword, funcName, openParen, params, _closeParen) => {
         // Skip excluded functions
         /**
          * if method.
@@ -348,7 +348,7 @@ ${jsCode}
     // Instrument arrow functions
     instrumentedCode = instrumentedCode.replace(
       /(\s*const\s+)(\w+)(\s*=\s*\()(.*?)(\)\s*=>\s*\{)/g,
-      (match, constKeyword, funcName, openParen, params, closeParen) => {
+      (match, constKeyword, funcName, openParen, params, _closeParen) => {
         // Skip excluded functions
         /**
          * if method.
@@ -1308,11 +1308,11 @@ ${jsCode}
    * @param jsCode The translated JavaScript code
    * @returns A promise that resolves to the validation result
    */
-  public async validateTranslation(javaCode: string, jsCode: string): Promise<ValidationResult> {
+  public async validateTranslation(_javaCode: string, _jsCode: string): Promise<ValidationResult> {
     try {
       // Instrument the code
-      const instrumentedJavaCode = this.instrumentJavaCode(javaCode);
-      const instrumentedJsCode = this.instrumentJavaScriptCode(jsCode);
+      // const _instrumentedJavaCode = this.instrumentJavaCode(javaCode);
+      // const _instrumentedJsCode = this.instrumentJavaScriptCode(jsCode);
 
       // In a real implementation, we would:
       // 1. Compile and run the instrumented Java code

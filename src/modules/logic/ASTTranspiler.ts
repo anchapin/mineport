@@ -347,9 +347,9 @@ export class ASTTranspiler {
    * Extract API mappings used in transpilation
    */
   private async extractAPIMappings(
-    node: ASTNode,
-    transpiledCode: string,
-    context: TranslationContext
+    _node: ASTNode,
+    _transpiledCode: string,
+    _context: TranslationContext
   ): Promise<APIMapping[]> {
     const mappings: APIMapping[] = [];
 
@@ -365,7 +365,7 @@ export class ASTTranspiler {
   private generateWarnings(
     node: ASTNode,
     rule: TranspilationRule,
-    context: TranslationContext
+    _context: TranslationContext
   ): TranslationWarning[] {
     const warnings: TranslationWarning[] = [];
 

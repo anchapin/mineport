@@ -527,7 +527,7 @@ export class LicenseParser {
     const year = authorMatch ? authorMatch[1] : undefined;
 
     // Check against known license patterns
-    for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
+    for (const [, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
       for (const pattern of license.patterns) {
         if (pattern.test(licenseText)) {
           // Map string identifiers to enum values
@@ -976,7 +976,7 @@ to accommodate the differences between Java and Bedrock platforms.
     // If we have a direct mapping, use it
     if (licenseType) {
       // Find the corresponding license in KNOWN_LICENSES
-      for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
+      for (const [, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
         if (
           license.identifier === cleanIdentifier ||
           license.identifier.toLowerCase() === normalizedIdentifier
@@ -1025,7 +1025,7 @@ to accommodate the differences between Java and Bedrock platforms.
     }
 
     // Check if it's a known license by pattern matching
-    for (const [type, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
+    for (const [, license] of Object.entries(LicenseParser.KNOWN_LICENSES)) {
       if (
         cleanIdentifier.toLowerCase() === license.identifier.toLowerCase() ||
         cleanIdentifier.toLowerCase().includes(license.identifier.toLowerCase())

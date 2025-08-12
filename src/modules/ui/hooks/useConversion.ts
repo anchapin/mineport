@@ -4,7 +4,7 @@
  * This hook provides functionality for the conversion process using the ConversionContext.
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { ConversionAPIServiceImpl } from '../services.js';
 import { UserPreferences } from '../types.js';
 import { useConversionContext } from '../context/ConversionContext.js';

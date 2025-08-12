@@ -88,8 +88,6 @@ export class LogicTranslationEngine {
       // Step 6: Iteratively refine if needed
       let finalCode = integratedCode;
       let finalValidation = validation;
-      let refinementIterations: RefinementIteration[] = [];
-
       if (!validation.isEquivalent && validation.confidence < this.options.confidenceThreshold) {
         const refinementResult = await this.refineTranslation(
           javaCode,
@@ -417,8 +415,8 @@ export class LogicTranslationEngine {
    * Generate refinement suggestions based on validation results
    */
   private generateRefinementSuggestions(
-    validation: ValidationResult,
-    context: TranslationContext
+    _validation: ValidationResult,
+    _context: TranslationContext
   ): any[] {
     // This would generate specific code changes based on validation differences
     // For now, return empty array as this is a complex implementation
@@ -430,8 +428,8 @@ export class LogicTranslationEngine {
    */
   private async applyRefinements(
     code: string,
-    suggestions: any[],
-    context: TranslationContext
+    _suggestions: any[],
+    _context: TranslationContext
   ): Promise<string> {
     // This would apply the refinement suggestions to the code
     // For now, return the original code

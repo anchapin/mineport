@@ -274,7 +274,7 @@ export class JavaAnalyzer {
                     /new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/
                   );
                   if (identifierMatch) {
-                    const [, modId, registryName] = identifierMatch;
+                    const [, , registryName] = identifierMatch;
                     registryNames.push(registryName);
                   }
                 }

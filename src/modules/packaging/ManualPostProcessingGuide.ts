@@ -180,7 +180,7 @@ export class ManualPostProcessingGuide {
    */
   private createDimensionSimulationStep(
     feature: Feature,
-    strategy: AppliedCompromiseStrategy
+    _strategy: AppliedCompromiseStrategy
   ): PostProcessingStep {
     return {
       id: `dimension-${feature.id}`,
@@ -218,7 +218,7 @@ simulator.setSkyProperties({
    */
   private createRenderingStubStep(
     feature: Feature,
-    strategy: AppliedCompromiseStrategy
+    _strategy: AppliedCompromiseStrategy
   ): PostProcessingStep {
     return {
       id: `rendering-${feature.id}`,
@@ -258,7 +258,7 @@ function replaceCustomRendering(entity) {
    */
   private createUIFlowMappingStep(
     feature: Feature,
-    strategy: AppliedCompromiseStrategy
+    _strategy: AppliedCompromiseStrategy
   ): PostProcessingStep {
     return {
       id: `ui-${feature.id}`,

@@ -374,7 +374,7 @@ class StaticAnalyzer {
   async analyze(
     javaCode: string,
     jsCode: string,
-    context: TranslationContext
+    _context: TranslationContext
   ): Promise<StaticAnalysisResult> {
     logger.debug('Starting static analysis');
 
@@ -606,7 +606,7 @@ class SemanticAnalyzer {
   async analyze(
     javaCode: string,
     jsCode: string,
-    context: TranslationContext
+    _context: TranslationContext
   ): Promise<SemanticAnalysisResult> {
     logger.debug('Starting semantic analysis');
 
@@ -859,7 +859,7 @@ class BehaviorAnalyzer {
   private generateTestCases(
     javaCode: string,
     jsCode: string,
-    context: TranslationContext
+    _context: TranslationContext
   ): TestCase[] {
     // Generate test cases based on code analysis
     const testCases: TestCase[] = [];
