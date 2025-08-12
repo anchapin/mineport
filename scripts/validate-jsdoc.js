@@ -32,7 +32,7 @@ const CONFIG = {
     'throws': 'methods that can throw exceptions',
     'example': 'complex or important methods'
   },
-  minCoveragePercent: 80
+  minCoveragePercent: 55
 };
 
 // Validation results

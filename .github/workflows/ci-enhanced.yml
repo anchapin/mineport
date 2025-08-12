@@ -104,7 +104,7 @@ jobs:
             echo $CURRENT_TIME > .cache-meta/timestamp
           fi
 
-          CACHE_TIME=$(cat .cache-meta/timestamp 2>/dev/null || echo 0)
+          CACHE_TIME=$(if [ -f .cache-meta/timestamp ]; then cat .cache-meta/timestamp; else echo 0; fi)
           AGE=$((CURRENT_TIME - CACHE_TIME))
 
           if [[ $AGE -gt $CACHE_MAX_AGE ]]; then
@@ -175,7 +175,7 @@ jobs:
         run: |
           echo "Dependencies cache miss, will install fresh"
           # Clean any partial installations
-          rm -rf node_modules/.cache 2>/dev/null || true
+          if [ -d "node_modules/.cache" ]; then rm -rf node_modules/.cache; fi
 
       - name: Install dependencies
         run: |
@@ -235,7 +235,9 @@ jobs:
               echo "SKIP_BUILD=true" >> $GITHUB_ENV
             else
               echo "⚠️ Build cache is invalid, will rebuild"
-              rm -rf dist tsconfig.tsbuildinfo .tsbuildinfo 2>/dev/null || true
+              if [ -d "dist" ]; then rm -rf dist; fi
+              if [ -f "tsconfig.tsbuildinfo" ]; then rm -f tsconfig.tsbuildinfo; fi
+              if [ -f ".tsbuildinfo" ]; then rm -f .tsbuildinfo; fi
               echo "SKIP_BUILD=false" >> $GITHUB_ENV
             fi
           else
@@ -516,8 +518,8 @@ jobs:
                 fi
 
                 # Copy individual results
-                cp "$result_dir/results.txt" "final-results/results-$matrix_name.txt" 2>/dev/null || true
-                cp "$result_dir/summary.md" "final-results/summary-$matrix_name.md" 2>/dev/null || true
+                if [ -f "$result_dir/results.txt" ]; then cp "$result_dir/results.txt" "final-results/results-$matrix_name.txt"; fi
+                if [ -f "$result_dir/summary.md" ]; then cp "$result_dir/summary.md" "final-results/summary-$matrix_name.md"; fi
               fi
             fi
           done
@@ -955,7 +957,7 @@ jobs:
         run: |
           echo "Checking build performance budgets..."
 
-          cat > check-budgets.js << 'EOF'
+          cat > check-budgets.cjs << 'EOF'
           const fs = require('fs');
 
           function checkBudgets() {
@@ -1040,7 +1042,7 @@ jobs:
           checkBudgets();
           EOF
 
-          node check-budgets.js
+          node check-budgets.cjs
 
       - name: Upload build optimization reports
         if: always()
