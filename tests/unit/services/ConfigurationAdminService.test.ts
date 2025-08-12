@@ -241,24 +241,26 @@ describe('ConfigurationAdminService', () => {
     const timestamp2 = new Date('2023-01-01T11:00:00Z');
 
     // Mock fs.readFileSync to return version content
-    vi.mocked(fs.readFileSync).mockImplementation((filePath: string) => {
-      if (filePath === `${mockVersionsPath}/v1.json`) {
-        return JSON.stringify({
-          id: 'v1',
-          timestamp: timestamp1.toISOString(),
-          description: 'Version 1',
-          config: { server: { port: 3000 } },
-        });
-      } else if (filePath === `${mockVersionsPath}/v2.json`) {
-        return JSON.stringify({
-          id: 'v2',
-          timestamp: timestamp2.toISOString(),
-          description: 'Version 2',
-          config: { server: { port: 4000 } },
-        });
+    vi.mocked(fs.readFileSync).mockImplementation(
+      (filePath: fs.PathOrFileDescriptor, _options?: any) => {
+        if (filePath === `${mockVersionsPath}/v1.json`) {
+          return JSON.stringify({
+            id: 'v1',
+            timestamp: timestamp1.toISOString(),
+            description: 'Version 1',
+            config: { server: { port: 3000 } },
+          });
+        } else if (filePath === `${mockVersionsPath}/v2.json`) {
+          return JSON.stringify({
+            id: 'v2',
+            timestamp: timestamp2.toISOString(),
+            description: 'Version 2',
+            config: { server: { port: 4000 } },
+          });
+        }
+        return '';
       }
-      return '';
-    });
+    );
 
     // Create adminService to load versions
     adminService = new ConfigurationAdminService({

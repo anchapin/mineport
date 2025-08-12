@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 /**
  * Build Performance Monitor
@@ -742,7 +742,7 @@ class BuildPerformanceMonitor {
 }
 
 // CLI interface
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   const monitor = new BuildPerformanceMonitor();
 
   const command = process.argv[2];
@@ -848,4 +848,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 }
 
-export { BuildPerformanceMonitor };
+module.exports = { BuildPerformanceMonitor };

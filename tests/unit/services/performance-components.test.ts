@@ -31,7 +31,7 @@ describe('Performance Components Unit Tests', () => {
         enableMetrics: true,
       });
 
-      const key = { type: 'test' as const, identifier: 'test-key' };
+      const key = { type: 'file_validation' as const, identifier: 'test-key' };
       const value = { data: 'test-value' };
 
       await cache.set(key, value);
@@ -53,9 +53,9 @@ describe('Performance Components Unit Tests', () => {
       });
 
       // Fill cache beyond capacity
-      await cache.set({ type: 'test', identifier: 'key1' }, { data: '1' });
-      await cache.set({ type: 'test', identifier: 'key2' }, { data: '2' });
-      await cache.set({ type: 'test', identifier: 'key3' }, { data: '3' });
+      await cache.set({ type: 'file_validation', identifier: 'key1' }, { data: '1' });
+      await cache.set({ type: 'file_validation', identifier: 'key2' }, { data: '2' });
+      await cache.set({ type: 'file_validation', identifier: 'key3' }, { data: '3' });
 
       const metrics = cache.getMetrics();
       expect(metrics.totalEntries).toBeLessThanOrEqual(2);

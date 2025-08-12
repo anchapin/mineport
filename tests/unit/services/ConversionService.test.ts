@@ -33,7 +33,7 @@ vi.mock('../../../src/services/ConversionPipeline', () => {
 });
 
 vi.mock('../../../src/utils/logger', async () => {
-  const actual = await vi.importActual('../../../src/utils/logger');
+  const actual = (await vi.importActual('../../../src/utils/logger')) as any;
   return {
     ...actual,
     default: {
@@ -200,7 +200,7 @@ describe('ConversionService', () => {
 
     // Mock pipeline cancelJob to return false for non-existent job
     const mockPipeline = conversionService['pipeline'];
-    mockPipeline.cancelJob.mockReturnValue(false);
+    vi.mocked(mockPipeline.cancelJob).mockReturnValue(false);
 
     const result = conversionService.cancelJob(jobId);
 
