@@ -2,30 +2,58 @@
  * Job-related type definitions for the JobQueue system
  */
 
+/** Type of job being processed */
 export type JobType = 'conversion' | 'validation' | 'analysis' | 'packaging';
+
+/** Priority level for job processing */
 export type JobPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+/** Current status of a job */
 export type JobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 
+/**
+ * Progress information for a running job
+ */
 export interface JobProgress {
+  /** Current processing stage description */
   stage: string;
+  /** Completion percentage (0-100) */
   percentage: number;
+  /** Estimated time remaining in milliseconds */
   estimatedTimeRemaining?: number;
+  /** Detailed progress information */
   details: ProgressDetails;
 }
 
+/**
+ * Detailed progress information for job execution
+ */
 export interface ProgressDetails {
+  /** Description of the current processing step */
   currentStep: string;
+  /** Total number of steps in the job */
   totalSteps: number;
+  /** Number of completed steps */
   completedSteps: number;
+  /** Processing rate (items per second) */
   processingRate?: number;
+  /** Data throughput (bytes per second) */
   throughput?: number;
 }
 
+/**
+ * Error information for failed jobs
+ */
 export interface JobError {
+  /** Error code for categorization */
   code: string;
+  /** Human-readable error message */
   message: string;
+  /** Stack trace if available */
   stack?: string;
+  /** Additional error context */
   context?: Record<string, any>;
+  /** Whether the error is recoverable with retry */
   recoverable: boolean;
 }
 

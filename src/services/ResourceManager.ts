@@ -5,26 +5,71 @@
 import { ResourceRequirements, ResourceAllocation, Job } from '../types/job.js';
 import { logger } from '../utils/logger.js';
 
+/**
+ * System resource information including total and available amounts
+ */
 export interface SystemResources {
+  /** Total system memory in MB */
   totalMemory: number;
+  /** Available system memory in MB */
   availableMemory: number;
+  /** Total CPU cores */
   totalCpu: number;
+  /** Available CPU cores */
   availableCpu: number;
+  /** Total disk space in MB */
   totalDisk: number;
+  /** Available disk space in MB */
   availableDisk: number;
 }
 
+/**
+ * Resource monitoring data point containing system state and utilization metrics
+ */
 export interface ResourceMonitoringData {
+  /** Timestamp when the data was collected */
   timestamp: Date;
+  /** Current system resource state */
   systemResources: SystemResources;
+  /** Currently allocated resources */
   allocatedResources: ResourceRequirements;
+  /** Resource utilization percentages */
   utilizationPercentage: {
+    /** Memory utilization percentage (0-100) */
     memory: number;
+    /** CPU utilization percentage (0-100) */
     cpu: number;
+    /** Disk utilization percentage (0-100) */
     disk: number;
   };
 }
 
+/**
+ * Resource Manager for job resource allocation and monitoring
+ *
+ * This service provides:
+ * - Resource allocation and deallocation for jobs
+ * - System resource monitoring and tracking
+ * - Resource utilization metrics and history
+ * - Resource availability checking
+ * - Automatic resource cleanup
+ *
+ * @example
+ * ```typescript
+ * const resourceManager = new ResourceManager({
+ *   totalMemory: 8192,
+ *   availableMemory: 6144,
+ *   totalCpu: 4,
+ *   availableCpu: 3
+ * });
+ *
+ * const allocation = await resourceManager.allocateResources(jobId, {
+ *   memory: 1024,
+ *   cpu: 1,
+ *   disk: 512
+ * });
+ * ```
+ */
 export class ResourceManager {
   private allocations = new Map<string, ResourceAllocation>();
   private systemResources: SystemResources;
@@ -33,6 +78,10 @@ export class ResourceManager {
   private monitoringData: ResourceMonitoringData[] = [];
   private readonly maxMonitoringHistory = 1000;
 
+  /**
+   * Creates a new ResourceManager instance
+   * @param systemResources - Optional system resource configuration
+   */
   constructor(systemResources?: Partial<SystemResources>) {
     this.systemResources = {
       totalMemory: systemResources?.totalMemory || 8192, // 8GB default

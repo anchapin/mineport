@@ -10,15 +10,49 @@ import { ResourceManager } from './ResourceManager.js';
 import { JobStatusStore } from './JobStatusStore.js';
 import { logger } from '../utils/logger.js';
 
+/**
+ * Configuration options for the JobQueue service
+ */
 export interface JobQueueConfig {
+  /** Maximum number of jobs that can run concurrently */
   maxConcurrentJobs: number;
+  /** Default timeout for jobs in milliseconds */
   defaultJobTimeout: number;
+  /** Delay between retry attempts in milliseconds */
   retryDelayMs: number;
+  /** Maximum number of retry attempts for failed jobs */
   maxRetries: number;
+  /** Whether to enable real-time status updates */
   enableRealTimeUpdates: boolean;
+  /** Interval for processing the queue in milliseconds */
   queueProcessingInterval: number;
 }
 
+/**
+ * JobQueue Service for managing conversion jobs with priority queue and worker pool
+ *
+ * This service provides:
+ * - Priority-based job scheduling
+ * - Worker pool management
+ * - Resource allocation and monitoring
+ * - Job status tracking and updates
+ * - Retry logic for failed jobs
+ * - Real-time progress updates
+ *
+ * @example
+ * ```typescript
+ * const jobQueue = new JobQueueService({
+ *   maxConcurrentJobs: 4,
+ *   defaultJobTimeout: 300000
+ * });
+ *
+ * const jobId = await jobQueue.addJob({
+ *   type: 'conversion',
+ *   data: { filePath: '/path/to/mod.jar' },
+ *   priority: JobPriority.HIGH
+ * });
+ * ```
+ */
 export class JobQueueService extends EventEmitter {
   private queue: PriorityQueue<Job>;
   private workerPool: WorkerPool;
@@ -28,6 +62,10 @@ export class JobQueueService extends EventEmitter {
   private processingInterval: NodeJS.Timeout | null = null;
   private isProcessing = false;
 
+  /**
+   * Creates a new JobQueueService instance
+   * @param config - Configuration options for the job queue
+   */
   constructor(config: Partial<JobQueueConfig> = {}) {
     super();
 
@@ -51,6 +89,23 @@ export class JobQueueService extends EventEmitter {
     this.startQueueProcessing();
   }
 
+  /**
+   * Enqueues a new job for processing
+   *
+   * @param jobData - The job data containing type, priority, payload, and options
+   * @returns Promise that resolves to the job ID
+   * @throws Error if job data is invalid
+   *
+   * @example
+   * ```typescript
+   * const jobId = await jobQueue.enqueueJob({
+   *   type: 'conversion',
+   *   priority: JobPriority.HIGH,
+   *   payload: { filePath: '/path/to/mod.jar' },
+   *   options: { timeout: 300000 }
+   * });
+   * ```
+   */
   async enqueueJob(jobData: JobData): Promise<string> {
     // Validate job data before creating job
     if (!jobData || !jobData.type || !jobData.priority) {

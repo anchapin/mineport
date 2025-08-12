@@ -5,19 +5,52 @@
 import { Job, JobStatusUpdate, QueueStats } from '../types/job.js';
 import { logger } from '../utils/logger.js';
 
+/**
+ * Configuration options for the JobStatusStore
+ */
 export interface JobStatusStoreConfig {
+  /** Whether to persist job data to disk */
   persistToDisk: boolean;
+  /** Maximum number of job history entries to keep */
   maxJobHistory: number;
+  /** Interval for cleanup operations in milliseconds */
   cleanupInterval: number;
+  /** Optional storage location for persisted data */
   storageLocation?: string;
 }
 
+/**
+ * Job Status Store for persisting job information and status updates
+ *
+ * This service provides:
+ * - In-memory job storage and retrieval
+ * - Job status history tracking
+ * - Optional disk persistence
+ * - Automatic cleanup of old job data
+ * - Job statistics and metrics
+ *
+ * @example
+ * ```typescript
+ * const statusStore = new JobStatusStore({
+ *   persistToDisk: true,
+ *   maxJobHistory: 5000,
+ *   storageLocation: './jobs'
+ * });
+ *
+ * await statusStore.saveJob(job);
+ * const retrievedJob = await statusStore.getJob(jobId);
+ * ```
+ */
 export class JobStatusStore {
   private jobs = new Map<string, Job>();
   private jobHistory: JobStatusUpdate[] = [];
   private config: JobStatusStoreConfig;
   private cleanupInterval: NodeJS.Timeout | null = null;
 
+  /**
+   * Creates a new JobStatusStore instance
+   * @param config - Configuration options for the status store
+   */
   constructor(config: Partial<JobStatusStoreConfig> = {}) {
     this.config = {
       persistToDisk: config.persistToDisk || false,

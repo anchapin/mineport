@@ -8,9 +8,11 @@ import { logger } from '../utils/logger.js';
 
 export interface WorkerPoolConfig {
   maxWorkers: number;
-  workerCapabilities: Map<string, JobType[]>;
-  heartbeatInterval: number;
-  workerTimeout: number;
+  minWorkers?: number;
+  workerCapabilities?: Map<string, JobType[]>;
+  heartbeatInterval?: number;
+  workerTimeout?: number;
+  idleTimeout?: number;
 }
 
 export interface Worker {
@@ -24,9 +26,28 @@ export interface Worker {
   failedJobs: number;
 }
 
+export interface WorkerTask<TInput, TOutput> {
+  id?: string;
+  priority?: number;
+  execute: (input: TInput) => Promise<TOutput> | TOutput;
+  input: TInput;
+}
+
+export interface WorkerPoolStats {
+  totalWorkers: number;
+  busyWorkers: number;
+  idleWorkers: number;
+  pendingTasks: number;
+}
+
 export class WorkerPool extends EventEmitter {
   private workers = new Map<string, Worker>();
   private jobWorkerMap = new Map<string, string>();
+  private taskQueue: Array<{
+    task: WorkerTask<any, any>;
+    resolve: (value: any) => void;
+    reject: (reason?: any) => void;
+  }> = [];
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private config: WorkerPoolConfig;
 
@@ -35,6 +56,7 @@ export class WorkerPool extends EventEmitter {
 
     this.config = {
       maxWorkers: config.maxWorkers || 4,
+      minWorkers: config.minWorkers || 1,
       workerCapabilities:
         config.workerCapabilities ||
         new Map([
@@ -45,6 +67,7 @@ export class WorkerPool extends EventEmitter {
         ]),
       heartbeatInterval: config.heartbeatInterval || 30000, // 30 seconds
       workerTimeout: config.workerTimeout || 300000, // 5 minutes
+      idleTimeout: config.idleTimeout || 60000, // 1 minute
     };
 
     this.initializeWorkers();
@@ -140,6 +163,70 @@ export class WorkerPool extends EventEmitter {
     };
   }
 
+  /**
+   * Run a task using the worker pool
+   */
+  async runTask<TInput, TOutput>(task: WorkerTask<TInput, TOutput>): Promise<TOutput> {
+    return new Promise((resolve, reject) => {
+      this.taskQueue.push({ task, resolve, reject });
+      this.processTaskQueue();
+    });
+  }
+
+  /**
+   * Get worker pool statistics
+   */
+  getStats(): WorkerPoolStats {
+    const workers = Array.from(this.workers.values());
+    return {
+      totalWorkers: workers.length,
+      busyWorkers: workers.filter((w) => w.status === 'busy').length,
+      idleWorkers: workers.filter((w) => w.status === 'idle').length,
+      pendingTasks: this.taskQueue.length,
+    };
+  }
+
+  /**
+   * Cancel a task by ID
+   */
+  cancelTask(taskId: string): boolean {
+    const taskIndex = this.taskQueue.findIndex((item) => item.task.id === taskId);
+    if (taskIndex >= 0) {
+      const { reject } = this.taskQueue[taskIndex];
+      this.taskQueue.splice(taskIndex, 1);
+      reject(new Error(`Task ${taskId} was cancelled`));
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Shutdown the worker pool
+   */
+  async shutdown(): Promise<void> {
+    // Cancel all pending tasks
+    while (this.taskQueue.length > 0) {
+      const { reject } = this.taskQueue.shift()!;
+      reject(new Error('Worker pool is shutting down'));
+    }
+
+    // Wait for all workers to finish current tasks
+    const busyWorkers = Array.from(this.workers.values()).filter((w) => w.status === 'busy');
+    if (busyWorkers.length > 0) {
+      await new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          const stillBusy = Array.from(this.workers.values()).filter((w) => w.status === 'busy');
+          if (stillBusy.length === 0) {
+            clearInterval(checkInterval);
+            resolve(void 0);
+          }
+        }, 100);
+      });
+    }
+
+    this.destroy();
+  }
+
   hasAvailableWorker(jobType?: JobType): boolean {
     return this.findAvailableWorker(jobType) !== null;
   }
@@ -156,12 +243,50 @@ export class WorkerPool extends EventEmitter {
     );
   }
 
+  private processTaskQueue(): void {
+    if (this.taskQueue.length === 0) return;
+
+    const availableWorker = this.findAvailableWorker();
+    if (!availableWorker) return;
+
+    const { task, resolve, reject } = this.taskQueue.shift()!;
+
+    availableWorker.status = 'busy';
+    availableWorker.lastHeartbeat = new Date();
+
+    this.executeTask(availableWorker, task)
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        availableWorker.status = 'idle';
+        availableWorker.lastHeartbeat = new Date();
+        // Process next task in queue
+        this.processTaskQueue();
+      });
+  }
+
+  private async executeTask<TInput, TOutput>(
+    worker: Worker,
+    task: WorkerTask<TInput, TOutput>
+  ): Promise<TOutput> {
+    try {
+      const result = await task.execute(task.input);
+      worker.processedJobs++;
+      return result;
+    } catch (error) {
+      worker.failedJobs++;
+      throw error;
+    }
+  }
+
   private initializeWorkers(): void {
-    const workerTypes = Array.from(this.config.workerCapabilities.entries());
+    const workerTypes = Array.from(this.config.workerCapabilities!.entries());
     const workersPerType = Math.ceil(this.config.maxWorkers / workerTypes.length);
+    const minWorkersToCreate = Math.max(this.config.minWorkers || 1, 1);
 
     let workerCount = 0;
 
+    // Create at least minWorkers, distributed across types
     for (const [workerType, capabilities] of workerTypes) {
       for (let i = 0; i < workersPerType && workerCount < this.config.maxWorkers; i++) {
         const workerId = `${workerType}-${i}`;
@@ -180,7 +305,34 @@ export class WorkerPool extends EventEmitter {
         workerCount++;
 
         logger.info(`Initialized worker ${workerId} with capabilities: ${capabilities.join(', ')}`);
+
+        // Ensure we create at least minWorkers
+        if (workerCount >= minWorkersToCreate && workerCount >= this.config.maxWorkers) {
+          break;
+        }
       }
+      if (workerCount >= this.config.maxWorkers) break;
+    }
+
+    // If we still don't have enough workers, create generic ones
+    while (workerCount < minWorkersToCreate && workerCount < this.config.maxWorkers) {
+      const workerId = `generic-worker-${workerCount}`;
+      const worker: Worker = {
+        id: workerId,
+        status: 'idle',
+        capabilities: ['conversion', 'validation', 'analysis', 'packaging'],
+        lastHeartbeat: new Date(),
+        startedAt: new Date(),
+        processedJobs: 0,
+        failedJobs: 0,
+      };
+
+      this.workers.set(workerId, worker);
+      workerCount++;
+
+      logger.info(
+        `Initialized worker ${workerId} with capabilities: ${worker.capabilities.join(', ')}`
+      );
     }
 
     logger.info(`Worker pool initialized with ${this.workers.size} workers`);
