@@ -509,7 +509,7 @@ export class JavaAnalyzer {
       return { registryNames: [], notes };
     }
   } /**
-  
+
  * Detects texture paths from the JAR file
    * @param zip AdmZip instance of the JAR file
    * @returns Promise<string[]> containing texture file paths

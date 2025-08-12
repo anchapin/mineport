@@ -2,7 +2,7 @@
 
 /**
  * Documentation Link Validation Script
- * 
+ *
  * Validates all internal links in documentation files to ensure they point to
  * existing files and sections. Helps maintain documentation integrity as the
  * project evolves.
@@ -45,7 +45,7 @@ const results = {
 
 /**
  * Check if a file exists
- * 
+ *
  * @param {string} filePath - Path to check
  * @returns {Promise<boolean>} True if file exists
  */
@@ -60,7 +60,7 @@ async function fileExists(filePath) {
 
 /**
  * Check if a file should be processed based on exclude patterns
- * 
+ *
  * @param {string} filePath - File path to check
  * @returns {boolean} True if file should be processed
  */
@@ -72,20 +72,20 @@ function shouldProcessFile(filePath) {
 }/**
  * Ge
 t all markdown files in a directory recursively
- * 
+ *
  * @param {string} dir - Directory to search
  * @returns {Promise<string[]>} Array of file paths
  */
 async function getMarkdownFilesInDirectory(dir) {
   const files = [];
-  
+
   async function traverse(currentDir) {
     try {
       const entries = await fs.promises.readdir(currentDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(currentDir, entry.name);
-        
+
         if (entry.isDirectory()) {
           await traverse(fullPath);
         } else if (entry.isFile() && CONFIG.markdownExtensions.some(ext => entry.name.endsWith(ext))) {
@@ -99,38 +99,38 @@ async function getMarkdownFilesInDirectory(dir) {
       });
     }
   }
-  
+
   await traverse(dir);
   return files;
 }
 
 /**
  * Get all markdown files in configured directories
- * 
+ *
  * @returns {Promise<string[]>} Array of markdown file paths
  */
 async function getMarkdownFiles() {
   const files = [];
-  
+
   for (const dir of CONFIG.docsDirectories) {
     if (await fileExists(dir)) {
       const dirFiles = await getMarkdownFilesInDirectory(dir);
       files.push(...dirFiles);
     }
   }
-  
+
   return files.filter(file => shouldProcessFile(file));
 }
 
 /**
  * Extract all links from markdown content
- * 
+ *
  * @param {string} content - Markdown content
  * @returns {Array} Array of link objects
  */
 function extractLinks(content) {
   const links = [];
-  
+
   // Regular expressions for different link types
   const patterns = [
     // Markdown links: [text](url)
@@ -144,21 +144,21 @@ function extractLinks(content) {
     // Auto links: <url>
     /<(https?:\/\/[^>]+)>/g
   ];
-  
+
   const lines = content.split('\n');
-  
+
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex];
     const lineNumber = lineIndex + 1;
-    
+
     for (const pattern of patterns) {
       let match;
       pattern.lastIndex = 0; // Reset regex state
-      
+
       while ((match = pattern.exec(line)) !== null) {
         const linkText = match[1] || '';
         const linkUrl = match[2] || match[1]; // For auto links, URL is in first group
-        
+
         if (linkUrl && linkUrl.trim()) {
           links.push({
             text: linkText,
@@ -170,12 +170,12 @@ function extractLinks(content) {
       }
     }
   }
-  
+
   return links;
 }/**
  * Chec
 k if a URL is external
- * 
+ *
  * @param {string} url - URL to check
  * @returns {boolean} True if URL is external
  */
@@ -185,7 +185,7 @@ function isExternalLink(url) {
 
 /**
  * Resolve relative path from a file
- * 
+ *
  * @param {string} url - Relative URL
  * @param {string} fromFile - File path the URL is relative to
  * @returns {string} Resolved absolute path
@@ -197,7 +197,7 @@ function resolveRelativePath(url, fromFile) {
 
 /**
  * Escape special regex characters
- * 
+ *
  * @param {string} string - String to escape
  * @returns {string} Escaped string
  */
@@ -207,7 +207,7 @@ function escapeRegex(string) {
 
 /**
  * Validate an anchor link exists in a file
- * 
+ *
  * @param {string} anchor - Anchor link (e.g., "#section-name")
  * @param {string} filePath - Path to the file to check
  * @returns {Promise<boolean>} True if anchor exists
@@ -216,7 +216,7 @@ async function validateAnchorLink(anchor, filePath) {
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');
     const anchorName = anchor.substring(1); // Remove #
-    
+
     // Check for markdown headers that would create this anchor
     const headerPatterns = [
       new RegExp(`^#+\\s+.*${escapeRegex(anchorName)}.*$`, 'im'),
@@ -224,15 +224,15 @@ async function validateAnchorLink(anchor, filePath) {
       // GitHub-style anchor generation (lowercase, spaces to hyphens)
       new RegExp(`^#+\\s+${escapeRegex(anchorName.replace(/-/g, ' '))}\\s*$`, 'im')
     ];
-    
+
     // Also check for HTML anchors
     const htmlAnchorPattern = new RegExp(`<a\\s+[^>]*(?:name|id)\\s*=\\s*["']${escapeRegex(anchorName)}["'][^>]*>`, 'i');
-    
-    return headerPatterns.some(pattern => pattern.test(content)) || 
+
+    return headerPatterns.some(pattern => pattern.test(content)) ||
            htmlAnchorPattern.test(content) ||
            content.includes(`id="${anchorName}"`) ||
            content.includes(`name="${anchorName}"`);
-           
+
   } catch (error) {
     return false;
   }
@@ -240,28 +240,28 @@ async function validateAnchorLink(anchor, filePath) {
 
 /**
  * Validate a single link
- * 
+ *
  * @param {Object} link - Link object with url, text, line, column
  * @param {string} filePath - Path to the file containing the link
  * @param {string} relativePath - Relative path for reporting
  */
 async function validateLink(link, filePath, relativePath) {
   results.totalLinks++;
-  
+
   const { url, text, line, column } = link;
-  
+
   // Skip external links
   if (isExternalLink(url)) {
     results.validLinks++;
     return;
   }
-  
+
   // Skip mailto and other special protocols
   if (CONFIG.externalLinkPatterns.some(pattern => pattern.test(url))) {
     results.validLinks++;
     return;
   }
-  
+
   // Handle anchor links within the same file
   if (url.startsWith('#')) {
     const isValid = await validateAnchorLink(url, filePath);
@@ -280,11 +280,11 @@ async function validateLink(link, filePath, relativePath) {
     }
     return;
   }
-  
+
   // Handle relative file links
   const targetPath = resolveRelativePath(url, filePath);
   const [filePart, anchorPart] = targetPath.split('#');
-  
+
   // Check if target file exists
   const targetFileExists = await fileExists(filePart);
   if (!targetFileExists) {
@@ -299,7 +299,7 @@ async function validateLink(link, filePath, relativePath) {
     });
     return;
   }
-  
+
   // If there's an anchor, validate it exists in the target file
   if (anchorPart) {
     const isValidAnchor = await validateAnchorLink(`#${anchorPart}`, filePart);
@@ -316,27 +316,27 @@ async function validateLink(link, filePath, relativePath) {
       return;
     }
   }
-  
+
   results.validLinks++;
 }/**
 
  * Validate all links in a single markdown file
- * 
+ *
  * @param {string} filePath - Path to the markdown file
  */
 async function validateFileLinks(filePath) {
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');
     const relativePath = path.relative(process.cwd(), filePath);
-    
+
     console.log(`Validating links in: ${relativePath}`);
-    
+
     const links = extractLinks(content);
-    
+
     for (const link of links) {
       await validateLink(link, filePath, relativePath);
     }
-    
+
   } catch (error) {
     results.errors.push({
       file: filePath,
@@ -356,7 +356,7 @@ function generateReport() {
   console.log(`Valid links: ${results.validLinks}`);
   console.log(`Broken links: ${results.brokenLinks.length}`);
   console.log('');
-  
+
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
@@ -365,7 +365,7 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Broken links
   if (results.brokenLinks.length > 0) {
     console.log(`❌ Broken Links (${results.brokenLinks.length}):`);
@@ -377,7 +377,7 @@ function generateReport() {
       console.log('');
     });
   }
-  
+
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Processing Errors (${results.errors.length}):`);
@@ -386,7 +386,7 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Summary
   if (results.brokenLinks.length === 0 && results.errors.length === 0) {
     console.log('✅ All documentation links are valid!');
@@ -406,24 +406,24 @@ function generateReport() {
  */
 async function validateDocumentationLinks() {
   console.log('🔗 Starting documentation link validation...\n');
-  
+
   try {
     const files = await getMarkdownFiles();
     results.totalFiles = files.length;
-    
+
     console.log(`Found ${files.length} markdown files to validate\n`);
-    
+
     for (const file of files) {
       await validateFileLinks(file);
     }
-    
+
     generateReport();
-    
+
     // Exit with error code if validation fails
     if (results.brokenLinks.length > 0 || results.errors.length > 0) {
       process.exit(1);
     }
-    
+
   } catch (error) {
     console.error('❌ Link validation failed:', error.message);
     process.exit(1);

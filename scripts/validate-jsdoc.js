@@ -2,7 +2,7 @@
 
 /**
  * JSDoc Validation Script
- * 
+ *
  * Validates JSDoc coverage and compliance across the codebase.
  * Ensures all public APIs have proper documentation according to
  * the established templates and standards.
@@ -54,26 +54,26 @@ const results = {
  */
 async function validateJSDoc() {
   console.log('🔍 Starting JSDoc validation...\n');
-  
+
   try {
     const files = await getTypeScriptFiles(CONFIG.sourceDir);
     results.totalFiles = files.length;
-    
+
     for (const file of files) {
       if (shouldProcessFile(file)) {
         await validateFile(file);
         results.processedFiles++;
       }
     }
-    
+
     generateReport();
-    
+
     // Exit with error code if validation fails
     const coveragePercent = calculateCoverage();
     if (coveragePercent < CONFIG.minCoveragePercent || results.errors.length > 0) {
       process.exit(1);
     }
-    
+
   } catch (error) {
     console.error('❌ JSDoc validation failed:', error.message);
     process.exit(1);
@@ -82,19 +82,19 @@ async function validateJSDoc() {
 
 /**
  * Get all TypeScript files in a directory recursively
- * 
+ *
  * @param {string} dir - Directory to search
  * @returns {Promise<string[]>} Array of file paths
  */
 async function getTypeScriptFiles(dir) {
   const files = [];
-  
+
   async function traverse(currentDir) {
     const entries = await fs.promises.readdir(currentDir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(currentDir, entry.name);
-      
+
       if (entry.isDirectory()) {
         await traverse(fullPath);
       } else if (entry.isFile() && fullPath.endsWith('.ts')) {
@@ -102,14 +102,14 @@ async function getTypeScriptFiles(dir) {
       }
     }
   }
-  
+
   await traverse(dir);
   return files;
 }
 
 /**
  * Check if a file should be processed based on exclude patterns
- * 
+ *
  * @param {string} filePath - File path to check
  * @returns {boolean} True if file should be processed
  */
@@ -122,22 +122,22 @@ function shouldProcessFile(filePath) {
 
 /**
  * Validate JSDoc in a single file
- * 
+ *
  * @param {string} filePath - Path to the file to validate
  */
 async function validateFile(filePath) {
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');
     const relativePath = path.relative(process.cwd(), filePath);
-    
+
     // Parse TypeScript constructs
     const constructs = parseTypeScriptConstructs(content, relativePath);
-    
+
     // Validate each construct
     for (const construct of constructs) {
       validateConstruct(construct, relativePath);
     }
-    
+
   } catch (error) {
     results.errors.push({
       file: filePath,
@@ -148,7 +148,7 @@ async function validateFile(filePath) {
 
 /**
  * Parse TypeScript constructs from file content
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for error reporting
  * @returns {Array} Array of parsed constructs
@@ -156,7 +156,7 @@ async function validateFile(filePath) {
 function parseTypeScriptConstructs(content, filePath) {
   const constructs = [];
   const lines = content.split('\n');
-  
+
   // Regular expressions for different constructs
   const patterns = {
     class: /^export\s+(?:abstract\s+)?class\s+(\w+)/,
@@ -165,16 +165,16 @@ function parseTypeScriptConstructs(content, filePath) {
     method: /^\s*(?:public\s+|private\s+|protected\s+)?(?:static\s+)?(?:async\s+)?(\w+)\s*\(/,
     constructor: /^\s*constructor\s*\(/
   };
-  
+
   let currentClass = null;
   let inComment = false;
   let commentBlock = [];
   let commentStartLine = -1;
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     const lineNumber = i + 1;
-    
+
     // Track comment blocks
     if (line.startsWith('/**')) {
       inComment = true;
@@ -182,7 +182,7 @@ function parseTypeScriptConstructs(content, filePath) {
       commentStartLine = lineNumber;
       continue;
     }
-    
+
     if (inComment) {
       commentBlock.push(line);
       if (line.endsWith('*/')) {
@@ -190,7 +190,7 @@ function parseTypeScriptConstructs(content, filePath) {
       }
       continue;
     }
-    
+
     // Check for class declarations
     const classMatch = line.match(patterns.class);
     if (classMatch) {
@@ -207,7 +207,7 @@ function parseTypeScriptConstructs(content, filePath) {
       commentStartLine = -1;
       continue;
     }
-    
+
     // Check for interface declarations
     const interfaceMatch = line.match(patterns.interface);
     if (interfaceMatch) {
@@ -223,7 +223,7 @@ function parseTypeScriptConstructs(content, filePath) {
       commentStartLine = -1;
       continue;
     }
-    
+
     // Check for function declarations
     const functionMatch = line.match(patterns.function);
     if (functionMatch) {
@@ -240,7 +240,7 @@ function parseTypeScriptConstructs(content, filePath) {
       commentStartLine = -1;
       continue;
     }
-    
+
     // Check for method declarations
     const methodMatch = line.match(patterns.method);
     if (methodMatch && currentClass) {
@@ -258,7 +258,7 @@ function parseTypeScriptConstructs(content, filePath) {
       commentStartLine = -1;
       continue;
     }
-    
+
     // Check for constructor
     const constructorMatch = line.match(patterns.constructor);
     if (constructorMatch && currentClass) {
@@ -275,20 +275,20 @@ function parseTypeScriptConstructs(content, filePath) {
       commentStartLine = -1;
       continue;
     }
-    
+
     // Reset comment block if we hit a non-comment, non-construct line
     if (line && !line.startsWith('*') && !line.startsWith('//')) {
       commentBlock = [];
       commentStartLine = -1;
     }
   }
-  
+
   return constructs;
 }
 
 /**
  * Validate a single construct's JSDoc
- * 
+ *
  * @param {Object} construct - Parsed construct object
  * @param {string} filePath - File path for error reporting
  */
@@ -310,12 +310,12 @@ function validateConstruct(construct, filePath) {
       if (construct.comment) results.documentedFunctions++;
       break;
   }
-  
+
   // Only validate public APIs
   if (!construct.isPublic) {
     return;
   }
-  
+
   // Check if construct has JSDoc comment
   if (!construct.comment) {
     results.errors.push({
@@ -326,27 +326,27 @@ function validateConstruct(construct, filePath) {
     });
     return;
   }
-  
+
   // Validate JSDoc content
   validateJSDocContent(construct, filePath);
 }
 
 /**
  * Validate JSDoc comment content
- * 
+ *
  * @param {Object} construct - Construct with JSDoc comment
  * @param {string} filePath - File path for error reporting
  */
 function validateJSDocContent(construct, filePath) {
   const comment = construct.comment;
   const constructId = `${construct.type} ${construct.name}`;
-  
+
   // Check for required tags
   for (const tag of CONFIG.requiredTags) {
     if (tag === 'returns' && (construct.type === 'constructor' || construct.name === 'constructor')) {
       continue; // Constructors don't need @returns
     }
-    
+
     if (tag === 'param') {
       // Check if function/method has parameters
       const hasParams = comment.includes('@param') || !needsParamTag(construct);
@@ -367,17 +367,17 @@ function validateJSDocContent(construct, filePath) {
       });
     }
   }
-  
+
   // Check for description
   const lines = comment.split('\n');
-  const descriptionLines = lines.filter(line => 
-    !line.trim().startsWith('/**') && 
-    !line.trim().startsWith('*/') && 
-    !line.trim().startsWith('*') && 
+  const descriptionLines = lines.filter(line =>
+    !line.trim().startsWith('/**') &&
+    !line.trim().startsWith('*/') &&
+    !line.trim().startsWith('*') &&
     !line.trim().startsWith('@') &&
     line.trim().length > 0
   );
-  
+
   if (descriptionLines.length === 0) {
     results.errors.push({
       file: filePath,
@@ -386,10 +386,10 @@ function validateJSDocContent(construct, filePath) {
       message: 'Missing description in JSDoc comment'
     });
   }
-  
+
   // Check for example in complex methods
-  if ((construct.type === 'method' || construct.type === 'function') && 
-      construct.name.length > 15 && 
+  if ((construct.type === 'method' || construct.type === 'function') &&
+      construct.name.length > 15 &&
       !comment.includes('@example')) {
     results.warnings.push({
       file: filePath,
@@ -402,27 +402,27 @@ function validateJSDocContent(construct, filePath) {
 
 /**
  * Check if a construct needs @param tags
- * 
+ *
  * @param {Object} construct - Construct to check
  * @returns {boolean} True if @param tags are needed
  */
 function needsParamTag(construct) {
   // This is a simplified check - in a real implementation,
   // we would parse the actual method signature
-  return construct.type === 'function' || 
-         construct.type === 'method' || 
+  return construct.type === 'function' ||
+         construct.type === 'method' ||
          construct.type === 'constructor';
 }
 
 /**
  * Calculate overall documentation coverage percentage
- * 
+ *
  * @returns {number} Coverage percentage
  */
 function calculateCoverage() {
   const totalItems = results.totalClasses + results.totalInterfaces + results.totalFunctions;
   const documentedItems = results.documentedClasses + results.documentedInterfaces + results.documentedFunctions;
-  
+
   return totalItems > 0 ? Math.round((documentedItems / totalItems) * 100) : 100;
 }
 
@@ -431,20 +431,20 @@ function calculateCoverage() {
  */
 function generateReport() {
   const coveragePercent = calculateCoverage();
-  
+
   console.log('📊 JSDoc Validation Report');
   console.log('=' .repeat(50));
   console.log(`Files processed: ${results.processedFiles}/${results.totalFiles}`);
   console.log(`Overall coverage: ${coveragePercent}% (minimum: ${CONFIG.minCoveragePercent}%)`);
   console.log('');
-  
+
   // Coverage breakdown
   console.log('Coverage Breakdown:');
   console.log(`  Classes: ${results.documentedClasses}/${results.totalClasses} (${Math.round((results.documentedClasses/results.totalClasses)*100) || 0}%)`);
   console.log(`  Interfaces: ${results.documentedInterfaces}/${results.totalInterfaces} (${Math.round((results.documentedInterfaces/results.totalInterfaces)*100) || 0}%)`);
   console.log(`  Functions/Methods: ${results.documentedFunctions}/${results.totalFunctions} (${Math.round((results.documentedFunctions/results.totalFunctions)*100) || 0}%)`);
   console.log('');
-  
+
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Errors (${results.errors.length}):`);
@@ -453,7 +453,7 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
@@ -462,7 +462,7 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Summary
   if (results.errors.length === 0 && coveragePercent >= CONFIG.minCoveragePercent) {
     console.log('✅ JSDoc validation passed!');

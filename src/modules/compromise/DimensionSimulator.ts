@@ -88,7 +88,7 @@ export class DimensionSimulator {
     return `
 /**
  * Teleports a player to the simulated ${dimensionName} dimension.
- * 
+ *
  * @param {Player} player - The player to teleport
  * @param {boolean} entering - True if entering the dimension, false if leaving
  */
@@ -96,9 +96,9 @@ export function teleportPlayer(player, entering) {
   // Store the player's previous location when entering the dimension
   /**
    * if method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -110,26 +110,26 @@ export function teleportPlayer(player, entering) {
     player.setDynamicProperty("${dimensionName}:previousY", currentPos.y);
     player.setDynamicProperty("${dimensionName}:previousZ", currentPos.z);
     player.setDynamicProperty("${dimensionName}:inDimension", true);
-    
+
     // Teleport to the dimension location
     player.teleport(
-      { 
-        x: ${teleportationCoordinates.x}, 
-        y: ${teleportationCoordinates.y}, 
-        z: ${teleportationCoordinates.z} 
+      {
+        x: ${teleportationCoordinates.x},
+        y: ${teleportationCoordinates.y},
+        z: ${teleportationCoordinates.z}
       },
       {
         dimension: world.getDimension("overworld"),
         rotation: { x: 0, y: 0 }
       }
     );
-    
+
     // Apply initial effects
     /**
      * applyDimensionEffects method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -140,7 +140,7 @@ export function teleportPlayer(player, entering) {
     const previousX = player.getDynamicProperty("${dimensionName}:previousX");
     const previousY = player.getDynamicProperty("${dimensionName}:previousY");
     const previousZ = player.getDynamicProperty("${dimensionName}:previousZ");
-    
+
     if (previousX !== undefined && previousY !== undefined && previousZ !== undefined) {
       // Teleport back to the previous location
       player.teleport(
@@ -150,19 +150,19 @@ export function teleportPlayer(player, entering) {
           rotation: { x: 0, y: 0 }
         }
       );
-      
+
       // Clear dimension properties
       player.setDynamicProperty("${dimensionName}:previousX", undefined);
       player.setDynamicProperty("${dimensionName}:previousY", undefined);
       player.setDynamicProperty("${dimensionName}:previousZ", undefined);
       player.setDynamicProperty("${dimensionName}:inDimension", false);
-      
+
       // Remove dimension effects
       /**
        * removeDimensionEffects method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -341,7 +341,7 @@ export function teleportPlayer(player, entering) {
     return `
 /**
  * Applies visual and audio effects to simulate the ${dimensionName} dimension environment.
- * 
+ *
  * @param {Player} player - The player to apply effects to
  */
 export function applyDimensionEffects(player) {${effectsCode}
@@ -349,7 +349,7 @@ export function applyDimensionEffects(player) {${effectsCode}
 
 /**
  * Removes visual and audio effects when leaving the ${dimensionName} dimension.
- * 
+ *
  * @param {Player} player - The player to remove effects from
  */
 export function removeDimensionEffects(player) {${removeEffectsCode}
@@ -390,10 +390,10 @@ export function generateStructures() {
 
       structureCode += `
   // Generate ${structure.name}
-  const ${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos = { 
-    x: ${teleportationCoordinates.x + offsetX}, 
-    y: ${teleportationCoordinates.y + offsetY}, 
-    z: ${teleportationCoordinates.z + offsetZ} 
+  const ${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos = {
+    x: ${teleportationCoordinates.x + offsetX},
+    y: ${teleportationCoordinates.y + offsetY},
+    z: ${teleportationCoordinates.z + offsetZ}
   };
   overworld.runCommand(\`structure load ${structure.structureIdentifier} \${${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos.x} \${${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos.y} \${${structure.name.replace(/[^a-zA-Z0-9]/g, '_')}Pos.z}\`);`;
     });
@@ -405,7 +405,7 @@ export function generateStructures() {
  */
 export function generateStructures() {
   const overworld = world.getDimension("overworld");
-  
+
   try {${structureCode}
     return true;
   } catch (error) {
@@ -435,46 +435,46 @@ export function generateStructures() {
  */
 export function setupDimensionBoundaries() {
   // Center of the dimension area
-  const dimensionCenter = { 
-    x: ${teleportationCoordinates.x}, 
-    y: ${teleportationCoordinates.y}, 
-    z: ${teleportationCoordinates.z} 
+  const dimensionCenter = {
+    x: ${teleportationCoordinates.x},
+    y: ${teleportationCoordinates.y},
+    z: ${teleportationCoordinates.z}
   };
-  
+
   // Boundary radius that defines the dimension area
   const boundaryRadius = ${boundaryRadius || 100};
-  
+
   // Check player positions every second
   system.runInterval(() => {
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     for (const player of world.getAllPlayers()) {
       const inDimension = player.getDynamicProperty("${dimensionName}:inDimension");
-      
+
       // Skip players not related to this dimension
       if (inDimension === undefined) continue;
-      
+
       const playerPos = player.location;
       const distance = Math.sqrt(
         Math.pow(playerPos.x - dimensionCenter.x, 2) +
         Math.pow(playerPos.z - dimensionCenter.z, 2)
       );
-      
+
       // If player is in dimension but outside boundary, teleport them back
       if (inDimension === true && distance > boundaryRadius) {
         // Player is leaving the dimension area
         /**
          * teleportPlayer method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -515,39 +515,39 @@ import { world, system } from '@minecraft/server';
  */
 export function initialize${dimensionName.replace(/[^a-zA-Z0-9]/g, '')}Dimension() {
   console.log("Initializing ${dimensionName} dimension simulation");
-  
+
   // Generate all structures for the dimension
   /**
    * generateStructures method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
   generateStructures();
-  
+
   // Set up boundary detection
   /**
    * setupDimensionBoundaries method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
   setupDimensionBoundaries();
-  
+
   // Register dimension portal interaction
   world.afterEvents.playerInteractWithBlock.subscribe((event) => {
     const { player, block } = event;
-    
+
     // Check if the player interacted with the dimension portal block
     if (block.typeId === "minecraft:${dimensionName.toLowerCase()}_portal") {
       const inDimension = player.getDynamicProperty("${dimensionName}:inDimension");
-      
+
       // Toggle dimension state
       teleportPlayer(player, inDimension !== true);
     }
@@ -565,9 +565,9 @@ ${dimensionDetectionCode}
 // Export a function to check if a player is in this dimension
 /**
  * isPlayerIn function.
- * 
+ *
  * TODO: Add detailed description of the function's purpose and behavior.
- * 
+ *
  * @param param - TODO: Document parameters
  * @returns result - TODO: Document return value
  * @since 1.0.0

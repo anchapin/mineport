@@ -2,7 +2,7 @@
 
 /**
  * Dependency Conflict Resolution Script
- * 
+ *
  * This script provides advanced dependency conflict detection and resolution guidance including:
  * - Dependency tree analysis and conflict detection
  * - Peer dependency conflict resolution
@@ -29,7 +29,7 @@ class DependencyConflictResolver {
       verbose: options.verbose || false,
       ...options
     };
-    
+
     this.conflicts = [];
     this.resolutions = [];
     this.dependencyTree = null;
@@ -45,32 +45,32 @@ class DependencyConflictResolver {
     try {
       // Step 1: Analyze dependency tree
       await this.analyzeDependencyTree();
-      
+
       // Step 2: Detect conflicts
       await this.detectConflicts();
-      
+
       // Step 3: Generate resolution strategies
       await this.generateResolutionStrategies();
-      
+
       // Step 4: Apply automatic fixes if enabled
       if (this.options.autoFix) {
         await this.applyAutomaticFixes();
       }
-      
+
       // Step 5: Create issues for manual resolution
       if (this.options.createIssues) {
         await this.createResolutionIssues();
       }
-      
+
       // Step 6: Generate report
       await this.generateReport();
-      
+
       console.log('✅ Dependency conflict resolution completed successfully');
       return {
         conflicts: this.conflicts,
         resolutions: this.resolutions
       };
-      
+
     } catch (error) {
       console.error('❌ Dependency conflict resolution failed:', error.message);
       throw error;
@@ -82,17 +82,17 @@ class DependencyConflictResolver {
    */
   async analyzeDependencyTree() {
     console.log('🔍 Analyzing dependency tree...');
-    
+
     try {
       // Get dependency tree as JSON
-      const treeOutput = execSync('npm ls --json --depth=10', { 
+      const treeOutput = execSync('npm ls --json --depth=10', {
         cwd: projectRoot,
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe']
       });
-      
+
       this.dependencyTree = JSON.parse(treeOutput);
-      
+
     } catch (error) {
       // npm ls can exit with non-zero even with valid output
       if (error.stdout) {
@@ -110,13 +110,13 @@ class DependencyConflictResolver {
 
     // Get peer dependency warnings
     try {
-      const peerOutput = execSync('npm ls --depth=0 2>&1', { 
+      const peerOutput = execSync('npm ls --depth=0 2>&1', {
         cwd: projectRoot,
         encoding: 'utf8'
       });
-      
+
       this.peerWarnings = this.parsePeerWarnings(peerOutput);
-      
+
     } catch (error) {
       // npm ls can exit with non-zero for peer warnings
       if (error.stdout || error.stderr) {
@@ -137,7 +137,7 @@ class DependencyConflictResolver {
   parsePeerWarnings(output) {
     const warnings = [];
     const lines = output.split('\n');
-    
+
     for (const line of lines) {
       if (line.includes('WARN') && (line.includes('peer dep') || line.includes('UNMET PEER DEPENDENCY'))) {
         const warning = this.parsePeerWarningLine(line);
@@ -146,7 +146,7 @@ class DependencyConflictResolver {
         }
       }
     }
-    
+
     return warnings;
   }
 
@@ -157,7 +157,7 @@ class DependencyConflictResolver {
     // Example: "npm WARN package@1.0.0 requires a peer of react@^16.0.0 but none is installed."
     const peerRegex = /WARN\s+(.+?)\s+requires a peer of\s+(.+?)\s+but\s+(.+)/;
     const match = line.match(peerRegex);
-    
+
     if (match) {
       return {
         package: match[1],
@@ -167,7 +167,7 @@ class DependencyConflictResolver {
         severity: 'warning'
       };
     }
-    
+
     return null;
   }
 
@@ -176,19 +176,19 @@ class DependencyConflictResolver {
    */
   async detectConflicts() {
     console.log('🔍 Detecting dependency conflicts...');
-    
+
     // Detect version conflicts
     await this.detectVersionConflicts();
-    
+
     // Detect peer dependency conflicts
     await this.detectPeerDependencyConflicts();
-    
+
     // Detect duplicate dependencies
     await this.detectDuplicateDependencies();
-    
+
     // Detect outdated dependencies that might cause conflicts
     await this.detectOutdatedConflicts();
-    
+
     console.log(`Detected ${this.conflicts.length} potential conflicts`);
   }
 
@@ -201,35 +201,35 @@ class DependencyConflictResolver {
     }
 
     const versionMap = new Map();
-    
+
     // Recursively collect all package versions
     const collectVersions = (deps, path = []) => {
       for (const [name, info] of Object.entries(deps)) {
         const currentPath = [...path, name];
-        
+
         if (!versionMap.has(name)) {
           versionMap.set(name, []);
         }
-        
+
         versionMap.get(name).push({
           version: info.version,
           path: currentPath,
           resolved: info.resolved
         });
-        
+
         if (info.dependencies) {
           collectVersions(info.dependencies, currentPath);
         }
       }
     };
-    
+
     collectVersions(this.dependencyTree.dependencies);
-    
+
     // Find packages with multiple versions
     for (const [packageName, versions] of versionMap.entries()) {
       if (versions.length > 1) {
         const uniqueVersions = [...new Set(versions.map(v => v.version))];
-        
+
         if (uniqueVersions.length > 1) {
           this.conflicts.push({
             type: 'version_conflict',
@@ -251,22 +251,22 @@ class DependencyConflictResolver {
     // Check if versions span major versions
     const majorVersions = versions.map(v => parseInt(v.split('.')[0]));
     const uniqueMajors = [...new Set(majorVersions)];
-    
+
     if (uniqueMajors.length > 1) {
       return 'high'; // Major version differences are high severity
     }
-    
+
     // Check if versions span minor versions
     const minorVersions = versions.map(v => {
       const parts = v.split('.');
       return `${parts[0]}.${parts[1]}`;
     });
     const uniqueMinors = [...new Set(minorVersions)];
-    
+
     if (uniqueMinors.length > 1) {
       return 'medium'; // Minor version differences are medium severity
     }
-    
+
     return 'low'; // Only patch differences are low severity
   }
 
@@ -291,19 +291,19 @@ class DependencyConflictResolver {
    */
   async detectDuplicateDependencies() {
     try {
-      const dedupeOutput = execSync('npm ls --json --depth=10', { 
+      const dedupeOutput = execSync('npm ls --json --depth=10', {
         cwd: projectRoot,
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe']
       });
-      
+
       // Run npm dedupe in dry-run mode to see what would be deduplicated
-      const dedupeCheck = execSync('npm dedupe --dry-run', { 
+      const dedupeCheck = execSync('npm dedupe --dry-run', {
         cwd: projectRoot,
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe']
       });
-      
+
       if (dedupeCheck.trim()) {
         this.conflicts.push({
           type: 'duplicate_dependencies',
@@ -312,7 +312,7 @@ class DependencyConflictResolver {
           details: dedupeCheck.trim()
         });
       }
-      
+
     } catch (error) {
       // Dedupe check is optional
       if (this.options.verbose) {
@@ -326,19 +326,19 @@ class DependencyConflictResolver {
    */
   async detectOutdatedConflicts() {
     try {
-      const outdatedOutput = execSync('npm outdated --json', { 
+      const outdatedOutput = execSync('npm outdated --json', {
         cwd: projectRoot,
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe']
       });
-      
+
       const outdated = JSON.parse(outdatedOutput);
-      
+
       for (const [packageName, info] of Object.entries(outdated)) {
         const currentParts = info.current.split('.');
         const wantedParts = info.wanted.split('.');
         const latestParts = info.latest.split('.');
-        
+
         // Check if there's a major version difference
         if (currentParts[0] !== latestParts[0]) {
           this.conflicts.push({
@@ -352,7 +352,7 @@ class DependencyConflictResolver {
           });
         }
       }
-      
+
     } catch (error) {
       // No outdated packages or error checking
       if (this.options.verbose && error.status !== 1) {
@@ -366,12 +366,12 @@ class DependencyConflictResolver {
    */
   async generateResolutionStrategies() {
     console.log('💡 Generating resolution strategies...');
-    
+
     for (const conflict of this.conflicts) {
       const resolution = await this.generateResolutionStrategy(conflict);
       this.resolutions.push(resolution);
     }
-    
+
     console.log(`Generated ${this.resolutions.length} resolution strategies`);
   }
 
@@ -508,9 +508,9 @@ class DependencyConflictResolver {
    */
   async applyAutomaticFixes() {
     console.log('🔧 Applying automatic fixes...');
-    
+
     const automatableResolutions = this.resolutions.filter(r => r.automatable);
-    
+
     if (automatableResolutions.length === 0) {
       console.log('No automatic fixes available');
       return;
@@ -526,17 +526,17 @@ class DependencyConflictResolver {
 
       try {
         console.log(`Applying: ${resolution.recommendedStrategy.description}`);
-        
+
         if (resolution.recommendedStrategy.command) {
-          execSync(resolution.recommendedStrategy.command, { 
+          execSync(resolution.recommendedStrategy.command, {
             cwd: projectRoot,
             stdio: 'pipe'
           });
         }
-        
+
         resolution.applied = true;
         console.log(`✅ Applied fix for ${resolution.conflict.type}`);
-        
+
       } catch (error) {
         resolution.applied = false;
         resolution.error = error.message;
@@ -558,16 +558,16 @@ class DependencyConflictResolver {
     try {
       // Re-run dependency analysis
       const originalConflicts = this.conflicts.length;
-      
+
       await this.analyzeDependencyTree();
       this.conflicts = [];
       await this.detectConflicts();
-      
+
       const remainingConflicts = this.conflicts.length;
       const resolvedConflicts = originalConflicts - remainingConflicts;
-      
+
       console.log(`Validation complete: ${resolvedConflicts} conflicts resolved, ${remainingConflicts} remaining`);
-      
+
     } catch (error) {
       console.error('Failed to validate fixes:', error.message);
     }
@@ -578,9 +578,9 @@ class DependencyConflictResolver {
    */
   async createResolutionIssues() {
     console.log('📝 Creating resolution issues...');
-    
+
     const manualResolutions = this.resolutions.filter(r => !r.automatable || !r.applied);
-    
+
     if (manualResolutions.length === 0) {
       console.log('No manual resolutions needed');
       return;
@@ -617,27 +617,27 @@ class DependencyConflictResolver {
   async createResolutionIssue(resolutions, priority) {
     const priorityLabels = {
       1: 'high',
-      2: 'high', 
+      2: 'high',
       3: 'medium',
       4: 'medium',
       5: 'low'
     };
-    
+
     const priorityLevel = priorityLabels[Math.floor(priority / 10)] || 'low';
     const conflictTypes = [...new Set(resolutions.map(r => r.conflict.type))];
-    
+
     const title = `🔧 Dependency Conflicts: ${conflictTypes.join(', ')} (${priorityLevel} priority)`;
-    
+
     const body = this.generateIssueBody(resolutions, priorityLevel);
-    
+
     try {
       execSync(`gh issue create --title "${title}" --body "${body}" --label "dependencies,conflict-resolution,${priorityLevel}-priority" --assignee "${{ github.actor }}"`, {
         cwd: projectRoot,
         stdio: 'pipe'
       });
-      
+
       console.log(`✅ Created issue: ${title}`);
-      
+
     } catch (error) {
       console.error(`Failed to create GitHub issue: ${error.message}`);
     }
@@ -659,7 +659,7 @@ This issue tracks ${resolutions.length} dependency conflicts that require manual
 
     resolutions.forEach((resolution, index) => {
       const conflict = resolution.conflict;
-      
+
       body += `#### ${index + 1}. ${conflict.type.replace('_', ' ').toUpperCase()}
 
 **Package**: ${conflict.package || 'Multiple'}
@@ -723,7 +723,7 @@ This issue was generated by the dependency conflict resolver. For detailed analy
    */
   async generateReport() {
     console.log('📊 Generating conflict resolution report...');
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       summary: {
@@ -743,22 +743,22 @@ This issue was generated by the dependency conflict resolver. For detailed analy
     // Write report to file
     const reportPath = join(projectRoot, 'dependency-conflict-report.json');
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     // Generate markdown summary
     const markdownReport = this.generateMarkdownReport(report);
     const markdownPath = join(projectRoot, 'dependency-conflict-report.md');
     writeFileSync(markdownPath, markdownReport);
-    
+
     console.log(`Report generated: ${reportPath}`);
     console.log(`Markdown summary: ${markdownPath}`);
-    
+
     // Print summary to console
     console.log('\n📊 Dependency Conflict Summary:');
     console.log(`  Total conflicts: ${report.summary.totalConflicts}`);
     console.log(`  Resolutions generated: ${report.summary.resolutionsGenerated}`);
     console.log(`  Automatic fixes applied: ${report.summary.automaticFixesApplied}`);
     console.log(`  Manual resolutions required: ${report.summary.manualResolutionsRequired}`);
-    
+
     return report;
   }
 
@@ -777,7 +777,7 @@ This issue was generated by the dependency conflict resolver. For detailed analy
    */
   generateRecommendations() {
     const recommendations = [];
-    
+
     const highSeverityConflicts = this.conflicts.filter(c => c.severity === 'high');
     if (highSeverityConflicts.length > 0) {
       recommendations.push({
@@ -787,7 +787,7 @@ This issue was generated by the dependency conflict resolver. For detailed analy
         actions: ['Review major version conflicts', 'Test thoroughly before applying fixes']
       });
     }
-    
+
     const peerConflicts = this.conflicts.filter(c => c.type === 'peer_dependency_conflict');
     if (peerConflicts.length > 0) {
       recommendations.push({
@@ -797,7 +797,7 @@ This issue was generated by the dependency conflict resolver. For detailed analy
         actions: ['Install missing peer dependencies', 'Update packages to compatible versions']
       });
     }
-    
+
     const automatableResolutions = this.resolutions.filter(r => r.automatable);
     if (automatableResolutions.length > 0) {
       recommendations.push({
@@ -807,7 +807,7 @@ This issue was generated by the dependency conflict resolver. For detailed analy
         actions: ['Run npm dedupe', 'Enable automatic conflict resolution']
       });
     }
-    
+
     return recommendations;
   }
 
@@ -880,7 +880,7 @@ ${rec.actions.map(action => `- ${action}`).join('\n')}
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const options = {};
-  
+
   // Parse command line arguments
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -917,9 +917,9 @@ Examples:
         process.exit(0);
     }
   }
-  
+
   const resolver = new DependencyConflictResolver(options);
-  
+
   resolver.run()
     .then(results => {
       console.log('\n✅ Dependency conflict resolution completed successfully');

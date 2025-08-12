@@ -2,7 +2,7 @@
 
 /**
  * Security Patch Automation Script
- * 
+ *
  * This script provides advanced security patch automation capabilities including:
  * - Security vulnerability detection and prioritization
  * - Automated patch application with validation
@@ -28,7 +28,7 @@ class SecurityPatchAutomation {
       testTimeout: options.testTimeout || 300000, // 5 minutes
       ...options
     };
-    
+
     this.vulnerabilities = [];
     this.patchResults = [];
   }
@@ -43,19 +43,19 @@ class SecurityPatchAutomation {
     try {
       // Step 1: Scan for vulnerabilities
       await this.scanVulnerabilities();
-      
+
       // Step 2: Prioritize vulnerabilities
       await this.prioritizeVulnerabilities();
-      
+
       // Step 3: Apply patches
       await this.applySecurityPatches();
-      
+
       // Step 4: Generate report
       await this.generateReport();
-      
+
       console.log('✅ Security patch automation completed successfully');
       return this.patchResults;
-      
+
     } catch (error) {
       console.error('❌ Security patch automation failed:', error.message);
       throw error;
@@ -67,17 +67,17 @@ class SecurityPatchAutomation {
    */
   async scanVulnerabilities() {
     console.log('🔍 Scanning for security vulnerabilities...');
-    
+
     try {
       // Run npm audit with JSON output
-      const auditOutput = execSync('npm audit --json', { 
+      const auditOutput = execSync('npm audit --json', {
         cwd: projectRoot,
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe']
       });
-      
+
       const auditData = JSON.parse(auditOutput);
-      
+
       if (auditData.vulnerabilities) {
         this.vulnerabilities = Object.entries(auditData.vulnerabilities).map(([name, vuln]) => ({
           name,
@@ -89,9 +89,9 @@ class SecurityPatchAutomation {
           nodes: vuln.nodes || []
         }));
       }
-      
+
       console.log(`Found ${this.vulnerabilities.length} vulnerabilities`);
-      
+
     } catch (error) {
       if (error.status === 1) {
         // npm audit returns exit code 1 when vulnerabilities are found
@@ -125,31 +125,31 @@ class SecurityPatchAutomation {
    */
   async prioritizeVulnerabilities() {
     console.log('📊 Prioritizing vulnerabilities...');
-    
+
     const severityOrder = { critical: 1, high: 2, moderate: 3, low: 4 };
-    
+
     this.vulnerabilities = this.vulnerabilities
       .filter(vuln => this.shouldProcessVulnerability(vuln))
       .sort((a, b) => {
         // Sort by severity first
         const severityDiff = severityOrder[a.severity] - severityOrder[b.severity];
         if (severityDiff !== 0) return severityDiff;
-        
+
         // Then by fix availability
         if (a.fixAvailable && !b.fixAvailable) return -1;
         if (!a.fixAvailable && b.fixAvailable) return 1;
-        
+
         return 0;
       });
-    
+
     console.log(`Prioritized ${this.vulnerabilities.length} vulnerabilities for processing`);
-    
+
     // Log prioritization summary
     const summary = this.vulnerabilities.reduce((acc, vuln) => {
       acc[vuln.severity] = (acc[vuln.severity] || 0) + 1;
       return acc;
     }, {});
-    
+
     console.log('Vulnerability summary by severity:', summary);
   }
 
@@ -160,7 +160,7 @@ class SecurityPatchAutomation {
     const severityOrder = { critical: 1, high: 2, moderate: 3, low: 4 };
     const maxSeverityLevel = severityOrder[this.options.maxSeverity];
     const vulnSeverityLevel = severityOrder[vulnerability.severity];
-    
+
     return vulnSeverityLevel <= maxSeverityLevel;
   }
 
@@ -169,20 +169,20 @@ class SecurityPatchAutomation {
    */
   async applySecurityPatches() {
     console.log('🔧 Applying security patches...');
-    
+
     for (const vulnerability of this.vulnerabilities) {
       console.log(`\nProcessing ${vulnerability.name} (${vulnerability.severity})...`);
-      
+
       try {
         const patchResult = await this.applyPatch(vulnerability);
         this.patchResults.push(patchResult);
-        
+
         if (patchResult.success) {
           console.log(`✅ Successfully patched ${vulnerability.name}`);
         } else {
           console.log(`⚠️ Failed to patch ${vulnerability.name}: ${patchResult.error}`);
         }
-        
+
       } catch (error) {
         console.error(`❌ Error patching ${vulnerability.name}:`, error.message);
         this.patchResults.push({
@@ -228,7 +228,7 @@ class SecurityPatchAutomation {
 
       // Apply the security fix
       console.log(`Applying security fix for ${vulnerability.name}...`);
-      
+
       try {
         execSync(`npm audit fix --only=prod --audit-level=${vulnerability.severity}`, {
           cwd: projectRoot,
@@ -266,8 +266,8 @@ class SecurityPatchAutomation {
       }
 
       // Determine auto-merge eligibility
-      result.autoMergeEligible = this.isAutoMergeEligible(vulnerability) && 
-                                 validationResult.isValid && 
+      result.autoMergeEligible = this.isAutoMergeEligible(vulnerability) &&
+                                 validationResult.isValid &&
                                  testResults.success;
 
       result.success = true;
@@ -275,7 +275,7 @@ class SecurityPatchAutomation {
 
     } catch (error) {
       result.error = error.message;
-      
+
       // Restore backup on any error
       try {
         await this.restoreBackup();
@@ -292,7 +292,7 @@ class SecurityPatchAutomation {
    */
   async validatePatch(vulnerability) {
     console.log(`Validating patch for ${vulnerability.name}...`);
-    
+
     const validation = {
       isValid: true,
       checks: [],
@@ -301,14 +301,14 @@ class SecurityPatchAutomation {
 
     try {
       // Check if the vulnerability is still present
-      const auditOutput = execSync('npm audit --json', { 
+      const auditOutput = execSync('npm audit --json', {
         cwd: projectRoot,
         encoding: 'utf8',
         stdio: 'pipe'
       });
-      
+
       const auditData = JSON.parse(auditOutput);
-      
+
       if (auditData.vulnerabilities && auditData.vulnerabilities[vulnerability.name]) {
         validation.isValid = false;
         validation.checks.push({
@@ -356,11 +356,11 @@ class SecurityPatchAutomation {
 
     // Check for peer dependency warnings
     try {
-      const lsOutput = execSync('npm ls --depth=0 2>&1', { 
+      const lsOutput = execSync('npm ls --depth=0 2>&1', {
         cwd: projectRoot,
         encoding: 'utf8'
       });
-      
+
       if (lsOutput.includes('WARN')) {
         validation.warnings.push('Peer dependency warnings detected');
       }
@@ -379,7 +379,7 @@ class SecurityPatchAutomation {
    */
   async runSecurityTests() {
     console.log('🧪 Running security tests...');
-    
+
     const testResult = {
       success: true,
       testsRun: [],
@@ -389,12 +389,12 @@ class SecurityPatchAutomation {
     try {
       // Run security test suite
       console.log('Running security test suite...');
-      execSync('npm run test:security', { 
+      execSync('npm run test:security', {
         cwd: projectRoot,
         stdio: 'pipe',
         timeout: this.options.testTimeout
       });
-      
+
       testResult.testsRun.push('security');
       console.log('✅ Security tests passed');
 
@@ -407,12 +407,12 @@ class SecurityPatchAutomation {
     // Run dependency validation
     try {
       console.log('Running dependency validation...');
-      execSync('npm run deps:validate', { 
+      execSync('npm run deps:validate', {
         cwd: projectRoot,
         stdio: 'pipe',
         timeout: this.options.testTimeout
       });
-      
+
       testResult.testsRun.push('dependency-validation');
       console.log('✅ Dependency validation passed');
 
@@ -425,12 +425,12 @@ class SecurityPatchAutomation {
     // Run unit tests to ensure no regressions
     try {
       console.log('Running unit tests for regression detection...');
-      execSync('npm run test:unit', { 
+      execSync('npm run test:unit', {
         cwd: projectRoot,
         stdio: 'pipe',
         timeout: this.options.testTimeout
       });
-      
+
       testResult.testsRun.push('unit');
       console.log('✅ Unit tests passed');
 
@@ -455,10 +455,10 @@ class SecurityPatchAutomation {
     // 1. Low or moderate severity
     // 2. Fix is available
     // 3. Not a major version change (would need more sophisticated detection)
-    
+
     const autoMergeSeverities = ['low', 'moderate'];
-    
-    return autoMergeSeverities.includes(vulnerability.severity) && 
+
+    return autoMergeSeverities.includes(vulnerability.severity) &&
            vulnerability.fixAvailable;
   }
 
@@ -468,10 +468,10 @@ class SecurityPatchAutomation {
   async createBackup() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupDir = join(projectRoot, '.security-patch-backup', timestamp);
-    
+
     execSync(`mkdir -p "${backupDir}"`, { cwd: projectRoot });
     execSync(`cp package.json package-lock.json "${backupDir}/"`, { cwd: projectRoot });
-    
+
     this.backupDir = backupDir;
     console.log(`Created backup at ${backupDir}`);
   }
@@ -485,13 +485,13 @@ class SecurityPatchAutomation {
       return;
     }
 
-    execSync(`cp "${this.backupDir}/package.json" "${this.backupDir}/package-lock.json" .`, { 
-      cwd: projectRoot 
+    execSync(`cp "${this.backupDir}/package.json" "${this.backupDir}/package-lock.json" .`, {
+      cwd: projectRoot
     });
-    
+
     // Reinstall dependencies
     execSync('npm ci --prefer-offline --no-audit', { cwd: projectRoot, stdio: 'pipe' });
-    
+
     console.log('Restored backup and reinstalled dependencies');
   }
 
@@ -500,7 +500,7 @@ class SecurityPatchAutomation {
    */
   async generateReport() {
     console.log('📊 Generating security patch report...');
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       summary: {
@@ -518,15 +518,15 @@ class SecurityPatchAutomation {
     // Write report to file
     const reportPath = join(projectRoot, 'security-patch-report.json');
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     // Generate markdown summary
     const markdownReport = this.generateMarkdownReport(report);
     const markdownPath = join(projectRoot, 'security-patch-report.md');
     writeFileSync(markdownPath, markdownReport);
-    
+
     console.log(`Report generated: ${reportPath}`);
     console.log(`Markdown summary: ${markdownPath}`);
-    
+
     // Print summary to console
     console.log('\n📊 Security Patch Summary:');
     console.log(`  Total vulnerabilities: ${report.summary.totalVulnerabilities}`);
@@ -534,7 +534,7 @@ class SecurityPatchAutomation {
     console.log(`  Patches successful: ${report.summary.patchesSuccessful}`);
     console.log(`  Patches failed: ${report.summary.patchesFailed}`);
     console.log(`  Auto-merge eligible: ${report.summary.autoMergeEligible}`);
-    
+
     return report;
   }
 
@@ -543,7 +543,7 @@ class SecurityPatchAutomation {
    */
   generateRecommendations() {
     const recommendations = [];
-    
+
     const failedPatches = this.patchResults.filter(r => !r.success);
     if (failedPatches.length > 0) {
       recommendations.push({
@@ -553,7 +553,7 @@ class SecurityPatchAutomation {
         details: failedPatches.map(p => `${p.vulnerability}: ${p.error}`)
       });
     }
-    
+
     const criticalVulns = this.vulnerabilities.filter(v => v.severity === 'critical');
     if (criticalVulns.length > 0) {
       recommendations.push({
@@ -563,7 +563,7 @@ class SecurityPatchAutomation {
         details: criticalVulns.map(v => v.name)
       });
     }
-    
+
     const autoMergeEligible = this.patchResults.filter(r => r.autoMergeEligible);
     if (autoMergeEligible.length > 0) {
       recommendations.push({
@@ -573,7 +573,7 @@ class SecurityPatchAutomation {
         details: autoMergeEligible.map(p => p.vulnerability)
       });
     }
-    
+
     return recommendations;
   }
 
@@ -626,7 +626,7 @@ ${rec.details ? rec.details.map(d => `- ${d}`).join('\n') : ''}
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const options = {};
-  
+
   // Parse command line arguments
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -662,9 +662,9 @@ Examples:
         process.exit(0);
     }
   }
-  
+
   const automation = new SecurityPatchAutomation(options);
-  
+
   automation.run()
     .then(results => {
       console.log('\n✅ Security patch automation completed successfully');

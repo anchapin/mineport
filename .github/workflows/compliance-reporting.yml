@@ -38,46 +38,46 @@ jobs:
     name: Generate Compliance Report
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 2 1 * *'
-    
+
     permissions:
       contents: read
       security-events: write
       actions: read
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Initialize compliance reporting system
         run: |
           node scripts/compliance-reporter.js init
           echo "Compliance reporting system initialized"
-          
+
       - name: Download audit logs artifact
         uses: actions/download-artifact@v4
         with:
           name: audit-logs
           path: audit-logs/
         continue-on-error: true
-        
+
       - name: Download security scan results
         uses: actions/download-artifact@v4
         with:
           name: security-scan-results
           path: security-results/
         continue-on-error: true
-        
+
       - name: Process security scan history
         run: |
           if [ -d "security-results" ]; then
@@ -90,15 +90,15 @@ jobs:
           else
             echo "No security scan results found"
           fi
-          
+
       - name: Generate compliance report
         run: |
           REPORT_TYPE="${{ github.event.inputs.report_type || 'monthly' }}"
           STANDARDS="${{ github.event.inputs.standards || 'SOC2,ISO27001,GDPR,HIPAA' }}"
-          
+
           echo "Generating $REPORT_TYPE compliance report for standards: $STANDARDS"
           node scripts/compliance-reporter.js report "$REPORT_TYPE" "$STANDARDS"
-          
+
       - name: Upload compliance report
         uses: actions/upload-artifact@v4
         with:
@@ -108,32 +108,32 @@ jobs:
             compliance-reports/compliance-report-*.html
             compliance-reports/compliance-summary-*.csv
           retention-days: 2555 # 7 years retention for compliance
-          
+
       - name: Create compliance report summary
         run: |
           if [ -f "compliance-reports/latest-compliance-report.json" ]; then
             echo "## Compliance Report Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            
+
             # Extract key metrics from the report
             OVERALL_STATUS=$(jq -r '.summary.compliance_status' compliance-reports/latest-compliance-report.json)
             OVERALL_SCORE=$(jq -r '.summary.overall_score' compliance-reports/latest-compliance-report.json)
             VIOLATIONS=$(jq -r '.summary.violations_found' compliance-reports/latest-compliance-report.json)
             STANDARDS=$(jq -r '.standards | join(", ")' compliance-reports/latest-compliance-report.json)
-            
+
             echo "- **Overall Status**: $OVERALL_STATUS" >> $GITHUB_STEP_SUMMARY
             echo "- **Compliance Score**: $OVERALL_SCORE%" >> $GITHUB_STEP_SUMMARY
             echo "- **Violations Found**: $VIOLATIONS" >> $GITHUB_STEP_SUMMARY
             echo "- **Standards Assessed**: $STANDARDS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            
+
             # Add violations details if any
             if [ "$VIOLATIONS" != "0" ]; then
               echo "### Critical Issues" >> $GITHUB_STEP_SUMMARY
               jq -r '.recommendations[] | select(.severity == "critical") | "- **\(.standard) \(.control)**: \(.issue)"' compliance-reports/latest-compliance-report.json >> $GITHUB_STEP_SUMMARY
             fi
           fi
-          
+
       - name: Notify compliance team
         if: always()
         uses: 8398a7/action-slack@v3
@@ -154,51 +154,51 @@ jobs:
     name: Update Compliance Dashboard
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event.inputs.generate_dashboard == 'true'
-    
+
     permissions:
       contents: read
       security-events: write
       actions: read
       pages: write
       id-token: write
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Initialize compliance reporting system
         run: |
           node scripts/compliance-reporter.js init
           echo "Compliance reporting system initialized"
-          
+
       - name: Download latest audit logs
         uses: actions/download-artifact@v4
         with:
           name: audit-logs
           path: audit-logs/
         continue-on-error: true
-        
+
       - name: Download latest security scan results
         uses: actions/download-artifact@v4
         with:
           name: security-scan-results
           path: security-results/
         continue-on-error: true
-        
+
       - name: Generate compliance dashboard
         run: |
           echo "Generating compliance dashboard"
           node scripts/compliance-reporter.js dashboard > compliance-dashboard.json
-          
+
       - name: Create dashboard HTML
         run: |
           cat > compliance-dashboard.html << 'EOF'
@@ -240,28 +240,28 @@ jobs:
                       <p>Real-time compliance monitoring and reporting</p>
                       <p><strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
                   </div>
-                  
+
                   <div class="metrics" id="metricsGrid">
                       <!-- Metrics will be populated by JavaScript -->
                   </div>
-                  
+
                   <div class="standards-grid" id="standardsGrid">
                       <!-- Standards will be populated by JavaScript -->
                   </div>
-                  
+
                   <div class="footer">
                       <p>This dashboard is automatically updated by the ModPorter-AI CI/CD pipeline.</p>
                       <p>For detailed compliance reports, check the Actions artifacts.</p>
                   </div>
               </div>
-              
+
               <script>
                   // Load dashboard data
                   fetch('./compliance-dashboard.json')
                       .then(response => response.json())
                       .then(data => {
                           document.getElementById('lastUpdated').textContent = new Date(data.generated).toLocaleString();
-                          
+
                           // Populate metrics
                           const metricsGrid = document.getElementById('metricsGrid');
                           metricsGrid.innerHTML = `
@@ -286,7 +286,7 @@ jobs:
                                   <div class="metric-label">Standards Monitored</div>
                               </div>
                           `;
-                          
+
                           // Populate standards
                           const standardsGrid = document.getElementById('standardsGrid');
                           standardsGrid.innerHTML = Object.entries(data.standards).map(([name, standard]) => `
@@ -314,19 +314,19 @@ jobs:
           </body>
           </html>
           EOF
-          
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        
+
       - name: Upload dashboard to Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        
+
       - name: Upload dashboard artifact
         uses: actions/upload-artifact@v4
         with:
@@ -340,44 +340,44 @@ jobs:
     name: Validate Compliance Configuration
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Validate compliance reporter
         run: |
           echo "Validating compliance reporter configuration..."
           node -c scripts/compliance-reporter.js
           echo "✅ Compliance reporter syntax is valid"
-          
+
       - name: Test compliance reporter initialization
         run: |
           echo "Testing compliance reporter initialization..."
           node scripts/compliance-reporter.js init
           echo "✅ Compliance reporter initialized successfully"
-          
+
       - name: Validate audit logger integration
         run: |
           echo "Validating audit logger integration..."
           node -c scripts/audit-logger.js
           echo "✅ Audit logger integration is valid"
-          
+
       - name: Check required directories
         run: |
           echo "Checking required directories..."
           [ -d "compliance-reports" ] && echo "✅ Compliance reports directory exists" || echo "❌ Compliance reports directory missing"
           [ -d "audit-logs" ] && echo "✅ Audit logs directory exists" || echo "❌ Audit logs directory missing"
-          
+
       - name: Validate compliance standards configuration
         run: |
           echo "Validating compliance standards configuration..."
@@ -385,7 +385,7 @@ jobs:
           for standard in "${STANDARDS[@]}"; do
             echo "✅ Standard $standard is configured"
           done
-          
+
       - name: Test dashboard generation
         run: |
           echo "Testing dashboard generation..."
@@ -396,7 +396,7 @@ jobs:
     name: Cleanup Old Compliance Reports
     runs-on: ubuntu-latest
     if: github.event.schedule == '0 2 1 * *' # Monthly cleanup
-    
+
     steps:
       - name: Cleanup old artifacts
         uses: actions/github-script@v7
@@ -405,13 +405,13 @@ jobs:
             const { owner, repo } = context.repo;
             const cutoffDate = new Date();
             cutoffDate.setFullYear(cutoffDate.getFullYear() - 7); // Keep 7 years for compliance
-            
+
             const artifacts = await github.rest.actions.listArtifactsForRepo({
               owner,
               repo,
               per_page: 100
             });
-            
+
             for (const artifact of artifacts.data.artifacts) {
               if (artifact.name.startsWith('compliance-report-') || artifact.name.startsWith('compliance-dashboard-')) {
                 const createdAt = new Date(artifact.created_at);

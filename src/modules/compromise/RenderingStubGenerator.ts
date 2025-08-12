@@ -239,13 +239,13 @@ export class RenderingStubGenerator {
 
     return `/**
  * STUBBED RENDERING CODE: ${detectedPattern.patternName}
- * 
+ *
  * This code is a stub for Java rendering functionality that cannot be directly
  * translated to Bedrock Edition's JavaScript API.
- * 
+ *
  * Original feature: ${feature.name}
  * Rendering category: ${detectedPattern.category}
- * 
+ *
  * RECOMMENDATIONS:
  * ${recommendations.map((rec) => ` * - ${rec}`).join('\n')}
  */
@@ -287,9 +287,9 @@ ${recommendations.map((rec) => `        "${rec}"`).join(',\n')}
 // Export a factory function to create the stub
 /**
  * create function.
- * 
+ *
  * TODO: Add detailed description of the function's purpose and behavior.
- * 
+ *
  * @param param - TODO: Document parameters
  * @returns result - TODO: Document return value
  * @since 1.0.0

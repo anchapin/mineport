@@ -305,14 +305,14 @@ describe('LLMTranslator', () => {
       const originalCallLLM = (translator as any).callLLM;
       (translator as any).callLLM = vi.fn().mockResolvedValue(`
         Here's the translated code:
-        
+
         function translatedMethod() {
           console.log("This is translated");
           if (condition) {
             return true;
           }
         }
-        
+
         This should work for your use case.
       `);
 

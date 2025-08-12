@@ -167,12 +167,12 @@ describe('ModPorter-AI Security Tests', () => {
       const maliciousCode = `
         import java.io.File;
         import java.io.FileOutputStream;
-        
+
         public class FileManipulator {
           public void deleteFiles() {
             File file = new File("/important/file");
             file.delete();
-            
+
             FileOutputStream fos = new FileOutputStream("/etc/passwd");
           }
         }
@@ -196,7 +196,7 @@ describe('ModPorter-AI Security Tests', () => {
         @Mod("testmod")
         public class TestMod {
           public static final String MODID = "testmod";
-          
+
           @SubscribeEvent
           public void onBlockPlace(BlockEvent.PlaceEvent event) {
             // Normal mod functionality

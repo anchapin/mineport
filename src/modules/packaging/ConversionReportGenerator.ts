@@ -819,7 +819,7 @@ export class ConversionReportGenerator {
     <p>Mod Loader: ${input.modLoader.toUpperCase()}</p>
     <p>Conversion Date: ${input.conversionDate.toLocaleDateString()} ${input.conversionDate.toLocaleTimeString()}</p>
     <p>Conversion Time: ${(input.conversionTime / 1000).toFixed(2)} seconds</p>
-    
+
     <h3>Overall Conversion Quality</h3>
     <div class="quality-indicator">
       <div class="quality-bar">
@@ -883,7 +883,7 @@ export class ConversionReportGenerator {
         <div class="stat-label">Total Scripts</div>
       </div>
     </div>
-    
+
     <h3>Feature Compatibility Breakdown</h3>
     <div class="stats-container">
       <div class="stat-box">
@@ -951,7 +951,7 @@ export class ConversionReportGenerator {
           <div class="stat-label">Particles</div>
         </div>
       </div>
-      
+
       <h4>Asset Conversion Notes</h4>
       ${this.generateNotesHtml(
         input.conversionNotes.filter(
@@ -987,7 +987,7 @@ export class ConversionReportGenerator {
           <div class="stat-label">Loot Tables</div>
         </div>
       </div>
-      
+
       <h4>Configuration Conversion Notes</h4>
       ${this.generateNotesHtml(
         input.conversionNotes.filter(
@@ -1023,7 +1023,7 @@ export class ConversionReportGenerator {
           <div class="stat-label">Stubbed Percentage</div>
         </div>
       </div>
-      
+
       <h4>Logic Conversion Notes</h4>
       ${this.generateNotesHtml(
         input.conversionNotes.filter(
@@ -1038,7 +1038,7 @@ export class ConversionReportGenerator {
     <div class="section">
       <h3>Applied Compromise Strategies</h3>
       <p>Total compromises applied: ${input.compromiseReport.totalCompromisesApplied}</p>
-      
+
       ${this.generateCompromiseStrategiesHtml(input.compromiseReport.appliedStrategies)}
     </div>
   </div>
@@ -1059,9 +1059,9 @@ export class ConversionReportGenerator {
         var content = this.nextElementSibling;
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -1162,8 +1162,8 @@ export class ConversionReportGenerator {
   ): Promise<void> {
     const markdown = `# Conversion Report: ${input.modName} v${input.modVersion}
 
-**Mod Loader:** ${input.modLoader.toUpperCase()}  
-**Conversion Date:** ${input.conversionDate.toLocaleDateString()} ${input.conversionDate.toLocaleTimeString()}  
+**Mod Loader:** ${input.modLoader.toUpperCase()}
+**Conversion Date:** ${input.conversionDate.toLocaleDateString()} ${input.conversionDate.toLocaleTimeString()}
 **Conversion Time:** ${(input.conversionTime / 1000).toFixed(2)} seconds
 
 ## Overall Conversion Quality

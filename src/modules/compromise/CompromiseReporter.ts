@@ -527,7 +527,7 @@ export class CompromiseReporter {
 <body>
     <h1>Compromise Report</h1>
     <p>Generated: ${report.metadata.generatedAt.toISOString()}</p>
-    
+
     <div class="summary">
         <h2>Summary</h2>
         <div class="metric">Total Features: ${report.metadata.totalFeatures}</div>
@@ -535,7 +535,7 @@ export class CompromiseReporter {
         <div class="metric">Success Rate: ${report.metadata.successRate.toFixed(1)}%</div>
         <div class="metric">Average Impact: ${report.metadata.averageImpact.toFixed(1)}%</div>
     </div>
-    
+
     <h2>Detailed Results</h2>
     <p>See JSON report for complete details.</p>
 </body>

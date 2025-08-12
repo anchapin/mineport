@@ -118,7 +118,7 @@ export class LLMTranslationService {
       Example:
       Java: List<String> names = new ArrayList<>();
       JavaScript: const names = [];
-      
+
       Java: Map<String, Integer> scores = new HashMap<>();
       JavaScript: const scores = new Map();
     `
@@ -363,7 +363,7 @@ const MOD_ID = "${prompt.includes('Mod ID:') ? prompt.split('Mod ID:')[1].trim()
 system.events.playerJoin.subscribe(event => {
   const player = event.player;
   console.log(\`Player joined: \${player.name}\`);
-  
+
   // Additional functionality would be implemented here
 });
 

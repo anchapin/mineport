@@ -2,7 +2,7 @@
 
 /**
  * CI/CD Pipeline Failure Scenario Testing
- * 
+ *
  * This script tests various failure scenarios and recovery mechanisms
  * in the enhanced GitHub Actions CI/CD pipeline.
  */
@@ -35,9 +35,9 @@ class FailureScenarioTester {
             await this.testDeploymentFailureScenarios();
             await this.testSecurityFailureScenarios();
             await this.testRecoveryMechanisms();
-            
+
             await this.generateFailureTestReport();
-            
+
             console.log('\n✅ Failure scenario testing completed!');
             return this.testResults;
         } catch (error) {
@@ -51,7 +51,7 @@ class FailureScenarioTester {
      */
     async testBuildFailureScenarios() {
         console.log('🔨 Testing build failure scenarios...');
-        
+
         const buildFailureTests = [
             {
                 name: 'Syntax Error Handling',
@@ -106,10 +106,10 @@ class FailureScenarioTester {
                 return "missing semicolon and brace"
             // Missing closing brace
         `;
-        
+
         try {
             fs.writeFileSync(tempFile, syntaxErrorContent);
-            
+
             // Try to compile the file
             try {
                 execSync(`npx tsc ${tempFile} --noEmit`, { stdio: 'pipe' });
@@ -139,11 +139,11 @@ class FailureScenarioTester {
         // Simulate dependency failure by checking package.json validation
         const packageJsonPath = 'package.json';
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-        
+
         // Check for potential dependency conflicts
         const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
         const potentialConflicts = this.findPotentialDependencyConflicts(dependencies);
-        
+
         return {
             dependenciesChecked: Object.keys(dependencies).length,
             potentialConflicts: potentialConflicts.length,
@@ -158,7 +158,7 @@ class FailureScenarioTester {
     findPotentialDependencyConflicts(dependencies) {
         const conflicts = [];
         const dependencyNames = Object.keys(dependencies);
-        
+
         // Check for common conflicting packages
         const conflictPairs = [
             ['jest', 'vitest'],
@@ -166,7 +166,7 @@ class FailureScenarioTester {
             ['babel', 'swc'],
             ['eslint', 'tslint']
         ];
-        
+
         for (const [pkg1, pkg2] of conflictPairs) {
             if (dependencyNames.includes(pkg1) && dependencyNames.includes(pkg2)) {
                 conflicts.push({
@@ -176,7 +176,7 @@ class FailureScenarioTester {
                 });
             }
         }
-        
+
         return conflicts;
     }
 
@@ -192,18 +192,18 @@ class FailureScenarioTester {
                 name: string;
                 age: number;
             }
-            
+
             const testObject: TestInterface = {
                 name: "test",
                 age: "not a number" // Type error
             };
-            
+
             export { testObject };
         `;
-        
+
         try {
             fs.writeFileSync(tempFile, typeErrorContent);
-            
+
             try {
                 execSync(`npx tsc ${tempFile} --noEmit --strict`, { stdio: 'pipe' });
                 return {
@@ -230,18 +230,18 @@ class FailureScenarioTester {
     async testBuildTimeout() {
         // Simulate timeout by checking workflow configuration
         const ciWorkflow = '.github/workflows/ci-enhanced.yml';
-        
+
         if (!fs.existsSync(ciWorkflow)) {
             return {
                 timeoutConfigured: false,
                 message: 'CI workflow not found'
             };
         }
-        
+
         const workflowContent = fs.readFileSync(ciWorkflow, 'utf8');
-        const hasTimeout = workflowContent.includes('timeout-minutes') || 
+        const hasTimeout = workflowContent.includes('timeout-minutes') ||
                           workflowContent.includes('timeout:');
-        
+
         return {
             timeoutConfigured: hasTimeout,
             timeoutHandling: hasTimeout ? 'CONFIGURED' : 'NOT_CONFIGURED',
@@ -256,14 +256,14 @@ class FailureScenarioTester {
         // Check for memory optimization configurations
         const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
         const buildScript = packageJson.scripts?.build || '';
-        
+
         const hasMemoryOptimization = buildScript.includes('--max-old-space-size') ||
                                      buildScript.includes('NODE_OPTIONS');
-        
+
         return {
             memoryOptimizationConfigured: hasMemoryOptimization,
             buildScript,
-            recommendation: hasMemoryOptimization 
+            recommendation: hasMemoryOptimization
                 ? 'Memory optimization is configured'
                 : 'Consider adding Node.js memory optimization flags'
         };
@@ -274,7 +274,7 @@ class FailureScenarioTester {
      */
     async testTestFailureScenarios() {
         console.log('\n🧪 Testing test failure scenarios...');
-        
+
         const testFailureTests = [
             {
                 name: 'Unit Test Failure Handling',
@@ -325,21 +325,21 @@ class FailureScenarioTester {
         const tempTestFile = 'temp-failing-test.test.ts';
         const failingTestContent = `
             import { describe, it, expect } from 'vitest';
-            
+
             describe('Intentional Failure Test', () => {
                 it('should fail intentionally', () => {
                     expect(true).toBe(false); // Intentional failure
                 });
-                
+
                 it('should pass', () => {
                     expect(true).toBe(true);
                 });
             });
         `;
-        
+
         try {
             fs.writeFileSync(tempTestFile, failingTestContent);
-            
+
             try {
                 execSync(`npx vitest run ${tempTestFile}`, { stdio: 'pipe' });
                 return {
@@ -367,17 +367,17 @@ class FailureScenarioTester {
     async testIntegrationTestFailures() {
         // Check if integration tests exist and have proper error handling
         const integrationTestDir = 'tests/integration';
-        
+
         if (!fs.existsSync(integrationTestDir)) {
             return {
                 integrationTestsExist: false,
                 message: 'Integration test directory not found'
             };
         }
-        
+
         const testFiles = fs.readdirSync(integrationTestDir)
             .filter(file => file.endsWith('.test.ts') || file.endsWith('.test.js'));
-        
+
         return {
             integrationTestsExist: true,
             testFileCount: testFiles.length,
@@ -392,18 +392,18 @@ class FailureScenarioTester {
     async testTestTimeouts() {
         // Check vitest configuration for timeout settings
         const vitestConfig = 'vitest.config.ts';
-        
+
         if (!fs.existsSync(vitestConfig)) {
             return {
                 timeoutConfigured: false,
                 message: 'Vitest configuration not found'
             };
         }
-        
+
         const configContent = fs.readFileSync(vitestConfig, 'utf8');
-        const hasTimeout = configContent.includes('testTimeout') || 
+        const hasTimeout = configContent.includes('testTimeout') ||
                           configContent.includes('timeout');
-        
+
         return {
             timeoutConfigured: hasTimeout,
             configFile: vitestConfig,
@@ -417,20 +417,20 @@ class FailureScenarioTester {
     async testFlakyTestDetection() {
         // Check for retry configuration in test setup
         const vitestConfig = 'vitest.config.ts';
-        
+
         if (fs.existsSync(vitestConfig)) {
             const configContent = fs.readFileSync(vitestConfig, 'utf8');
-            const hasRetry = configContent.includes('retry') || 
+            const hasRetry = configContent.includes('retry') ||
                             configContent.includes('retries');
-            
+
             return {
                 flakyTestHandling: hasRetry ? 'RETRY_CONFIGURED' : 'NO_RETRY',
-                recommendation: hasRetry 
+                recommendation: hasRetry
                     ? 'Retry mechanism is configured for flaky tests'
                     : 'Consider adding retry configuration for flaky test handling'
             };
         }
-        
+
         return {
             flakyTestHandling: 'NOT_CONFIGURED',
             message: 'No test configuration found'
@@ -443,23 +443,23 @@ class FailureScenarioTester {
     async testCoverageFailures() {
         // Check for coverage configuration
         const vitestConfig = 'vitest.config.ts';
-        
+
         if (fs.existsSync(vitestConfig)) {
             const configContent = fs.readFileSync(vitestConfig, 'utf8');
-            const hasCoverageThreshold = configContent.includes('coverage') && 
-                                        (configContent.includes('threshold') || 
+            const hasCoverageThreshold = configContent.includes('coverage') &&
+                                        (configContent.includes('threshold') ||
                                          configContent.includes('lines') ||
                                          configContent.includes('functions'));
-            
+
             return {
                 coverageThresholdConfigured: hasCoverageThreshold,
                 thresholdHandling: hasCoverageThreshold ? 'CONFIGURED' : 'NOT_CONFIGURED',
-                recommendation: hasCoverageThreshold 
+                recommendation: hasCoverageThreshold
                     ? 'Coverage thresholds are configured'
                     : 'Consider adding coverage threshold configuration'
             };
         }
-        
+
         return {
             coverageThresholdConfigured: false,
             message: 'No test configuration found'
@@ -471,7 +471,7 @@ class FailureScenarioTester {
      */
     async testDeploymentFailureScenarios() {
         console.log('\n🚀 Testing deployment failure scenarios...');
-        
+
         const deploymentFailureTests = [
             {
                 name: 'Health Check Failure',
@@ -520,18 +520,18 @@ class FailureScenarioTester {
     async testHealthCheckFailures() {
         // Check if health check endpoints are implemented
         const healthServicePath = 'src/api/health.ts';
-        
+
         if (!fs.existsSync(healthServicePath)) {
             return {
                 healthCheckImplemented: false,
                 message: 'Health check service not found'
             };
         }
-        
+
         const healthContent = fs.readFileSync(healthServicePath, 'utf8');
-        const hasErrorHandling = healthContent.includes('try') && 
+        const hasErrorHandling = healthContent.includes('try') &&
                                 healthContent.includes('catch');
-        
+
         return {
             healthCheckImplemented: true,
             errorHandlingImplemented: hasErrorHandling,
@@ -544,18 +544,18 @@ class FailureScenarioTester {
      */
     async testRollbackMechanism() {
         const rollbackScript = 'scripts/rollback-deployment.sh';
-        
+
         if (!fs.existsSync(rollbackScript)) {
             return {
                 rollbackScriptExists: false,
                 message: 'Rollback script not found'
             };
         }
-        
+
         // Check script permissions and basic syntax
         const stats = fs.statSync(rollbackScript);
         const isExecutable = !!(stats.mode & parseInt('111', 8));
-        
+
         try {
             execSync(`bash -n ${rollbackScript}`, { stdio: 'pipe' });
             return {
@@ -583,9 +583,9 @@ class FailureScenarioTester {
             'config/production.ts',
             'config/deployment.json'
         ];
-        
+
         const configStatus = {};
-        
+
         for (const configFile of configFiles) {
             if (fs.existsSync(configFile)) {
                 try {
@@ -600,10 +600,10 @@ class FailureScenarioTester {
                 configStatus[configFile] = 'MISSING';
             }
         }
-        
+
         return {
             configurationFiles: configStatus,
-            overallStatus: Object.values(configStatus).every(status => status === 'VALID') 
+            overallStatus: Object.values(configStatus).every(status => status === 'VALID')
                 ? 'ALL_VALID' : 'NEEDS_ATTENTION'
         };
     }
@@ -614,22 +614,22 @@ class FailureScenarioTester {
     async testMigrationFailures() {
         const migrationScript = 'scripts/run-migrations.js';
         const migrationDir = 'src/database/migrations';
-        
+
         const migrationStatus = {
             scriptExists: fs.existsSync(migrationScript),
             migrationDirExists: fs.existsSync(migrationDir),
             migrationFiles: []
         };
-        
+
         if (migrationStatus.migrationDirExists) {
             migrationStatus.migrationFiles = fs.readdirSync(migrationDir)
                 .filter(file => file.endsWith('.sql'));
         }
-        
+
         return {
             ...migrationStatus,
-            migrationCapability: migrationStatus.scriptExists && 
-                                migrationStatus.migrationDirExists 
+            migrationCapability: migrationStatus.scriptExists &&
+                                migrationStatus.migrationDirExists
                 ? 'CONFIGURED' : 'INCOMPLETE'
         };
     }
@@ -640,18 +640,18 @@ class FailureScenarioTester {
     async testServiceDependencyFailures() {
         // Check for service dependency configuration
         const monitoringConfig = 'config/monitoring.json';
-        
+
         if (!fs.existsSync(monitoringConfig)) {
             return {
                 dependencyMonitoring: false,
                 message: 'Monitoring configuration not found'
             };
         }
-        
+
         try {
             const config = JSON.parse(fs.readFileSync(monitoringConfig, 'utf8'));
             const hasHealthChecks = config.healthChecks || config.dependencies;
-            
+
             return {
                 dependencyMonitoring: true,
                 healthChecksConfigured: !!hasHealthChecks,
@@ -670,7 +670,7 @@ class FailureScenarioTester {
      */
     async testSecurityFailureScenarios() {
         console.log('\n🔒 Testing security failure scenarios...');
-        
+
         const securityFailureTests = [
             {
                 name: 'Vulnerability Detection',
@@ -714,19 +714,19 @@ class FailureScenarioTester {
      */
     async testVulnerabilityDetection() {
         const securityWorkflow = '.github/workflows/security.yml';
-        
+
         if (!fs.existsSync(securityWorkflow)) {
             return {
                 securityWorkflowExists: false,
                 message: 'Security workflow not found'
             };
         }
-        
+
         const workflowContent = fs.readFileSync(securityWorkflow, 'utf8');
-        const hasVulnerabilityScanning = workflowContent.includes('snyk') || 
+        const hasVulnerabilityScanning = workflowContent.includes('snyk') ||
                                         workflowContent.includes('codeql') ||
                                         workflowContent.includes('security');
-        
+
         return {
             securityWorkflowExists: true,
             vulnerabilityScanningConfigured: hasVulnerabilityScanning,
@@ -739,18 +739,18 @@ class FailureScenarioTester {
      */
     async testSecretLeakPrevention() {
         const gitleaksConfig = '.gitleaks.toml';
-        
+
         if (!fs.existsSync(gitleaksConfig)) {
             return {
                 secretScanningConfigured: false,
                 message: 'GitLeaks configuration not found'
             };
         }
-        
+
         const configContent = fs.readFileSync(gitleaksConfig, 'utf8');
-        const hasCustomRules = configContent.includes('[[rules]]') || 
+        const hasCustomRules = configContent.includes('[[rules]]') ||
                               configContent.includes('regex');
-        
+
         return {
             secretScanningConfigured: true,
             customRulesConfigured: hasCustomRules,
@@ -763,18 +763,18 @@ class FailureScenarioTester {
      */
     async testSecurityScanFailures() {
         const securityWorkflow = '.github/workflows/security.yml';
-        
+
         if (fs.existsSync(securityWorkflow)) {
             const workflowContent = fs.readFileSync(securityWorkflow, 'utf8');
             const hasFailureHandling = workflowContent.includes('continue-on-error') ||
                                       workflowContent.includes('if: failure()');
-            
+
             return {
                 failureHandlingConfigured: hasFailureHandling,
                 securityFailureHandling: hasFailureHandling ? 'CONFIGURED' : 'BASIC'
             };
         }
-        
+
         return {
             failureHandlingConfigured: false,
             message: 'Security workflow not found'
@@ -786,14 +786,14 @@ class FailureScenarioTester {
      */
     async testComplianceViolations() {
         const complianceWorkflow = '.github/workflows/compliance-reporting.yml';
-        
+
         if (!fs.existsSync(complianceWorkflow)) {
             return {
                 complianceWorkflowExists: false,
                 message: 'Compliance workflow not found'
             };
         }
-        
+
         return {
             complianceWorkflowExists: true,
             complianceHandling: 'CONFIGURED'
@@ -805,7 +805,7 @@ class FailureScenarioTester {
      */
     async testRecoveryMechanisms() {
         console.log('\n🔄 Testing recovery mechanisms...');
-        
+
         const recoveryTests = [
             {
                 name: 'Automatic Retry Logic',
@@ -853,9 +853,9 @@ class FailureScenarioTester {
             '.github/workflows/ci-enhanced.yml',
             '.github/workflows/deploy.yml'
         ];
-        
+
         const retryConfigurations = {};
-        
+
         for (const workflow of workflowFiles) {
             if (fs.existsSync(workflow)) {
                 const content = fs.readFileSync(workflow, 'utf8');
@@ -865,7 +865,7 @@ class FailureScenarioTester {
                 };
             }
         }
-        
+
         return {
             retryConfigurations,
             overallRetryCapability: Object.values(retryConfigurations)
@@ -882,21 +882,21 @@ class FailureScenarioTester {
             'src/services/ErrorRecoveryService.ts',
             'src/services/MonitoringService.ts'
         ];
-        
+
         const circuitBreakerImplementation = {};
-        
+
         for (const serviceFile of serviceFiles) {
             if (fs.existsSync(serviceFile)) {
                 const content = fs.readFileSync(serviceFile, 'utf8');
                 circuitBreakerImplementation[serviceFile] = {
-                    hasCircuitBreaker: content.includes('circuit') || 
+                    hasCircuitBreaker: content.includes('circuit') ||
                                       content.includes('breaker') ||
                                       content.includes('threshold'),
                     hasErrorTracking: content.includes('error') && content.includes('count')
                 };
             }
         }
-        
+
         return {
             circuitBreakerImplementation,
             circuitBreakerCapability: Object.values(circuitBreakerImplementation)
@@ -913,21 +913,21 @@ class FailureScenarioTester {
             'src/services/ErrorRecoveryService.ts',
             'src/utils/errorHandler.ts'
         ];
-        
+
         const degradationCapabilities = {};
-        
+
         for (const file of errorHandlingFiles) {
             if (fs.existsSync(file)) {
                 const content = fs.readFileSync(file, 'utf8');
                 degradationCapabilities[file] = {
-                    hasGracefulHandling: content.includes('graceful') || 
+                    hasGracefulHandling: content.includes('graceful') ||
                                         content.includes('fallback') ||
                                         content.includes('default'),
                     hasErrorRecovery: content.includes('recover') || content.includes('retry')
                 };
             }
         }
-        
+
         return {
             degradationCapabilities,
             gracefulDegradationCapability: Object.values(degradationCapabilities)
@@ -941,23 +941,23 @@ class FailureScenarioTester {
     async testNotificationSystem() {
         const alertingService = 'src/services/AlertingService.ts';
         const alertingWorkflow = '.github/workflows/alerting-system.yml';
-        
+
         const notificationCapabilities = {
             serviceImplemented: fs.existsSync(alertingService),
             workflowConfigured: fs.existsSync(alertingWorkflow)
         };
-        
+
         if (notificationCapabilities.serviceImplemented) {
             const serviceContent = fs.readFileSync(alertingService, 'utf8');
-            notificationCapabilities.hasMultipleChannels = serviceContent.includes('slack') || 
+            notificationCapabilities.hasMultipleChannels = serviceContent.includes('slack') ||
                                                            serviceContent.includes('email') ||
                                                            serviceContent.includes('webhook');
         }
-        
+
         return {
             ...notificationCapabilities,
-            notificationCapability: (notificationCapabilities.serviceImplemented && 
-                                   notificationCapabilities.workflowConfigured) 
+            notificationCapability: (notificationCapabilities.serviceImplemented &&
+                                   notificationCapabilities.workflowConfigured)
                 ? 'FULLY_CONFIGURED' : 'PARTIALLY_CONFIGURED'
         };
     }
@@ -967,7 +967,7 @@ class FailureScenarioTester {
      */
     evaluateFailureHandling(result) {
         if (!result) return 'UNKNOWN';
-        
+
         // Check for key indicators of good failure handling
         const goodIndicators = [
             result.errorDetected,
@@ -977,7 +977,7 @@ class FailureScenarioTester {
             result.timeoutConfigured,
             result.failureHandlingConfigured
         ].filter(Boolean).length;
-        
+
         if (goodIndicators >= 3) return 'EXCELLENT';
         if (goodIndicators >= 2) return 'GOOD';
         if (goodIndicators >= 1) return 'BASIC';
@@ -989,14 +989,14 @@ class FailureScenarioTester {
      */
     evaluateRecoveryEffectiveness(result) {
         if (!result) return 'UNKNOWN';
-        
+
         const effectivenessIndicators = [
             result.overallRetryCapability === 'CONFIGURED',
             result.circuitBreakerCapability === 'IMPLEMENTED',
             result.gracefulDegradationCapability === 'IMPLEMENTED',
             result.notificationCapability === 'FULLY_CONFIGURED'
         ].filter(Boolean).length;
-        
+
         if (effectivenessIndicators >= 3) return 'HIGHLY_EFFECTIVE';
         if (effectivenessIndicators >= 2) return 'EFFECTIVE';
         if (effectivenessIndicators >= 1) return 'MODERATELY_EFFECTIVE';
@@ -1008,20 +1008,20 @@ class FailureScenarioTester {
      */
     async generateFailureTestReport() {
         console.log('\n📄 Generating failure test report...');
-        
+
         const report = {
             timestamp: new Date().toISOString(),
             summary: this.generateFailureTestSummary(),
             testResults: this.testResults,
             recommendations: this.generateFailureHandlingRecommendations()
         };
-        
+
         // Write report to file
         const reportPath = 'failure-scenario-test-report.json';
         fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-        
+
         console.log(`  ✅ Failure test report generated: ${reportPath}`);
-        
+
         // Print summary
         this.printFailureTestSummary(report.summary);
     }
@@ -1036,15 +1036,15 @@ class FailureScenarioTester {
             ...Object.values(this.testResults.deploymentFailures),
             ...Object.values(this.testResults.securityFailures)
         ];
-        
+
         const testedCount = allTests.filter(test => test.status === 'TESTED').length;
         const failedCount = allTests.filter(test => test.status === 'FAILED').length;
-        
+
         const recoveryTests = Object.values(this.testResults.recoveryMechanisms);
-        const effectiveRecovery = recoveryTests.filter(test => 
+        const effectiveRecovery = recoveryTests.filter(test =>
             test.effectiveness === 'HIGHLY_EFFECTIVE' || test.effectiveness === 'EFFECTIVE'
         ).length;
-        
+
         return {
             totalTests: allTests.length,
             testedSuccessfully: testedCount,
@@ -1060,7 +1060,7 @@ class FailureScenarioTester {
      */
     calculateOverallFailureHandling(testedCount, totalCount) {
         const successRate = totalCount > 0 ? testedCount / totalCount : 0;
-        
+
         if (successRate >= 0.9) return 'EXCELLENT';
         if (successRate >= 0.7) return 'GOOD';
         if (successRate >= 0.5) return 'MODERATE';
@@ -1072,7 +1072,7 @@ class FailureScenarioTester {
      */
     calculateRecoveryEffectiveness(effectiveCount, totalCount) {
         const effectivenessRate = totalCount > 0 ? effectiveCount / totalCount : 0;
-        
+
         if (effectivenessRate >= 0.8) return 'HIGHLY_EFFECTIVE';
         if (effectivenessRate >= 0.6) return 'EFFECTIVE';
         if (effectivenessRate >= 0.4) return 'MODERATELY_EFFECTIVE';
@@ -1084,13 +1084,13 @@ class FailureScenarioTester {
      */
     generateFailureHandlingRecommendations() {
         const recommendations = [];
-        
+
         // Build failure recommendations
         const buildFailures = Object.values(this.testResults.buildFailures);
-        const poorBuildHandling = buildFailures.filter(test => 
+        const poorBuildHandling = buildFailures.filter(test =>
             test.handlingQuality === 'POOR' || test.handlingQuality === 'BASIC'
         );
-        
+
         if (poorBuildHandling.length > 0) {
             recommendations.push({
                 category: 'Build Failure Handling',
@@ -1099,13 +1099,13 @@ class FailureScenarioTester {
                 details: 'Add better error reporting, timeout handling, and retry logic'
             });
         }
-        
+
         // Recovery mechanism recommendations
         const recoveryMechanisms = Object.values(this.testResults.recoveryMechanisms);
         const ineffectiveRecovery = recoveryMechanisms.filter(test =>
             test.effectiveness === 'INEFFECTIVE' || test.effectiveness === 'MODERATELY_EFFECTIVE'
         );
-        
+
         if (ineffectiveRecovery.length > 0) {
             recommendations.push({
                 category: 'Recovery Mechanisms',
@@ -1114,7 +1114,7 @@ class FailureScenarioTester {
                 details: 'Implement circuit breakers, improve retry logic, and add graceful degradation'
             });
         }
-        
+
         return recommendations;
     }
 
@@ -1125,13 +1125,13 @@ class FailureScenarioTester {
         console.log('\n' + '='.repeat(60));
         console.log('🔥 FAILURE SCENARIO TEST SUMMARY');
         console.log('='.repeat(60));
-        
+
         console.log(`Total Tests: ${summary.totalTests}`);
         console.log(`Successfully Tested: ${summary.testedSuccessfully}`);
         console.log(`Failed Tests: ${summary.testsFailed}`);
         console.log(`Overall Failure Handling: ${summary.overallFailureHandling}`);
         console.log(`Recovery Effectiveness: ${summary.recoveryEffectiveness}`);
-        
+
         if (summary.overallFailureHandling === 'EXCELLENT') {
             console.log('\n🎉 EXCELLENT FAILURE HANDLING - Pipeline is resilient!');
         } else if (summary.overallFailureHandling === 'GOOD') {
@@ -1139,7 +1139,7 @@ class FailureScenarioTester {
         } else {
             console.log('\n⚠️  FAILURE HANDLING NEEDS IMPROVEMENT - Review recommendations');
         }
-        
+
         console.log('='.repeat(60));
     }
 }
@@ -1147,7 +1147,7 @@ class FailureScenarioTester {
 // Main execution
 if (require.main === module) {
     const tester = new FailureScenarioTester();
-    
+
     tester.runFailureTests()
         .then(() => {
             process.exit(0);

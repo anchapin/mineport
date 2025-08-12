@@ -18,14 +18,14 @@ describe('JavaParser', () => {
     it('should parse a simple Java class', () => {
       const source = `
         package com.example;
-        
+
         public class SimpleClass {
           private String name;
-          
+
           public SimpleClass(String name) {
             this.name = name;
           }
-          
+
           public String getName() {
             return name;
           }
@@ -43,10 +43,10 @@ describe('JavaParser', () => {
     it('should handle syntax errors in Java code', () => {
       const source = `
         package com.example;
-        
+
         public class BrokenClass {
           private String name
-          
+
           public BrokenClass(String name) {
             this.name = name;
           }
@@ -71,13 +71,13 @@ describe('JavaParser', () => {
 
       const source = `
         package com.example;
-        
+
         public interface ModernInterface {
           private void privateMethod() {
             // This is a Java 9 feature
             System.out.println("Private interface method");
           }
-          
+
           void publicMethod();
         }
       `;
@@ -97,10 +97,10 @@ describe('JavaParser', () => {
 
       const source = `
         package com.example;
-        
+
         public interface SimpleInterface {
           void publicMethod();
-          
+
           default void defaultMethod() {
             // Default methods are supported in Java 8
             System.out.println("Default method");

@@ -121,7 +121,7 @@ describe('Logic Translation Engine Integration', () => {
       const javaCode = `
         public class MethodCalls {
           private String name;
-          
+
           public void initialize() {
             name = "test";
             world.setBlock(pos, Blocks.STONE);
@@ -144,7 +144,7 @@ describe('Logic Translation Engine Integration', () => {
           public void simpleMethod() {
             System.out.println("simple");
           }
-          
+
           public void complexMethod() {
             if (condition) {
               for (int i = 0; i < 10; i++) {
@@ -318,7 +318,7 @@ describe('Logic Translation Engine Integration', () => {
       const largeJavaCode = `
         public class LargeClass {
           private String[] items = new String[100];
-          
+
           ${Array.from(
             { length: 10 },
             (_, i) => `

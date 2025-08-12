@@ -21,10 +21,10 @@ try {
   // Generate report
   generateBenchmarkReport(historyPath, reportPath);
   console.log(`Benchmark report generated at ${reportPath}`);
-  
+
   // Check for regressions
   const regressions = detectRegressions(historyPath);
-  
+
   if (regressions.length > 0) {
     console.log('\nPerformance regressions detected:');
     regressions.forEach(regression => {

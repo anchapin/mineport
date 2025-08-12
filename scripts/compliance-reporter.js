@@ -40,22 +40,22 @@ class ComplianceReporter {
   async generateComplianceReport(period = 'monthly', standards = this.standards) {
     const reportId = this.generateReportId(period);
     const { startDate, endDate } = this.getReportPeriod(period);
-    
+
     console.log(`Generating compliance report ${reportId} for period ${startDate} to ${endDate}`);
-    
+
     try {
       // Collect audit data
       const auditData = await this.collectAuditData(startDate, endDate);
-      
+
       // Collect security scan history
       const securityData = await this.collectSecurityScanHistory(startDate, endDate);
-      
+
       // Generate compliance assessments for each standard
       const complianceAssessments = {};
       for (const standard of standards) {
         complianceAssessments[standard] = await this.assessCompliance(standard, auditData, securityData);
       }
-      
+
       // Create comprehensive report
       const report = {
         id: reportId,
@@ -70,16 +70,16 @@ class ComplianceReporter {
         evidence: this.collectEvidence(auditData, securityData),
         attestations: this.generateAttestations(complianceAssessments)
       };
-      
+
       // Save report
       await this.saveReport(report);
-      
+
       // Generate formatted outputs
       await this.generateFormattedReports(report);
-      
+
       console.log(`Compliance report generated successfully: ${reportId}`);
       return report;
-      
+
     } catch (error) {
       console.error('Failed to generate compliance report:', error);
       throw error;
@@ -91,7 +91,7 @@ class ComplianceReporter {
    */
   async trackSecurityScanResult(scanResult) {
     const historyFile = path.join(this.complianceDir, 'security-scan-history.jsonl');
-    
+
     const historyEntry = {
       timestamp: new Date().toISOString(),
       scan_id: scanResult.id || this.generateId(),
@@ -106,12 +106,12 @@ class ComplianceReporter {
       commit: process.env.GITHUB_SHA,
       workflow_run: process.env.GITHUB_RUN_ID
     };
-    
+
     await fs.appendFile(historyFile, JSON.stringify(historyEntry) + '\n');
-    
+
     // Update security metrics
     await this.updateSecurityMetrics(historyEntry);
-    
+
     console.log(`Security scan result tracked: ${historyEntry.scan_id}`);
   }
 
@@ -128,7 +128,7 @@ class ComplianceReporter {
       trending_metrics: {},
       action_items: []
     };
-    
+
     // Calculate compliance for each standard
     let totalScore = 0;
     for (const standard of this.standards) {
@@ -141,27 +141,27 @@ class ComplianceReporter {
         critical_issues: assessment.violations.filter(v => v.severity === 'critical').length
       };
       totalScore += assessment.score;
-      
+
       if (assessment.status !== 'compliant') {
         dashboard.overall_status = 'non-compliant';
       }
     }
-    
+
     dashboard.compliance_score = Math.round(totalScore / this.standards.length);
-    
+
     // Get recent violations
     dashboard.recent_violations = await this.getRecentViolations(30); // Last 30 days
-    
+
     // Calculate trending metrics
     dashboard.trending_metrics = await this.calculateTrendingMetrics();
-    
+
     // Generate action items
     dashboard.action_items = await this.generateActionItems();
-    
+
     // Save dashboard
     const dashboardFile = path.join(this.complianceDir, 'compliance-dashboard.json');
     await fs.writeFile(dashboardFile, JSON.stringify(dashboard, null, 2));
-    
+
     return dashboard;
   }
 
@@ -179,7 +179,7 @@ class ComplianceReporter {
       evidence: [],
       recommendations: []
     };
-    
+
     switch (standard) {
       case 'SOC2':
         return await this.assessSOC2Compliance(assessment, auditData, securityData);
@@ -210,9 +210,9 @@ class ComplianceReporter {
       'CC8.1': { name: 'Change Management', status: 'compliant', evidence: [] },
       'CC9.1': { name: 'Risk Mitigation', status: 'compliant', evidence: [] }
     };
-    
+
     // Check access controls (CC6.1)
-    const unauthorizedAccess = auditData.entries.filter(entry => 
+    const unauthorizedAccess = auditData.entries.filter(entry =>
       entry.status === 'failed' && entry.operation.includes('access')
     );
     if (unauthorizedAccess.length > 0) {
@@ -224,9 +224,9 @@ class ComplianceReporter {
         evidence: unauthorizedAccess.slice(0, 5)
       });
     }
-    
+
     // Check change management (CC8.1)
-    const unauditedChanges = auditData.entries.filter(entry => 
+    const unauditedChanges = auditData.entries.filter(entry =>
       entry.operation === 'deployment' && !entry.metadata.approval_required
     );
     if (unauditedChanges.length > 0) {
@@ -238,7 +238,7 @@ class ComplianceReporter {
         evidence: unauditedChanges.slice(0, 5)
       });
     }
-    
+
     // Check monitoring (CC4.1)
     const monitoringGaps = this.findMonitoringGaps(auditData);
     if (monitoringGaps.length > 0) {
@@ -250,9 +250,9 @@ class ComplianceReporter {
         evidence: monitoringGaps
       });
     }
-    
+
     // Check security controls
-    const criticalVulnerabilities = securityData.filter(scan => 
+    const criticalVulnerabilities = securityData.filter(scan =>
       scan.severity_breakdown.critical > 0
     );
     if (criticalVulnerabilities.length > 0) {
@@ -264,11 +264,11 @@ class ComplianceReporter {
         evidence: criticalVulnerabilities.slice(0, 5)
       });
     }
-    
+
     assessment.controls = controls;
     assessment.status = assessment.violations.some(v => v.severity === 'critical') ? 'non-compliant' : 'compliant';
     assessment.score = this.calculateComplianceScore(controls, assessment.violations);
-    
+
     return assessment;
   }
 
@@ -286,9 +286,9 @@ class ComplianceReporter {
       'A.14.2.1': { name: 'Secure Development Policy', status: 'compliant', evidence: [] },
       'A.16.1.1': { name: 'Incident Management', status: 'compliant', evidence: [] }
     };
-    
+
     // Check vulnerability management (A.12.6.1)
-    const unremediatedVulns = securityData.filter(scan => 
+    const unremediatedVulns = securityData.filter(scan =>
       scan.vulnerabilities.some(v => v.severity === 'high' || v.severity === 'critical')
     );
     if (unremediatedVulns.length > 0) {
@@ -300,9 +300,9 @@ class ComplianceReporter {
         evidence: unremediatedVulns.slice(0, 5)
       });
     }
-    
+
     // Check secure development (A.14.2.1)
-    const securityTestFailures = auditData.entries.filter(entry => 
+    const securityTestFailures = auditData.entries.filter(entry =>
       entry.operation === 'security_scan' && entry.status === 'failed'
     );
     if (securityTestFailures.length > 0) {
@@ -314,9 +314,9 @@ class ComplianceReporter {
         evidence: securityTestFailures.slice(0, 5)
       });
     }
-    
+
     // Check incident management (A.16.1.1)
-    const unhandledIncidents = auditData.entries.filter(entry => 
+    const unhandledIncidents = auditData.entries.filter(entry =>
       entry.status === 'failed' && !entry.metadata.incident_created
     );
     if (unhandledIncidents.length > 5) { // Threshold for concern
@@ -328,11 +328,11 @@ class ComplianceReporter {
         evidence: unhandledIncidents.slice(0, 5)
       });
     }
-    
+
     assessment.controls = controls;
     assessment.status = assessment.violations.some(v => v.severity === 'critical') ? 'non-compliant' : 'compliant';
     assessment.score = this.calculateComplianceScore(controls, assessment.violations);
-    
+
     return assessment;
   }
 
@@ -347,9 +347,9 @@ class ComplianceReporter {
       'Art.33': { name: 'Breach Notification', status: 'compliant', evidence: [] },
       'Art.35': { name: 'Data Protection Impact Assessment', status: 'compliant', evidence: [] }
     };
-    
+
     // Check data processing records (Art.30)
-    const dataProcessingOps = auditData.entries.filter(entry => 
+    const dataProcessingOps = auditData.entries.filter(entry =>
       entry.metadata.processes_personal_data === true
     );
     if (dataProcessingOps.length > 0) {
@@ -364,9 +364,9 @@ class ComplianceReporter {
         });
       }
     }
-    
+
     // Check security measures (Art.32)
-    const securityIncidents = securityData.filter(scan => 
+    const securityIncidents = securityData.filter(scan =>
       scan.vulnerabilities.some(v => v.affects_personal_data)
     );
     if (securityIncidents.length > 0) {
@@ -378,11 +378,11 @@ class ComplianceReporter {
         evidence: securityIncidents.slice(0, 5)
       });
     }
-    
+
     assessment.controls = controls;
     assessment.status = assessment.violations.some(v => v.severity === 'critical') ? 'non-compliant' : 'compliant';
     assessment.score = this.calculateComplianceScore(controls, assessment.violations);
-    
+
     return assessment;
   }
 
@@ -396,9 +396,9 @@ class ComplianceReporter {
       '164.312': { name: 'Technical Safeguards', status: 'compliant', evidence: [] },
       '164.314': { name: 'Organizational Requirements', status: 'compliant', evidence: [] }
     };
-    
+
     // Check access controls (164.312)
-    const accessViolations = auditData.entries.filter(entry => 
+    const accessViolations = auditData.entries.filter(entry =>
       entry.operation.includes('access') && entry.status === 'failed'
     );
     if (accessViolations.length > 0) {
@@ -410,7 +410,7 @@ class ComplianceReporter {
         evidence: accessViolations.slice(0, 5)
       });
     }
-    
+
     // Check audit controls (164.312)
     const auditGaps = this.findAuditGaps(auditData);
     if (auditGaps.length > 0) {
@@ -422,11 +422,11 @@ class ComplianceReporter {
         evidence: auditGaps
       });
     }
-    
+
     assessment.controls = controls;
     assessment.status = assessment.violations.some(v => v.severity === 'critical') ? 'non-compliant' : 'compliant';
     assessment.score = this.calculateComplianceScore(controls, assessment.violations);
-    
+
     return assessment;
   }
 
@@ -440,7 +440,7 @@ class ComplianceReporter {
       endDate,
       limit: 10000
     });
-    
+
     return {
       ...auditReport,
       entries: detailedEntries
@@ -453,11 +453,11 @@ class ComplianceReporter {
   async collectSecurityScanHistory(startDate, endDate) {
     const historyFile = path.join(this.complianceDir, 'security-scan-history.jsonl');
     const history = [];
-    
+
     try {
       const data = await fs.readFile(historyFile, 'utf8');
       const lines = data.trim().split('\n');
-      
+
       for (const line of lines) {
         if (line.trim()) {
           const entry = JSON.parse(line);
@@ -469,7 +469,7 @@ class ComplianceReporter {
     } catch (error) {
       console.warn('No security scan history found:', error.message);
     }
-    
+
     return history;
   }
 
@@ -481,29 +481,29 @@ class ComplianceReporter {
       total_operations: auditData.total_operations,
       failed_operations: auditData.failed_operations,
       security_scans: securityData.length,
-      critical_vulnerabilities: securityData.reduce((sum, scan) => 
+      critical_vulnerabilities: securityData.reduce((sum, scan) =>
         sum + (scan.severity_breakdown.critical || 0), 0),
       compliance_status: 'compliant',
       overall_score: 0,
       standards_assessed: Object.keys(complianceAssessments).length,
       violations_found: 0
     };
-    
+
     let totalScore = 0;
     let totalViolations = 0;
-    
+
     for (const [standard, assessment] of Object.entries(complianceAssessments)) {
       totalScore += assessment.score;
       totalViolations += assessment.violations.length;
-      
+
       if (assessment.status !== 'compliant') {
         summary.compliance_status = 'non-compliant';
       }
     }
-    
+
     summary.overall_score = Math.round(totalScore / summary.standards_assessed);
     summary.violations_found = totalViolations;
-    
+
     return summary;
   }
 
@@ -534,22 +534,22 @@ class ComplianceReporter {
       remediation_time: {},
       tools_used: new Set()
     };
-    
+
     securityData.forEach(scan => {
       posture.scan_types[scan.scan_type] = (posture.scan_types[scan.scan_type] || 0) + 1;
-      
+
       if (scan.severity_breakdown) {
         posture.severity_distribution.critical += scan.severity_breakdown.critical || 0;
         posture.severity_distribution.high += scan.severity_breakdown.high || 0;
         posture.severity_distribution.medium += scan.severity_breakdown.medium || 0;
         posture.severity_distribution.low += scan.severity_breakdown.low || 0;
       }
-      
+
       scan.tools_used.forEach(tool => posture.tools_used.add(tool));
     });
-    
+
     posture.tools_used = Array.from(posture.tools_used);
-    
+
     return posture;
   }
 
@@ -558,7 +558,7 @@ class ComplianceReporter {
    */
   generateRecommendations(complianceAssessments) {
     const recommendations = [];
-    
+
     for (const [standard, assessment] of Object.entries(complianceAssessments)) {
       assessment.violations.forEach(violation => {
         recommendations.push({
@@ -572,7 +572,7 @@ class ComplianceReporter {
         });
       });
     }
-    
+
     return recommendations.sort((a, b) => b.priority - a.priority);
   }
 
@@ -602,7 +602,7 @@ class ComplianceReporter {
    */
   generateAttestations(complianceAssessments) {
     const attestations = {};
-    
+
     for (const [standard, assessment] of Object.entries(complianceAssessments)) {
       attestations[standard] = {
         attested_by: process.env.GITHUB_ACTOR || 'system',
@@ -615,7 +615,7 @@ class ComplianceReporter {
         attestation_statement: this.generateAttestationStatement(standard, assessment)
       };
     }
-    
+
     return attestations;
   }
 
@@ -625,7 +625,7 @@ class ComplianceReporter {
   async saveReport(report) {
     const reportFile = path.join(this.complianceDir, `compliance-report-${report.id}.json`);
     await fs.writeFile(reportFile, JSON.stringify(report, null, 2));
-    
+
     // Update latest report symlink
     const latestFile = path.join(this.complianceDir, 'latest-compliance-report.json');
     try {
@@ -644,12 +644,12 @@ class ComplianceReporter {
     const htmlReport = await this.generateHTMLReport(report);
     const htmlFile = path.join(this.complianceDir, `compliance-report-${report.id}.html`);
     await fs.writeFile(htmlFile, htmlReport);
-    
+
     // Generate CSV summary
     const csvReport = await this.generateCSVReport(report);
     const csvFile = path.join(this.complianceDir, `compliance-summary-${report.id}.csv`);
     await fs.writeFile(csvFile, csvReport);
-    
+
     console.log(`Formatted reports generated: HTML and CSV`);
   }
 
@@ -687,7 +687,7 @@ class ComplianceReporter {
         <p><strong>Period:</strong> ${report.period.start} to ${report.period.end}</p>
         <p><strong>Standards:</strong> ${report.standards.join(', ')}</p>
     </div>
-    
+
     <div class="summary">
         <div class="metric">
             <h3>Overall Status</h3>
@@ -706,12 +706,12 @@ class ComplianceReporter {
             <p>${report.summary.violations_found}</p>
         </div>
     </div>
-    
+
     <h2>Compliance Assessments</h2>
     ${Object.entries(report.compliance_assessments).map(([standard, assessment]) => `
         <h3>${standard} - <span class="${assessment.status}">${assessment.status.toUpperCase()}</span></h3>
         <p><strong>Score:</strong> ${assessment.score}%</p>
-        
+
         ${assessment.violations.length > 0 ? `
             <h4>Violations</h4>
             ${assessment.violations.map(violation => `
@@ -722,7 +722,7 @@ class ComplianceReporter {
             `).join('')}
         ` : '<p>No violations found.</p>'}
     `).join('')}
-    
+
     <h2>Recommendations</h2>
     <table>
         <tr>
@@ -742,12 +742,12 @@ class ComplianceReporter {
             </tr>
         `).join('')}
     </table>
-    
+
     <h2>Security Posture</h2>
     <p><strong>Total Scans:</strong> ${report.security_posture.total_scans}</p>
     <p><strong>Critical Vulnerabilities:</strong> ${report.security_posture.severity_distribution.critical}</p>
     <p><strong>High Vulnerabilities:</strong> ${report.security_posture.severity_distribution.high}</p>
-    
+
     <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666;">
         <p>This report was automatically generated by the ModPorter-AI Compliance System.</p>
         <p>Generated on ${new Date().toLocaleString()}</p>
@@ -771,7 +771,7 @@ class ComplianceReporter {
         Object.keys(assessment.controls).length
       ])
     ];
-    
+
     return rows.map(row => row.join(',')).join('\n');
   }
 
@@ -784,7 +784,7 @@ class ComplianceReporter {
   getReportPeriod(period) {
     const now = new Date();
     let startDate, endDate;
-    
+
     switch (period) {
       case 'daily':
         startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -806,7 +806,7 @@ class ComplianceReporter {
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         endDate = now;
     }
-    
+
     return {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString()
@@ -827,7 +827,7 @@ class ComplianceReporter {
     const totalControls = Object.keys(controls).length;
     const compliantControls = Object.values(controls).filter(c => c.status === 'compliant').length;
     const baseScore = (compliantControls / totalControls) * 100;
-    
+
     // Deduct points for violations based on severity
     let deductions = 0;
     violations.forEach(violation => {
@@ -838,7 +838,7 @@ class ComplianceReporter {
         case 'low': deductions += 2; break;
       }
     });
-    
+
     return Math.max(0, Math.round(baseScore - deductions));
   }
 
@@ -873,7 +873,7 @@ class ComplianceReporter {
 if (require.main === module) {
   const command = process.argv[2];
   const reporter = new ComplianceReporter();
-  
+
   switch (command) {
     case 'init':
       reporter.initialize();

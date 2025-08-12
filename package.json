@@ -75,7 +75,11 @@
     "release:prepare": "npm run test:comprehensive && npm run artifacts:create && npm run release:notes",
     "security:artifacts": "node scripts/artifact-security.js secure",
     "security:sign": "node scripts/artifact-security.js sign",
-    "security:validate": "node scripts/artifact-security.js validate"
+    "security:validate": "node scripts/artifact-security.js validate",
+    "hooks:install": "pre-commit install",
+    "hooks:run": "pre-commit run --all-files",
+    "hooks:update": "pre-commit autoupdate",
+    "hooks:gitleaks": "pre-commit run gitleaks --all-files"
   },
   "keywords": [
     "minecraft",

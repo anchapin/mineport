@@ -111,19 +111,19 @@ import org.json.JSONArray;
 class StateTracker {
     private static final List<JSONObject> snapshots = new ArrayList<>();
     private static final long startTime = System.currentTimeMillis();
-    
+
     public static void captureState(String functionName, int lineNumber, Map<String, Object> variables) {
         JSONObject snapshot = new JSONObject();
         snapshot.put("timestamp", System.currentTimeMillis() - startTime);
         snapshot.put("functionName", functionName);
         snapshot.put("lineNumber", lineNumber);
-        
+
         JSONObject vars = new JSONObject();
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -132,7 +132,7 @@ class StateTracker {
             vars.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         snapshot.put("variables", vars);
-        
+
         // Capture call stack
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         JSONArray callStack = new JSONArray();
@@ -140,16 +140,16 @@ class StateTracker {
             callStack.put(stackTrace[i].toString());
         }
         snapshot.put("callStack", callStack);
-        
+
         snapshots.add(snapshot);
     }
-    
+
     public static void captureReturnValue(String functionName, Object returnValue) {
         JSONObject snapshot = new JSONObject();
         snapshot.put("timestamp", System.currentTimeMillis() - startTime);
         snapshot.put("functionName", functionName);
         snapshot.put("returnValue", String.valueOf(returnValue));
-        
+
         // Capture call stack
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         JSONArray callStack = new JSONArray();
@@ -157,22 +157,22 @@ class StateTracker {
             callStack.put(stackTrace[i].toString());
         }
         snapshot.put("callStack", callStack);
-        
+
         snapshots.add(snapshot);
     }
-    
+
     public static void writeSnapshots(String filename) {
         try (FileWriter file = new FileWriter(filename)) {
             JSONObject trace = new JSONObject();
             trace.put("language", "java");
             trace.put("snapshots", new JSONArray(snapshots));
-            
+
             JSONObject metadata = new JSONObject();
             metadata.put("sourceFile", filename.replace(".trace.json", ".java"));
             metadata.put("executionTime", System.currentTimeMillis() - startTime);
             metadata.put("snapshotCount", snapshots.size());
             trace.put("metadata", metadata);
-            
+
             file.write(trace.toString(2));
         } catch (IOException e) {
             e.printStackTrace();
@@ -269,7 +269,7 @@ ${space}    StateTracker.captureState("${methodName}", ${this.getLineNumber(matc
 const StateTracker = {
   snapshots: [],
   startTime: Date.now(),
-  
+
   captureState: function(functionName, lineNumber, variables) {
     const snapshot = {
       timestamp: Date.now() - this.startTime,
@@ -278,10 +278,10 @@ const StateTracker = {
       variables: { ...variables },
       callStack: new Error().stack.split('\\n').slice(2).map(line => line.trim())
     };
-    
+
     this.snapshots.push(snapshot);
   },
-  
+
   captureReturnValue: function(functionName, returnValue) {
     const snapshot = {
       timestamp: Date.now() - this.startTime,
@@ -289,13 +289,13 @@ const StateTracker = {
       returnValue: typeof returnValue === 'object' ? JSON.stringify(returnValue) : returnValue,
       callStack: new Error().stack.split('\\n').slice(2).map(line => line.trim())
     };
-    
+
     this.snapshots.push(snapshot);
   },
-  
+
   writeSnapshots: function() {
     const fs = require('fs');
-    
+
     const trace = {
       language: 'javascript',
       snapshots: this.snapshots,
@@ -305,7 +305,7 @@ const StateTracker = {
         snapshotCount: this.snapshots.length
       }
     };
-    
+
     fs.writeFileSync('javascript_execution.trace.json', JSON.stringify(trace, null, 2));
   }
 };
@@ -1428,7 +1428,7 @@ ${jsCode}
 // REFINED TRANSLATION
 // The following issues were detected and addressed:
 ${validationResult.divergencePoints.map((dp) => `// - ${dp.description}`).join('\n')}
-// 
+//
 // Recommendations:
 ${validationResult.recommendations.map((rec) => `// - ${rec}`).join('\n')}
 
