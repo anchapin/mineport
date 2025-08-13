@@ -168,7 +168,7 @@ describe('SourceCodeFetcher', () => {
     const writeFileCalls = writeFileSpy.mock.calls;
 
     // Should include ModMain.java but not CustomBlock.java
-    const writtenFiles = writeFileCalls.map((call) => call[0]);
+    const writtenFiles = writeFileCalls.map((call) => String(call[0]));
     expect(writtenFiles.some((file) => file.includes('ModMain.java'))).toBe(true);
     expect(writtenFiles.some((file) => file.includes('CustomBlock.java'))).toBe(false);
   });

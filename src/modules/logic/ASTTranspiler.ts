@@ -33,6 +33,51 @@ export interface PatternCondition {
   value?: any;
 }
 
+/**
+ * JavaScript AST Node interface for code generation
+ */
+export interface JavaScriptASTNode {
+  type: string;
+  body?: JavaScriptASTNode[];
+  value?: any;
+  declarations?: JavaScriptASTNode[];
+  kind?: string;
+  id?: JavaScriptASTNode;
+  init?: JavaScriptASTNode;
+  name?: string;
+  specifiers?: JavaScriptASTNode[];
+  source?: JavaScriptASTNode;
+  local?: JavaScriptASTNode;
+  params?: JavaScriptASTNode[];
+  expression?: JavaScriptASTNode;
+  callee?: JavaScriptASTNode;
+  arguments?: JavaScriptASTNode[];
+  object?: JavaScriptASTNode;
+  property?: JavaScriptASTNode;
+  computed?: boolean;
+  expressions?: JavaScriptASTNode[];
+  quasis?: Array<{ value: { raw: string } }>;
+  properties?: JavaScriptASTNode[];
+  key?: JavaScriptASTNode;
+  static?: boolean;
+  sourceType?: string;
+}
+
+/**
+ * Result of AST transpilation to JavaScript
+ */
+export interface TranspilationResult {
+  jsAst: JavaScriptASTNode[];
+  metadata: {
+    modId: string;
+    modName: string;
+    modVersion: string;
+    originalModLoader: 'forge' | 'fabric';
+  };
+  unmappableNodes: any[];
+  warnings: string[];
+}
+
 export class ASTTranspiler {
   private transpilationRules: TranspilationRule[];
   private apiMappingService: any; // Would be injected
