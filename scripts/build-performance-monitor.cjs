@@ -751,7 +751,7 @@ if (require.main === module) {
     case 'start':
       const phase = process.argv[3];
       if (!phase) {
-        console.error('Usage: build-performance-monitor.js start <phase-name>');
+        console.error('Usage: build-performance-monitor.cjs start <phase-name>');
         process.exit(1);
       }
       monitor.startPhase(phase);
@@ -761,7 +761,7 @@ if (require.main === module) {
       const endPhase = process.argv[3];
       const success = process.argv[4] !== 'false';
       if (!endPhase) {
-        console.error('Usage: build-performance-monitor.js end <phase-name> [success]');
+        console.error('Usage: build-performance-monitor.cjs end <phase-name> [success]');
         process.exit(1);
       }
       monitor.endPhase(endPhase, success);
@@ -773,7 +773,7 @@ if (require.main === module) {
       const hit = process.argv[5] === 'true';
       const size = parseInt(process.argv[6]) || 0;
       if (!cacheType || !cacheKey) {
-        console.error('Usage: build-performance-monitor.js cache <type> <key> <hit> [size]');
+        console.error('Usage: build-performance-monitor.cjs cache <type> <key> <hit> [size]');
         process.exit(1);
       }
       monitor.monitorCachePerformance(cacheType, cacheKey, hit, size);
@@ -833,7 +833,7 @@ if (require.main === module) {
       break;
 
     default:
-      console.log('Usage: build-performance-monitor.js <command> [args...]');
+      console.log('Usage: build-performance-monitor.cjs <command> [args...]');
       console.log('Commands:');
       console.log('  start <phase>              - Start monitoring a build phase');
       console.log('  end <phase> [success]      - End monitoring a build phase');

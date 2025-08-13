@@ -183,23 +183,23 @@ jobs:
         shell: bash
         run: |
           # Start monitoring dependency installation
-          node scripts/build-performance-monitor.js start dependency-install
+          node scripts/build-performance-monitor.cjs start dependency-install
 
           if [[ "${{ steps.deps-cache.outputs.cache-hit }}" == "true" ]]; then
             echo "Using cached dependencies"
-            node scripts/build-performance-monitor.js cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" true
+            node scripts/build-performance-monitor.cjs cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" true
             npm ci --prefer-offline --no-audit --ignore-scripts
           else
             echo "Installing fresh dependencies"
-            node scripts/build-performance-monitor.js cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" false
+            node scripts/build-performance-monitor.cjs cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" false
             npm ci --prefer-offline --no-audit
           fi
 
           # Monitor dependency installation performance
-          node scripts/build-performance-monitor.js dependencies npm
+          node scripts/build-performance-monitor.cjs dependencies npm
 
           # End monitoring dependency installation
-          node scripts/build-performance-monitor.js end dependency-install
+          node scripts/build-performance-monitor.cjs end dependency-install
 
       - name: Cache TypeScript build artifacts
         uses: actions/cache@v4
@@ -252,12 +252,12 @@ jobs:
       - name: Lint code
         run: |
           # Start monitoring lint phase
-          node scripts/build-performance-monitor.js start lint
+          node scripts/build-performance-monitor.cjs start lint
 
           npm run lint
 
           # End monitoring lint phase
-          node scripts/build-performance-monitor.js end lint
+          node scripts/build-performance-monitor.cjs end lint
 
       - name: Validate JSDoc Documentation
         run: |
@@ -273,19 +273,19 @@ jobs:
         run: |
           if [[ "$SKIP_BUILD" == "true" ]]; then
             echo "✅ Using cached build artifacts"
-            node scripts/build-performance-monitor.js cache build "${{ needs.preflight.outputs.build_cache_key }}" true
+            node scripts/build-performance-monitor.cjs cache build "${{ needs.preflight.outputs.build_cache_key }}" true
           else
             echo "🔨 Building application from source"
-            node scripts/build-performance-monitor.js cache build "${{ needs.preflight.outputs.build_cache_key }}" false
+            node scripts/build-performance-monitor.cjs cache build "${{ needs.preflight.outputs.build_cache_key }}" false
 
             # Start monitoring TypeScript build
-            node scripts/build-performance-monitor.js start typescript-build
-            node scripts/build-performance-monitor.js typescript
+            node scripts/build-performance-monitor.cjs start typescript-build
+            node scripts/build-performance-monitor.cjs typescript
 
             npm run build
 
             # End monitoring TypeScript build
-            node scripts/build-performance-monitor.js end typescript-build
+            node scripts/build-performance-monitor.cjs end typescript-build
           fi
 
       - name: Run tests in parallel
@@ -443,13 +443,13 @@ jobs:
       - name: Generate build performance report
         run: |
           # Monitor final resource usage
-          node scripts/build-performance-monitor.js resource
+          node scripts/build-performance-monitor.cjs resource
 
           # Generate comprehensive build performance report
-          node scripts/build-performance-monitor.js report
+          node scripts/build-performance-monitor.cjs report
 
           # Check for performance regressions
-          if node scripts/build-performance-monitor.js regressions 0.2; then
+          if node scripts/build-performance-monitor.cjs regressions 0.2; then
             echo "✅ No performance regressions detected"
           else
             echo "⚠️ Performance regressions detected - see build reports"
