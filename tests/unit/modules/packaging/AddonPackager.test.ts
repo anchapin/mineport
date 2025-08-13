@@ -3,8 +3,8 @@ import { AddonPackager } from '../../../../src/modules/packaging/AddonPackager.j
 import * as fs from 'fs';
 
 // Create mock write stream
-const mockWriteStream = {
-  on: vi.fn((event, callback) => {
+const mockWriteStream: any = {
+  on: vi.fn((event: string, callback: () => void) => {
     if (event === 'close') {
       // Immediately call the callback to resolve the promise
       setImmediate(callback);

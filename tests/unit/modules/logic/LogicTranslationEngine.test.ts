@@ -51,10 +51,10 @@ vi.mock('../../../../src/utils/logger.js', async () => {
 
 describe('LogicTranslationEngine', () => {
   let engine: LogicTranslationEngine;
-  let mockASTTranspiler: Mock;
-  let mockLLMTranslator: Mock;
-  let mockProgramStateValidator: Mock;
-  let mockMMIRParser: Mock;
+  let mockASTTranspiler: any;
+  let mockLLMTranslator: any;
+  let mockProgramStateValidator: any;
+  let mockMMIRParser: any;
   let mockContext: TranslationContext;
 
   beforeEach(() => {
@@ -64,16 +64,16 @@ describe('LogicTranslationEngine', () => {
     // Create mock instances
     mockASTTranspiler = {
       transpile: vi.fn(),
-    };
+    } as any;
     mockLLMTranslator = {
       translate: vi.fn(),
-    };
+    } as any;
     mockProgramStateValidator = {
       validate: vi.fn(),
-    };
+    } as any;
     mockMMIRParser = {
       parse: vi.fn(),
-    };
+    } as any;
 
     // Create engine instance
     engine = new LogicTranslationEngine(
@@ -151,7 +151,7 @@ describe('LogicTranslationEngine', () => {
         },
       };
 
-      mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
 
       // Mock AST transpilation
       const mockASTResult: ASTTranspilationResult = {
@@ -162,7 +162,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockASTResult);
+      mockASTTranspiler.transpile.mockResolvedValue(mockASTResult);
 
       // Mock LLM translation (no unmappable code)
       const mockLLMResult: LLMTranslationResult = {
@@ -173,7 +173,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockLLMResult);
+      mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
 
       // Mock validation
       const mockValidation: ValidationResult = {
@@ -183,7 +183,7 @@ describe('LogicTranslationEngine', () => {
         recommendations: [],
       };
 
-      mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockValidation);
+      mockProgramStateValidator.validate.mockResolvedValue(mockValidation);
 
       // Execute translation
       const result = await engine.translateJavaCode(javaCode, mockContext);
@@ -251,7 +251,7 @@ describe('LogicTranslationEngine', () => {
         },
       };
 
-      mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
 
       // Mock AST transpilation with unmappable code
       const mockASTResult: ASTTranspilationResult = {
@@ -274,7 +274,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockASTResult);
+      mockASTTranspiler.transpile.mockResolvedValue(mockASTResult);
 
       // Mock LLM translation
       const mockLLMResult: LLMTranslationResult = {
@@ -285,7 +285,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockLLMResult);
+      mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
 
       // Mock validation
       const mockValidation: ValidationResult = {
@@ -295,7 +295,7 @@ describe('LogicTranslationEngine', () => {
         recommendations: [],
       };
 
-      mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockValidation);
+      mockProgramStateValidator.validate.mockResolvedValue(mockValidation);
 
       // Execute translation
       const result = await engine.translateJavaCode(javaCode, mockContext);
@@ -342,7 +342,7 @@ describe('LogicTranslationEngine', () => {
         },
       };
 
-      mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
 
       // Mock AST transpilation
       const mockASTResult: ASTTranspilationResult = {
@@ -353,7 +353,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockASTResult);
+      mockASTTranspiler.transpile.mockResolvedValue(mockASTResult);
 
       // Mock LLM translation
       const mockLLMResult: LLMTranslationResult = {
@@ -364,7 +364,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockLLMResult);
+      mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
 
       // Mock validation failure
       const mockValidation: ValidationResult = {
@@ -382,7 +382,7 @@ describe('LogicTranslationEngine', () => {
         recommendations: ['Manual review required'],
       };
 
-      mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockValidation);
+      mockProgramStateValidator.validate.mockResolvedValue(mockValidation);
 
       // Execute translation
       const result = await engine.translateJavaCode(javaCode, mockContext);
@@ -398,7 +398,7 @@ describe('LogicTranslationEngine', () => {
       const javaCode = 'invalid java code';
 
       // Mock MMIR parsing failure
-      mockMMIRParser.parse = vi.fn().mockRejectedValue(new Error('Parse error'));
+      mockMMIRParser.parse.mockRejectedValue(new Error('Parse error'));
 
       // Execute translation
       const result = await engine.translateJavaCode(javaCode, mockContext);
@@ -431,7 +431,7 @@ describe('LogicTranslationEngine', () => {
       const javaCode = 'public class TestClass { }';
 
       // Mock successful flow
-      mockMMIRParser.parse = vi.fn().mockResolvedValue({
+      mockMMIRParser.parse.mockResolvedValue({
         ast: [],
         metadata: {
           originalLinesOfCode: 1,
@@ -454,7 +454,7 @@ describe('LogicTranslationEngine', () => {
         },
       });
 
-      mockASTTranspiler.transpile = vi.fn().mockResolvedValue({
+      mockASTTranspiler.transpile.mockResolvedValue({
         code: 'class TestClass { }',
         unmappableCode: [],
         mappedAPIs: [],
@@ -462,7 +462,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       });
 
-      mockLLMTranslator.translate = vi.fn().mockResolvedValue({
+      mockLLMTranslator.translate.mockResolvedValue({
         code: '',
         confidence: 1.0,
         reasoning: 'No unmappable code',
@@ -470,7 +470,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       });
 
-      mockProgramStateValidator.validate = vi.fn().mockResolvedValue({
+      mockProgramStateValidator.validate.mockResolvedValue({
         isEquivalent: true,
         confidence: 0.95,
         differences: [],
@@ -510,7 +510,7 @@ describe('LogicTranslationEngine', () => {
         },
       };
 
-      mockMMIRParser.parse = vi.fn().mockResolvedValue(mockMMIR);
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
 
       const result = await engine.parseToMMIR(javaCode);
 
@@ -552,7 +552,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockASTTranspiler.transpile = vi.fn().mockResolvedValue(mockResult);
+      mockASTTranspiler.transpile.mockResolvedValue(mockResult);
 
       const result = await engine.transpileAST(mockMMIR, mockContext);
 
@@ -589,7 +589,7 @@ describe('LogicTranslationEngine', () => {
         warnings: [],
       };
 
-      mockLLMTranslator.translate = vi.fn().mockResolvedValue(mockResult);
+      mockLLMTranslator.translate.mockResolvedValue(mockResult);
 
       const result = await engine.translateWithLLM(unmappableCode, mockContext);
 
@@ -610,7 +610,7 @@ describe('LogicTranslationEngine', () => {
         recommendations: [],
       };
 
-      mockProgramStateValidator.validate = vi.fn().mockResolvedValue(mockResult);
+      mockProgramStateValidator.validate.mockResolvedValue(mockResult);
 
       const result = await engine.validateTranslation(originalCode, translatedCode, mockContext);
 
