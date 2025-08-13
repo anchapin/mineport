@@ -7,7 +7,7 @@ import { ProgramStateValidator } from '../../../../src/modules/logic/ProgramStat
 import { TranslationContext } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
-  const actual = await vi.importActual('../../../../src/utils/logger.js') as any;
+  const actual = (await vi.importActual('../../../../src/utils/logger.js')) as any;
   return {
     ...actual,
     default: {

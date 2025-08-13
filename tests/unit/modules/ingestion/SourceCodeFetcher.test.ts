@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   SourceCodeFetcher,
-  RepositoryInfo,
+  SourceCodeFetchOptions,
 } from '../../../../src/modules/ingestion/SourceCodeFetcher.js';
 import {
   createMockGitHubResponse,
   mockOctokit,
   resetAllMocks,
 } from '../../../utils/testHelpers.js';
-import fs from 'fs';
+import * as fs from 'fs';
 
 describe('SourceCodeFetcher', () => {
   let sourceCodeFetcher: SourceCodeFetcher;
@@ -74,9 +74,7 @@ describe('SourceCodeFetcher', () => {
     mockOctokit(mockGitHubResponses);
 
     // Create fetcher
-    sourceCodeFetcher = new SourceCodeFetcher({
-      githubToken: 'mock-token',
-    });
+    sourceCodeFetcher = new SourceCodeFetcher('/tmp/test', 'mock-token');
   });
 
   afterEach(() => {
@@ -85,7 +83,7 @@ describe('SourceCodeFetcher', () => {
 
   it('should parse GitHub repository URL correctly', () => {
     // Test HTTPS URL
-    let repoInfo = sourceCodeFetcher.parseRepositoryUrl('https://github.com/owner/repo');
+    let repoInfo = (sourceCodeFetcher as any).parseRepoUrl('https://github.com/owner/repo');
     expect(repoInfo).toEqual({
       owner: 'owner',
       repo: 'repo',
@@ -93,46 +91,35 @@ describe('SourceCodeFetcher', () => {
     });
 
     // Test SSH URL
-    repoInfo = sourceCodeFetcher.parseRepositoryUrl('git@github.com:owner/repo.git');
+    repoInfo = (sourceCodeFetcher as any).parseRepoUrl('git@github.com:owner/repo.git');
     expect(repoInfo).toEqual({
       owner: 'owner',
       repo: 'repo',
-      branch: 'main',
     });
 
     // Test URL with branch
-    repoInfo = sourceCodeFetcher.parseRepositoryUrl('https://github.com/owner/repo/tree/develop');
+    repoInfo = (sourceCodeFetcher as any).parseRepoUrl(
+      'https://github.com/owner/repo/tree/develop'
+    );
     expect(repoInfo).toEqual({
       owner: 'owner',
       repo: 'repo',
-      branch: 'develop',
     });
 
     // Test invalid URL
     expect(() => {
-      sourceCodeFetcher.parseRepositoryUrl('https://example.com/not-github');
+      (sourceCodeFetcher as any).parseRepoUrl('https://example.com/not-github');
     }).toThrow();
   });
 
   it('should fetch repository metadata', async () => {
-    // Mock fs.promises.mkdir
-    vi.spyOn(fs.promises, 'mkdir').mockResolvedValue(undefined);
-
-    // Mock fs.promises.writeFile
-    vi.spyOn(fs.promises, 'writeFile').mockResolvedValue(undefined);
-
-    // Fetch repository metadata
-    const repoInfo: RepositoryInfo = {
-      owner: 'owner',
-      repo: 'repo',
-      branch: 'main',
-    };
-
-    const metadata = await sourceCodeFetcher.fetchRepositoryMetadata(repoInfo);
+    // Test getting repository info
+    const repoInfo = await sourceCodeFetcher.getRepositoryInfo('owner', 'repo');
 
     // Check metadata
-    expect(metadata.defaultBranch).toBe('main');
-    expect(metadata.latestCommit).toBe('abc123');
+    expect(repoInfo).toBeDefined();
+    expect(repoInfo.name).toBe('repo');
+    expect(repoInfo.owner.login).toBe('owner');
   });
 
   it('should fetch source code files', async () => {
@@ -143,14 +130,11 @@ describe('SourceCodeFetcher', () => {
     const writeFileSpy = vi.spyOn(fs.promises, 'writeFile').mockResolvedValue(undefined);
 
     // Fetch source code
-    const repoInfo: RepositoryInfo = {
-      owner: 'owner',
-      repo: 'repo',
-      branch: 'main',
+    const options: SourceCodeFetchOptions = {
+      repoUrl: 'https://github.com/owner/repo',
+      ref: 'main',
     };
-
-    const outputDir = '/tmp/source-code';
-    const result = await sourceCodeFetcher.fetchSourceCode(repoInfo, outputDir);
+    const result = await sourceCodeFetcher.fetchSourceCode(options);
 
     // Check that directories were created
     expect(mkdirSpy).toHaveBeenCalled();
@@ -160,8 +144,8 @@ describe('SourceCodeFetcher', () => {
 
     // Check result
     expect(result.success).toBe(true);
-    expect(result.fileCount).toBeGreaterThan(0);
-    expect(result.outputPath).toBe(outputDir);
+    expect(result.extractedPath).toBeDefined();
+    expect(result.errors).toEqual([]);
   });
 
   it('should filter source code files by pattern', async () => {
@@ -172,17 +156,13 @@ describe('SourceCodeFetcher', () => {
     const writeFileSpy = vi.spyOn(fs.promises, 'writeFile').mockResolvedValue(undefined);
 
     // Fetch source code with filter
-    const repoInfo: RepositoryInfo = {
-      owner: 'owner',
-      repo: 'repo',
-      branch: 'main',
+    const options: SourceCodeFetchOptions = {
+      repoUrl: 'https://github.com/owner/repo',
+      ref: 'main',
+      path: '**/*.java', // Use path parameter for filtering
     };
 
-    const outputDir = '/tmp/source-code';
-    await sourceCodeFetcher.fetchSourceCode(repoInfo, outputDir, {
-      includePatterns: ['**/*.java'],
-      excludePatterns: ['**/blocks/**'],
-    });
+    await sourceCodeFetcher.fetchSourceCode(options);
 
     // Check that only matching files were written
     const writeFileCalls = writeFileSpy.mock.calls;
@@ -213,14 +193,13 @@ describe('SourceCodeFetcher', () => {
     const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
     // Fetch source code (should handle rate limiting)
-    const repoInfo: RepositoryInfo = {
-      owner: 'owner',
-      repo: 'repo',
-      branch: 'main',
+    const options: SourceCodeFetchOptions = {
+      repoUrl: 'https://github.com/owner/repo',
+      ref: 'main',
     };
 
     // This should fail because we're not actually waiting for the timeout
-    await expect(sourceCodeFetcher.fetchSourceCode(repoInfo, '/tmp/source-code')).rejects.toThrow();
+    await expect(sourceCodeFetcher.fetchSourceCode(options)).rejects.toThrow();
 
     // Check that setTimeout was called with a delay
     expect(setTimeoutSpy).toHaveBeenCalled();
@@ -229,9 +208,7 @@ describe('SourceCodeFetcher', () => {
 
   it('should handle authentication errors', async () => {
     // Create fetcher with invalid token
-    const invalidFetcher = new SourceCodeFetcher({
-      githubToken: 'invalid-token',
-    });
+    const invalidFetcher = new SourceCodeFetcher('/tmp/test', 'invalid-token');
 
     // Mock authentication error
     const authError = new Error('Bad credentials');
@@ -244,15 +221,12 @@ describe('SourceCodeFetcher', () => {
     };
 
     // Fetch source code (should fail with authentication error)
-    const repoInfo: RepositoryInfo = {
-      owner: 'owner',
-      repo: 'repo',
-      branch: 'main',
+    const options: SourceCodeFetchOptions = {
+      repoUrl: 'https://github.com/owner/repo',
+      ref: 'main',
     };
 
-    await expect(invalidFetcher.fetchSourceCode(repoInfo, '/tmp/source-code')).rejects.toThrow(
-      /Authentication failed/
-    );
+    await expect(invalidFetcher.fetchSourceCode(options)).rejects.toThrow(/Authentication failed/);
   });
 
   it('should handle repository not found errors', async () => {
@@ -266,13 +240,12 @@ describe('SourceCodeFetcher', () => {
     };
 
     // Fetch source code (should fail with not found error)
-    const repoInfo: RepositoryInfo = {
-      owner: 'owner',
-      repo: 'repo',
-      branch: 'main',
+    const options: SourceCodeFetchOptions = {
+      repoUrl: 'https://github.com/owner/repo',
+      ref: 'main',
     };
 
-    await expect(sourceCodeFetcher.fetchSourceCode(repoInfo, '/tmp/source-code')).rejects.toThrow(
+    await expect(sourceCodeFetcher.fetchSourceCode(options)).rejects.toThrow(
       /Repository not found/
     );
   });

@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MMIRParser } from '../../../../src/modules/logic/MMIRParser.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
-  const actual = await vi.importActual('../../../../src/utils/logger.js') as any;
+  const actual = (await vi.importActual('../../../../src/utils/logger.js')) as any;
   return {
     ...actual,
     default: {

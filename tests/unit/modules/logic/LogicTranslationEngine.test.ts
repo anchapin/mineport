@@ -2,7 +2,7 @@
  * Unit tests for LogicTranslationEngine
  */
 
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LogicTranslationEngine } from '../../../../src/modules/logic/LogicTranslationEngine.js';
 import {
   TranslationContext,
