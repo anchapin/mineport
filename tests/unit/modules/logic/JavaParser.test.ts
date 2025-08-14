@@ -247,9 +247,9 @@ function findAllNodesByType(node: JavaASTNode, type: string): JavaASTNode[] {
 
 // Add these to the global scope for mocking in tests
 declare global {
-  let findNodeByType: typeof findNodeByType;
-  let findAllNodesByType: typeof findAllNodesByType;
+  let findNodeByType: any;
+  let findAllNodesByType: any;
 }
 
-global.findNodeByType = findNodeByType;
-global.findAllNodesByType = findAllNodesByType;
+(global as any).findNodeByType = findNodeByType;
+(global as any).findAllNodesByType = findAllNodesByType;

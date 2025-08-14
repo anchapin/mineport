@@ -1,12 +1,12 @@
 import { Feature } from '../../types/compromise.js';
-// import { createLogger } from '../../utils/logger.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * RenderingStubGenerator provides functionality to detect advanced rendering code
  * and generate appropriate stubs with recommendations for alternatives.
  */
 export class RenderingStubGenerator {
-  private logger: Logger;
+  private logger = logger;
   private renderingPatterns: RenderingPattern[];
   private alternativeRecommendations: Map<string, string[]>;
 
@@ -19,8 +19,7 @@ export class RenderingStubGenerator {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor() {
     this.renderingPatterns = this.initializeRenderingPatterns();
     this.alternativeRecommendations = this.initializeAlternativeRecommendations();
   }

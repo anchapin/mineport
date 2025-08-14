@@ -71,7 +71,7 @@ describe('RecipeConverter', () => {
       );
 
       // Mock readFile to return our test content
-      vi.mocked(fs.readFile).mockImplementation((filePath: string) => {
+      vi.mocked(fs.readFile).mockImplementation((filePath: any) => {
         if (filePath.includes('shaped_recipe.json')) {
           return Promise.resolve(mockShapedContent);
         } else {

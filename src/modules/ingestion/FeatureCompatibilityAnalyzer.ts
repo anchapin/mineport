@@ -925,4 +925,13 @@ export class FeatureCompatibilityAnalyzer {
 
     return summary;
   }
+
+  /**
+   * Alias for analyzeFeatures method for backward compatibility
+   * @param extractedModPath Path to the extracted mod files
+   * @returns FeatureAnalysisResult with compatibility report
+   */
+  async analyze(extractedModPath: string): Promise<FeatureAnalysisResult> {
+    return this.analyzeFeatures(extractedModPath, 'unknown');
+  }
 }

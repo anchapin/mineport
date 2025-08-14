@@ -19,7 +19,7 @@ import logger from '../../utils/logger.js';
 export enum ModLoaderType {
   FORGE = 'forge',
   FABRIC = 'fabric',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
 }
 
 /**
@@ -488,7 +488,10 @@ export class ModLoaderDetector {
     }
 
     // If file structure gave a result but imports didn't
-    if (fileStructureResult.modLoader !== ModLoaderType.UNKNOWN && importsResult.modLoader === ModLoaderType.UNKNOWN) {
+    if (
+      fileStructureResult.modLoader !== ModLoaderType.UNKNOWN &&
+      importsResult.modLoader === ModLoaderType.UNKNOWN
+    ) {
       return {
         modLoader: fileStructureResult.modLoader,
         confidence: fileStructureResult.confidence,
@@ -498,7 +501,10 @@ export class ModLoaderDetector {
     }
 
     // If imports gave a result but file structure didn't
-    if (fileStructureResult.modLoader === ModLoaderType.UNKNOWN && importsResult.modLoader !== ModLoaderType.UNKNOWN) {
+    if (
+      fileStructureResult.modLoader === ModLoaderType.UNKNOWN &&
+      importsResult.modLoader !== ModLoaderType.UNKNOWN
+    ) {
       return {
         modLoader: importsResult.modLoader,
         confidence: importsResult.confidence,

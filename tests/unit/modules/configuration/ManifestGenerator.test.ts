@@ -23,7 +23,7 @@ describe('ManifestGenerator', () => {
     vi.resetAllMocks();
 
     // Mock fs.access for fileExists
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (
         filePath.includes('mods.toml') ||
         filePath.includes('fabric.mod.json') ||
@@ -35,7 +35,7 @@ describe('ManifestGenerator', () => {
     });
 
     // Mock fs.readFile for metadata extraction
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath.includes('mods.toml')) {
         return `
           modId = "examplemod"

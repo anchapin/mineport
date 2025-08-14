@@ -1,12 +1,12 @@
 import { Feature } from '../../types/compromise.js';
-// import { createLogger } from '../../utils/logger.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * DimensionSimulator provides functionality to simulate custom dimensions in Bedrock Edition
  * using teleportation, visual effects, and structure generation in existing dimensions.
  */
 export class DimensionSimulator {
-  private logger: Logger;
+  private logger = logger;
 
   /**
    * constructor method.
@@ -17,8 +17,8 @@ export class DimensionSimulator {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor() {
+    // Logger is already initialized as a class property
   }
 
   /**

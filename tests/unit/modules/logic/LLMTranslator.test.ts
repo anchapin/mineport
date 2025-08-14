@@ -12,7 +12,7 @@ import {
 vi.mock('../../../../src/utils/logger.js', async () => {
   const actual = await vi.importActual('../../../../src/utils/logger.js');
   return {
-    ...actual,
+    ...(actual as any),
     default: {
       info: vi.fn(),
       warn: vi.fn(),

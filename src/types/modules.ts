@@ -591,3 +591,157 @@ export interface LogicFeature {
   /** Line numbers where feature is used */
   sourceLineNumbers: number[][];
 }
+
+/**
+ * Java asset collection interface
+ */
+export interface JavaAssetCollection {
+  textures: JavaTextureFile[];
+  models: JavaModelFile[];
+  sounds: JavaSoundFile[];
+  particles: JavaParticleFile[];
+  animations: JavaAnimationFile[];
+}
+
+/**
+ * Bedrock asset collection interface
+ */
+export interface BedrockAssetCollection {
+  textures: BedrockTextureFile[];
+  models: BedrockModelFile[];
+  sounds: BedrockSoundFile[];
+  particles: BedrockParticleFile[];
+  animations: BedrockAnimationFile[];
+}
+
+/**
+ * Asset translation result interface
+ */
+export interface AssetTranslationResult {
+  bedrockAssets: BedrockAssetCollection;
+  conversionNotes: AssetConversionNote[];
+  errors: ConversionError[];
+}
+
+/**
+ * Java texture file interface
+ */
+export interface JavaTextureFile {
+  path: string;
+  content: Buffer;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Java model file interface
+ */
+export interface JavaModelFile {
+  path: string;
+  content: string | Buffer;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Java sound file interface
+ */
+export interface JavaSoundFile {
+  path: string;
+  content: Buffer;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Java particle file interface
+ */
+export interface JavaParticleFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Java animation file interface
+ */
+export interface JavaAnimationFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Bedrock texture file interface
+ */
+export interface BedrockTextureFile {
+  path: string;
+  content: Buffer;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Bedrock model file interface
+ */
+export interface BedrockModelFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Bedrock sound file interface
+ */
+export interface BedrockSoundFile {
+  path: string;
+  content: Buffer;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Bedrock particle file interface
+ */
+export interface BedrockParticleFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Bedrock animation file interface
+ */
+export interface BedrockAnimationFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Asset conversion note interface
+ */
+export interface AssetConversionNote {
+  type: 'info' | 'warning' | 'error';
+  message: string;
+  component: string;
+  details?: Record<string, any>;
+}
+
+/**
+ * Conversion context interface
+ */
+export interface ConversionContext {
+  modId: string;
+  modName: string;
+  modVersion: string;
+  modLoader: 'forge' | 'fabric' | 'unknown';
+  minecraftVersion: string;
+  targetBedrockVersion: string;
+  conversionOptions: ConversionOptions;
+}
+
+/**
+ * Conversion options interface
+ */
+export interface ConversionOptions {
+  preserveComments: boolean;
+  generateDocumentation: boolean;
+  optimizeOutput: boolean;
+  enableExperimentalFeatures: boolean;
+}

@@ -57,10 +57,10 @@ describe('ConfigurationAdminService', () => {
     vi.mocked(path.resolve).mockReturnValue(mockVersionsPath);
 
     // Mock path.join to concatenate paths
-    vi.mocked(path.join).mockImplementation((...args) => args.join('/'));
+    vi.mocked(path.join).mockImplementation((...args: any[]) => args.join('/'));
 
     // Mock fs.existsSync to return false for versions directory
-    vi.mocked(fs.existsSync).mockImplementation((path: string) => {
+    vi.mocked(fs.existsSync).mockImplementation((path: any) => {
       return path !== mockVersionsPath;
     });
 
@@ -234,7 +234,7 @@ describe('ConfigurationAdminService', () => {
 
   it('should load existing versions from disk', () => {
     // Mock fs.readdirSync to return version files
-    vi.mocked(fs.readdirSync).mockReturnValue(['v1.json', 'v2.json']);
+    vi.mocked(fs.readdirSync).mockReturnValue(['v1.json', 'v2.json'] as any);
 
     // Create timestamps with v2 being newer
     const timestamp1 = new Date('2023-01-01T10:00:00Z');
