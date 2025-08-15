@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { JavaAnalyzer } from '@modules/ingestion/JavaAnalyzer';
+import { JavaAnalyzer } from '../../../../src/modules/ingestion/JavaAnalyzer.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import AdmZip from 'adm-zip';

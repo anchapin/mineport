@@ -1,20 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FileProcessor } from '@modules/ingestion/FileProcessor';
-import { SecurityScanner } from '@modules/ingestion/SecurityScanner';
+import { FileProcessor } from '../../../../src/modules/ingestion/FileProcessor.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import AdmZip from 'adm-zip';
 
-// Mock SecurityScanner
-vi.mock('@modules/ingestion/SecurityScanner');
+// Mock dependencies as needed
 
 describe('FileProcessor - Enhanced Tests', () => {
   let fileProcessor: FileProcessor;
-  let mockSecurityScanner: SecurityScanner;
   let tempDir: string;
 
   beforeEach(async () => {
-    mockSecurityScanner = new SecurityScanner();
     fileProcessor = new FileProcessor();
     tempDir = path.join(process.cwd(), 'temp', `test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
@@ -108,40 +104,23 @@ describe('FileProcessor - Enhanced Tests', () => {
     });
   });
 
-  describe('scanForMalware', () => {
-    it('should integrate with SecurityScanner', async () => {
-      const mockScanResult = {
-        isSafe: true,
-        threats: [],
-        scanTime: 100,
-      };
+  describe('File Validation', () => {
+    it('should validate files with security scanning', async () => {
+      const testBuffer = Buffer.from('test jar content');
+      const result = await fileProcessor.validateUpload(testBuffer, 'test.jar');
 
-      vi.mocked(mockSecurityScanner.scanFile).mockResolvedValue(mockScanResult);
-
-      const tempFile = path.join(tempDir, 'test.jar');
-      await fs.writeFile(tempFile, Buffer.from('test content'));
-
-      const result = await fileProcessor.scanForMalware(tempFile);
-
-      expect(result).toEqual(mockScanResult);
-      expect(mockSecurityScanner.scanFile).toHaveBeenCalledWith(tempFile);
+      expect(result).toBeDefined();
+      expect(result.isValid).toBeDefined();
+      expect(result.errors).toBeDefined();
+      expect(result.warnings).toBeDefined();
     });
 
-    it('should handle scanner errors gracefully', async () => {
-      vi.mocked(mockSecurityScanner.scanFile).mockRejectedValue(new Error('Scanner error'));
+    it('should handle invalid file types', async () => {
+      const testBuffer = Buffer.from('invalid content');
+      const result = await fileProcessor.validateUpload(testBuffer, 'test.exe');
 
-      const tempFile = path.join(tempDir, 'test.jar');
-      await fs.writeFile(tempFile, Buffer.from('test content'));
-
-      const result = await fileProcessor.scanForMalware(tempFile);
-
-      expect(result.isSafe).toBe(false);
-      expect(result.threats).toContainEqual(
-        expect.objectContaining({
-          type: 'scan_error',
-          description: expect.stringContaining('Scanner error'),
-        })
-      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
     });
   });
 

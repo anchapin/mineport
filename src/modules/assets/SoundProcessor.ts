@@ -4,37 +4,7 @@ import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger('SoundProcessor');
 
-/**
- * Interface representing a sound file in Java format
- */
-export interface JavaSoundFile {
-  path: string;
-  data: Buffer;
-  metadata?: {
-    category?: string;
-    subtitle?: string;
-    stream?: boolean;
-    volume?: number;
-    pitch?: number;
-    weight?: number;
-  };
-}
-
-/**
- * Interface representing a sound file in Bedrock format
- */
-export interface BedrockSoundFile {
-  path: string;
-  data: Buffer;
-  metadata?: {
-    category?: string;
-    subtitle?: string;
-    stream?: boolean;
-    volume?: number;
-    pitch?: number;
-    weight?: number;
-  };
-}
+import { JavaSoundFile, BedrockSoundFile } from '../../types/assets.js';
 
 /**
  * Interface for sound event mapping
@@ -72,7 +42,7 @@ export class SoundProcessor {
   private readonly COMMON_FORMATS = ['ogg', 'wav'];
 
   // Formats that need conversion (Java to Bedrock)
-  private readonly CONVERSION_MAP = {
+  private readonly CONVERSION_MAP: Record<string, string> = {
     mp3: 'ogg', // Java supports MP3, Bedrock prefers OGG
     flac: 'ogg', // FLAC needs conversion to OGG for Bedrock
   };
@@ -397,7 +367,7 @@ export class SoundProcessor {
 
     const bedrockSounds = {
       format_version: '1.14.0',
-      sound_definitions: {},
+      sound_definitions: {} as Record<string, any>,
     };
 
     // Convert each Java sound event to Bedrock format

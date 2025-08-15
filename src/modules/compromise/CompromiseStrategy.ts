@@ -1,4 +1,5 @@
-import { Feature, FeatureType, CompromiseLevel } from '../../types/compromise.js';
+import { CompromiseLevel } from '../../types/compromise.js';
+import { Feature, FeatureType } from '../ingestion/index.js';
 import { ConversionContext } from '../../types/modules.js';
 
 /**

@@ -1,4 +1,5 @@
-import { Feature, CompromiseLevel } from '../../types/compromise.js';
+import { CompromiseLevel } from '../../types/compromise.js';
+import { Feature } from '../ingestion/index.js';
 import { ConversionContext } from '../../types/modules.js';
 import { CompromiseStrategy, CompromiseOptions } from './CompromiseStrategy.js';
 import { CompromiseStrategyRegistry } from './CompromiseStrategy.js';

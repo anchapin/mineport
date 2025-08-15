@@ -192,7 +192,7 @@ describe('TextureConverter', () => {
 
       // Check that writeFile was called with the correct arguments for the animation file
       // We need to check the second call to writeFile
-      const writeFileCalls = (fs.writeFile as jest.Mock).mock.calls;
+      const writeFileCalls = (fs.writeFile as any).mock.calls;
       const animationFileCall = writeFileCalls.find((call) => call[0].includes('animation.json'));
 
       expect(animationFileCall).toBeDefined();

@@ -29,10 +29,14 @@ export type FeatureType =
  */
 export enum CompromiseLevel {
   NONE = 0,
-  MINOR = 1,
-  MODERATE = 2,
-  MAJOR = 3,
-  SEVERE = 4,
+  LOW = 1,
+  MINOR = 1, // Alias for LOW
+  MEDIUM = 2,
+  MODERATE = 2, // Alias for MEDIUM
+  HIGH = 3,
+  MAJOR = 3, // Alias for HIGH
+  CRITICAL = 4,
+  SEVERE = 4, // Alias for CRITICAL
 }
 
 /**

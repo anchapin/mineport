@@ -4,34 +4,7 @@ import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger('ModelConverter');
 
-/**
- * Interface representing a model file in Java format
- */
-export interface JavaModelFile {
-  path: string;
-  data: Buffer | object;
-  type: 'block' | 'item' | 'entity';
-  metadata?: {
-    parent?: string;
-    textures?: Record<string, string>;
-    elements?: any[];
-    display?: Record<string, any>;
-  };
-}
-
-/**
- * Interface representing a model file in Bedrock format
- */
-export interface BedrockModelFile {
-  path: string;
-  data: Buffer | object;
-  type: 'block' | 'item' | 'entity';
-  metadata?: {
-    textures?: Record<string, string>;
-    geometry?: string;
-    materials?: Record<string, any>;
-  };
-}
+import { JavaModelFile, BedrockModelFile } from '../../types/assets.js';
 
 /**
  * Interface for model conversion result

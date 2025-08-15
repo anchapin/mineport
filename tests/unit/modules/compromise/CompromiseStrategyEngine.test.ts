@@ -8,6 +8,7 @@ const mockLogger = {
   info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),
+  verbose: vi.fn(),
 };
 
 describe('CompromiseStrategyEngine', () => {

@@ -10,8 +10,12 @@
  */
 export interface JavaTextureFile {
   path: string;
-  content: Buffer;
-  metadata?: Record<string, any>;
+  data: Buffer;
+  metadata?: {
+    animated?: boolean;
+    frameTime?: number;
+    frames?: number[];
+  };
 }
 
 /**
@@ -23,8 +27,12 @@ export interface JavaTextureFile {
  */
 export interface BedrockTextureFile {
   path: string;
-  content: Buffer;
-  metadata?: Record<string, any>;
+  data: Buffer;
+  metadata?: {
+    animated?: boolean;
+    frameTime?: number;
+    frames?: number[];
+  };
 }
 
 /**
@@ -44,8 +52,14 @@ export interface TextureConversionResult {
  */
 export interface JavaModelFile {
   path: string;
-  content: string;
+  data: Buffer | object;
   type: 'block' | 'item' | 'entity';
+  metadata?: {
+    parent?: string;
+    textures?: Record<string, string>;
+    elements?: any[];
+    display?: Record<string, any>;
+  };
 }
 
 /**
@@ -57,9 +71,13 @@ export interface JavaModelFile {
  */
 export interface BedrockModelFile {
   path: string;
-  content: string;
+  data: Buffer | object;
   type: 'block' | 'item' | 'entity';
-  geometryName?: string;
+  metadata?: {
+    textures?: Record<string, string>;
+    geometry?: string;
+    materials?: Record<string, any>;
+  };
 }
 
 /**
@@ -79,8 +97,15 @@ export interface ModelConversionResult {
  */
 export interface JavaSoundFile {
   path: string;
-  content: Buffer;
-  category?: string;
+  data: Buffer;
+  metadata?: {
+    category?: string;
+    subtitle?: string;
+    stream?: boolean;
+    volume?: number;
+    pitch?: number;
+    weight?: number;
+  };
 }
 
 /**
@@ -92,8 +117,15 @@ export interface JavaSoundFile {
  */
 export interface BedrockSoundFile {
   path: string;
-  content: Buffer;
-  category?: string;
+  data: Buffer;
+  metadata?: {
+    category?: string;
+    subtitle?: string;
+    stream?: boolean;
+    volume?: number;
+    pitch?: number;
+    weight?: number;
+  };
 }
 
 /**
@@ -141,4 +173,21 @@ export interface BedrockParticleDefinition {
 export interface ParticleConversionResult {
   convertedParticles: BedrockParticleDefinition[];
   conversionNotes: any[];
+}
+/**
+ * Bedrock particle file interface
+ */
+export interface BedrockParticleFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Bedrock animation file interface
+ */
+export interface BedrockAnimationFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
 }

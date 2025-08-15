@@ -1,4 +1,5 @@
-import { Feature, CompromiseLevel } from '../../types/compromise.js';
+import { CompromiseLevel } from '../../types/compromise.js';
+import { Feature } from '../ingestion/index.js';
 import { CompromiseEngineResult, BatchCompromiseResult } from './CompromiseEngine.js';
 // import { CompromiseResult } from './CompromiseStrategy.js';
 import { logger } from '../../utils/logger.js';

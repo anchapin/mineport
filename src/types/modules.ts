@@ -612,6 +612,7 @@ export interface BedrockAssetCollection {
   sounds: BedrockSoundFile[];
   particles: BedrockParticleFile[];
   animations: BedrockAnimationFile[];
+  soundsJson?: object; // Optional sounds.json configuration
 }
 
 /**
@@ -623,40 +624,18 @@ export interface AssetTranslationResult {
   errors: ConversionError[];
 }
 
-/**
- * Java texture file interface
- */
-export interface JavaTextureFile {
-  path: string;
-  content: Buffer;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Java model file interface
- */
-export interface JavaModelFile {
-  path: string;
-  content: string | Buffer;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Java sound file interface
- */
-export interface JavaSoundFile {
-  path: string;
-  content: Buffer;
-  metadata?: Record<string, any>;
-}
+// Import asset interfaces from centralized location
+export { JavaTextureFile, JavaModelFile, JavaSoundFile } from './assets.js';
 
 /**
  * Java particle file interface
  */
 export interface JavaParticleFile {
   path: string;
-  content: string;
-  metadata?: Record<string, any>;
+  data: Buffer | object;
+  name: string;
+  textures?: string[];
+  parameters?: Record<string, any>;
 }
 
 /**
@@ -668,60 +647,11 @@ export interface JavaAnimationFile {
   metadata?: Record<string, any>;
 }
 
-/**
- * Bedrock texture file interface
- */
-export interface BedrockTextureFile {
-  path: string;
-  content: Buffer;
-  metadata?: Record<string, any>;
-}
+// Import Bedrock asset interfaces from centralized location
+export { BedrockTextureFile, BedrockModelFile, BedrockSoundFile, BedrockParticleFile, BedrockAnimationFile } from './assets.js';
 
-/**
- * Bedrock model file interface
- */
-export interface BedrockModelFile {
-  path: string;
-  content: string;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Bedrock sound file interface
- */
-export interface BedrockSoundFile {
-  path: string;
-  content: Buffer;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Bedrock particle file interface
- */
-export interface BedrockParticleFile {
-  path: string;
-  content: string;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Bedrock animation file interface
- */
-export interface BedrockAnimationFile {
-  path: string;
-  content: string;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Asset conversion note interface
- */
-export interface AssetConversionNote {
-  type: 'info' | 'warning' | 'error';
-  message: string;
-  component: string;
-  details?: Record<string, any>;
-}
+// Import AssetConversionNote from centralized error types
+export { AssetConversionNote } from './errors.js';
 
 /**
  * Conversion context interface

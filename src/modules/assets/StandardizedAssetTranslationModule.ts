@@ -6,10 +6,10 @@
  */
 
 import { BaseModule, ModuleConfig, DependencyContainer } from '../../types/modules.js';
-import { TextureConverter } from './TextureConverter.js';
-import { ModelConverter } from './ModelConverter.js';
-import { SoundProcessor } from './SoundProcessor.js';
-import { ParticleMapper } from './ParticleMapper.js';
+import { TextureConverter, TextureConversionResult } from './TextureConverter.js';
+import { ModelConverter, ModelConversionResult } from './ModelConverter.js';
+import { SoundProcessor, SoundConversionResult } from './SoundProcessor.js';
+import { ParticleMapper, ParticleConversionResult } from './ParticleMapper.js';
 import { createLogger } from '../../utils/logger.js';
 
 /**
@@ -77,6 +77,12 @@ export class StandardizedAssetTranslationModule extends BaseModule {
      */
     super(config, dependencies);
     this.logger = createLogger(`AssetTranslationModule:${this.id}`);
+
+    // Initialize converters
+    this.textureConverter = new TextureConverter();
+    this.modelConverter = new ModelConverter();
+    this.soundProcessor = new SoundProcessor();
+    this.particleMapper = new ParticleMapper();
   }
 
   /**
@@ -164,7 +170,7 @@ export class StandardizedAssetTranslationModule extends BaseModule {
   /**
    * Convert textures from Java format to Bedrock format
    */
-  public async convertTextures(textures: any[]): Promise<any[]> {
+  public async convertTextures(textures: any[]): Promise<TextureConversionResult> {
     if (this.state !== 'running') {
       throw new Error('Module must be running to convert textures');
     }
@@ -189,7 +195,7 @@ export class StandardizedAssetTranslationModule extends BaseModule {
   /**
    * Convert models from Java format to Bedrock format
    */
-  public async convertModels(models: any[]): Promise<any[]> {
+  public async convertModels(models: any[]): Promise<ModelConversionResult> {
     if (this.state !== 'running') {
       throw new Error('Module must be running to convert models');
     }
@@ -214,7 +220,7 @@ export class StandardizedAssetTranslationModule extends BaseModule {
   /**
    * Process sounds from Java format to Bedrock format
    */
-  public async processSounds(sounds: any[]): Promise<any[]> {
+  public async processSounds(sounds: any[]): Promise<SoundConversionResult> {
     if (this.state !== 'running') {
       throw new Error('Module must be running to process sounds');
     }
@@ -222,7 +228,7 @@ export class StandardizedAssetTranslationModule extends BaseModule {
     const startTime = Date.now();
 
     try {
-      const results = await this.soundProcessor.processSounds(sounds);
+      const results = await this.soundProcessor.convertSounds(sounds);
 
       this.conversionMetrics.soundsProcessed += sounds.length;
       this.conversionMetrics.totalProcessingTime += Date.now() - startTime;
@@ -239,7 +245,7 @@ export class StandardizedAssetTranslationModule extends BaseModule {
   /**
    * Map particles from Java format to Bedrock format
    */
-  public async mapParticles(particles: any[]): Promise<any[]> {
+  public async mapParticles(particles: any[]): Promise<ParticleConversionResult> {
     if (this.state !== 'running') {
       throw new Error('Module must be running to map particles');
     }
@@ -247,7 +253,7 @@ export class StandardizedAssetTranslationModule extends BaseModule {
     const startTime = Date.now();
 
     try {
-      const results = await this.particleMapper.mapParticles(particles);
+      const results = await this.particleMapper.convertParticles(particles);
 
       this.conversionMetrics.particlesMapped += particles.length;
       this.conversionMetrics.totalProcessingTime += Date.now() - startTime;

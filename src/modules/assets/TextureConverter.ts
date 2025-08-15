@@ -4,31 +4,7 @@ import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger('TextureConverter');
 
-/**
- * Interface representing a texture file in Java format
- */
-export interface JavaTextureFile {
-  path: string;
-  data: Buffer;
-  metadata?: {
-    animated?: boolean;
-    frameTime?: number;
-    frames?: number[];
-  };
-}
-
-/**
- * Interface representing a texture file in Bedrock format
- */
-export interface BedrockTextureFile {
-  path: string;
-  data: Buffer;
-  metadata?: {
-    animated?: boolean;
-    frameTime?: number;
-    frames?: number[];
-  };
-}
+import { JavaTextureFile, BedrockTextureFile } from '../../types/assets.js';
 
 /**
  * Interface for texture atlas configuration

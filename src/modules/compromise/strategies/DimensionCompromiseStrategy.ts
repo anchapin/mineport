@@ -1,4 +1,5 @@
-import { Feature, FeatureType, CompromiseLevel } from '../../../types/compromise.js';
+import { CompromiseLevel } from '../../../types/compromise.js';
+import { Feature, FeatureType } from '../../ingestion/index.js';
 import { ConversionContext } from '../../../types/modules.js';
 import { CompromiseStrategy, CompromiseResult, CompromiseOptions } from '../CompromiseStrategy.js';
 import { logger } from '../../../utils/logger.js';
@@ -10,7 +11,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
   constructor() {
     super(
       'DimensionCompromise',
-      [FeatureType.DIMENSION, FeatureType.WORLD_GENERATION],
+      [FeatureType.DIMENSION, FeatureType.WORLD_GEN],
       CompromiseLevel.HIGH
     );
   }

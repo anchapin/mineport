@@ -19,7 +19,7 @@ describe('RenderingStubGenerator', () => {
   let testFeature: Feature;
 
   beforeEach(() => {
-    generator = new RenderingStubGenerator(mockLogger);
+    generator = new RenderingStubGenerator();
 
     testFeature = {
       id: 'custom-renderer',

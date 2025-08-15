@@ -1,4 +1,5 @@
-import { Feature, CompromiseLevel } from '../../types/compromise.js';
+import { CompromiseLevel } from '../../types/compromise.js';
+import { Feature } from '../ingestion/index.js';
 import { ConversionContext } from '../../types/modules.js';
 import { CompromiseStrategy, CompromiseOptions, CompromiseResult } from './CompromiseStrategy.js';
 import { CompromiseStrategyRegistry } from './CompromiseStrategy.js';
@@ -300,11 +301,13 @@ export class CompromiseEngine {
    * Check if a feature needs compromise
    */
   private needsCompromise(feature: Feature, context: ConversionContext): boolean {
-    // Check if feature has properties indicating it needs compromise
-    const properties = feature.properties || {};
+    // Features with compatibility tier 3 or 4 typically need compromise
+    if (feature.compatibilityTier >= 3) {
+      return true;
+    }
 
-    // Features marked as incompatible
-    if (properties.incompatible || properties.needsCompromise) {
+    // Features that already have a compromise strategy assigned
+    if (feature.compromiseStrategy) {
       return true;
     }
 
