@@ -26,6 +26,7 @@ export interface CompromiseResult {
     confidence: number;
     alternativesConsidered: string[];
     reversible: boolean;
+    requiresManualImplementation?: boolean; // Add missing property
   };
 }
 
@@ -72,7 +73,9 @@ export abstract class CompromiseStrategy {
    * Check if this strategy can handle the given feature
    */
   canHandle(feature: Feature, context: ConversionContext): boolean {
-    return this.supportedFeatureTypes.includes(feature.type) && this.isApplicable(feature, context);
+    return feature.type
+      ? this.supportedFeatureTypes.includes(feature.type) && this.isApplicable(feature, context)
+      : false;
   }
 
   /**

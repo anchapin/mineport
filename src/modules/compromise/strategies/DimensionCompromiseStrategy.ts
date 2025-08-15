@@ -242,7 +242,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
    * Create a modified feature that uses Overworld as base
    */
   private createOverworldReplacement(feature: Feature): Feature {
-    return {
+    const modifiedFeature: Feature = {
       ...feature,
       type: FeatureType.BIOME,
       properties: {
@@ -257,13 +257,14 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
         originalType: feature.type,
       },
     };
+    return modifiedFeature;
   }
 
   /**
    * Create a modified feature that uses Nether as base
    */
   private createNetherAdaptation(feature: Feature): Feature {
-    return {
+    const modifiedFeature: Feature = {
       ...feature,
       type: FeatureType.BIOME,
       properties: {
@@ -278,13 +279,14 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
         originalType: feature.type,
       },
     };
+    return modifiedFeature;
   }
 
   /**
    * Create a modified feature that uses End as base
    */
   private createEndAdaptation(feature: Feature): Feature {
-    return {
+    const modifiedFeature: Feature = {
       ...feature,
       type: FeatureType.BIOME,
       properties: {
@@ -299,6 +301,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
         originalType: feature.type,
       },
     };
+    return modifiedFeature;
   }
 
   /**

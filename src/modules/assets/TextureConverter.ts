@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('TextureConverter');
 
@@ -28,7 +29,7 @@ export interface TextureConversionResult {
  * Interface for texture conversion notes/warnings
  */
 export interface TextureConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   texturePath?: string;
 }
@@ -66,7 +67,7 @@ export class TextureConverter {
       } catch (error) {
         logger.error(`Failed to convert texture ${javaTexture.path}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert texture: ${error instanceof Error ? error.message : String(error)}`,
           texturePath: javaTexture.path,
         });

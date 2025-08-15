@@ -312,7 +312,7 @@ export class CompromiseEngine {
     }
 
     // Features with custom implementations
-    if (properties.customImplementation || properties.javaSpecific) {
+    if (feature.properties?.customImplementation || feature.properties?.javaSpecific) {
       return true;
     }
 

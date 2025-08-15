@@ -8,6 +8,7 @@
 
 // import type { MMIRNode, MMIRContext } from './MMIRGenerator.js';
 import { LLMTranslationResult } from './LLMTranslationService.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 /**
  * Represents a program state snapshot at a specific point in execution
@@ -53,7 +54,7 @@ export interface DivergencePoint {
   javascriptSnapshot: ProgramStateSnapshot;
   divergenceType: 'variable_value' | 'control_flow' | 'return_value' | 'missing_state';
   description: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: ErrorSeverity;
 }
 
 /**
@@ -623,7 +624,7 @@ ${jsCode}
             },
             divergenceType: 'missing_state',
             description: 'One or both execution traces have no snapshots',
-            severity: 'high',
+            severity: ErrorSeverity.ERROR,
           },
         ],
         alignmentScore: 0,
@@ -677,7 +678,7 @@ ${jsCode}
           },
           divergenceType: 'missing_state',
           description: `Function ${javaFunc} exists in Java but not in JavaScript`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
         });
         alignmentScore -= 0.2;
       }
@@ -716,7 +717,7 @@ ${jsCode}
           },
           divergenceType: 'missing_state',
           description: `Function ${javaFunc} -> ${jsFunc} is missing in one of the traces`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
         });
 
         alignmentScore -= 0.2; // Significant penalty for missing function
@@ -1005,7 +1006,7 @@ ${jsCode}
           javascriptSnapshot: jsEntrySnapshot,
           divergenceType: 'variable_value',
           description: `Variable ${javaVarName} exists in Java but not in JavaScript`,
-          severity: 'medium',
+          severity: ErrorSeverity.WARNING,
         });
         continue;
       }
@@ -1027,7 +1028,7 @@ ${jsCode}
           javascriptSnapshot: jsEntrySnapshot,
           divergenceType: 'variable_value',
           description: `Variable ${javaVarName} has different values: Java=${javaVarValue}, JS=${jsVarValue}`,
-          severity: 'medium',
+          severity: ErrorSeverity.WARNING,
         });
       }
     }
@@ -1059,7 +1060,7 @@ ${jsCode}
         javascriptSnapshot: jsReturnSnapshots[0] || jsSnapshots[0],
         divergenceType: 'return_value',
         description: 'Return value missing in one language',
-        severity: 'high',
+        severity: ErrorSeverity.ERROR,
       });
       return;
     }
@@ -1083,7 +1084,7 @@ ${jsCode}
         javascriptSnapshot: jsLastReturn,
         divergenceType: 'return_value',
         description: `Return values differ: Java=${javaLastReturn.returnValue}, JS=${jsLastReturn.returnValue}`,
-        severity: 'high',
+        severity: ErrorSeverity.ERROR,
       });
     }
   }
@@ -1122,7 +1123,7 @@ ${jsCode}
         javascriptSnapshot: jsSnapshots[0],
         divergenceType: 'control_flow',
         description: `Control flow differs significantly: Java has ${javaCalls} snapshots, JS has ${jsCalls} snapshots`,
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
       });
     }
 
@@ -1156,7 +1157,7 @@ ${jsCode}
           javascriptSnapshot: jsSnapshots[0],
           divergenceType: 'control_flow',
           description: `Call stack depths differ: Java=${javaCallStack.length}, JS=${jsCallStack.length}`,
-          severity: 'low',
+          severity: ErrorSeverity.INFO,
         });
       }
     }

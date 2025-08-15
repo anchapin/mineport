@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('SoundProcessor');
 
@@ -28,7 +29,7 @@ export interface SoundConversionResult {
  * Interface for sound conversion notes/warnings
  */
 export interface SoundConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   soundPath?: string;
 }
@@ -105,7 +106,7 @@ export class SoundProcessor {
       } catch (error) {
         logger.error(`Failed to convert sound ${javaSound.path}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert sound: ${error instanceof Error ? error.message : String(error)}`,
           soundPath: javaSound.path,
         });

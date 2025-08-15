@@ -12,6 +12,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import AdmZip from 'adm-zip';
+import { ErrorSeverity } from '../../types/errors.js';
 import {
   SecurityScanResult,
   ThreatInfo,
@@ -99,7 +100,7 @@ export class SecurityScanner {
       threats.push({
         type: 'suspicious_pattern',
         description: `Security scan failed: ${error.message}`,
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
         details: { suspiciousFiles: [error.message] },
       });
 
@@ -166,7 +167,7 @@ export class SecurityScanner {
         return {
           type: 'zip_bomb',
           description: `Potential ZIP bomb detected - compression ratio: ${compressionRatio.toFixed(2)}, uncompressed size: ${totalUncompressedSize} bytes`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
           details: {
             compressionRatio,
             extractedSize: totalUncompressedSize,
@@ -180,7 +181,7 @@ export class SecurityScanner {
       return {
         type: 'zip_bomb',
         description: `Unable to analyze ZIP file structure: ${error.message}`,
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
       };
     }
   }
@@ -223,7 +224,7 @@ export class SecurityScanner {
         threats.push({
           type: 'path_traversal',
           description: `Path traversal attempt detected in ${suspiciousPaths.length} entries`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
           details: {
             paths: suspiciousPaths.slice(0, 10), // Limit to first 10 for readability
           },
@@ -233,7 +234,7 @@ export class SecurityScanner {
       threats.push({
         type: 'path_traversal',
         description: `Unable to analyze archive paths: ${error.message}`,
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
       });
     }
 
@@ -272,7 +273,7 @@ export class SecurityScanner {
           threats.push({
             type: 'malicious_code',
             description: `Suspicious code patterns detected in ${suspiciousFiles.length} files`,
-            severity: 'medium',
+            severity: ErrorSeverity.WARNING,
             details: {
               suspiciousFiles: suspiciousFiles.slice(0, 5),
               patterns: Array.from(new Set(foundPatterns)).slice(0, 5),
@@ -294,7 +295,7 @@ export class SecurityScanner {
           threats.push({
             type: 'malicious_code',
             description: `Suspicious code patterns detected`,
-            severity: 'medium',
+            severity: ErrorSeverity.WARNING,
             details: {
               patterns: Array.from(new Set(foundPatterns)),
             },
@@ -305,7 +306,7 @@ export class SecurityScanner {
       threats.push({
         type: 'suspicious_pattern',
         description: `Unable to scan for malicious patterns: ${error.message}`,
-        severity: 'low',
+        severity: ErrorSeverity.INFO,
       });
     }
 

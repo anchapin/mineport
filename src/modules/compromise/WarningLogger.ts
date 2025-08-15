@@ -1,12 +1,12 @@
 import { Feature } from '../../types/compromise.js';
-// import { createLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * WarningLogger provides functionality to create console warnings and detailed comments
  * for stubbed features, as well as user notifications for limitations.
  */
 export class WarningLogger {
-  private logger: Logger;
+  private logger: ReturnType<typeof createLogger>;
   private warnings: Map<string, FeatureWarning>;
 
   /**
@@ -18,8 +18,8 @@ export class WarningLogger {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor(logger?: ReturnType<typeof createLogger>) {
+    this.logger = logger || createLogger('WarningLogger');
     this.warnings = new Map<string, FeatureWarning>();
   }
 

@@ -568,11 +568,11 @@ export class CompromiseReporter {
   private getRequiredSkills(feature: Feature): string[] {
     const skills = ['Bedrock development'];
 
-    if (feature.type.includes('UI')) {
+    if (feature.type?.includes('UI')) {
       skills.push('UI/UX design');
     }
 
-    if (feature.type.includes('RENDERING')) {
+    if (feature.type?.includes('RENDERING')) {
       skills.push('Shader programming');
     }
 

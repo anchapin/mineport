@@ -120,8 +120,14 @@ export enum FeatureType {
   LANGUAGE = 'language',
   BLOCK_ENTITY = 'block_entity',
   PARTICLE = 'particle',
+  PARTICLE_EFFECT = 'particle_effect', // Add missing PARTICLE_EFFECT
   GUI = 'gui',
+  HUD = 'hud', // Add missing HUD
+  CONTAINER = 'container', // Add missing CONTAINER
+  COMMAND = 'command', // Add missing COMMAND
+  SCOREBOARD = 'scoreboard', // Add missing SCOREBOARD
   WORLD_GEN = 'world_gen',
+  WORLD_GENERATION = 'world_generation', // Add missing WORLD_GENERATION
   DIMENSION = 'dimension',
   RENDERING = 'rendering',
   MIXIN = 'mixin',
@@ -132,6 +138,9 @@ export enum FeatureType {
   ASSET = 'asset',
   CONFIGURATION = 'configuration',
   API = 'api',
+  BIOME = 'biome', // Add missing BIOME
+  BEHAVIOR = 'behavior', // Add missing BEHAVIOR
+  DOCUMENTATION = 'documentation', // Add missing DOCUMENTATION
 }
 
 /**
@@ -150,6 +159,8 @@ export interface Feature {
   sourceFiles: string[];
   sourceLineNumbers: number[][];
   compromiseStrategy?: CompromiseStrategy;
+  properties?: Record<string, any>; // Add missing properties field
+  metadata?: Record<string, any>; // Add missing metadata field
 }
 
 /**

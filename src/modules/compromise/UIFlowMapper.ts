@@ -1,12 +1,12 @@
 import { Feature } from '../../types/compromise.js';
-// import { createLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * UIFlowMapper provides functionality to analyze Java UI components and map them
  * to Bedrock form types while preserving logical flow.
  */
 export class UIFlowMapper {
-  private logger: Logger;
+  private logger: ReturnType<typeof createLogger>;
   private uiComponentPatterns: UIComponentPattern[];
   private formTypeMapping: Map<string, BedrockFormType>;
 
@@ -19,8 +19,8 @@ export class UIFlowMapper {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor(logger?: ReturnType<typeof createLogger>) {
+    this.logger = logger || createLogger('UIFlowMapper');
     this.uiComponentPatterns = this.initializeUIComponentPatterns();
     this.formTypeMapping = this.initializeFormTypeMapping();
   }

@@ -40,7 +40,10 @@ export class HealthAPI {
         summary: healthResult.summary,
       });
     } catch (error) {
-      this.logger.error('Health check endpoint failed:', error instanceof Error ? error : String(error));
+      this.logger.error(
+        'Health check endpoint failed:',
+        error instanceof Error ? error : String(error)
+      );
       res.status(500).json({
         status: 'unhealthy',
         timestamp: new Date(),
@@ -193,7 +196,10 @@ export class HealthAPI {
 
       res.status(200).json(validationResults);
     } catch (error) {
-      this.logger.error('Configuration validation failed:', error instanceof Error ? error : String(error));
+      this.logger.error(
+        'Configuration validation failed:',
+        error instanceof Error ? error : String(error)
+      );
       res.status(500).json({
         valid: false,
         error: 'Configuration validation failed',

@@ -15,6 +15,7 @@ import {
   TranslationWarning,
   CompromiseResult,
 } from '../../types/logic-translation.js';
+import { ErrorSeverity } from '../../types/errors.js';
 import { ASTTranspiler } from './ASTTranspiler.js';
 import { LLMTranslator } from './LLMTranslator.js';
 import { ProgramStateValidator } from './ProgramStateValidator.js';
@@ -362,7 +363,7 @@ export class LogicTranslationEngine {
           description: segment.reason,
           javaCode: segment.originalCode,
           context: segment.context,
-          severity: 'medium',
+          severity: ErrorSeverity.WARNING,
         },
         strategy: {
           name: 'llm_translation',

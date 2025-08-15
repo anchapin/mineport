@@ -648,7 +648,13 @@ export interface JavaAnimationFile {
 }
 
 // Import Bedrock asset interfaces from centralized location
-export { BedrockTextureFile, BedrockModelFile, BedrockSoundFile, BedrockParticleFile, BedrockAnimationFile } from './assets.js';
+export {
+  BedrockTextureFile,
+  BedrockModelFile,
+  BedrockSoundFile,
+  BedrockParticleFile,
+  BedrockAnimationFile,
+} from './assets.js';
 
 // Import AssetConversionNote from centralized error types
 export { AssetConversionNote } from './errors.js';

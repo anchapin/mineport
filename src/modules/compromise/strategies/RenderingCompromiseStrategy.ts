@@ -175,7 +175,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
   }
 
   protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
-    if (!this.supportedFeatureTypes.includes(feature.type)) {
+    if (!feature.type || !this.supportedFeatureTypes.includes(feature.type)) {
       return false;
     }
 

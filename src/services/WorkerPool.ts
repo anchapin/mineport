@@ -168,7 +168,21 @@ export class WorkerPool extends EventEmitter {
    */
   async runTask<TInput, TOutput>(task: WorkerTask<TInput, TOutput>): Promise<TOutput> {
     return new Promise((resolve, reject) => {
-      this.taskQueue.push({ task, resolve, reject });
+      const queueItem = { task, resolve, reject };
+
+      // Insert task based on priority (higher priority first)
+      const priority = task.priority || 0;
+      let insertIndex = this.taskQueue.length;
+
+      for (let i = 0; i < this.taskQueue.length; i++) {
+        const existingPriority = this.taskQueue[i].task.priority || 0;
+        if (priority > existingPriority) {
+          insertIndex = i;
+          break;
+        }
+      }
+
+      this.taskQueue.splice(insertIndex, 0, queueItem);
       this.processTaskQueue();
     });
   }
@@ -190,6 +204,7 @@ export class WorkerPool extends EventEmitter {
    * Cancel a task by ID
    */
   cancelTask(taskId: string): boolean {
+    // First check if task is in queue
     const taskIndex = this.taskQueue.findIndex((item) => item.task.id === taskId);
     if (taskIndex >= 0) {
       const { reject } = this.taskQueue[taskIndex];
@@ -197,6 +212,20 @@ export class WorkerPool extends EventEmitter {
       reject(new Error(`Task ${taskId} was cancelled`));
       return true;
     }
+
+    // Check if task is currently running
+    for (const worker of this.workers.values()) {
+      if (worker.status === 'busy' && worker.currentJob?.id === taskId) {
+        // Mark worker as idle and clear current job
+        worker.status = 'idle';
+        worker.currentJob = undefined;
+
+        // The task promise will be rejected in the executeTask method
+        // when it detects the cancellation
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -252,13 +281,15 @@ export class WorkerPool extends EventEmitter {
     const { task, resolve, reject } = this.taskQueue.shift()!;
 
     availableWorker.status = 'busy';
+    availableWorker.currentJob = { id: task.id || 'unknown', type: 'task' as JobType };
     availableWorker.lastHeartbeat = new Date();
 
-    this.executeTask(availableWorker, task)
+    this.executeTask(availableWorker, task, reject)
       .then(resolve)
       .catch(reject)
       .finally(() => {
         availableWorker.status = 'idle';
+        availableWorker.currentJob = undefined;
         availableWorker.lastHeartbeat = new Date();
         // Process next task in queue
         this.processTaskQueue();
@@ -267,10 +298,22 @@ export class WorkerPool extends EventEmitter {
 
   private async executeTask<TInput, TOutput>(
     worker: Worker,
-    task: WorkerTask<TInput, TOutput>
+    task: WorkerTask<TInput, TOutput>,
+    _reject?: (reason?: any) => void
   ): Promise<TOutput> {
     try {
+      // Check if task was cancelled before execution
+      if (worker.status === 'idle' && worker.currentJob?.id === task.id) {
+        throw new Error(`Task ${task.id} was cancelled`);
+      }
+
       const result = await task.execute(task.input);
+
+      // Check if task was cancelled during execution
+      if (worker.status === 'idle' && worker.currentJob === undefined) {
+        throw new Error(`Task ${task.id} was cancelled`);
+      }
+
       worker.processedJobs++;
       return result;
     } catch (error) {

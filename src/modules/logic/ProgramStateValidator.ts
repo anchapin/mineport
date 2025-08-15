@@ -9,6 +9,7 @@ import {
   FunctionalDifference,
   SourcePosition,
 } from '../../types/logic-translation.js';
+import { ErrorSeverity } from '../../types/errors.js';
 import { logger } from '../../utils/logger.js';
 
 export interface ValidationOptions {
@@ -261,7 +262,9 @@ export class ProgramStateValidator {
     }
 
     // Check for too many high-severity differences
-    const highSeverityDifferences = differences.filter((diff) => diff.severity === 'high');
+    const highSeverityDifferences = differences.filter(
+      (diff) => diff.severity === ErrorSeverity.ERROR
+    );
     if (highSeverityDifferences.length > 3) {
       return false;
     }
@@ -396,7 +399,7 @@ class StaticAnalyzer {
       differences.push({
         type: 'logic',
         description: `Method '${method.name}' not found in translated code`,
-        severity: 'high',
+        severity: ErrorSeverity.ERROR,
         location: { line: method.line, column: 0, offset: 0 },
         suggestion: `Implement equivalent method in JavaScript`,
       });
@@ -409,7 +412,7 @@ class StaticAnalyzer {
       differences.push({
         type: 'logic',
         description: `Significant complexity difference (Java: ${javaStructure.complexity}, JS: ${jsStructure.complexity})`,
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
         location: { line: 0, column: 0, offset: 0 },
         suggestion: 'Review code complexity and ensure equivalent logic',
       });
@@ -754,7 +757,7 @@ class SemanticAnalyzer {
       if (difference > Math.max(javaCount, jsCount) * 0.3) {
         mismatches.push({
           description: `Significant difference in ${patternType} patterns (Java: ${javaCount}, JS: ${jsCount})`,
-          severity: 'medium',
+          severity: ErrorSeverity.WARNING,
           location: { line: 0, column: 0, offset: 0 },
           suggestion: `Review ${patternType} logic for semantic equivalence`,
         });
@@ -777,7 +780,7 @@ class SemanticAnalyzer {
         if (methodSimilarity < 0.8 && !hasEquivalentMethods) {
           mismatches.push({
             description: `Method calls differ between Java and JavaScript versions (Java: ${[...javaMethods].join(', ')}, JS: ${[...jsMethods].join(', ')})`,
-            severity: 'medium',
+            severity: ErrorSeverity.WARNING,
             location: { line: 0, column: 0, offset: 0 },
             suggestion: 'Review method calls and functionality for semantic equivalence',
           });
@@ -905,7 +908,7 @@ class BehaviorAnalyzer {
       differences.push({
         type: 'behavior',
         description: 'Asynchronous behavior patterns differ between Java and JavaScript versions',
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
         location: { line: 0, column: 0, offset: 0 },
         suggestion: 'Ensure consistent async/sync behavior patterns',
       });
@@ -919,7 +922,7 @@ class BehaviorAnalyzer {
       differences.push({
         type: 'behavior',
         description: 'Java code has exception handling that may not be present in JavaScript',
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
         location: { line: 0, column: 0, offset: 0 },
         suggestion: 'Implement equivalent error handling in JavaScript',
       });
@@ -974,7 +977,7 @@ interface SemanticPattern {
 
 interface SemanticMismatch {
   description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: ErrorSeverity;
   location: SourcePosition;
   suggestion: string;
 }

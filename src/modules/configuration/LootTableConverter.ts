@@ -173,6 +173,8 @@ export interface JavaLootCondition {
   raining?: boolean;
   thundering?: boolean;
   value?: { min?: number; max?: number };
+  term?: any; // Add missing term property
+  terms?: any[]; // Add missing terms property
 }
 
 /**
@@ -289,6 +291,7 @@ export interface BedrockLootCondition {
   raining?: boolean;
   thundering?: boolean;
   value?: { min?: number; max?: number };
+  term?: any; // Add missing term property
 }
 
 /**

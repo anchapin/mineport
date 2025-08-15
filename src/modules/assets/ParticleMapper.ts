@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('ParticleMapper');
 
@@ -38,7 +39,7 @@ export interface ParticleConversionResult {
  * Interface for particle conversion notes/warnings
  */
 export interface ParticleConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   particleName?: string;
   fallbackApplied?: boolean;
@@ -191,7 +192,7 @@ export class ParticleMapper {
       } catch (error) {
         logger.error(`Failed to convert particle ${javaParticle.name}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert particle: ${error instanceof Error ? error.message : String(error)}`,
           particleName: javaParticle.name,
         });

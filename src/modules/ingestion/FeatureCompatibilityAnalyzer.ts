@@ -16,7 +16,13 @@
 import fs from 'fs/promises';
 import path from 'path';
 import logger from '../../utils/logger.js';
-import { Feature, FeatureCompatibilityReport, CompromiseStrategy, CompatibilityTier, FeatureType } from './index.js';
+import {
+  Feature,
+  FeatureCompatibilityReport,
+  CompromiseStrategy,
+  CompatibilityTier,
+  FeatureType,
+} from './index.js';
 
 // Re-export types for convenience
 export { CompatibilityTier, FeatureType };

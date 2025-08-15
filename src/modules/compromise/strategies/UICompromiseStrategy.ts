@@ -9,11 +9,7 @@ import { logger } from '../../../utils/logger.js';
  */
 export class UICompromiseStrategy extends CompromiseStrategy {
   constructor() {
-    super(
-      'UICompromise',
-      [FeatureType.GUI],
-      CompromiseLevel.MEDIUM
-    );
+    super('UICompromise', [FeatureType.GUI], CompromiseLevel.MEDIUM);
   }
 
   async apply(
@@ -187,7 +183,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
   }
 
   protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
-    if (!this.supportedFeatureTypes.includes(feature.type)) {
+    if (!feature.type || !this.supportedFeatureTypes.includes(feature.type)) {
       return false;
     }
 
