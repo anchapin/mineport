@@ -132,7 +132,7 @@ export class ManualPostProcessingGuide {
     // Sort steps by priority
     return this.sortStepsByPriority(steps);
   } /**
- 
+
   * Adds post-processing steps for tier3 features
    * @param tier3Features The tier3 features
    * @param compromiseReport The compromise report
@@ -180,7 +180,7 @@ export class ManualPostProcessingGuide {
    */
   private createDimensionSimulationStep(
     feature: Feature,
-    strategy: AppliedCompromiseStrategy
+    _strategy: AppliedCompromiseStrategy
   ): PostProcessingStep {
     return {
       id: `dimension-${feature.id}`,
@@ -218,7 +218,7 @@ simulator.setSkyProperties({
    */
   private createRenderingStubStep(
     feature: Feature,
-    strategy: AppliedCompromiseStrategy
+    _strategy: AppliedCompromiseStrategy
   ): PostProcessingStep {
     return {
       id: `rendering-${feature.id}`,
@@ -232,17 +232,17 @@ import { Entity, RenderController } from "@minecraft/server";
 function replaceCustomRendering(entity) {
   // Original Java code used custom rendering pipeline
   // Here's an alternative using Bedrock's built-in capabilities
-  
+
   // 1. Use entity render controller
   const renderController = new RenderController(entity);
-  
+
   // 2. Apply available visual effects
   renderController.applyModelScale(1.2); // Scale the entity model
-  
+
   // 3. Use particles for additional visual effects
   const pos = entity.location;
-  world.spawnParticle("minecraft:basic_flame_particle", 
-    { x: pos.x, y: pos.y + 1, z: pos.z }, 
+  world.spawnParticle("minecraft:basic_flame_particle",
+    { x: pos.x, y: pos.y + 1, z: pos.z },
     { x: 0, y: 0.1, z: 0 });
 }`,
       affectedFiles: [`scripts/rendering/${feature.name.toLowerCase().replace(/\s+/g, '_')}.js`],
@@ -258,7 +258,7 @@ function replaceCustomRendering(entity) {
    */
   private createUIFlowMappingStep(
     feature: Feature,
-    strategy: AppliedCompromiseStrategy
+    _strategy: AppliedCompromiseStrategy
   ): PostProcessingStep {
     return {
       id: `ui-${feature.id}`,
@@ -272,7 +272,7 @@ import { FormBuilder } from "@minecraft/server-ui";
 const form = FormBuilder.createCustomForm()
   .title("${feature.name}")
   .addLabel("Customize this form to match the original Java UI");
-  
+
 // Add custom styling elements
 form.addSlider("Opacity", 0, 100, 1, 80);
 form.addToggle("Show Background", true);
@@ -469,7 +469,7 @@ function improvedImplementation() {
   try {
     // Original code with potential issues
     // ...
-    
+
     // Add proper error handling and logging
     console.log("Operation completed successfully");
   } catch (error) {
@@ -708,7 +708,7 @@ function improvedImplementation() {
           <span class="priority-badge ${step.priority}">${step.priority.charAt(0).toUpperCase() + step.priority.slice(1)}</span>
         </h2>
         <p>${step.description}</p>
-        
+
         ${
           step.codeSnippet
             ? `
@@ -719,7 +719,7 @@ function improvedImplementation() {
         `
             : ''
         }
-        
+
         ${
           step.affectedFiles && step.affectedFiles.length > 0
             ? `
@@ -741,7 +741,7 @@ function improvedImplementation() {
     function copyToClipboard(elementId) {
       const element = document.getElementById(elementId);
       const text = element.textContent;
-      
+
       navigator.clipboard.writeText(text).then(function() {
         const button = element.previousElementSibling;
         const originalText = button.textContent;
@@ -751,7 +751,7 @@ function improvedImplementation() {
         }, 2000);
       });
     }
-    
+
     // Filter functionality
     document.querySelectorAll('.filter-button').forEach(button => {
       button.addEventListener('click', function() {
@@ -760,11 +760,11 @@ function improvedImplementation() {
           btn.classList.remove('active');
         });
         this.classList.add('active');
-        
+
         // Filter steps
         const priority = this.getAttribute('data-priority');
         const steps = document.querySelectorAll('.step');
-        
+
         steps.forEach(step => {
           if (priority === 'all' || step.getAttribute('data-priority') === priority) {
             step.style.display = 'block';

@@ -2,7 +2,7 @@
 
 /**
  * Feature Flag Manager for CI/CD Pipeline Rollout
- * 
+ *
  * This script manages feature flags for controlled rollout of enhanced
  * CI/CD pipeline features, allowing gradual migration and rollback capabilities.
  */
@@ -26,7 +26,7 @@ class FeatureFlagManager {
         if (fs.existsSync(this.flagsFile)) {
             return JSON.parse(fs.readFileSync(this.flagsFile, 'utf8'));
         }
-        
+
         // Default feature flags configuration
         const defaultFlags = {
             version: '1.0.0',
@@ -120,7 +120,7 @@ class FeatureFlagManager {
                 }
             }
         };
-        
+
         this.saveFlags(defaultFlags);
         return defaultFlags;
     }
@@ -156,7 +156,7 @@ class FeatureFlagManager {
 
         this.saveFlags();
         console.log(`✅ Feature '${featureName}' enabled with ${rolloutPercentage}% rollout`);
-        
+
         return this.applyFeatureChanges(featureName);
     }
 
@@ -183,7 +183,7 @@ class FeatureFlagManager {
 
         this.saveFlags();
         console.log(`❌ Feature '${featureName}' disabled`);
-        
+
         return this.revertFeatureChanges(featureName);
     }
 
@@ -192,7 +192,7 @@ class FeatureFlagManager {
      */
     applyFeatureChanges(featureName) {
         const changes = [];
-        
+
         switch (featureName) {
             case 'enhancedCI':
                 changes.push(this.enableEnhancedCI());
@@ -218,7 +218,7 @@ class FeatureFlagManager {
             default:
                 throw new Error(`Unknown feature: ${featureName}`);
         }
-        
+
         return changes.filter(Boolean);
     }
 
@@ -227,7 +227,7 @@ class FeatureFlagManager {
      */
     revertFeatureChanges(featureName) {
         const changes = [];
-        
+
         switch (featureName) {
             case 'enhancedCI':
                 changes.push(this.disableEnhancedCI());
@@ -253,7 +253,7 @@ class FeatureFlagManager {
             default:
                 throw new Error(`Unknown feature: ${featureName}`);
         }
-        
+
         return changes.filter(Boolean);
     }
 
@@ -263,12 +263,12 @@ class FeatureFlagManager {
     enableEnhancedCI() {
         const ciWorkflow = path.join(this.workflowsDir, 'ci.yml');
         const enhancedCIWorkflow = path.join(this.workflowsDir, 'ci-enhanced.yml');
-        
+
         // Backup existing CI workflow
         if (fs.existsSync(ciWorkflow)) {
             this.backupWorkflow('ci.yml');
         }
-        
+
         // Enable enhanced CI workflow
         if (fs.existsSync(enhancedCIWorkflow)) {
             if (fs.existsSync(ciWorkflow)) {
@@ -277,7 +277,7 @@ class FeatureFlagManager {
             fs.copyFileSync(enhancedCIWorkflow, ciWorkflow);
             return `Enhanced CI workflow activated: ${ciWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -286,13 +286,13 @@ class FeatureFlagManager {
      */
     disableEnhancedCI() {
         const ciWorkflow = path.join(this.workflowsDir, 'ci.yml');
-        
+
         // Restore original CI workflow
         const backupPath = this.restoreWorkflow('ci.yml');
         if (backupPath) {
             return `Enhanced CI workflow disabled, restored from: ${backupPath}`;
         }
-        
+
         return null;
     }
 
@@ -301,12 +301,12 @@ class FeatureFlagManager {
      */
     enableSecurityScanning() {
         const securityWorkflow = path.join(this.workflowsDir, 'security.yml');
-        
+
         if (fs.existsSync(securityWorkflow)) {
             // Workflow already exists, just ensure it's enabled
             return `Security scanning workflow already active: ${securityWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -315,13 +315,13 @@ class FeatureFlagManager {
      */
     disableSecurityScanning() {
         const securityWorkflow = path.join(this.workflowsDir, 'security.yml');
-        
+
         if (fs.existsSync(securityWorkflow)) {
             this.backupWorkflow('security.yml');
             fs.unlinkSync(securityWorkflow);
             return `Security scanning workflow disabled: ${securityWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -330,11 +330,11 @@ class FeatureFlagManager {
      */
     enableAutomatedDeployment() {
         const deployWorkflow = path.join(this.workflowsDir, 'deploy.yml');
-        
+
         if (fs.existsSync(deployWorkflow)) {
             return `Automated deployment workflow already active: ${deployWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -343,13 +343,13 @@ class FeatureFlagManager {
      */
     disableAutomatedDeployment() {
         const deployWorkflow = path.join(this.workflowsDir, 'deploy.yml');
-        
+
         if (fs.existsSync(deployWorkflow)) {
             this.backupWorkflow('deploy.yml');
             fs.unlinkSync(deployWorkflow);
             return `Automated deployment workflow disabled: ${deployWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -358,11 +358,11 @@ class FeatureFlagManager {
      */
     enableDependencyManagement() {
         const dependenciesWorkflow = path.join(this.workflowsDir, 'dependencies.yml');
-        
+
         if (fs.existsSync(dependenciesWorkflow)) {
             return `Dependency management workflow already active: ${dependenciesWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -371,13 +371,13 @@ class FeatureFlagManager {
      */
     disableDependencyManagement() {
         const dependenciesWorkflow = path.join(this.workflowsDir, 'dependencies.yml');
-        
+
         if (fs.existsSync(dependenciesWorkflow)) {
             this.backupWorkflow('dependencies.yml');
             fs.unlinkSync(dependenciesWorkflow);
             return `Dependency management workflow disabled: ${dependenciesWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -386,11 +386,11 @@ class FeatureFlagManager {
      */
     enablePerformanceMonitoring() {
         const performanceWorkflow = path.join(this.workflowsDir, 'performance.yml');
-        
+
         if (fs.existsSync(performanceWorkflow)) {
             return `Performance monitoring workflow already active: ${performanceWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -399,13 +399,13 @@ class FeatureFlagManager {
      */
     disablePerformanceMonitoring() {
         const performanceWorkflow = path.join(this.workflowsDir, 'performance.yml');
-        
+
         if (fs.existsExists(performanceWorkflow)) {
             this.backupWorkflow('performance.yml');
             fs.unlinkSync(performanceWorkflow);
             return `Performance monitoring workflow disabled: ${performanceWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -414,11 +414,11 @@ class FeatureFlagManager {
      */
     enableArtifactManagement() {
         const artifactsWorkflow = path.join(this.workflowsDir, 'artifacts.yml');
-        
+
         if (fs.existsSync(artifactsWorkflow)) {
             return `Artifact management workflow already active: ${artifactsWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -427,13 +427,13 @@ class FeatureFlagManager {
      */
     disableArtifactManagement() {
         const artifactsWorkflow = path.join(this.workflowsDir, 'artifacts.yml');
-        
+
         if (fs.existsSync(artifactsWorkflow)) {
             this.backupWorkflow('artifacts.yml');
             fs.unlinkSync(artifactsWorkflow);
             return `Artifact management workflow disabled: ${artifactsWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -442,11 +442,11 @@ class FeatureFlagManager {
      */
     enableComplianceReporting() {
         const complianceWorkflow = path.join(this.workflowsDir, 'compliance-reporting.yml');
-        
+
         if (fs.existsSync(complianceWorkflow)) {
             return `Compliance reporting workflow already active: ${complianceWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -455,13 +455,13 @@ class FeatureFlagManager {
      */
     disableComplianceReporting() {
         const complianceWorkflow = path.join(this.workflowsDir, 'compliance-reporting.yml');
-        
+
         if (fs.existsSync(complianceWorkflow)) {
             this.backupWorkflow('compliance-reporting.yml');
             fs.unlinkSync(complianceWorkflow);
             return `Compliance reporting workflow disabled: ${complianceWorkflow}`;
         }
-        
+
         return null;
     }
 
@@ -470,22 +470,22 @@ class FeatureFlagManager {
      */
     backupWorkflow(workflowFile) {
         const sourcePath = path.join(this.workflowsDir, workflowFile);
-        
+
         if (!fs.existsSync(sourcePath)) {
             return null;
         }
-        
+
         // Ensure backup directory exists
         if (!fs.existsSync(this.backupDir)) {
             fs.mkdirSync(this.backupDir, { recursive: true });
         }
-        
+
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupPath = path.join(this.backupDir, `${workflowFile}.${timestamp}.backup`);
-        
+
         fs.copyFileSync(sourcePath, backupPath);
         console.log(`📁 Backed up ${workflowFile} to ${backupPath}`);
-        
+
         return backupPath;
     }
 
@@ -494,25 +494,25 @@ class FeatureFlagManager {
      */
     restoreWorkflow(workflowFile) {
         const targetPath = path.join(this.workflowsDir, workflowFile);
-        
+
         if (!fs.existsSync(this.backupDir)) {
             return null;
         }
-        
+
         // Find the most recent backup
         const backupFiles = fs.readdirSync(this.backupDir)
             .filter(file => file.startsWith(`${workflowFile}.`) && file.endsWith('.backup'))
             .sort()
             .reverse();
-        
+
         if (backupFiles.length === 0) {
             return null;
         }
-        
+
         const latestBackup = path.join(this.backupDir, backupFiles[0]);
         fs.copyFileSync(latestBackup, targetPath);
         console.log(`📁 Restored ${workflowFile} from ${latestBackup}`);
-        
+
         return latestBackup;
     }
 
@@ -522,19 +522,19 @@ class FeatureFlagManager {
     executeGradualRollout() {
         const strategy = this.flags.rolloutStrategy;
         const currentPhase = strategy.phases[strategy.currentPhase];
-        
+
         if (!currentPhase) {
             console.log('🎉 All rollout phases completed!');
             return { completed: true };
         }
-        
+
         console.log(`🚀 Executing ${currentPhase.name}...`);
         console.log(`Features: ${currentPhase.features.join(', ')}`);
         console.log(`Duration: ${currentPhase.duration}`);
         console.log(`Success Criteria: ${currentPhase.successCriteria.join(', ')}`);
-        
+
         const results = [];
-        
+
         // Enable features for this phase
         for (const featureName of currentPhase.features) {
             try {
@@ -552,7 +552,7 @@ class FeatureFlagManager {
                 });
             }
         }
-        
+
         return {
             phase: currentPhase,
             results,
@@ -565,7 +565,7 @@ class FeatureFlagManager {
      */
     advanceToNextPhase() {
         const strategy = this.flags.rolloutStrategy;
-        
+
         if (strategy.currentPhase < strategy.phases.length - 1) {
             strategy.currentPhase++;
             this.saveFlags();
@@ -583,14 +583,14 @@ class FeatureFlagManager {
     rollbackToPreviousPhase() {
         const strategy = this.flags.rolloutStrategy;
         const currentPhase = strategy.phases[strategy.currentPhase];
-        
+
         if (!currentPhase) {
             console.log('❌ No current phase to rollback from');
             return false;
         }
-        
+
         console.log(`🔄 Rolling back ${currentPhase.name}...`);
-        
+
         // Disable features from current phase
         for (const featureName of currentPhase.features) {
             try {
@@ -600,14 +600,14 @@ class FeatureFlagManager {
                 console.error(`  ⚠️  Failed to disable ${featureName}: ${error.message}`);
             }
         }
-        
+
         // Move back to previous phase
         if (strategy.currentPhase > 0) {
             strategy.currentPhase--;
             this.saveFlags();
             console.log(`📉 Rolled back to phase ${strategy.currentPhase + 1}: ${strategy.phases[strategy.currentPhase].name}`);
         }
-        
+
         return true;
     }
 
@@ -630,7 +630,7 @@ class FeatureFlagManager {
     getRolloutStatus() {
         const strategy = this.flags.rolloutStrategy;
         const currentPhase = strategy.phases[strategy.currentPhase];
-        
+
         const enabledFeatures = Object.entries(this.flags.flags)
             .filter(([name, flag]) => flag.enabled)
             .map(([name, flag]) => ({
@@ -638,7 +638,7 @@ class FeatureFlagManager {
                 rolloutPercentage: flag.rolloutPercentage,
                 enabledAt: flag.enabledAt
             }));
-        
+
         return {
             currentPhase: currentPhase ? {
                 index: strategy.currentPhase,
@@ -658,12 +658,12 @@ class FeatureFlagManager {
     listFeatures() {
         console.log('\n📋 Available Features:');
         console.log('='.repeat(50));
-        
+
         Object.entries(this.flags.flags).forEach(([name, flag]) => {
             const status = flag.enabled ? '✅ ENABLED' : '❌ DISABLED';
             const rollout = flag.enabled ? ` (${flag.rolloutPercentage}%)` : '';
             const deps = flag.dependencies.length > 0 ? ` [deps: ${flag.dependencies.join(', ')}]` : '';
-            
+
             console.log(`${status} ${name}${rollout}`);
             console.log(`    ${flag.description}${deps}`);
         });
@@ -681,10 +681,10 @@ class FeatureFlagManager {
             recommendations: this.generateRecommendations(),
             riskAssessment: this.assessRolloutRisks()
         };
-        
+
         const reportPath = 'migration-report.json';
         fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-        
+
         console.log(`📊 Migration report generated: ${reportPath}`);
         return report;
     }
@@ -696,7 +696,7 @@ class FeatureFlagManager {
         const recommendations = [];
         const enabledFeatures = Object.entries(this.flags.flags)
             .filter(([name, flag]) => flag.enabled);
-        
+
         if (enabledFeatures.length === 0) {
             recommendations.push({
                 priority: 'HIGH',
@@ -704,7 +704,7 @@ class FeatureFlagManager {
                 rationale: 'Core CI improvements provide foundation for other features'
             });
         }
-        
+
         // Check for incomplete rollouts
         const partialRollouts = enabledFeatures.filter(([name, flag]) => flag.rolloutPercentage < 100);
         if (partialRollouts.length > 0) {
@@ -714,14 +714,14 @@ class FeatureFlagManager {
                 rationale: 'Partial rollouts can cause inconsistent behavior'
             });
         }
-        
+
         // Check for dependency violations
         const dependencyIssues = Object.entries(this.flags.flags)
             .filter(([name, flag]) => {
                 if (!flag.enabled) return false;
                 return flag.dependencies.some(dep => !this.flags.flags[dep].enabled);
             });
-        
+
         if (dependencyIssues.length > 0) {
             recommendations.push({
                 priority: 'HIGH',
@@ -730,7 +730,7 @@ class FeatureFlagManager {
                 affectedFeatures: dependencyIssues.map(([name]) => name)
             });
         }
-        
+
         return recommendations;
     }
 
@@ -741,7 +741,7 @@ class FeatureFlagManager {
         const risks = [];
         const enabledFeatures = Object.entries(this.flags.flags)
             .filter(([name, flag]) => flag.enabled);
-        
+
         // Risk: Too many features enabled at once
         if (enabledFeatures.length > 3) {
             risks.push({
@@ -751,14 +751,14 @@ class FeatureFlagManager {
                 mitigation: 'Consider rolling back some features and enabling gradually'
             });
         }
-        
+
         // Risk: Critical features without dependencies
         const criticalFeatures = ['automatedDeployment'];
         const criticalWithoutDeps = criticalFeatures.filter(feature => {
             const flag = this.flags.flags[feature];
             return flag.enabled && flag.dependencies.some(dep => !this.flags.flags[dep].enabled);
         });
-        
+
         if (criticalWithoutDeps.length > 0) {
             risks.push({
                 level: 'HIGH',
@@ -768,7 +768,7 @@ class FeatureFlagManager {
                 affectedFeatures: criticalWithoutDeps
             });
         }
-        
+
         return risks;
     }
 }
@@ -778,13 +778,13 @@ if (require.main === module) {
     const manager = new FeatureFlagManager();
     const command = process.argv[2];
     const args = process.argv.slice(3);
-    
+
     try {
         switch (command) {
             case 'list':
                 manager.listFeatures();
                 break;
-                
+
             case 'enable':
                 if (args.length < 1) {
                     console.error('Usage: enable <feature-name> [rollout-percentage]');
@@ -793,7 +793,7 @@ if (require.main === module) {
                 const rolloutPercentage = args[1] ? parseInt(args[1]) : 100;
                 manager.enableFeature(args[0], rolloutPercentage);
                 break;
-                
+
             case 'disable':
                 if (args.length < 1) {
                     console.error('Usage: disable <feature-name>');
@@ -801,31 +801,31 @@ if (require.main === module) {
                 }
                 manager.disableFeature(args[0]);
                 break;
-                
+
             case 'rollout':
                 const result = manager.executeGradualRollout();
                 console.log('\n📊 Rollout Results:');
                 console.log(JSON.stringify(result, null, 2));
                 break;
-                
+
             case 'advance':
                 manager.advanceToNextPhase();
                 break;
-                
+
             case 'rollback':
                 manager.rollbackToPreviousPhase();
                 break;
-                
+
             case 'status':
                 const status = manager.getRolloutStatus();
                 console.log('\n📊 Rollout Status:');
                 console.log(JSON.stringify(status, null, 2));
                 break;
-                
+
             case 'report':
                 manager.generateMigrationReport();
                 break;
-                
+
             default:
                 console.log('Usage: feature-flag-manager.js <command> [args]');
                 console.log('Commands:');

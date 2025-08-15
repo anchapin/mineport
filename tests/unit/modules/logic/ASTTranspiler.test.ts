@@ -7,7 +7,7 @@ import { ASTTranspiler } from '../../../../src/modules/logic/ASTTranspiler.js';
 import { MMIRRepresentation, TranslationContext } from '../../../../src/types/logic-translation.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
-  const actual = await vi.importActual('../../../../src/utils/logger.js');
+  const actual = (await vi.importActual('../../../../src/utils/logger.js')) as any;
   return {
     ...actual,
     default: {

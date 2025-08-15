@@ -34,19 +34,19 @@ class SecurityReportGenerator {
     try {
       // Look for CodeQL SARIF files
       const files = fs.readdirSync('.').filter(f => f.includes('codeql') && f.endsWith('.sarif'));
-      
+
       for (const file of files) {
         const sarif = JSON.parse(fs.readFileSync(file, 'utf8'));
-        
+
         if (sarif.runs && sarif.runs.length > 0) {
           for (const run of sarif.runs) {
             if (run.results) {
               results.issues += run.results.length;
-              
+
               run.results.forEach(result => {
                 const severity = this.getSeverityFromCodeQL(result);
                 results[severity]++;
-                
+
                 results.details.push({
                   tool: 'CodeQL',
                   ruleId: result.ruleId,
@@ -87,16 +87,16 @@ class SecurityReportGenerator {
     try {
       if (fs.existsSync('npm-audit-results.json')) {
         const npmAudit = JSON.parse(fs.readFileSync('npm-audit-results.json', 'utf8'));
-        
+
         if (npmAudit.vulnerabilities) {
           Object.entries(npmAudit.vulnerabilities).forEach(([packageName, vulnData]) => {
             results.packages.add(packageName);
-            
+
             vulnData.via.forEach(via => {
               if (typeof via === 'object' && via.title) {
                 results.vulnerabilities++;
                 results[via.severity]++;
-                
+
                 results.details.push({
                   tool: 'npm audit',
                   package: packageName,
@@ -118,13 +118,13 @@ class SecurityReportGenerator {
     try {
       if (fs.existsSync('snyk-results.json')) {
         const snykResults = JSON.parse(fs.readFileSync('snyk-results.json', 'utf8'));
-        
+
         if (snykResults.vulnerabilities) {
           snykResults.vulnerabilities.forEach(vuln => {
             results.vulnerabilities++;
             results[vuln.severity]++;
             results.packages.add(vuln.packageName);
-            
+
             results.details.push({
               tool: 'Snyk',
               package: vuln.packageName,
@@ -157,12 +157,12 @@ class SecurityReportGenerator {
     try {
       if (fs.existsSync('results.sarif')) {
         const sarif = JSON.parse(fs.readFileSync('results.sarif', 'utf8'));
-        
+
         if (sarif.runs && sarif.runs.length > 0) {
           for (const run of sarif.runs) {
             if (run.results) {
               results.secrets += run.results.length;
-              
+
               run.results.forEach(result => {
                 results.details.push({
                   tool: 'GitLeaks',
@@ -201,7 +201,7 @@ class SecurityReportGenerator {
     try {
       if (fs.existsSync('trivy-results.sarif')) {
         const sarif = JSON.parse(fs.readFileSync('trivy-results.sarif', 'utf8'));
-        
+
         if (sarif.runs && sarif.runs.length > 0) {
           for (const run of sarif.runs) {
             if (run.results) {
@@ -209,7 +209,7 @@ class SecurityReportGenerator {
                 const severity = this.getSeverityFromTrivy(result);
                 results.vulnerabilities++;
                 results[severity]++;
-                
+
                 results.details.push({
                   tool: 'Trivy',
                   ruleId: result.ruleId,
@@ -236,7 +236,7 @@ class SecurityReportGenerator {
   getSeverityFromCodeQL(result) {
     const level = result.level || 'note';
     const severity = result.properties?.['security-severity'];
-    
+
     if (severity) {
       const score = parseFloat(severity);
       if (score >= 9.0) return 'critical';
@@ -244,7 +244,7 @@ class SecurityReportGenerator {
       if (score >= 4.0) return 'medium';
       return 'low';
     }
-    
+
     switch (level) {
       case 'error': return 'high';
       case 'warning': return 'medium';
@@ -259,7 +259,7 @@ class SecurityReportGenerator {
   getSeverityFromTrivy(result) {
     const properties = result.properties || {};
     const severity = properties['security-severity'] || properties.severity;
-    
+
     if (severity) {
       const severityLower = severity.toLowerCase();
       if (['critical'].includes(severityLower)) return 'critical';
@@ -267,7 +267,7 @@ class SecurityReportGenerator {
       if (['medium', 'moderate'].includes(severityLower)) return 'medium';
       return 'low';
     }
-    
+
     return 'medium'; // Default for container vulnerabilities
   }
 
@@ -276,12 +276,12 @@ class SecurityReportGenerator {
    */
   generateReport() {
     console.log('🔍 Generating comprehensive security report...');
-    
+
     const codeql = this.parseCodeQLResults();
     const dependencies = this.parseDependencyResults();
     const secrets = this.parseSecretResults();
     const containers = this.parseContainerResults();
-    
+
     const report = {
       metadata: {
         timestamp: this.timestamp,
@@ -309,13 +309,13 @@ class SecurityReportGenerator {
 
     // Write detailed JSON report
     fs.writeFileSync('security-report.json', JSON.stringify(report, null, 2));
-    
+
     // Generate human-readable report
     this.generateMarkdownReport(report);
-    
+
     // Generate dashboard data
     this.generateDashboardData(report);
-    
+
     console.log('✅ Security report generated successfully');
     return report;
   }
@@ -328,22 +328,22 @@ class SecurityReportGenerator {
     if (codeql.critical > 0 || dependencies.critical > 0 || containers.critical > 0) {
       return 'critical';
     }
-    
+
     // Secrets = immediate failure
     if (secrets.secrets > 0) {
       return 'failed';
     }
-    
+
     // High severity issues = warning
     if (codeql.high > 0 || dependencies.high > 0 || containers.high > 0) {
       return 'warning';
     }
-    
+
     // Medium/low issues = passed with notes
     if (codeql.issues > 0 || dependencies.vulnerabilities > 0 || containers.vulnerabilities > 0) {
       return 'passed_with_issues';
     }
-    
+
     return 'passed';
   }
 
@@ -352,7 +352,7 @@ class SecurityReportGenerator {
    */
   generateRecommendations(codeql, dependencies, secrets, containers) {
     const recommendations = [];
-    
+
     if (secrets.secrets > 0) {
       recommendations.push({
         priority: 'critical',
@@ -361,7 +361,7 @@ class SecurityReportGenerator {
         description: `${secrets.secrets} potential secrets detected. Remove them and rotate any exposed credentials.`
       });
     }
-    
+
     if (dependencies.critical > 0) {
       recommendations.push({
         priority: 'critical',
@@ -370,7 +370,7 @@ class SecurityReportGenerator {
         description: `${dependencies.critical} critical vulnerabilities in dependencies. Update affected packages immediately.`
       });
     }
-    
+
     if (codeql.critical > 0) {
       recommendations.push({
         priority: 'critical',
@@ -379,7 +379,7 @@ class SecurityReportGenerator {
         description: `${codeql.critical} critical security issues detected in code. Review and fix immediately.`
       });
     }
-    
+
     if (dependencies.high > 0) {
       recommendations.push({
         priority: 'high',
@@ -388,7 +388,7 @@ class SecurityReportGenerator {
         description: `${dependencies.high} high-severity vulnerabilities in dependencies. Plan updates soon.`
       });
     }
-    
+
     if (containers.vulnerabilities > 0) {
       recommendations.push({
         priority: 'medium',
@@ -397,7 +397,7 @@ class SecurityReportGenerator {
         description: `${containers.vulnerabilities} vulnerabilities detected in container images. Consider base image updates.`
       });
     }
-    
+
     return recommendations;
   }
 
@@ -407,10 +407,10 @@ class SecurityReportGenerator {
   generateMarkdownReport(report) {
     const md = `# Security Scan Report
 
-**Repository:** ${report.metadata.repository}  
-**Branch:** ${report.metadata.branch}  
-**Commit:** ${report.metadata.commit}  
-**Timestamp:** ${report.metadata.timestamp}  
+**Repository:** ${report.metadata.repository}
+**Branch:** ${report.metadata.branch}
+**Commit:** ${report.metadata.commit}
+**Timestamp:** ${report.metadata.timestamp}
 **Overall Status:** ${report.summary.overall_status.toUpperCase()}
 
 ## Summary
@@ -453,7 +453,7 @@ class SecurityReportGenerator {
 
 ## Recommendations
 
-${report.recommendations.map(rec => 
+${report.recommendations.map(rec =>
   `### ${rec.title} (${rec.priority.toUpperCase()})\n${rec.description}\n`
 ).join('\n')}
 
@@ -491,13 +491,13 @@ ${report.recommendations.map(rec =>
    */
   calculateSecurityScore(report) {
     let score = 100;
-    
+
     // Deduct points for issues
     score -= report.summary.critical_issues * 20;
     score -= report.summary.high_issues * 10;
     score -= report.summary.secrets_found * 25;
     score -= (report.summary.total_issues - report.summary.critical_issues - report.summary.high_issues) * 2;
-    
+
     return Math.max(0, score);
   }
 }
@@ -507,14 +507,14 @@ async function main() {
   try {
     const generator = new SecurityReportGenerator();
     const report = generator.generateReport();
-    
+
     // Set GitHub Actions outputs
     console.log(`::set-output name=overall_status::${report.summary.overall_status}`);
     console.log(`::set-output name=total_issues::${report.summary.total_issues}`);
     console.log(`::set-output name=critical_issues::${report.summary.critical_issues}`);
     console.log(`::set-output name=secrets_found::${report.summary.secrets_found}`);
     console.log(`::set-output name=security_score::${generator.calculateSecurityScore(report)}`);
-    
+
     console.log('✅ Security report generation completed');
   } catch (error) {
     console.error('❌ Security report generation failed:', error.message);

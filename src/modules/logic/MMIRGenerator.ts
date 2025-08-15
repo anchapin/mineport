@@ -112,8 +112,8 @@ export interface MMIRMetadata {
  * Complete context for the MMIR
  */
 export interface MMIRContext {
-  nodes: MMIRNode[];
-  relationships: MMIRRelationship[];
+  _nodes: MMIRNode[];
+  _relationships: MMIRRelationship[];
   metadata: MMIRMetadata;
 }
 
@@ -144,18 +144,18 @@ export abstract class ModLoaderParser {
    * @param sourceFile The source file name
    */
   public abstract parse(
-    ast: JavaASTNode,
-    sourceFile: string
+    _ast: JavaASTNode,
+    _sourceFile: string
   ): {
-    nodes: MMIRNode[];
-    relationships: MMIRRelationship[];
+    _nodes: MMIRNode[];
+    _relationships: MMIRRelationship[];
   };
 
   /**
    * Extract mod metadata from the AST
    * @param ast The Java AST to extract metadata from
    */
-  public abstract extractMetadata(ast: JavaASTNode): Partial<MMIRMetadata>;
+  public abstract extractMetadata(_ast: JavaASTNode): Partial<MMIRMetadata>;
 }
 
 /**
@@ -168,17 +168,17 @@ export class ForgeModParser extends ModLoaderParser {
    * @param sourceFile The source file name
    */
   public parse(
-    ast: JavaASTNode,
-    sourceFile: string
+    _ast: JavaASTNode,
+    _sourceFile: string
   ): {
-    nodes: MMIRNode[];
-    relationships: MMIRRelationship[];
+    _nodes: MMIRNode[];
+    _relationships: MMIRRelationship[];
   } {
-    const nodes: MMIRNode[] = [];
-    const relationships: MMIRRelationship[] = [];
+    const _nodes: MMIRNode[] = [];
+    const _relationships: MMIRRelationship[] = [];
 
     // Find mod declaration (class with @Mod annotation)
-    const modClass = this.findModClass(ast);
+    const modClass = this.findModClass(_ast);
     /**
      * if method.
      *
@@ -189,15 +189,15 @@ export class ForgeModParser extends ModLoaderParser {
      * @since 1.0.0
      */
     if (modClass) {
-      const modNode = this.createModDeclarationNode(modClass, sourceFile);
-      nodes.push(modNode);
+      const modNode = this.createModDeclarationNode(modClass, _sourceFile);
+      __nodes.push(modNode);
 
       // Process mod elements
-      this.processModElements(modClass, modNode.id, sourceFile, nodes, relationships);
+      this.processModElements(modClass, modNode.id, _sourceFile, _nodes, _relationships);
     }
 
     // Find event handlers
-    const eventHandlers = this.findEventHandlers(ast);
+    const eventHandlers = this.findEventHandlers(_ast);
     /**
      * for method.
      *
@@ -208,8 +208,8 @@ export class ForgeModParser extends ModLoaderParser {
      * @since 1.0.0
      */
     for (const handler of eventHandlers) {
-      const handlerNode = this.createEventHandlerNode(handler, sourceFile);
-      nodes.push(handlerNode);
+      const handlerNode = this.createEventHandlerNode(handler, _sourceFile);
+      __nodes.push(handlerNode);
 
       // If we have a mod node, create a relationship
       /**
@@ -222,8 +222,8 @@ export class ForgeModParser extends ModLoaderParser {
        * @since 1.0.0
        */
       if (modClass) {
-        const modNode = nodes[0]; // First node is the mod declaration
-        relationships.push({
+        const modNode = __nodes[0]; // First node is the mod declaration
+        __relationships.push({
           id: this.generateRelationshipId(),
           sourceId: modNode.id,
           targetId: handlerNode.id,
@@ -234,11 +234,11 @@ export class ForgeModParser extends ModLoaderParser {
     }
 
     // Find registrations
-    this.processRegistrations(ast, sourceFile, nodes, relationships);
+    this.processRegistrations(_ast, _sourceFile, _nodes, _relationships);
 
     // For testing purposes, ensure we always have at least one node
-    if (nodes.length === 0) {
-      nodes.push({
+    if (__nodes.length === 0) {
+      __nodes.push({
         id: this.generateNodeId(),
         type: MMIRNodeType.ModDeclaration,
         properties: {
@@ -249,14 +249,14 @@ export class ForgeModParser extends ModLoaderParser {
       });
     }
 
-    return { nodes, relationships };
+    return { _nodes, _relationships };
   }
 
   /**
    * Extract mod metadata from the AST for Forge mods
    * @param ast The Java AST to extract metadata from
    */
-  public extractMetadata(ast: JavaASTNode): Partial<MMIRMetadata> {
+  public extractMetadata(_ast: JavaASTNode): Partial<MMIRMetadata> {
     const metadata: Partial<MMIRMetadata> = {
       modLoader: 'forge',
     };
@@ -299,7 +299,7 @@ export class ForgeModParser extends ModLoaderParser {
    * Find the main mod class (with @Mod annotation)
    * @param ast The Java AST to search
    */
-  private findModClass(ast: JavaASTNode): JavaASTNode | null {
+  private findModClass(_ast: JavaASTNode): JavaASTNode | null {
     // Find class declarations
     const classDeclarations = this.findAllNodesByType(ast, 'classDeclaration');
 
@@ -325,7 +325,7 @@ export class ForgeModParser extends ModLoaderParser {
    * Extract mod ID from @Mod annotation
    * @param modClass The mod class node
    */
-  private extractModId(modClass: JavaASTNode): string | null {
+  private extractModId(_modClass: JavaASTNode): string | null {
     // Find annotations
     const annotations = this.findAnnotations(modClass);
 
@@ -353,7 +353,7 @@ export class ForgeModParser extends ModLoaderParser {
    * @param node The node to check for annotations
    */
   private findAnnotations(
-    node: JavaASTNode
+    _node: JavaASTNode
   ): Array<{ name: string; parameters?: Record<string, string> }> {
     const annotations: Array<{ name: string; parameters?: Record<string, string> }> = [];
 
@@ -368,7 +368,7 @@ export class ForgeModParser extends ModLoaderParser {
    * Find event handlers in the AST
    * @param ast The Java AST to search
    */
-  private findEventHandlers(ast: JavaASTNode): JavaASTNode[] {
+  private findEventHandlers(_ast: JavaASTNode): JavaASTNode[] {
     // Find method declarations
     const methodDeclarations = this.findAllNodesByType(ast, 'methodDeclaration');
 
@@ -387,10 +387,10 @@ export class ForgeModParser extends ModLoaderParser {
    * @param relationships Array to add relationships to
    */
   private processRegistrations(
-    ast: JavaASTNode,
-    sourceFile: string,
-    nodes: MMIRNode[],
-    relationships: MMIRRelationship[]
+    __ast: JavaASTNode,
+    __sourceFile: string,
+    __nodes: MMIRNode[],
+    __relationships: MMIRRelationship[]
   ): void {
     // Find registration methods (methods with @ObjectHolder or in a DeferredRegister)
     // This is a simplified implementation
@@ -406,11 +406,11 @@ export class ForgeModParser extends ModLoaderParser {
    * @param relationships Array to add relationships to
    */
   private processModElements(
-    modClass: JavaASTNode,
-    modNodeId: string,
-    sourceFile: string,
-    nodes: MMIRNode[],
-    relationships: MMIRRelationship[]
+    _modClass: JavaASTNode,
+    _modNodeId: string,
+    _sourceFile: string,
+    _nodes: MMIRNode[],
+    _relationships: MMIRRelationship[]
   ): void {
     // Process fields, methods, inner classes, etc.
     // This is a simplified implementation
@@ -421,7 +421,7 @@ export class ForgeModParser extends ModLoaderParser {
    * @param modClass The mod class node
    * @param sourceFile The source file name
    */
-  private createModDeclarationNode(modClass: JavaASTNode, sourceFile: string): MMIRNode {
+  private createModDeclarationNode(_modClass: JavaASTNode, _sourceFile: string): MMIRNode {
     const modId = this.extractModId(modClass) || 'unknown';
     const className = this.extractClassName(modClass) || 'UnknownClass';
 
@@ -442,7 +442,7 @@ export class ForgeModParser extends ModLoaderParser {
    * @param handlerMethod The event handler method node
    * @param sourceFile The source file name
    */
-  private createEventHandlerNode(handlerMethod: JavaASTNode, sourceFile: string): MMIRNode {
+  private createEventHandlerNode(_handlerMethod: JavaASTNode, _sourceFile: string): MMIRNode {
     const methodName = this.extractMethodName(handlerMethod) || 'unknownMethod';
     const eventType = this.extractEventType(handlerMethod) || 'UnknownEvent';
 
@@ -462,7 +462,7 @@ export class ForgeModParser extends ModLoaderParser {
    * Extract class name from a class declaration
    * @param classDecl The class declaration node
    */
-  private extractClassName(classDecl: JavaASTNode): string | null {
+  private extractClassName(_classDecl: JavaASTNode): string | null {
     // Find identifier node
     const identifier = classDecl.children?.find((child) => child.type === 'identifier');
     return identifier?.name || null;
@@ -484,7 +484,7 @@ export class ForgeModParser extends ModLoaderParser {
    * Extract event type from an event handler method
    * @param handlerMethod The event handler method node
    */
-  private extractEventType(handlerMethod: JavaASTNode): string | null {
+  private extractEventType(_handlerMethod: JavaASTNode): string | null {
     // Find parameter of event type
     // This is a simplified implementation
     return null;
@@ -497,7 +497,7 @@ export class ForgeModParser extends ModLoaderParser {
    */
   private extractSourceLocation(
     node: JavaASTNode,
-    sourceFile: string
+    _sourceFile: string
   ): MMIRNode['sourceLocation'] | undefined {
     /**
      * if method.
@@ -570,14 +570,14 @@ export class FabricModParser extends ModLoaderParser {
    * @param sourceFile The source file name
    */
   public parse(
-    ast: JavaASTNode,
-    sourceFile: string
+    _ast: JavaASTNode,
+    _sourceFile: string
   ): {
-    nodes: MMIRNode[];
-    relationships: MMIRRelationship[];
+    _nodes: MMIRNode[];
+    _relationships: MMIRRelationship[];
   } {
-    const nodes: MMIRNode[] = [];
-    const relationships: MMIRRelationship[] = [];
+    const _nodes: MMIRNode[] = [];
+    const _relationships: MMIRRelationship[] = [];
 
     // Find mod initializer class (implements ModInitializer)
     const modClass = this.findModInitializerClass(ast);
@@ -592,7 +592,7 @@ export class FabricModParser extends ModLoaderParser {
      */
     if (modClass) {
       const modNode = this.createModDeclarationNode(modClass, sourceFile);
-      nodes.push(modNode);
+      _nodes.push(modNode);
 
       // Process mod elements
       this.processModElements(modClass, modNode.id, sourceFile, nodes, relationships);
@@ -611,7 +611,7 @@ export class FabricModParser extends ModLoaderParser {
      */
     for (const handler of eventHandlers) {
       const handlerNode = this.createEventHandlerNode(handler, sourceFile);
-      nodes.push(handlerNode);
+      _nodes.push(handlerNode);
 
       // If we have a mod node, create a relationship
       /**
@@ -624,8 +624,8 @@ export class FabricModParser extends ModLoaderParser {
        * @since 1.0.0
        */
       if (modClass) {
-        const modNode = nodes[0]; // First node is the mod declaration
-        relationships.push({
+        const modNode = _nodes[0]; // First node is the mod declaration
+        _relationships.push({
           id: this.generateRelationshipId(),
           sourceId: modNode.id,
           targetId: handlerNode.id,
@@ -639,8 +639,8 @@ export class FabricModParser extends ModLoaderParser {
     this.processRegistrations(ast, sourceFile, nodes, relationships);
 
     // For testing purposes, ensure we always have at least one node
-    if (nodes.length === 0) {
-      nodes.push({
+    if (_nodes.length === 0) {
+      _nodes.push({
         id: this.generateNodeId(),
         type: MMIRNodeType.ModDeclaration,
         properties: {
@@ -651,14 +651,14 @@ export class FabricModParser extends ModLoaderParser {
       });
     }
 
-    return { nodes, relationships };
+    return { _nodes, _relationships };
   }
 
   /**
    * Extract mod metadata from the AST for Fabric mods
    * @param ast The Java AST to extract metadata from
    */
-  public extractMetadata(ast: JavaASTNode): Partial<MMIRMetadata> {
+  public extractMetadata(_ast: JavaASTNode): Partial<MMIRMetadata> {
     const metadata: Partial<MMIRMetadata> = {
       modLoader: 'fabric',
     };
@@ -673,7 +673,7 @@ export class FabricModParser extends ModLoaderParser {
    * Find the mod initializer class (implements ModInitializer)
    * @param ast The Java AST to search
    */
-  private findModInitializerClass(ast: JavaASTNode): JavaASTNode | null {
+  private findModInitializerClass(_ast: JavaASTNode): JavaASTNode | null {
     // Find class declarations
     const classDeclarations = this.findAllNodesByType(ast, 'classDeclaration');
 
@@ -700,7 +700,7 @@ export class FabricModParser extends ModLoaderParser {
    * @param classDecl The class declaration node
    * @param interfaceName The interface name to check for
    */
-  private implementsInterface(classDecl: JavaASTNode, interfaceName: string): boolean {
+  private implementsInterface(_classDecl: JavaASTNode, _interfaceName: string): boolean {
     // This is a simplified implementation
     // In a real implementation, we would traverse the AST to find the implements clause
     // and check if it contains the specified interface
@@ -711,7 +711,7 @@ export class FabricModParser extends ModLoaderParser {
    * Find event handlers in the AST
    * @param ast The Java AST to search
    */
-  private findEventHandlers(ast: JavaASTNode): JavaASTNode[] {
+  private findEventHandlers(_ast: JavaASTNode): JavaASTNode[] {
     // Find method calls that register event callbacks
     // This is a simplified implementation
     return [];
@@ -725,10 +725,10 @@ export class FabricModParser extends ModLoaderParser {
    * @param relationships Array to add relationships to
    */
   private processRegistrations(
-    ast: JavaASTNode,
-    sourceFile: string,
-    nodes: MMIRNode[],
-    relationships: MMIRRelationship[]
+    _ast: JavaASTNode,
+    _sourceFile: string,
+    _nodes: MMIRNode[],
+    _relationships: MMIRRelationship[]
   ): void {
     // Find registration calls (Registry.register, etc.)
     // This is a simplified implementation
@@ -744,11 +744,11 @@ export class FabricModParser extends ModLoaderParser {
    * @param relationships Array to add relationships to
    */
   private processModElements(
-    modClass: JavaASTNode,
-    modNodeId: string,
-    sourceFile: string,
-    nodes: MMIRNode[],
-    relationships: MMIRRelationship[]
+    _modClass: JavaASTNode,
+    _modNodeId: string,
+    _sourceFile: string,
+    _nodes: MMIRNode[],
+    _relationships: MMIRRelationship[]
   ): void {
     // Process fields, methods, inner classes, etc.
     // This is a simplified implementation
@@ -759,7 +759,7 @@ export class FabricModParser extends ModLoaderParser {
    * @param modClass The mod class node
    * @param sourceFile The source file name
    */
-  private createModDeclarationNode(modClass: JavaASTNode, sourceFile: string): MMIRNode {
+  private createModDeclarationNode(_modClass: JavaASTNode, _sourceFile: string): MMIRNode {
     const className = this.extractClassName(modClass) || 'UnknownClass';
 
     return {
@@ -778,7 +778,7 @@ export class FabricModParser extends ModLoaderParser {
    * @param handlerMethod The event handler method node
    * @param sourceFile The source file name
    */
-  private createEventHandlerNode(handlerMethod: JavaASTNode, sourceFile: string): MMIRNode {
+  private createEventHandlerNode(_handlerMethod: JavaASTNode, _sourceFile: string): MMIRNode {
     const methodName = this.extractMethodName(handlerMethod) || 'unknownMethod';
     const eventType = this.extractEventType(handlerMethod) || 'UnknownEvent';
 
@@ -798,7 +798,7 @@ export class FabricModParser extends ModLoaderParser {
    * Extract class name from a class declaration
    * @param classDecl The class declaration node
    */
-  private extractClassName(classDecl: JavaASTNode): string | null {
+  private extractClassName(_classDecl: JavaASTNode): string | null {
     // Find identifier node
     const identifier = classDecl.children?.find((child) => child.type === 'identifier');
     return identifier?.name || null;
@@ -820,7 +820,7 @@ export class FabricModParser extends ModLoaderParser {
    * Extract event type from an event handler method
    * @param handlerMethod The event handler method node
    */
-  private extractEventType(handlerMethod: JavaASTNode): string | null {
+  private extractEventType(_handlerMethod: JavaASTNode): string | null {
     // Find parameter of event type
     // This is a simplified implementation
     return null;
@@ -833,7 +833,7 @@ export class FabricModParser extends ModLoaderParser {
    */
   private extractSourceLocation(
     node: JavaASTNode,
-    sourceFile: string
+    _sourceFile: string
   ): MMIRNode['sourceLocation'] | undefined {
     /**
      * if method.
@@ -918,7 +918,7 @@ export class MMIRGenerator {
    * @param additionalMetadata Additional metadata to include
    */
   public generateMMIR(
-    asts: Array<{ ast: JavaASTNode; sourceFile: string }>,
+    asts: Array<{ _ast: JavaASTNode; _sourceFile: string }>,
     modLoader: 'forge' | 'fabric',
     additionalMetadata: Partial<MMIRMetadata> = {}
   ): MMIRContext {
@@ -983,7 +983,7 @@ export class MMIRGenerator {
    * @param nodes The MMIR nodes
    * @param relationships The relationships collection to add to
    */
-  private createNodeRelationships(nodes: MMIRNode[], relationships: MMIRRelationship[]): void {
+  private createNodeRelationships(_nodes: MMIRNode[], _relationships: MMIRRelationship[]): void {
     // This is a simplified implementation
     // In a real implementation, we would analyze the nodes and create appropriate relationships
     // based on their properties and types

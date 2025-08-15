@@ -16,7 +16,16 @@
 import fs from 'fs/promises';
 import path from 'path';
 import logger from '../../utils/logger.js';
-import { Feature, FeatureCompatibilityReport, CompromiseStrategy } from './index.js';
+import {
+  Feature,
+  FeatureCompatibilityReport,
+  CompromiseStrategy,
+  CompatibilityTier,
+  FeatureType,
+} from './index.js';
+
+// Re-export types for convenience
+export { CompatibilityTier, FeatureType };
 
 /**
  * FeatureAnalysisResult interface.
@@ -27,6 +36,14 @@ import { Feature, FeatureCompatibilityReport, CompromiseStrategy } from './index
  */
 export interface FeatureAnalysisResult {
   compatibilityReport: FeatureCompatibilityReport;
+  features: Feature[];
+  summary: {
+    tier1Count: number;
+    tier2Count: number;
+    tier3Count: number;
+    totalFeatures: number;
+    compatibilityScore: number;
+  };
   errors?: string[];
 }
 
@@ -924,5 +941,14 @@ export class FeatureCompatibilityAnalyzer {
     summary += `Overall Conversion Feasibility: ${feasibilityRating} (${feasibilityScore}%)\n`;
 
     return summary;
+  }
+
+  /**
+   * Alias for analyzeFeatures method for backward compatibility
+   * @param extractedModPath Path to the extracted mod files
+   * @returns FeatureAnalysisResult with compatibility report
+   */
+  async analyze(extractedModPath: string): Promise<FeatureAnalysisResult> {
+    return this.analyzeFeatures(extractedModPath, 'unknown');
   }
 }

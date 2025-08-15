@@ -28,13 +28,13 @@ class CoverageReporter {
       const coverageData = this.loadCoverageData();
       const analysis = this.analyzeCoverage(coverageData);
       const componentAnalysis = this.analyzeByComponent(coverageData);
-      
+
       await this.generateJsonReport(analysis, componentAnalysis);
       await this.generateHtmlReport(analysis, componentAnalysis);
       await this.generateMarkdownReport(analysis, componentAnalysis);
-      
+
       this.printSummary(analysis);
-      
+
     } catch (error) {
       console.error('❌ Failed to generate coverage report:', error.message);
       process.exit(1);
@@ -43,7 +43,7 @@ class CoverageReporter {
 
   loadCoverageData() {
     const coveragePath = path.join(this.coverageDir, 'coverage-final.json');
-    
+
     if (!fs.existsSync(coveragePath)) {
       throw new Error('Coverage data not found. Run tests with --coverage first.');
     }
@@ -71,15 +71,15 @@ class CoverageReporter {
 
       const fileStatements = Object.keys(statements).length;
       const fileCoveredStatements = Object.values(statements).filter(count => count > 0).length;
-      
+
       const fileFunctions = Object.keys(functions).length;
       const fileCoveredFunctions = Object.values(functions).filter(count => count > 0).length;
-      
+
       const fileBranches = Object.keys(branches).length;
-      const fileCoveredBranches = Object.values(branches).filter(branchArray => 
+      const fileCoveredBranches = Object.values(branches).filter(branchArray =>
         branchArray.some(count => count > 0)
       ).length;
-      
+
       const fileLines = Object.keys(lines).length;
       const fileCoveredLines = Object.values(lines).filter(count => count > 0).length;
 
@@ -157,10 +157,10 @@ class CoverageReporter {
 
     for (const [filePath, fileData] of Object.entries(coverageData)) {
       const normalizedPath = filePath.replace(/\\/g, '/');
-      
+
       let component = 'Other';
-      
-      if (normalizedPath.includes('/modules/ingestion/FileProcessor') || 
+
+      if (normalizedPath.includes('/modules/ingestion/FileProcessor') ||
           normalizedPath.includes('/modules/ingestion/SecurityScanner')) {
         component = normalizedPath.includes('SecurityScanner') ? 'Security Scanner' : 'File Processing';
       } else if (normalizedPath.includes('/modules/ingestion/JavaAnalyzer') ||
@@ -183,7 +183,7 @@ class CoverageReporter {
 
     // Calculate component-level coverage
     const componentAnalysis = {};
-    
+
     for (const [componentName, files] of Object.entries(components)) {
       if (files.length === 0) continue;
 
@@ -237,7 +237,7 @@ class CoverageReporter {
 
     const reportPath = path.join(this.reportDir, `coverage-report-${Date.now()}.json`);
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     console.log(`📄 JSON report: ${reportPath}`);
   }
 
@@ -365,7 +365,7 @@ class CoverageReporter {
 
     const reportPath = path.join(this.reportDir, `coverage-report-${Date.now()}.html`);
     fs.writeFileSync(reportPath, html);
-    
+
     console.log(`🌐 HTML report: ${reportPath}`);
   }
 
@@ -396,12 +396,12 @@ ${Object.entries(componentAnalysis).map(([name, component]) => `
 ## Files Needing Attention
 
 ### Poorly Covered Files (< 70%)
-${analysis.files.filter(f => f.statements.percentage < 70).map(file => 
+${analysis.files.filter(f => f.statements.percentage < 70).map(file =>
   `- \`${file.path.replace(process.cwd(), '.')}\` - ${file.statements.percentage.toFixed(1)}%`
 ).join('\n') || 'None! 🎉'}
 
 ### Well Covered Files (≥ 90%)
-${analysis.files.filter(f => f.statements.percentage >= 90).slice(0, 10).map(file => 
+${analysis.files.filter(f => f.statements.percentage >= 90).slice(0, 10).map(file =>
   `- \`${file.path.replace(process.cwd(), '.')}\` - ${file.statements.percentage.toFixed(1)}%`
 ).join('\n')}
 
@@ -412,7 +412,7 @@ ${this.generateRecommendations(analysis, componentAnalysis)}
 
     const reportPath = path.join(this.reportDir, `coverage-report-${Date.now()}.md`);
     fs.writeFileSync(reportPath, markdown);
-    
+
     console.log(`📝 Markdown report: ${reportPath}`);
   }
 

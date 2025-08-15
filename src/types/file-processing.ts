@@ -2,6 +2,8 @@
  * Type definitions for enhanced file processing and security scanning
  */
 
+import { ErrorSeverity } from './errors.js';
+
 /**
  * Configuration options for file validation
  */
@@ -71,7 +73,7 @@ export interface SecurityScanResult {
 export interface ThreatInfo {
   type: 'zip_bomb' | 'path_traversal' | 'malicious_code' | 'suspicious_pattern';
   description: string;
-  severity: 'high' | 'medium' | 'low';
+  severity: ErrorSeverity;
   location?: string;
   details?: ThreatDetails;
 }

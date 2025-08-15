@@ -29,7 +29,7 @@ class AuditAnalyzer {
    */
   async performAnalysis(startDate, endDate) {
     console.log(`Performing audit analysis from ${startDate} to ${endDate}`);
-    
+
     const analysis = {
       period: { start: startDate, end: endDate },
       timestamp: new Date().toISOString(),
@@ -47,7 +47,7 @@ class AuditAnalyzer {
 
     // Save analysis results
     const analysisFile = path.join(
-      this.analysisDir, 
+      this.analysisDir,
       `analysis-${new Date().toISOString().split('T')[0]}.json`
     );
     await fs.writeFile(analysisFile, JSON.stringify(analysis, null, 2));
@@ -60,7 +60,7 @@ class AuditAnalyzer {
    */
   async generateSummary(startDate, endDate) {
     const entries = await this.auditLogger.searchLogs({ startDate, endDate, limit: 50000 });
-    
+
     const summary = {
       total_entries: entries.length,
       unique_actors: new Set(entries.map(e => e.actor)).size,
@@ -76,17 +76,17 @@ class AuditAnalyzer {
 
     entries.forEach(entry => {
       // Count by operation type
-      summary.operations_by_type[entry.operation] = 
+      summary.operations_by_type[entry.operation] =
         (summary.operations_by_type[entry.operation] || 0) + 1;
-      
+
       // Count by status
-      summary.operations_by_status[entry.status] = 
+      summary.operations_by_status[entry.status] =
         (summary.operations_by_status[entry.status] || 0) + 1;
-      
+
       // Count by hour
       const hour = new Date(entry.timestamp).getHours();
       summary.operations_by_hour[hour] = (summary.operations_by_hour[hour] || 0) + 1;
-      
+
       // Calculate success rate
       if (entry.status === 'completed' || entry.status === 'success') {
         successCount++;
@@ -103,7 +103,7 @@ class AuditAnalyzer {
    */
   async detectPatterns(startDate, endDate) {
     const entries = await this.auditLogger.searchLogs({ startDate, endDate, limit: 50000 });
-    
+
     const patterns = {
       peak_hours: this.findPeakHours(entries),
       frequent_actors: this.findFrequentActors(entries),
@@ -120,7 +120,7 @@ class AuditAnalyzer {
    */
   async detectAnomalies(startDate, endDate) {
     const entries = await this.auditLogger.searchLogs({ startDate, endDate, limit: 50000 });
-    
+
     const anomalies = {
       unusual_actors: this.detectUnusualActors(entries),
       off_hours_activity: this.detectOffHoursActivity(entries),
@@ -137,7 +137,7 @@ class AuditAnalyzer {
    */
   async checkCompliance(startDate, endDate) {
     const entries = await this.auditLogger.searchLogs({ startDate, endDate, limit: 50000 });
-    
+
     const compliance = {
       audit_coverage: this.checkAuditCoverage(entries),
       retention_compliance: await this.checkRetentionCompliance(),
@@ -153,13 +153,13 @@ class AuditAnalyzer {
    * Analyze security events
    */
   async analyzeSecurityEvents(startDate, endDate) {
-    const entries = await this.auditLogger.searchLogs({ 
-      startDate, 
-      endDate, 
+    const entries = await this.auditLogger.searchLogs({
+      startDate,
+      endDate,
       operation: 'security_scan',
-      limit: 10000 
+      limit: 10000
     });
-    
+
     const security = {
       total_scans: entries.length,
       scan_types: {},
@@ -181,7 +181,7 @@ class AuditAnalyzer {
    */
   async analyzePerformance(startDate, endDate) {
     const entries = await this.auditLogger.searchLogs({ startDate, endDate, limit: 50000 });
-    
+
     const performance = {
       average_workflow_duration: this.calculateAverageWorkflowDuration(entries),
       slowest_operations: this.findSlowestOperations(entries),
@@ -301,7 +301,7 @@ class AuditAnalyzer {
    * Find failure patterns
    */
   findFailurePatterns(entries) {
-    const failedEntries = entries.filter(e => 
+    const failedEntries = entries.filter(e =>
       e.status === 'failed' || e.status === 'error'
     );
 
@@ -312,11 +312,11 @@ class AuditAnalyzer {
     };
 
     failedEntries.forEach(entry => {
-      patterns.by_operation[entry.operation] = 
+      patterns.by_operation[entry.operation] =
         (patterns.by_operation[entry.operation] || 0) + 1;
-      patterns.by_actor[entry.actor] = 
+      patterns.by_actor[entry.actor] =
         (patterns.by_actor[entry.actor] || 0) + 1;
-      
+
       const hour = new Date(entry.timestamp).getHours();
       patterns.by_hour[hour] = (patterns.by_hour[hour] || 0) + 1;
     });
@@ -328,7 +328,7 @@ class AuditAnalyzer {
    * Find deployment patterns
    */
   findDeploymentPatterns(entries) {
-    const deploymentEntries = entries.filter(e => 
+    const deploymentEntries = entries.filter(e =>
       e.operation === 'deployment'
     );
 
@@ -341,7 +341,7 @@ class AuditAnalyzer {
     deploymentEntries.forEach(entry => {
       const env = entry.metadata?.environment || 'unknown';
       const dayOfWeek = new Date(entry.timestamp).getDay();
-      
+
       patterns.by_environment[env] = (patterns.by_environment[env] || 0) + 1;
       patterns.by_day_of_week[dayOfWeek] = (patterns.by_day_of_week[dayOfWeek] || 0) + 1;
     });
@@ -372,7 +372,7 @@ class AuditAnalyzer {
   detectOffHoursActivity(entries) {
     // Define business hours (9 AM to 6 PM UTC)
     const businessHours = { start: 9, end: 18 };
-    
+
     return entries.filter(entry => {
       const hour = new Date(entry.timestamp).getUTCHours();
       return hour < businessHours.start || hour >= businessHours.end;
@@ -390,11 +390,11 @@ class AuditAnalyzer {
   detectRapidOperations(entries) {
     const rapidOperations = [];
     const sortedEntries = entries.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    
+
     for (let i = 0; i < sortedEntries.length - 4; i++) {
       const window = sortedEntries.slice(i, i + 5);
       const timeSpan = new Date(window[4].timestamp) - new Date(window[0].timestamp);
-      
+
       // If 5 operations happen within 1 minute
       if (timeSpan < 60000) {
         rapidOperations.push({
@@ -406,7 +406,7 @@ class AuditAnalyzer {
         });
       }
     }
-    
+
     return rapidOperations;
   }
 
@@ -416,9 +416,9 @@ class AuditAnalyzer {
   detectFailedSequences(entries) {
     const failedSequences = [];
     const sortedEntries = entries.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    
+
     let consecutiveFailures = [];
-    
+
     sortedEntries.forEach(entry => {
       if (entry.status === 'failed' || entry.status === 'error') {
         consecutiveFailures.push(entry);
@@ -434,7 +434,7 @@ class AuditAnalyzer {
         consecutiveFailures = [];
       }
     });
-    
+
     return failedSequences;
   }
 
@@ -442,18 +442,18 @@ class AuditAnalyzer {
    * Detect security anomalies
    */
   detectSecurityAnomalies(entries) {
-    const securityEntries = entries.filter(e => 
-      e.operation.includes('security') || 
+    const securityEntries = entries.filter(e =>
+      e.operation.includes('security') ||
       e.operation.includes('compliance')
     );
-    
+
     const anomalies = [];
-    
+
     // Check for failed security scans
-    const failedScans = securityEntries.filter(e => 
+    const failedScans = securityEntries.filter(e =>
       e.status === 'failed' || e.status === 'error'
     );
-    
+
     if (failedScans.length > 0) {
       anomalies.push({
         type: 'failed_security_scans',
@@ -461,7 +461,7 @@ class AuditAnalyzer {
         description: 'Multiple security scans have failed'
       });
     }
-    
+
     return anomalies;
   }
 
@@ -470,13 +470,13 @@ class AuditAnalyzer {
    */
   checkAuditCoverage(entries) {
     const expectedOperations = [
-      'workflow_start', 'workflow_complete', 'deployment', 
+      'workflow_start', 'workflow_complete', 'deployment',
       'security_scan', 'compliance_check'
     ];
-    
+
     const coveredOperations = new Set(entries.map(e => e.operation));
     const coverage = expectedOperations.filter(op => coveredOperations.has(op));
-    
+
     return {
       expected: expectedOperations.length,
       covered: coverage.length,
@@ -492,7 +492,7 @@ class AuditAnalyzer {
     try {
       const files = await fs.readdir(this.logDir);
       const auditFiles = files.filter(f => f.startsWith('audit-') && f.endsWith('.jsonl'));
-      
+
       const oldestFile = auditFiles.reduce((oldest, file) => {
         const match = file.match(/audit-(\d{4}-\d{2}-\d{2})/);
         if (match) {
@@ -501,11 +501,11 @@ class AuditAnalyzer {
         }
         return oldest;
       }, null);
-      
+
       const retentionDays = 365; // Required retention period
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
-      
+
       return {
         compliant: !oldestFile || oldestFile.date >= cutoffDate,
         oldest_log_date: oldestFile?.date.toISOString(),
@@ -525,13 +525,13 @@ class AuditAnalyzer {
    */
   checkAccessControls(entries) {
     const actors = new Set(entries.map(e => e.actor));
-    const privilegedOperations = entries.filter(e => 
-      e.operation === 'deployment' || 
+    const privilegedOperations = entries.filter(e =>
+      e.operation === 'deployment' ||
       e.operation.includes('security')
     );
-    
+
     const privilegedActors = new Set(privilegedOperations.map(e => e.actor));
-    
+
     return {
       total_actors: actors.size,
       privileged_actors: privilegedActors.size,
@@ -545,15 +545,15 @@ class AuditAnalyzer {
    */
   checkChangeManagement(entries) {
     const deployments = entries.filter(e => e.operation === 'deployment');
-    const approvedDeployments = deployments.filter(e => 
-      e.metadata?.approved === true || 
+    const approvedDeployments = deployments.filter(e =>
+      e.metadata?.approved === true ||
       e.metadata?.approval_required === false
     );
-    
+
     return {
       total_deployments: deployments.length,
       approved_deployments: approvedDeployments.length,
-      approval_rate: deployments.length > 0 ? 
+      approval_rate: deployments.length > 0 ?
         (approvedDeployments.length / deployments.length) * 100 : 100
     };
   }
@@ -568,9 +568,9 @@ class AuditAnalyzer {
     const approvalActors = new Set(
       entries.filter(e => e.operation.includes('approval')).map(e => e.actor)
     );
-    
+
     const overlap = new Set([...deploymentActors].filter(x => approvalActors.has(x)));
-    
+
     return {
       deployment_actors: deploymentActors.size,
       approval_actors: approvalActors.size,
@@ -620,7 +620,7 @@ class AuditAnalyzer {
 if (require.main === module) {
   const command = process.argv[2];
   const analyzer = new AuditAnalyzer();
-  
+
   switch (command) {
     case 'init':
       analyzer.initialize();

@@ -11,7 +11,6 @@ import {
   UnmappableCodeSegment,
   APIMapping,
   TranslationWarning,
-  SourcePosition,
 } from '../../types/logic-translation.js';
 import { logger } from '../../utils/logger.js';
 
@@ -32,6 +31,51 @@ export interface PatternCondition {
   property: string;
   operator: 'equals' | 'contains' | 'matches' | 'exists';
   value?: any;
+}
+
+/**
+ * JavaScript AST Node interface for code generation
+ */
+export interface JavaScriptASTNode {
+  type: string;
+  body?: JavaScriptASTNode[];
+  value?: any;
+  declarations?: JavaScriptASTNode[];
+  kind?: string;
+  id?: JavaScriptASTNode;
+  init?: JavaScriptASTNode;
+  name?: string;
+  specifiers?: JavaScriptASTNode[];
+  source?: JavaScriptASTNode;
+  local?: JavaScriptASTNode;
+  params?: JavaScriptASTNode[];
+  expression?: JavaScriptASTNode;
+  callee?: JavaScriptASTNode;
+  arguments?: JavaScriptASTNode[];
+  object?: JavaScriptASTNode;
+  property?: JavaScriptASTNode;
+  computed?: boolean;
+  expressions?: JavaScriptASTNode[];
+  quasis?: Array<{ value: { raw: string } }>;
+  properties?: JavaScriptASTNode[];
+  key?: JavaScriptASTNode;
+  static?: boolean;
+  sourceType?: string;
+}
+
+/**
+ * Result of AST transpilation to JavaScript
+ */
+export interface TranspilationResult {
+  jsAst: JavaScriptASTNode[];
+  metadata: {
+    modId: string;
+    modName: string;
+    modVersion: string;
+    originalModLoader: 'forge' | 'fabric';
+  };
+  unmappableNodes: any[];
+  warnings: string[];
 }
 
 export class ASTTranspiler {
@@ -348,9 +392,9 @@ export class ASTTranspiler {
    * Extract API mappings used in transpilation
    */
   private async extractAPIMappings(
-    node: ASTNode,
-    transpiledCode: string,
-    context: TranslationContext
+    _node: ASTNode,
+    _transpiledCode: string,
+    _context: TranslationContext
   ): Promise<APIMapping[]> {
     const mappings: APIMapping[] = [];
 
@@ -366,7 +410,7 @@ export class ASTTranspiler {
   private generateWarnings(
     node: ASTNode,
     rule: TranspilationRule,
-    context: TranslationContext
+    _context: TranslationContext
   ): TranslationWarning[] {
     const warnings: TranslationWarning[] = [];
 
@@ -450,7 +494,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'ClassDeclaration',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const className = node.value || 'UnknownClass';
           return `// Transpiled class: ${className}\nclass ${className} {\n  constructor() {\n    // Class initialization\n  }\n}`;
         },
@@ -463,8 +507,8 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'MethodDeclaration',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
-          const methodName = node.value || 'unknownMethod';
+        transform: (_node: ASTNode, _context: TranslationContext) => {
+          const methodName = _node.value || 'unknownMethod';
           return `  ${methodName}() {\n    // Method implementation\n  }`;
         },
         confidence: 0.8,
@@ -476,7 +520,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'IfStatement',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (_node: ASTNode, _context: TranslationContext) => {
           return `if (condition) {\n  // If body\n}`;
         },
         confidence: 0.95,
@@ -488,7 +532,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'ForLoop',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (_node: ASTNode, _context: TranslationContext) => {
           return `for (let i = 0; i < length; i++) {\n  // Loop body\n}`;
         },
         confidence: 0.9,
@@ -500,7 +544,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'WhileLoop',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (_node: ASTNode, _context: TranslationContext) => {
           return `while (condition) {\n  // Loop body\n}`;
         },
         confidence: 0.9,
@@ -512,7 +556,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'MethodCall',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const methodName = node.value || 'unknownMethod';
           return `${methodName}();`;
         },
@@ -525,7 +569,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'Assignment',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const variableName = node.value || 'variable';
           return `let ${variableName} = value;`;
         },
@@ -538,7 +582,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'FieldDeclaration',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const fieldName = node.value || 'field';
           return `  ${fieldName} = null;`;
         },
@@ -551,7 +595,7 @@ export class ASTTranspiler {
         pattern: {
           nodeType: 'Comment',
         },
-        transform: (node: ASTNode, context: TranslationContext) => {
+        transform: (node: ASTNode, _context: TranslationContext) => {
           const comment = node.value || '';
           if (comment.startsWith('//')) {
             return comment;

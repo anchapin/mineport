@@ -50,11 +50,13 @@ describe('AlertingService', () => {
       expect(alert.timestamp).toBeInstanceOf(Date);
     });
 
-    it('should emit alert created events', (done) => {
-      alertingService.on('alert:created', (alert) => {
-        expect(alert.type).toBe('performance_degradation');
-        expect(alert.severity).toBe('medium');
-        done();
+    it('should emit alert created events', async () => {
+      const alertPromise = new Promise<void>((resolve) => {
+        alertingService.on('alert:created', (alert) => {
+          expect(alert.type).toBe('performance_degradation');
+          expect(alert.severity).toBe('medium');
+          resolve();
+        });
       });
 
       alertingService.createAlert(
@@ -63,6 +65,8 @@ describe('AlertingService', () => {
         'Performance Issue',
         'System is running slowly'
       );
+
+      await alertPromise;
     });
 
     it('should add alerts to active alerts list', async () => {

@@ -1,37 +1,11 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('ModelConverter');
 
-/**
- * Interface representing a model file in Java format
- */
-export interface JavaModelFile {
-  path: string;
-  data: Buffer | object;
-  type: 'block' | 'item' | 'entity';
-  metadata?: {
-    parent?: string;
-    textures?: Record<string, string>;
-    elements?: any[];
-    display?: Record<string, any>;
-  };
-}
-
-/**
- * Interface representing a model file in Bedrock format
- */
-export interface BedrockModelFile {
-  path: string;
-  data: Buffer | object;
-  type: 'block' | 'item' | 'entity';
-  metadata?: {
-    textures?: Record<string, string>;
-    geometry?: string;
-    materials?: Record<string, any>;
-  };
-}
+import { JavaModelFile, BedrockModelFile } from '../../types/assets.js';
 
 /**
  * Interface for model conversion result
@@ -45,7 +19,7 @@ export interface ModelConversionResult {
  * Interface for model conversion notes/warnings
  */
 export interface ModelConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   modelPath?: string;
 }
@@ -83,7 +57,7 @@ export class ModelConverter {
       } catch (error) {
         logger.error(`Failed to convert model ${javaModel.path}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert model: ${error instanceof Error ? error.message : String(error)}`,
           modelPath: javaModel.path,
         });

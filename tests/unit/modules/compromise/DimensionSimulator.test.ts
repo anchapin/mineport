@@ -20,7 +20,7 @@ describe('DimensionSimulator', () => {
   let testProperties: DimensionProperties;
 
   beforeEach(() => {
-    simulator = new DimensionSimulator(mockLogger);
+    simulator = new DimensionSimulator();
 
     testFeature = {
       id: 'test-dimension',

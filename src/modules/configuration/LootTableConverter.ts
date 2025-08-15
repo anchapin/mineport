@@ -173,6 +173,8 @@ export interface JavaLootCondition {
   raining?: boolean;
   thundering?: boolean;
   value?: { min?: number; max?: number };
+  term?: any; // Add missing term property
+  terms?: any[]; // Add missing terms property
 }
 
 /**
@@ -289,6 +291,7 @@ export interface BedrockLootCondition {
   raining?: boolean;
   thundering?: boolean;
   value?: { min?: number; max?: number };
+  term?: any; // Add missing term property
 }
 
 /**
@@ -1016,7 +1019,7 @@ export class LootTableConverter {
         };
         break;
 
-      case 'minecraft:group':
+      case 'minecraft:group': {
         // Bedrock doesn't support group entries directly
         // We'll flatten the children into the parent pool
         if (!entry.children || !Array.isArray(entry.children) || entry.children.length === 0) {
@@ -1035,6 +1038,7 @@ export class LootTableConverter {
           'Group entries are not directly supported in Bedrock, using first child as placeholder'
         );
         break;
+      }
 
       case 'minecraft:empty':
         bedrockEntry = {

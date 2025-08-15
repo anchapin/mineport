@@ -695,6 +695,22 @@ export class ResourceAllocator {
   }
 
   /**
+   * Start the resource allocator
+   */
+  start(): void {
+    logger.info('ResourceAllocator started');
+    // Initialize any background processes if needed
+  }
+
+  /**
+   * Stop the resource allocator
+   */
+  stop(): void {
+    logger.info('ResourceAllocator stopped');
+    // Stop any background processes if needed
+  }
+
+  /**
    * Destroy all pools and cleanup
    */
   async destroy(): Promise<void> {

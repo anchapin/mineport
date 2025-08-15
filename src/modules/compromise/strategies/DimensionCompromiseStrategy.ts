@@ -1,4 +1,5 @@
-import { Feature, FeatureType, CompromiseLevel } from '../../../types/compromise.js';
+import { CompromiseLevel } from '../../../types/compromise.js';
+import { Feature, FeatureType } from '../../ingestion/index.js';
 import { ConversionContext } from '../../../types/modules.js';
 import { CompromiseStrategy, CompromiseResult, CompromiseOptions } from '../CompromiseStrategy.js';
 import { logger } from '../../../utils/logger.js';
@@ -10,15 +11,15 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
   constructor() {
     super(
       'DimensionCompromise',
-      [FeatureType.DIMENSION, FeatureType.WORLD_GENERATION],
+      [FeatureType.DIMENSION, FeatureType.WORLD_GEN],
       CompromiseLevel.HIGH
     );
   }
 
   async apply(
     feature: Feature,
-    context: ConversionContext,
-    options: CompromiseOptions
+    _context: ConversionContext,
+    _options: CompromiseOptions
   ): Promise<CompromiseResult> {
     logger.info('Applying dimension compromise strategy', {
       featureName: feature.name,
@@ -121,7 +122,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
 
   async estimateImpact(
     feature: Feature,
-    context: ConversionContext
+    _context: ConversionContext
   ): Promise<{
     impactLevel: CompromiseLevel;
     userExperienceImpact: number;
@@ -165,7 +166,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
     return 'Handles custom dimensions by adapting them to existing Bedrock dimensions or providing implementation guidance';
   }
 
-  protected isApplicable(feature: Feature, context: ConversionContext): boolean {
+  protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
     // Check if this is a custom dimension that needs compromise
     if (feature.type !== FeatureType.DIMENSION && feature.type !== FeatureType.WORLD_GENERATION) {
       return false;
@@ -241,7 +242,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
    * Create a modified feature that uses Overworld as base
    */
   private createOverworldReplacement(feature: Feature): Feature {
-    return {
+    const modifiedFeature: Feature = {
       ...feature,
       type: FeatureType.BIOME,
       properties: {
@@ -256,13 +257,14 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
         originalType: feature.type,
       },
     };
+    return modifiedFeature;
   }
 
   /**
    * Create a modified feature that uses Nether as base
    */
   private createNetherAdaptation(feature: Feature): Feature {
-    return {
+    const modifiedFeature: Feature = {
       ...feature,
       type: FeatureType.BIOME,
       properties: {
@@ -277,13 +279,14 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
         originalType: feature.type,
       },
     };
+    return modifiedFeature;
   }
 
   /**
    * Create a modified feature that uses End as base
    */
   private createEndAdaptation(feature: Feature): Feature {
-    return {
+    const modifiedFeature: Feature = {
       ...feature,
       type: FeatureType.BIOME,
       properties: {
@@ -298,6 +301,7 @@ export class DimensionCompromiseStrategy extends CompromiseStrategy {
         originalType: feature.type,
       },
     };
+    return modifiedFeature;
   }
 
   /**

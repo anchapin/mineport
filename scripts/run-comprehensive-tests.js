@@ -160,7 +160,7 @@ class TestRunner {
       const coveragePath = path.join(process.cwd(), 'coverage', 'coverage-final.json');
       if (fs.existsSync(coveragePath)) {
         const coverageData = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
-        
+
         // Calculate overall coverage
         let totalLines = 0;
         let coveredLines = 0;
@@ -172,10 +172,10 @@ class TestRunner {
         for (const file of Object.values(coverageData)) {
           totalLines += file.s ? Object.keys(file.s).length : 0;
           coveredLines += file.s ? Object.values(file.s).filter(count => count > 0).length : 0;
-          
+
           totalFunctions += file.f ? Object.keys(file.f).length : 0;
           coveredFunctions += file.f ? Object.values(file.f).filter(count => count > 0).length : 0;
-          
+
           totalBranches += file.b ? Object.keys(file.b).length : 0;
           coveredBranches += file.b ? Object.values(file.b).filter(branches => branches.some(count => count > 0)).length : 0;
         }
@@ -201,7 +201,7 @@ class TestRunner {
     } catch (error) {
       console.warn('Could not extract coverage data:', error.message);
     }
-    
+
     return null;
   }
 

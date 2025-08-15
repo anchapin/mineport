@@ -25,6 +25,21 @@ export type FeatureType =
   | 'other';
 
 /**
+ * Compromise levels indicating the severity of the compromise needed.
+ */
+export enum CompromiseLevel {
+  NONE = 0,
+  LOW = 1,
+  MINOR = 1.1, // Slightly different from LOW
+  MEDIUM = 2,
+  MODERATE = 2.1, // Slightly different from MEDIUM
+  HIGH = 3,
+  MAJOR = 3.1, // Slightly different from HIGH
+  CRITICAL = 4,
+  SEVERE = 4.1, // Slightly different from CRITICAL
+}
+
+/**
  * Represents a strategy for compromising on features that cannot be directly translated.
  */
 export interface CompromiseStrategy {

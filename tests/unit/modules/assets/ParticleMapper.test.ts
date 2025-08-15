@@ -38,20 +38,20 @@ describe('ParticleMapper', () => {
         {
           path: 'assets/minecraft/particles/flame.json',
           name: 'minecraft:flame',
-          data: JSON.stringify({
+          data: {
             textures: ['particle/flame'],
             age: 20,
             speed: 0.01,
-          }),
+          },
         },
         {
           path: 'assets/minecraft/particles/smoke.json',
           name: 'minecraft:smoke',
-          data: JSON.stringify({
+          data: {
             textures: ['particle/smoke'],
             age: 30,
             speed: 0.005,
-          }),
+          },
         },
       ];
 
@@ -72,29 +72,29 @@ describe('ParticleMapper', () => {
         {
           path: 'assets/custommod/particles/fire_burst.json',
           name: 'custommod:fire_burst',
-          data: JSON.stringify({
+          data: {
             textures: ['particle/fire_burst'],
             age: 15,
             speed: 0.02,
-          }),
+          },
         },
         {
           path: 'assets/custommod/particles/magic_sparkle.json',
           name: 'custommod:magic_sparkle',
-          data: JSON.stringify({
+          data: {
             textures: ['particle/magic_sparkle'],
             age: 25,
             speed: 0.01,
-          }),
+          },
         },
         {
           path: 'assets/custommod/particles/unknown_effect.json',
           name: 'custommod:unknown_effect',
-          data: JSON.stringify({
+          data: {
             textures: ['particle/unknown'],
             age: 10,
             speed: 0.005,
-          }),
+          },
         },
       ];
 
@@ -202,14 +202,14 @@ describe('ParticleMapper', () => {
       const javaParticle: JavaParticleDefinition = {
         path: 'assets/minecraft/particles/flame.json',
         name: 'minecraft:flame',
-        data: JSON.stringify({
+        data: {
           textures: ['particle/flame'],
           age: 20,
           speed: 0.01,
           count: 5,
           width: 0.2,
           height: 0.2,
-        }),
+        },
       };
 
       // Use the private method through a public method

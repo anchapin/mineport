@@ -92,7 +92,7 @@ describe('LootTableConverter', () => {
       );
 
       // Mock readFile to return our test content
-      vi.mocked(fs.readFile).mockImplementation((filePath: string) => {
+      vi.mocked(fs.readFile).mockImplementation((filePath: any) => {
         if (filePath.includes('block_loot_table.json')) {
           return Promise.resolve(mockBlockLootTable);
         } else {

@@ -324,6 +324,9 @@ class EnhancedLogger {
 // Create enhanced logger instance
 export const logger = new EnhancedLogger(setupLogger());
 
+// Export Logger type for testing
+export type Logger = EnhancedLogger;
+
 /**
  * Create an enhanced logger for a specific module
  */

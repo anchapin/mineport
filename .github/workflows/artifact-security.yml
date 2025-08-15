@@ -58,7 +58,7 @@ jobs:
     outputs:
       scan_results: ${{ steps.scan.outputs.results }}
       vulnerabilities_found: ${{ steps.scan.outputs.vulnerabilities_found }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
         run: |
           # Install security scanning tools
           echo "Installing security scanning tools..."
-          
+
           # Install Trivy for vulnerability scanning
           sudo apt-get update
           sudo apt-get install -y wget apt-transport-https gnupg lsb-release
@@ -81,10 +81,10 @@ jobs:
           echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
           sudo apt-get install -y trivy
-          
+
           # Install Syft for SBOM generation
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-          
+
           # Install Grype for vulnerability scanning
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
@@ -92,68 +92,68 @@ jobs:
         id: scan
         run: |
           echo "Scanning artifacts for security vulnerabilities..."
-          
+
           # Create scan results directory
           mkdir -p scan-results
-          
+
           # Initialize scan results
           VULNERABILITIES_FOUND=false
           SCAN_RESULTS=""
-          
+
           # Scan each artifact
           for artifact in artifacts/*; do
             if [[ -f "$artifact" ]]; then
               filename=$(basename "$artifact")
               echo "Scanning $filename..."
-              
+
               # Determine scan type based on file extension
               case "$filename" in
                 *.tgz|*.tar.gz)
                   echo "Scanning npm package: $filename"
-                  
+
                   # Extract package for scanning
                   mkdir -p "temp-extract/$filename"
                   tar -xzf "$artifact" -C "temp-extract/$filename"
-                  
+
                   # Scan with Trivy
                   trivy fs --format json --output "scan-results/${filename}-trivy.json" "temp-extract/$filename" || true
-                  
+
                   # Generate SBOM with Syft
                   syft "temp-extract/$filename" -o json > "scan-results/${filename}-sbom.json" || true
-                  
+
                   # Scan with Grype
                   grype "temp-extract/$filename" -o json > "scan-results/${filename}-grype.json" || true
-                  
+
                   # Check for high/critical vulnerabilities
                   if trivy fs --severity HIGH,CRITICAL --quiet "temp-extract/$filename" | grep -q "Total:"; then
                     VULNERABILITIES_FOUND=true
                     echo "⚠️ High/Critical vulnerabilities found in $filename"
                   fi
-                  
+
                   # Cleanup
                   rm -rf "temp-extract/$filename"
                   ;;
-                  
+
                 *.zip)
                   echo "Scanning zip archive: $filename"
-                  
+
                   # Extract and scan zip
                   mkdir -p "temp-extract/$filename"
                   unzip -q "$artifact" -d "temp-extract/$filename"
-                  
+
                   # Scan with Trivy
                   trivy fs --format json --output "scan-results/${filename}-trivy.json" "temp-extract/$filename" || true
-                  
+
                   # Check for vulnerabilities
                   if trivy fs --severity HIGH,CRITICAL --quiet "temp-extract/$filename" | grep -q "Total:"; then
                     VULNERABILITIES_FOUND=true
                     echo "⚠️ High/Critical vulnerabilities found in $filename"
                   fi
-                  
+
                   # Cleanup
                   rm -rf "temp-extract/$filename"
                   ;;
-                  
+
                 *.json)
                   echo "Scanning JSON file: $filename"
                   # Basic JSON validation and content scanning
@@ -161,14 +161,14 @@ jobs:
                     echo "⚠️ Invalid JSON format in $filename"
                   fi
                   ;;
-                  
+
                 *)
                   echo "Skipping unknown file type: $filename"
                   ;;
               esac
             fi
           done
-          
+
           # Generate summary report
           cat > scan-results/security-summary.json << EOF
           {
@@ -180,10 +180,10 @@ jobs:
             "scanned_files": $(ls artifacts/ | wc -l)
           }
           EOF
-          
+
           echo "vulnerabilities_found=$VULNERABILITIES_FOUND" >> $GITHUB_OUTPUT
           echo "results=$(cat scan-results/security-summary.json | base64 -w 0)" >> $GITHUB_OUTPUT
-          
+
           if [[ "$VULNERABILITIES_FOUND" == "true" ]]; then
             echo "❌ Security vulnerabilities found in artifacts"
           else
@@ -210,7 +210,7 @@ jobs:
     needs: security-scan
     if: inputs.sign_artifacts == true && secrets.GPG_PRIVATE_KEY != ''
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -225,30 +225,30 @@ jobs:
         run: |
           echo "Importing GPG key for signing..."
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 -d | gpg --batch --import
-          
+
           # List imported keys
           gpg --list-secret-keys
 
       - name: Sign artifacts
         run: |
           echo "Signing artifacts with GPG..."
-          
+
           # Create signatures directory
           mkdir -p signatures
-          
+
           # Sign each artifact
           for artifact in artifacts/*; do
             if [[ -f "$artifact" ]]; then
               filename=$(basename "$artifact")
               echo "Signing $filename..."
-              
+
               # Create detached signature
               gpg --batch --yes --pinentry-mode loopback \
                   --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
                   --armor --detach-sign \
                   --output "signatures/${filename}.asc" \
                   "$artifact"
-              
+
               # Verify signature
               if gpg --verify "signatures/${filename}.asc" "$artifact"; then
                 echo "✅ Successfully signed and verified $filename"
@@ -258,7 +258,7 @@ jobs:
               fi
             fi
           done
-          
+
           # Create signature manifest
           cat > signatures/signature-manifest.json << EOF
           {
@@ -269,7 +269,7 @@ jobs:
             "key_id": "$(gpg --list-secret-keys --with-colons | grep '^sec' | head -1 | cut -d: -f5)",
             "signatures": [
           EOF
-          
+
           first=true
           for sig in signatures/*.asc; do
             if [[ -f "$sig" ]]; then
@@ -277,7 +277,7 @@ jobs:
                 echo "," >> signatures/signature-manifest.json
               fi
               first=false
-              
+
               filename=$(basename "$sig" .asc)
               echo "      {" >> signatures/signature-manifest.json
               echo "        \"file\": \"$filename\"," >> signatures/signature-manifest.json
@@ -285,12 +285,12 @@ jobs:
               echo "      }" >> signatures/signature-manifest.json
             fi
           done
-          
+
           cat >> signatures/signature-manifest.json << EOF
             ]
           }
           EOF
-          
+
           echo "Generated signature manifest:"
           cat signatures/signature-manifest.json | jq .
 
@@ -309,7 +309,7 @@ jobs:
     needs: security-scan
     if: inputs.sign_artifacts == true && secrets.COSIGN_PRIVATE_KEY != ''
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
@@ -324,31 +324,31 @@ jobs:
       - name: Sign container image
         run: |
           echo "Signing container image with Cosign..."
-          
+
           # Import Cosign private key
           echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
-          
+
           # Sign the container image
           IMAGE_URI="ghcr.io/${{ github.repository }}:${{ env.VERSION }}"
-          
+
           cosign sign --key cosign.key \
             --password "${{ secrets.COSIGN_PASSWORD }}" \
             "$IMAGE_URI"
-          
+
           # Verify the signature
           cosign verify --key cosign.pub "$IMAGE_URI"
-          
+
           echo "✅ Container image signed and verified successfully"
-          
+
           # Cleanup
           rm -f cosign.key
 
       - name: Generate attestation
         run: |
           echo "Generating SLSA attestation..."
-          
+
           IMAGE_URI="ghcr.io/${{ github.repository }}:${{ env.VERSION }}"
-          
+
           # Create attestation
           cat > attestation.json << EOF
           {
@@ -388,13 +388,13 @@ jobs:
             }
           }
           EOF
-          
+
           # Sign attestation
           cosign attest --key cosign.key \
             --password "${{ secrets.COSIGN_PASSWORD }}" \
             --predicate attestation.json \
             "$IMAGE_URI"
-          
+
           echo "✅ SLSA attestation generated and signed"
 
   # Audit trail logging
@@ -403,7 +403,7 @@ jobs:
     needs: [security-scan, gpg-signing, container-signing]
     if: always()
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -411,10 +411,10 @@ jobs:
       - name: Generate comprehensive audit log
         run: |
           echo "Generating audit trail..."
-          
+
           # Create audit log directory
           mkdir -p audit-logs
-          
+
           # Generate comprehensive audit log
           cat > audit-logs/artifact-security-audit.json << EOF
           {
@@ -456,41 +456,41 @@ jobs:
             }
           }
           EOF
-          
+
           echo "Generated audit log:"
           cat audit-logs/artifact-security-audit.json | jq .
-          
+
           # Create human-readable audit report
           cat > audit-logs/audit-report.md << 'EOF'
           # Artifact Security Audit Report
-          
+
           **Artifact:** ${{ env.ARTIFACT_NAME }} v${{ env.VERSION }}
           **Date:** $(date -u +%Y-%m-%d)
           **Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          
+
           ## Security Operations Performed
-          
+
           | Operation | Status | Result |
           |-----------|--------|--------|
           | Vulnerability Scan | ${{ needs.security-scan.result }} | ${{ needs.security-scan.outputs.vulnerabilities_found == 'true' && '⚠️ Vulnerabilities Found' || '✅ No Critical Issues' }} |
           | GPG Signing | ${{ needs.gpg-signing.result || 'Skipped' }} | ${{ needs.gpg-signing.result == 'success' && '✅ Signed' || needs.gpg-signing.result == 'failure' && '❌ Failed' || '➖ Not Performed' }} |
           | Container Signing | ${{ needs.container-signing.result || 'Skipped' }} | ${{ needs.container-signing.result == 'success' && '✅ Signed' || needs.container-signing.result == 'failure' && '❌ Failed' || '➖ Not Performed' }} |
-          
+
           ## Compliance Status
-          
+
           - **Security Scan**: ${{ needs.security-scan.outputs.vulnerabilities_found != 'true' && '✅ Passed' || '❌ Failed' }}
           - **Artifact Signing**: ${{ inputs.sign_artifacts == true && '✅ Enabled' || '⚠️ Disabled' }}
           - **Audit Trail**: ✅ Complete
-          
+
           ## Recommendations
-          
+
           ${{ needs.security-scan.outputs.vulnerabilities_found == 'true' && '- Address security vulnerabilities before release' || '' }}
           ${{ inputs.sign_artifacts != true && '- Enable artifact signing for production releases' || '' }}
           - Regularly update security scanning tools
           - Monitor for new vulnerabilities in dependencies
-          
+
           EOF
-          
+
           # Replace template variables in markdown
           sed -i "s/\${{ env.ARTIFACT_NAME }}/${{ env.ARTIFACT_NAME }}/g" audit-logs/audit-report.md
           sed -i "s/\${{ env.VERSION }}/${{ env.VERSION }}/g" audit-logs/audit-report.md

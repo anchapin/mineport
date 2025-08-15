@@ -96,6 +96,54 @@ export interface FeatureCompatibilityReport {
 }
 
 /**
+ * Compatibility tiers for features
+ */
+export enum CompatibilityTier {
+  FULLY_TRANSLATABLE = 1,
+  APPROXIMATION_POSSIBLE = 2,
+  NATIVELY_IMPOSSIBLE = 3,
+  UNANALYZABLE = 4,
+}
+
+/**
+ * Types of features that can be analyzed
+ */
+export enum FeatureType {
+  BLOCK = 'block',
+  ITEM = 'item',
+  ENTITY = 'entity',
+  RECIPE = 'recipe',
+  LOOT_TABLE = 'loot_table',
+  TEXTURE = 'texture',
+  MODEL = 'model',
+  SOUND = 'sound',
+  LANGUAGE = 'language',
+  BLOCK_ENTITY = 'block_entity',
+  PARTICLE = 'particle',
+  PARTICLE_EFFECT = 'particle_effect', // Add missing PARTICLE_EFFECT
+  GUI = 'gui',
+  HUD = 'hud', // Add missing HUD
+  CONTAINER = 'container', // Add missing CONTAINER
+  COMMAND = 'command', // Add missing COMMAND
+  SCOREBOARD = 'scoreboard', // Add missing SCOREBOARD
+  WORLD_GEN = 'world_gen',
+  WORLD_GENERATION = 'world_generation', // Add missing WORLD_GENERATION
+  DIMENSION = 'dimension',
+  RENDERING = 'rendering',
+  MIXIN = 'mixin',
+  NATIVE = 'native',
+  REFLECTION = 'reflection',
+  ASM = 'asm',
+  OBFUSCATED = 'obfuscated',
+  ASSET = 'asset',
+  CONFIGURATION = 'configuration',
+  API = 'api',
+  BIOME = 'biome', // Add missing BIOME
+  BEHAVIOR = 'behavior', // Add missing BEHAVIOR
+  DOCUMENTATION = 'documentation', // Add missing DOCUMENTATION
+}
+
+/**
  * Feature interface.
  *
  * TODO: Add detailed description of what this interface represents.
@@ -106,10 +154,13 @@ export interface Feature {
   id: string;
   name: string;
   description: string;
+  type?: FeatureType;
   compatibilityTier: 1 | 2 | 3 | 4;
   sourceFiles: string[];
   sourceLineNumbers: number[][];
   compromiseStrategy?: CompromiseStrategy;
+  properties?: Record<string, any>; // Add missing properties field
+  metadata?: Record<string, any>; // Add missing metadata field
 }
 
 /**

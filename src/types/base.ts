@@ -2,6 +2,8 @@
  * Core type definitions used throughout the application
  */
 
+import { ErrorSeverity } from './errors.js';
+
 /**
  * Represents a Java mod
  */
@@ -69,7 +71,7 @@ export interface SourceLocation {
  * Common interface for conversion notes
  */
 export interface ConversionNote {
-  type: 'info' | 'warning' | 'error' | 'critical';
+  type: ErrorSeverity;
   message: string;
   sourceLocation?: SourceLocation;
   moduleOrigin: string;

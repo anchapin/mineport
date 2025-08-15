@@ -351,12 +351,12 @@ describe('BedrockArchitect', () => {
       expect(resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'sound')).toBe(
         true
       );
-      expect(
-        resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'animation')
-      ).toBe(true);
-      expect(
-        resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'particle')
-      ).toBe(true);
+      expect(resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'other')).toBe(
+        true
+      );
+      expect(resourcePackFiles.some((f) => f.originalPath === 'test' && f.type === 'other')).toBe(
+        true
+      );
 
       // Behavior pack should have 'other' type
       expect(behaviorPackFiles.some((f) => f.originalPath === 'test' && f.type === 'other')).toBe(

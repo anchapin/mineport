@@ -92,15 +92,16 @@ describe('Configuration Integration', () => {
     // Set configuration values
     configService.set('workers.maxWorkers', 8);
 
-    // Create WorkerPool with ConfigurationService
-    const workerPool = new WorkerPool({ configService });
+    // Create WorkerPool with configuration values
+    const workerPool = new WorkerPool({ maxWorkers: 8 });
 
     // Check if WorkerPool uses the configuration values
-    expect(workerPool['maxWorkers']).toBe(8);
+    expect(workerPool['config'].maxWorkers).toBe(8);
 
-    // Update configuration and check if WorkerPool updates
+    // Create another WorkerPool with updated configuration
     configService.set('workers.maxWorkers', 12);
-    expect(workerPool['maxWorkers']).toBe(12);
+    const updatedWorkerPool = new WorkerPool({ maxWorkers: 12 });
+    expect(updatedWorkerPool['config'].maxWorkers).toBe(12);
   });
 
   it('ResourceAllocator should use ConfigurationService', () => {

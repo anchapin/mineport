@@ -456,7 +456,7 @@ describe('ModelConverter', () => {
       expect(fs.writeFile).toHaveBeenCalledTimes(2); // One for the model, one for the material def
 
       // Check that writeFile was called with the correct arguments for the material file
-      const writeFileCalls = (fs.writeFile as jest.Mock).mock.calls;
+      const writeFileCalls = (fs.writeFile as any).mock.calls;
       const materialFileCall = writeFileCalls.find((call) => call[0].includes('material.json'));
 
       expect(materialFileCall).toBeDefined();

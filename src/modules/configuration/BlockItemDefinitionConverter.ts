@@ -9,6 +9,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import logger from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 // Java registration code patterns
 const BLOCK_REGISTRATION_PATTERNS = [
@@ -145,7 +146,7 @@ export interface BlockItemConversionResult {
  * @since 1.0.0
  */
 export interface BlockItemConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   component: 'block' | 'item';
   message: string;
   details?: string;
@@ -447,7 +448,7 @@ export class BlockItemDefinitionConverter {
        */
       for (const reg of registrations) {
         conversionNotes.push({
-          type: 'info',
+          type: ErrorSeverity.INFO,
           component: reg.type,
           message: `Converted ${reg.type} '${reg.name}' to Bedrock format`,
           sourceFile: reg.sourceFile,
@@ -474,7 +475,7 @@ export class BlockItemDefinitionConverter {
         errors: [`Failed to process registrations: ${(error as Error).message}`],
         conversionNotes: [
           {
-            type: 'error',
+            type: ErrorSeverity.ERROR,
             component: 'block',
             message: `Failed to process registrations: ${(error as Error).message}`,
           },
@@ -1025,7 +1026,8 @@ export class BlockItemDefinitionConverter {
      */
     if (properties['soundType']) {
       const soundType = properties['soundType'];
-      const mappedSound = BLOCK_PROPERTY_MAPPINGS[soundType];
+      const mappedSound =
+        BLOCK_PROPERTY_MAPPINGS[soundType as keyof typeof BLOCK_PROPERTY_MAPPINGS];
       /**
        * if method.
        *
@@ -1035,9 +1037,9 @@ export class BlockItemDefinitionConverter {
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
-      if (mappedSound && mappedSound.sound) {
+      if (mappedSound && typeof mappedSound === 'object' && 'sound' in mappedSound) {
         components['minecraft:block_sounds'] = {
-          sound: mappedSound.sound,
+          sound: (mappedSound as { sound: string }).sound,
         };
       }
     }
@@ -1150,7 +1152,7 @@ export class BlockItemDefinitionConverter {
      */
     if (properties['rarity']) {
       const rarity = properties['rarity'];
-      const mappedRarity = ITEM_PROPERTY_MAPPINGS[rarity];
+      const mappedRarity = ITEM_PROPERTY_MAPPINGS[rarity as keyof typeof ITEM_PROPERTY_MAPPINGS];
       /**
        * if method.
        *
@@ -1160,10 +1162,10 @@ export class BlockItemDefinitionConverter {
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
-      if (mappedRarity && mappedRarity.rarity) {
+      if (mappedRarity && typeof mappedRarity === 'object' && 'rarity' in mappedRarity) {
         // Store rarity as custom data since Bedrock doesn't have direct rarity
         components['minecraft:custom_data'] = {
-          rarity: mappedRarity.rarity,
+          rarity: (mappedRarity as { rarity: string }).rarity,
         };
       }
     }
@@ -1307,7 +1309,7 @@ export class BlockItemDefinitionConverter {
       // In a real implementation, we would check if texture files exist
       // For now, just add a note about texture requirements
       notes.push({
-        type: 'info',
+        type: ErrorSeverity.INFO,
         component: reg.type,
         message: `${reg.type === 'block' ? 'Block' : 'Item'} '${reg.name}' requires texture file: ${reg.name}.png`,
         sourceFile: reg.sourceFile,

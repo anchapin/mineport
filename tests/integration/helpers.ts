@@ -314,7 +314,7 @@ export async function verifyAddonStructure(addonPath: string): Promise<boolean> 
   }
 }
 /**
- 
+
 * Creates a complete mock conversion input for testing
  */
 export function createMockConversionInput(

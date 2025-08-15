@@ -2,61 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createWriteStream } from 'fs';
 
-// Interface for zip archiver
-interface Archiver {
-  on(event: string, callback: (err?: Error) => void): Archiver;
-  /**
-   * pipe method.
-   *
-   * TODO: Add detailed description of the method's purpose and behavior.
-   *
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  pipe(destination: NodeJS.WritableStream): Archiver;
-  /**
-   * directory method.
-   *
-   * TODO: Add detailed description of the method's purpose and behavior.
-   *
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  directory(localPath: string, destPath: string): Archiver;
-  /**
-   * file method.
-   *
-   * TODO: Add detailed description of the method's purpose and behavior.
-   *
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  file(localPath: string, destPath: string): Archiver;
-  /**
-   * append method.
-   *
-   * TODO: Add detailed description of the method's purpose and behavior.
-   *
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  append(data: string | Buffer, options: { name: string }): Archiver;
-  /**
-   * finalize method.
-   *
-   * TODO: Add detailed description of the method's purpose and behavior.
-   *
-   * @param param - TODO: Document parameters
-   * @returns result - TODO: Document return value
-   * @since 1.0.0
-   */
-  finalize(): void;
-}
-
 /**
  * Interface for the input to the AddonPackager
  */
@@ -485,6 +430,7 @@ export class AddonPackager {
       const output = createWriteStream(mcaddonPath);
 
       // Dynamically import archiver to avoid ESM/CommonJS issues
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const archiver = require('archiver');
       const archive = archiver('zip', {
         zlib: { level: 9 }, // Maximum compression
@@ -685,8 +631,8 @@ export class AddonPackager {
   private async createMetadataFiles(directory: string, input: PackagingInput): Promise<void> {
     // Create pack_icon.png for both packs if not already present
     // For this example, we'll just check if they exist and create placeholders if not
-    const behaviorPackIconPath = path.join(directory, 'behavior_pack', 'pack_icon.png');
-    const resourcePackIconPath = path.join(directory, 'resource_pack', 'pack_icon.png');
+    // const _behaviorPackIconPath = path.join(directory, 'behavior_pack', 'pack_icon.png');
+    // const _resourcePackIconPath = path.join(directory, 'resource_pack', 'pack_icon.png');
 
     // Create a simple metadata.json file with information about the conversion
     const metadataPath = path.join(directory, 'metadata.json');

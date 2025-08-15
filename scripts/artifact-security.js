@@ -20,7 +20,7 @@ class ArtifactSecurity {
       enableScanning: options.enableScanning !== false,
       ...options
     };
-    
+
     this.securityReport = {
       timestamp: new Date().toISOString(),
       artifacts: [],
@@ -39,7 +39,7 @@ class ArtifactSecurity {
    */
   async secureArtifacts() {
     console.log('Starting artifact security operations...');
-    
+
     try {
       // Ensure output directory exists
       if (!fs.existsSync(this.options.outputDir)) {
@@ -76,7 +76,7 @@ class ArtifactSecurity {
    */
   async scanArtifacts() {
     console.log('Scanning artifacts for security vulnerabilities...');
-    
+
     if (!fs.existsSync(this.options.artifactsDir)) {
       throw new Error(`Artifacts directory not found: ${this.options.artifactsDir}`);
     }
@@ -132,7 +132,7 @@ class ArtifactSecurity {
       const packageJsonPath = path.join(tempDir, 'package', 'package.json');
       if (fs.existsSync(packageJsonPath)) {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-        
+
         // Basic security checks
         const securityIssues = this.checkPackageJsonSecurity(packageJson);
         scanResult.vulnerabilities.push(...securityIssues);
@@ -218,7 +218,7 @@ class ArtifactSecurity {
   async scanJsonFile(jsonPath, scanResult) {
     try {
       const content = fs.readFileSync(jsonPath, 'utf8');
-      
+
       // Validate JSON format
       try {
         JSON.parse(content);
@@ -271,7 +271,7 @@ class ArtifactSecurity {
     // Check for suspicious scripts
     if (packageJson.scripts) {
       const suspiciousCommands = ['curl', 'wget', 'rm -rf', 'sudo', 'chmod +x'];
-      
+
       Object.entries(packageJson.scripts).forEach(([scriptName, command]) => {
         suspiciousCommands.forEach(suspiciousCmd => {
           if (command.includes(suspiciousCmd)) {
@@ -327,15 +327,15 @@ class ArtifactSecurity {
     ];
 
     const sensitiveFiles = [];
-    
+
     const scanDirectory = (dir) => {
       try {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
-        
+
         entries.forEach(entry => {
           const fullPath = path.join(dir, entry.name);
           const relativePath = path.relative(directory, fullPath);
-          
+
           if (entry.isDirectory()) {
             scanDirectory(fullPath);
           } else {
@@ -360,15 +360,15 @@ class ArtifactSecurity {
    */
   findLargeFiles(directory, threshold) {
     const largeFiles = [];
-    
+
     const scanDirectory = (dir) => {
       try {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
-        
+
         entries.forEach(entry => {
           const fullPath = path.join(dir, entry.name);
           const relativePath = path.relative(directory, fullPath);
-          
+
           if (entry.isDirectory()) {
             scanDirectory(fullPath);
           } else {
@@ -395,7 +395,7 @@ class ArtifactSecurity {
    */
   generateChecksums(filePath) {
     const data = fs.readFileSync(filePath);
-    
+
     return {
       md5: crypto.createHash('md5').update(data).digest('hex'),
       sha1: crypto.createHash('sha1').update(data).digest('hex'),
@@ -409,7 +409,7 @@ class ArtifactSecurity {
    */
   async signArtifacts() {
     console.log('Signing artifacts with GPG...');
-    
+
     try {
       // Check if GPG is available
       execSync('gpg --version', { stdio: 'pipe' });
@@ -432,12 +432,12 @@ class ArtifactSecurity {
 
       try {
         console.log(`Signing ${artifact}...`);
-        
+
         // Create detached signature
-        const gpgCommand = this.options.gpgKeyId 
+        const gpgCommand = this.options.gpgKeyId
           ? `gpg --armor --detach-sign --local-user ${this.options.gpgKeyId} --output "${signaturePath}" "${artifactPath}"`
           : `gpg --armor --detach-sign --output "${signaturePath}" "${artifactPath}"`;
-        
+
         execSync(gpgCommand, { stdio: 'pipe' });
 
         // Verify signature
@@ -487,14 +487,14 @@ class ArtifactSecurity {
     try {
       const output = execSync('gpg --list-secret-keys --with-colons', { encoding: 'utf8' });
       const lines = output.split('\n');
-      
+
       const secLine = lines.find(line => line.startsWith('sec:'));
       const uidLine = lines.find(line => line.startsWith('uid:'));
-      
+
       if (secLine && uidLine) {
         const keyId = secLine.split(':')[4];
         const userId = uidLine.split(':')[9];
-        
+
         return {
           key_id: keyId,
           user_id: userId
@@ -503,7 +503,7 @@ class ArtifactSecurity {
     } catch (error) {
       console.warn('Could not get GPG signer info:', error.message);
     }
-    
+
     return { key_id: 'unknown', user_id: 'unknown' };
   }
 
@@ -512,7 +512,7 @@ class ArtifactSecurity {
    */
   async generateComplianceReport() {
     console.log('Generating compliance report...');
-    
+
     // Count vulnerabilities by severity
     const vulnerabilityCounts = {
       critical: 0,
@@ -530,7 +530,7 @@ class ArtifactSecurity {
 
     // Determine compliance status
     const hasHighCriticalVulns = vulnerabilityCounts.critical > 0 || vulnerabilityCounts.high > 0;
-    const allArtifactsSigned = this.securityReport.signatures.length > 0 && 
+    const allArtifactsSigned = this.securityReport.signatures.length > 0 &&
                               this.securityReport.signatures.every(sig => sig.verified);
 
     const complianceReport = {
@@ -611,7 +611,7 @@ class ArtifactSecurity {
       report += '## Vulnerability Breakdown\n\n';
       Object.entries(complianceReport.summary.vulnerability_breakdown).forEach(([severity, count]) => {
         if (count > 0) {
-          const emoji = severity === 'critical' ? '🔴' : severity === 'high' ? '🟠' : 
+          const emoji = severity === 'critical' ? '🔴' : severity === 'high' ? '🟠' :
                        severity === 'medium' ? '🟡' : '🔵';
           report += `- ${emoji} **${severity.toUpperCase()}:** ${count}\n`;
         }
@@ -646,7 +646,7 @@ class ArtifactSecurity {
    */
   async createAuditTrail() {
     console.log('Creating audit trail...');
-    
+
     const auditTrail = {
       audit_version: '1.0',
       timestamp: new Date().toISOString(),
@@ -697,7 +697,7 @@ class ArtifactSecurity {
    */
   validateIntegrity(artifactPath, expectedChecksums) {
     console.log(`Validating integrity of ${path.basename(artifactPath)}...`);
-    
+
     const actualChecksums = this.generateChecksums(artifactPath);
     const validationResults = {};
 
@@ -711,7 +711,7 @@ class ArtifactSecurity {
     });
 
     const allValid = Object.values(validationResults).every(result => result.valid);
-    
+
     console.log(`Integrity validation: ${allValid ? '✅ PASSED' : '❌ FAILED'}`);
     return { valid: allValid, results: validationResults };
   }
@@ -720,7 +720,7 @@ class ArtifactSecurity {
 // CLI interface
 if (require.main === module) {
   const command = process.argv[2];
-  
+
   async function main() {
     try {
       const security = new ArtifactSecurity({
@@ -733,32 +733,32 @@ if (require.main === module) {
         case 'secure':
           await security.secureArtifacts();
           break;
-        
+
         case 'scan':
           await security.scanArtifacts();
           break;
-        
+
         case 'sign':
           await security.signArtifacts();
           break;
-        
+
         case 'validate':
           const artifactPath = process.argv[3];
           const checksumsFile = process.argv[4];
-          
+
           if (!artifactPath || !checksumsFile) {
             console.error('Usage: node artifact-security.js validate <artifact> <checksums.json>');
             process.exit(1);
           }
-          
+
           const expectedChecksums = JSON.parse(fs.readFileSync(checksumsFile, 'utf8'));
           const result = security.validateIntegrity(artifactPath, expectedChecksums);
-          
+
           if (!result.valid) {
             process.exit(1);
           }
           break;
-        
+
         default:
           console.log('Usage: node artifact-security.js <command> [options]');
           console.log('');

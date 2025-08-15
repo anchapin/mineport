@@ -53,15 +53,15 @@ CANARY_PHASES=(
 # Initialize monitoring baseline
 initialize_monitoring() {
     log_info "Initializing monitoring baseline..."
-    
+
     # Collect baseline metrics
     local baseline_file="/tmp/canary_baseline_$(date +%s).json"
-    
+
     curl -s http://localhost:3000/metrics > "$baseline_file" || {
         log_error "Failed to collect baseline metrics"
         return 1
     }
-    
+
     echo "$baseline_file" > "/tmp/canary_baseline_path.txt"
     log_success "Baseline metrics collected: $baseline_file"
 }
@@ -70,18 +70,18 @@ initialize_monitoring() {
 update_canary_percentage() {
     local percentage=$1
     log_info "Updating canary percentage to $percentage%..."
-    
+
     # Read current feature flags
     local current_flags=$(cat "$FEATURE_FLAGS_FILE")
-    
+
     # Update the rollout percentage
     local updated_flags=$(echo "$current_flags" | jq \
         --arg percentage "$percentage" \
         '.modporter_ai_rollout_percentage = ($percentage | tonumber)')
-    
+
     # Write updated flags
     echo "$updated_flags" > "$FEATURE_FLAGS_FILE"
-    
+
     log_success "Canary percentage updated to $percentage%"
 }
 
@@ -89,7 +89,7 @@ update_canary_percentage() {
 enable_canary_features() {
     local phase=$1
     log_info "Enabling features for canary phase $phase..."
-    
+
     case $phase in
         1)
             # Phase 1: Only enhanced file processing
@@ -128,7 +128,7 @@ enable_canary_features() {
                 mv "/tmp/flags.json" "$FEATURE_FLAGS_FILE"
             ;;
     esac
-    
+
     log_success "Features enabled for phase $phase"
 }
 
@@ -136,41 +136,41 @@ enable_canary_features() {
 monitor_canary() {
     local duration=$1
     local percentage=$2
-    
+
     log_info "Monitoring canary deployment ($percentage%) for ${duration}s..."
-    
+
     local start_time=$(date +%s)
     local end_time=$((start_time + duration))
     local check_interval=30
-    
+
     while [ $(date +%s) -lt $end_time ]; do
         local current_time=$(date +%s)
         local elapsed=$((current_time - start_time))
         local remaining=$((end_time - current_time))
-        
+
         log_info "Monitoring progress: ${elapsed}s elapsed, ${remaining}s remaining"
-        
+
         # Check health metrics
         if ! check_canary_health; then
             log_error "Canary health check failed - initiating rollback"
             return 1
         fi
-        
+
         # Check error rates
         if ! check_error_rates; then
             log_error "Error rate threshold exceeded - initiating rollback"
             return 1
         fi
-        
+
         # Check response times
         if ! check_response_times; then
             log_error "Response time threshold exceeded - initiating rollback"
             return 1
         fi
-        
+
         sleep $check_interval
     done
-    
+
     log_success "Canary monitoring completed successfully for $percentage%"
     return 0
 }
@@ -179,12 +179,12 @@ monitor_canary() {
 check_canary_health() {
     local health_response=$(curl -s http://localhost:3000/health)
     local health_status=$(echo "$health_response" | jq -r '.status // "unknown"')
-    
+
     if [ "$health_status" = "unhealthy" ]; then
         log_error "Health check failed: $health_status"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -193,17 +193,17 @@ check_error_rates() {
     local metrics_response=$(curl -s http://localhost:3000/metrics)
     local error_rate=$(echo "$metrics_response" | jq -r '.health.unhealthyChecks // 0')
     local total_checks=$(echo "$metrics_response" | jq -r '.health.totalChecks // 1')
-    
+
     if [ "$total_checks" -gt 0 ]; then
         local error_percentage=$(echo "scale=4; $error_rate / $total_checks" | bc)
         local threshold_check=$(echo "$error_percentage > $ERROR_THRESHOLD" | bc)
-        
+
         if [ "$threshold_check" -eq 1 ]; then
             log_error "Error rate $error_percentage exceeds threshold $ERROR_THRESHOLD"
             return 1
         fi
     fi
-    
+
     return 0
 }
 
@@ -213,12 +213,12 @@ check_response_times() {
     curl -s http://localhost:3000/health > /dev/null
     local end_time=$(date +%s%3N)
     local response_time=$((end_time - start_time))
-    
+
     if [ "$response_time" -gt "$RESPONSE_TIME_THRESHOLD" ]; then
         log_error "Response time ${response_time}ms exceeds threshold ${RESPONSE_TIME_THRESHOLD}ms"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -226,13 +226,13 @@ check_response_times() {
 collect_metrics() {
     local phase=$1
     local percentage=$2
-    
+
     log_info "Collecting metrics for phase $phase ($percentage%)..."
-    
+
     local metrics_file="/tmp/canary_metrics_phase_${phase}_$(date +%s).json"
     local health_response=$(curl -s http://localhost:3000/health)
     local metrics_response=$(curl -s http://localhost:3000/metrics)
-    
+
     # Combine metrics
     local combined_metrics=$(jq -n \
         --argjson health "$health_response" \
@@ -247,7 +247,7 @@ collect_metrics() {
             health: $health,
             metrics: $metrics
         }')
-    
+
     echo "$combined_metrics" > "$metrics_file"
     log_success "Metrics collected: $metrics_file"
 }
@@ -255,7 +255,7 @@ collect_metrics() {
 # Perform canary rollback
 canary_rollback() {
     log_warning "Performing canary rollback..."
-    
+
     # Disable all ModPorter-AI features
     jq '.enhanced_file_processing = false |
         .multi_strategy_analysis = false |
@@ -266,10 +266,10 @@ canary_rollback() {
         .rollback_timestamp = now | strftime("%Y-%m-%dT%H:%M:%SZ")' \
         "$FEATURE_FLAGS_FILE" > "/tmp/flags.json" && \
         mv "/tmp/flags.json" "$FEATURE_FLAGS_FILE"
-    
+
     # Send rollback notification
     send_canary_notification "ROLLBACK" "Canary deployment rolled back due to health check failures"
-    
+
     log_warning "Canary rollback completed"
 }
 
@@ -277,7 +277,7 @@ canary_rollback() {
 send_canary_notification() {
     local status=$1
     local message=$2
-    
+
     local notification_payload=$(jq -n \
         --arg status "$status" \
         --arg message "$message" \
@@ -288,62 +288,62 @@ send_canary_notification() {
             timestamp: $timestamp,
             deployment: "modporter-ai-canary"
         }')
-    
+
     # Send to monitoring system (placeholder)
     if [ -n "${WEBHOOK_URL:-}" ]; then
         curl -X POST -H 'Content-type: application/json' \
             --data "$notification_payload" \
             "$WEBHOOK_URL" 2>/dev/null || log_warning "Failed to send notification"
     fi
-    
+
     log_info "Notification sent: $status - $message"
 }
 
 # Main canary deployment function
 run_canary_deployment() {
     log_info "Starting ModPorter-AI canary deployment..."
-    
+
     # Initialize monitoring
     if ! initialize_monitoring; then
         log_error "Failed to initialize monitoring"
         exit 1
     fi
-    
+
     # Send start notification
     send_canary_notification "STARTED" "ModPorter-AI canary deployment started"
-    
+
     # Run through canary phases
     local phase=1
     for phase_config in "${CANARY_PHASES[@]}"; do
         local percentage=$(echo "$phase_config" | cut -d':' -f1)
         local duration=$(echo "$phase_config" | cut -d':' -f2)
-        
+
         log_info "Starting canary phase $phase: $percentage% for ${duration}s"
-        
+
         # Enable features for this phase
         enable_canary_features $phase
-        
+
         # Update canary percentage
         update_canary_percentage $percentage
-        
+
         # Wait for changes to propagate
         sleep 30
-        
+
         # Monitor the deployment
         if ! monitor_canary $duration $percentage; then
             canary_rollback
             exit 1
         fi
-        
+
         # Collect metrics
         collect_metrics $phase $percentage
-        
+
         # Send phase completion notification
         send_canary_notification "PHASE_COMPLETE" "Canary phase $phase ($percentage%) completed successfully"
-        
+
         ((phase++))
     done
-    
+
     # Canary deployment successful
     log_success "Canary deployment completed successfully!"
     send_canary_notification "COMPLETED" "ModPorter-AI canary deployment completed successfully"
@@ -352,31 +352,31 @@ run_canary_deployment() {
 # Validate canary prerequisites
 validate_prerequisites() {
     log_info "Validating canary deployment prerequisites..."
-    
+
     # Check if jq is available
     if ! command -v jq &> /dev/null; then
         log_error "jq is required for canary deployment"
         exit 1
     fi
-    
+
     # Check if bc is available
     if ! command -v bc &> /dev/null; then
         log_error "bc is required for canary deployment"
         exit 1
     fi
-    
+
     # Check if service is healthy
     if ! curl -f -s http://localhost:3000/health > /dev/null; then
         log_error "Service is not healthy - cannot start canary deployment"
         exit 1
     fi
-    
+
     # Check if feature flags file exists
     if [ ! -f "$FEATURE_FLAGS_FILE" ]; then
         log_error "Feature flags file not found: $FEATURE_FLAGS_FILE"
         exit 1
     fi
-    
+
     log_success "Prerequisites validation passed"
 }
 

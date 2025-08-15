@@ -9,9 +9,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { createReadStream } from 'fs';
-import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
-import { createUnzip } from 'zlib';
 import { Extract } from 'unzipper';
 import logger from '../../utils/logger.js';
 import { randomUUID } from 'crypto';

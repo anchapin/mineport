@@ -2,7 +2,7 @@
 
 /**
  * CI/CD Pipeline Performance and Reliability Testing
- * 
+ *
  * This script measures performance improvements and reliability metrics
  * of the enhanced GitHub Actions CI/CD pipeline.
  */
@@ -32,7 +32,7 @@ class PipelinePerformanceTester {
         if (fs.existsSync(baselinePath)) {
             return JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
         }
-        
+
         // Default baseline metrics (estimated from basic workflow)
         return {
             buildTime: 180000, // 3 minutes
@@ -55,9 +55,9 @@ class PipelinePerformanceTester {
             await this.measureCacheEffectiveness();
             await this.measureResourceUtilization();
             await this.measureReliabilityMetrics();
-            
+
             await this.generatePerformanceReport();
-            
+
             console.log('\n✅ Performance testing completed!');
             return this.metrics;
         } catch (error) {
@@ -71,7 +71,7 @@ class PipelinePerformanceTester {
      */
     async measureBuildPerformance() {
         console.log('📊 Measuring build performance...');
-        
+
         const buildTests = [
             {
                 name: 'Clean Build',
@@ -95,10 +95,10 @@ class PipelinePerformanceTester {
                 const startTime = Date.now();
                 execSync(test.command, { stdio: 'pipe', timeout: 300000 });
                 const duration = Date.now() - startTime;
-                
+
                 const baseline = this.baselineMetrics.buildTime || 180000;
                 const improvement = (baseline - duration) / baseline;
-                
+
                 this.metrics.buildPerformance[test.name] = {
                     duration,
                     baseline,
@@ -106,7 +106,7 @@ class PipelinePerformanceTester {
                     expectedImprovement: test.expectedImprovement,
                     status: improvement >= test.expectedImprovement ? 'IMPROVED' : 'NEEDS_OPTIMIZATION'
                 };
-                
+
                 console.log(`  ✅ ${test.name}: ${duration}ms (${Math.round(improvement * 100)}% improvement)`);
             } catch (error) {
                 this.metrics.buildPerformance[test.name] = {
@@ -123,7 +123,7 @@ class PipelinePerformanceTester {
      */
     async measureTestPerformance() {
         console.log('\n📊 Measuring test performance...');
-        
+
         const testSuites = [
             {
                 name: 'Unit Tests',
@@ -145,13 +145,13 @@ class PipelinePerformanceTester {
         for (const test of testSuites) {
             try {
                 const startTime = Date.now();
-                const output = execSync(test.command, { 
-                    stdio: 'pipe', 
+                const output = execSync(test.command, {
+                    stdio: 'pipe',
                     timeout: 300000,
                     encoding: 'utf8'
                 });
                 const duration = Date.now() - startTime;
-                
+
                 // Parse test results if JSON output is available
                 let testResults = null;
                 try {
@@ -159,10 +159,10 @@ class PipelinePerformanceTester {
                 } catch (e) {
                     // Non-JSON output, that's okay
                 }
-                
+
                 const baseline = this.baselineMetrics.testTime || 120000;
                 const improvement = (baseline - duration) / baseline;
-                
+
                 this.metrics.testPerformance[test.name] = {
                     duration,
                     baseline,
@@ -171,7 +171,7 @@ class PipelinePerformanceTester {
                     testResults,
                     status: improvement >= test.expectedImprovement ? 'IMPROVED' : 'NEEDS_OPTIMIZATION'
                 };
-                
+
                 console.log(`  ✅ ${test.name}: ${duration}ms (${Math.round(improvement * 100)}% improvement)`);
             } catch (error) {
                 this.metrics.testPerformance[test.name] = {
@@ -188,7 +188,7 @@ class PipelinePerformanceTester {
      */
     async measureCacheEffectiveness() {
         console.log('\n📊 Measuring cache effectiveness...');
-        
+
         const cacheTests = [
             {
                 name: 'Dependency Cache',
@@ -225,13 +225,13 @@ class PipelinePerformanceTester {
     async testDependencyCache() {
         // Simulate cache test by checking if node_modules exists and measuring install time
         const nodeModulesExists = fs.existsSync('node_modules');
-        
+
         if (nodeModulesExists) {
             // Measure install time with existing node_modules (cache hit simulation)
             const startTime = Date.now();
             execSync('npm ci', { stdio: 'pipe', timeout: 180000 });
             const cachedInstallTime = Date.now() - startTime;
-            
+
             return {
                 hitRate: 85, // Simulated cache hit rate
                 cachedInstallTime,
@@ -242,7 +242,7 @@ class PipelinePerformanceTester {
             const startTime = Date.now();
             execSync('npm install', { stdio: 'pipe', timeout: 300000 });
             const freshInstallTime = Date.now() - startTime;
-            
+
             return {
                 hitRate: 0,
                 freshInstallTime,
@@ -257,13 +257,13 @@ class PipelinePerformanceTester {
     async testBuildCache() {
         // Check for build output directory
         const distExists = fs.existsSync('dist');
-        
+
         if (distExists) {
             // Measure incremental build time
             const startTime = Date.now();
             execSync('npm run build', { stdio: 'pipe', timeout: 180000 });
             const incrementalBuildTime = Date.now() - startTime;
-            
+
             return {
                 hitRate: 70, // Simulated cache hit rate for incremental builds
                 incrementalBuildTime,
@@ -293,7 +293,7 @@ class PipelinePerformanceTester {
      */
     async measureResourceUtilization() {
         console.log('\n📊 Measuring resource utilization...');
-        
+
         const resourceTests = [
             {
                 name: 'Memory Usage',
@@ -361,7 +361,7 @@ class PipelinePerformanceTester {
         const stats = fs.statSync('.');
         const packageSize = this.getDirectorySize('node_modules');
         const buildSize = fs.existsSync('dist') ? this.getDirectorySize('dist') : 0;
-        
+
         return {
             nodeModulesSize: `${Math.round(packageSize / 1024 / 1024)}MB`,
             buildOutputSize: `${Math.round(buildSize / 1024 / 1024)}MB`,
@@ -385,21 +385,21 @@ class PipelinePerformanceTester {
      */
     getDirectorySize(dirPath) {
         if (!fs.existsSync(dirPath)) return 0;
-        
+
         let size = 0;
         const files = fs.readdirSync(dirPath);
-        
+
         for (const file of files) {
             const filePath = path.join(dirPath, file);
             const stats = fs.statSync(filePath);
-            
+
             if (stats.isDirectory()) {
                 size += this.getDirectorySize(filePath);
             } else {
                 size += stats.size;
             }
         }
-        
+
         return size;
     }
 
@@ -408,7 +408,7 @@ class PipelinePerformanceTester {
      */
     async measureReliabilityMetrics() {
         console.log('\n📊 Measuring reliability metrics...');
-        
+
         const reliabilityTests = [
             {
                 name: 'Build Success Rate',
@@ -450,7 +450,7 @@ class PipelinePerformanceTester {
         // Simulate multiple build attempts to measure success rate
         let successCount = 0;
         const totalAttempts = 3;
-        
+
         for (let i = 0; i < totalAttempts; i++) {
             try {
                 execSync('npm run build', { stdio: 'pipe', timeout: 180000 });
@@ -459,9 +459,9 @@ class PipelinePerformanceTester {
                 // Build failed
             }
         }
-        
+
         const successRate = (successCount / totalAttempts) * 100;
-        
+
         return {
             successRate: `${successRate}%`,
             attempts: totalAttempts,
@@ -492,16 +492,16 @@ class PipelinePerformanceTester {
             'scripts/deploy-modporter-ai.sh',
             'scripts/validate-deployment.js'
         ];
-        
+
         let validScripts = 0;
         for (const script of deploymentScripts) {
             if (fs.existsSync(script)) {
                 validScripts++;
             }
         }
-        
+
         const readinessScore = (validScripts / deploymentScripts.length) * 100;
-        
+
         return {
             deploymentReadiness: `${readinessScore}%`,
             validScripts,
@@ -528,7 +528,7 @@ class PipelinePerformanceTester {
      */
     async generatePerformanceReport() {
         console.log('\n📄 Generating performance report...');
-        
+
         const report = {
             timestamp: new Date().toISOString(),
             summary: this.generatePerformanceSummary(),
@@ -536,13 +536,13 @@ class PipelinePerformanceTester {
             recommendations: this.generateRecommendations(),
             baseline: this.baselineMetrics
         };
-        
+
         // Write report to file
         const reportPath = 'pipeline-performance-report.json';
         fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-        
+
         console.log(`  ✅ Performance report generated: ${reportPath}`);
-        
+
         // Print summary
         this.printPerformanceSummary(report.summary);
     }
@@ -554,19 +554,19 @@ class PipelinePerformanceTester {
         const buildMetrics = Object.values(this.metrics.buildPerformance);
         const testMetrics = Object.values(this.metrics.testPerformance);
         const cacheMetrics = Object.values(this.metrics.cacheEffectiveness);
-        
-        const avgBuildImprovement = buildMetrics.length > 0 
+
+        const avgBuildImprovement = buildMetrics.length > 0
             ? buildMetrics.reduce((sum, m) => sum + (m.improvement || 0), 0) / buildMetrics.length
             : 0;
-            
+
         const avgTestImprovement = testMetrics.length > 0
             ? testMetrics.reduce((sum, m) => sum + (m.improvement || 0), 0) / testMetrics.length
             : 0;
-            
+
         const avgCacheHitRate = cacheMetrics.length > 0
             ? cacheMetrics.reduce((sum, m) => sum + (m.hitRate || 0), 0) / cacheMetrics.length
             : 0;
-        
+
         return {
             overallImprovement: Math.round(((avgBuildImprovement + avgTestImprovement) / 2) * 100),
             buildImprovement: Math.round(avgBuildImprovement * 100),
@@ -581,7 +581,7 @@ class PipelinePerformanceTester {
      */
     calculateOverallPerformanceStatus(buildImprovement, testImprovement) {
         const avgImprovement = (buildImprovement + testImprovement) / 2;
-        
+
         if (avgImprovement >= 0.3) {
             return 'EXCELLENT';
         } else if (avgImprovement >= 0.2) {
@@ -598,11 +598,11 @@ class PipelinePerformanceTester {
      */
     generateRecommendations() {
         const recommendations = [];
-        
+
         // Build performance recommendations
         const buildMetrics = Object.values(this.metrics.buildPerformance);
         const poorBuildPerformance = buildMetrics.filter(m => m.status === 'NEEDS_OPTIMIZATION');
-        
+
         if (poorBuildPerformance.length > 0) {
             recommendations.push({
                 category: 'Build Performance',
@@ -611,11 +611,11 @@ class PipelinePerformanceTester {
                 affectedTests: poorBuildPerformance.map(m => m.name || 'Unknown')
             });
         }
-        
+
         // Cache effectiveness recommendations
         const cacheMetrics = Object.values(this.metrics.cacheEffectiveness);
         const poorCachePerformance = cacheMetrics.filter(m => m.hitRate < 50);
-        
+
         if (poorCachePerformance.length > 0) {
             recommendations.push({
                 category: 'Cache Optimization',
@@ -624,7 +624,7 @@ class PipelinePerformanceTester {
                 details: 'Consider implementing more granular cache keys and better cache warming'
             });
         }
-        
+
         // Resource utilization recommendations
         if (this.metrics.resourceUtilization['Memory Usage']?.peakMemory > '1GB') {
             recommendations.push({
@@ -634,7 +634,7 @@ class PipelinePerformanceTester {
                 details: 'Consider reducing concurrent processes or optimizing memory-intensive operations'
             });
         }
-        
+
         return recommendations;
     }
 
@@ -645,13 +645,13 @@ class PipelinePerformanceTester {
         console.log('\n' + '='.repeat(60));
         console.log('📊 PERFORMANCE SUMMARY');
         console.log('='.repeat(60));
-        
+
         console.log(`Overall Status: ${summary.status}`);
         console.log(`Overall Improvement: ${summary.overallImprovement}%`);
         console.log(`Build Improvement: ${summary.buildImprovement}%`);
         console.log(`Test Improvement: ${summary.testImprovement}%`);
         console.log(`Cache Effectiveness: ${summary.cacheEffectiveness}%`);
-        
+
         if (summary.status === 'EXCELLENT') {
             console.log('\n🎉 EXCELLENT PERFORMANCE - Pipeline is highly optimized!');
         } else if (summary.status === 'GOOD') {
@@ -661,7 +661,7 @@ class PipelinePerformanceTester {
         } else {
             console.log('\n❌ PERFORMANCE NEEDS IMPROVEMENT - Review recommendations');
         }
-        
+
         console.log('='.repeat(60));
     }
 }
@@ -669,7 +669,7 @@ class PipelinePerformanceTester {
 // Main execution
 if (require.main === module) {
     const tester = new PipelinePerformanceTester();
-    
+
     tester.runPerformanceTests()
         .then(() => {
             process.exit(0);

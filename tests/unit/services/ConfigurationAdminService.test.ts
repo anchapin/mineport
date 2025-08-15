@@ -57,10 +57,10 @@ describe('ConfigurationAdminService', () => {
     vi.mocked(path.resolve).mockReturnValue(mockVersionsPath);
 
     // Mock path.join to concatenate paths
-    vi.mocked(path.join).mockImplementation((...args) => args.join('/'));
+    vi.mocked(path.join).mockImplementation((...args: any[]) => args.join('/'));
 
     // Mock fs.existsSync to return false for versions directory
-    vi.mocked(fs.existsSync).mockImplementation((path: string) => {
+    vi.mocked(fs.existsSync).mockImplementation((path: any) => {
       return path !== mockVersionsPath;
     });
 
@@ -234,31 +234,33 @@ describe('ConfigurationAdminService', () => {
 
   it('should load existing versions from disk', () => {
     // Mock fs.readdirSync to return version files
-    vi.mocked(fs.readdirSync).mockReturnValue(['v1.json', 'v2.json']);
+    vi.mocked(fs.readdirSync).mockReturnValue(['v1.json', 'v2.json'] as any);
 
     // Create timestamps with v2 being newer
     const timestamp1 = new Date('2023-01-01T10:00:00Z');
     const timestamp2 = new Date('2023-01-01T11:00:00Z');
 
     // Mock fs.readFileSync to return version content
-    vi.mocked(fs.readFileSync).mockImplementation((filePath: string) => {
-      if (filePath === `${mockVersionsPath}/v1.json`) {
-        return JSON.stringify({
-          id: 'v1',
-          timestamp: timestamp1.toISOString(),
-          description: 'Version 1',
-          config: { server: { port: 3000 } },
-        });
-      } else if (filePath === `${mockVersionsPath}/v2.json`) {
-        return JSON.stringify({
-          id: 'v2',
-          timestamp: timestamp2.toISOString(),
-          description: 'Version 2',
-          config: { server: { port: 4000 } },
-        });
+    vi.mocked(fs.readFileSync).mockImplementation(
+      (filePath: fs.PathOrFileDescriptor, _options?: any) => {
+        if (filePath === `${mockVersionsPath}/v1.json`) {
+          return JSON.stringify({
+            id: 'v1',
+            timestamp: timestamp1.toISOString(),
+            description: 'Version 1',
+            config: { server: { port: 3000 } },
+          });
+        } else if (filePath === `${mockVersionsPath}/v2.json`) {
+          return JSON.stringify({
+            id: 'v2',
+            timestamp: timestamp2.toISOString(),
+            description: 'Version 2',
+            config: { server: { port: 4000 } },
+          });
+        }
+        return '';
       }
-      return '';
-    });
+    );
 
     // Create adminService to load versions
     adminService = new ConfigurationAdminService({

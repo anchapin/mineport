@@ -79,7 +79,7 @@ export interface ConversionMetadata {
 export interface OutputFile {
   path: string;
   content: Buffer | string;
-  type: 'texture' | 'model' | 'sound' | 'json' | 'manifest';
+  type: 'texture' | 'model' | 'sound' | 'json' | 'manifest' | 'other';
   originalPath?: string;
 }
 

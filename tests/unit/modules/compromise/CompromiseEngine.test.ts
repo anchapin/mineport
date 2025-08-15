@@ -6,8 +6,10 @@ import {
 import {
   CompromiseStrategy,
   CompromiseResult,
+  CompromiseOptions,
 } from '../../../../src/modules/compromise/CompromiseStrategy.js';
-import { Feature, FeatureType, CompromiseLevel } from '../../../../src/types/compromise.js';
+import { CompromiseLevel } from '../../../../src/types/compromise.js';
+import { Feature, FeatureType } from '../../../../src/modules/ingestion/index.js';
 import { ConversionContext } from '../../../../src/types/modules.js';
 
 // Mock logger
@@ -33,7 +35,11 @@ class MockCompromiseStrategy extends CompromiseStrategy {
 
   private shouldSucceed: boolean;
 
-  async apply(feature: Feature, _context: ConversionContext): Promise<CompromiseResult> {
+  async apply(
+    feature: Feature,
+    _context: ConversionContext,
+    _options: CompromiseOptions
+  ): Promise<CompromiseResult> {
     if (!this.shouldSucceed) {
       throw new Error('Mock strategy failure');
     }
@@ -55,7 +61,14 @@ class MockCompromiseStrategy extends CompromiseStrategy {
     };
   }
 
-  async estimateImpact() {
+  async estimateImpact(
+    _feature: Feature,
+    _context: ConversionContext
+  ): Promise<{
+    impactLevel: CompromiseLevel;
+    userExperienceImpact: number;
+    confidence: number;
+  }> {
     return {
       impactLevel: CompromiseLevel.LOW,
       userExperienceImpact: 20,
@@ -67,7 +80,7 @@ class MockCompromiseStrategy extends CompromiseStrategy {
     return 'Mock strategy for testing';
   }
 
-  protected isApplicable(feature: Feature): boolean {
+  protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
     return feature.name.includes('test');
   }
 }
@@ -84,20 +97,28 @@ describe('CompromiseEngine', () => {
     });
 
     mockFeature = {
+      id: 'test_feature_id',
       name: 'test_feature',
+      description: 'Test feature description',
       type: FeatureType.GUI,
-      properties: {
-        needsCompromise: true,
-      },
-      metadata: {},
+      compatibilityTier: 2,
+      sourceFiles: ['test.java'],
+      sourceLineNumbers: [[1, 10]],
     };
 
     mockContext = {
-      sourceFormat: 'java',
-      targetFormat: 'bedrock',
-      conversionId: 'test-conversion',
-      timestamp: new Date(),
-      options: {},
+      modId: 'test-mod',
+      modName: 'Test Mod',
+      modVersion: '1.0.0',
+      modLoader: 'forge',
+      minecraftVersion: '1.19.2',
+      targetBedrockVersion: '1.19.50',
+      conversionOptions: {
+        preserveComments: true,
+        generateDocumentation: true,
+        optimizeOutput: false,
+        enableExperimentalFeatures: false,
+      },
     };
   });
 
