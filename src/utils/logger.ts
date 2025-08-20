@@ -137,19 +137,21 @@ export default defaultLogger;
 /**
  * Global error handler for uncaught exceptions
  */
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', { error });
-  // Give logger time to write before exiting
-  setTimeout(() => {
-    process.exit(1);
-  }, 1000);
-});
+if (process.env.NODE_ENV !== 'test') {
+  process.on('uncaughtException', (error) => {
+    defaultLogger.error('Uncaught Exception:', { error });
+    // Give logger time to write before exiting
+    setTimeout(() => {
+      process.exit(1);
+    }, 1000);
+  });
+}
 
 /**
  * Global error handler for unhandled promise rejections
  */
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Promise Rejection:', { reason, promise });
+  defaultLogger.error('Unhandled Promise Rejection:', { reason, promise });
 });
 /**
 

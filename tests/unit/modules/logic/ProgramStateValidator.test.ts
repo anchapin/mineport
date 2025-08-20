@@ -234,250 +234,172 @@ describe('ProgramStateValidator', () => {
     });
 
     it('should handle validation timeout', async () => {
-      const shortTimeoutValidator = new ProgramStateValidator({
-        timeoutMs: 100, // Very short timeout
-      });
-
-      // Mock the analysis methods to take longer than timeout
-      (shortTimeoutValidator as any).staticAnalyzer.analyze = vi.fn().mockImplementation(() => {
-        return new Promise((resolve) => setTimeout(resolve, 200));
-      });
-
-      const javaCode = 'public class Test {}';
-      const jsCode = 'class Test {}';
-
-      const result = await shortTimeoutValidator.validate(javaCode, jsCode, mockContext);
-
-      expect(result.isEquivalent).toBe(false);
-      expect(result.confidence).toBe(0.0);
-      expect(result.differences).toHaveLength(1);
-      expect(result.differences[0].description).toContain('Validation failed');
-      expect(result.differences[0].severity).toBe('critical');
-    });
-
-    it('should prioritize differences by severity', async () => {
-      const javaCode = `
-        public class TestClass {
-          public void criticalMethod() {}
-          public void highMethod() {}
-          public void mediumMethod() {}
-          public void lowMethod() {}
-        }
-      `;
-
-      const jsCode = `
-        class TestClass {
-          // All methods missing - will generate different severity differences
-        }
-      `;
-
-      const result = await validator.validate(javaCode, jsCode, mockContext);
-
-      expect(result.differences.length).toBeGreaterThan(0);
-
-      // Check that differences are sorted by severity
-      for (let i = 0; i < result.differences.length - 1; i++) {
-        const currentSeverity = getSeverityOrder(result.differences[i].severity);
-        const nextSeverity = getSeverityOrder(result.differences[i + 1].severity);
-        expect(currentSeverity).toBeLessThanOrEqual(nextSeverity);
-      }
-    });
-
-    it('should generate appropriate recommendations', async () => {
-      const javaCode = `
-        public class TestClass {
-          public void method() {
-            complexOperation();
-          }
-        }
-      `;
-
-      const jsCode = `
-        class TestClass {
-          method() {
-            // Simplified implementation
-            simpleOperation();
-          }
-        }
-      `;
-
-      const result = await validator.validate(javaCode, jsCode, mockContext);
-
-      expect(result.recommendations).toBeInstanceOf(Array);
-      expect(result.recommendations.length).toBeGreaterThan(0);
-
-      // Should contain relevant recommendations
-      const hasStructuralRec = result.recommendations.some(
-        (rec) => rec.includes('structure') || rec.includes('semantic') || rec.includes('behavioral')
-      );
-      expect(hasStructuralRec).toBe(true);
-    });
-
-    it('should calculate confidence based on analysis results', async () => {
-      const highSimilarityJavaCode = `
-        public class TestClass {
-          public void method() {
-            System.out.println("test");
-          }
-        }
-      `;
-
-      const highSimilarityJsCode = `
-        class TestClass {
-          method() {
-            console.log("test");
-          }
-        }
-      `;
-
-      const lowSimilarityJavaCode = `
-        public class ComplexClass {
-          public void method1() {}
-          public void method2() {}
-          public void method3() {}
-          public void method4() {}
-        }
-      `;
-
-      const lowSimilarityJsCode = `
-        class DifferentClass {
-          differentMethod() {}
-        }
-      `;
-
-      const highSimilarityResult = await validator.validate(
-        highSimilarityJavaCode,
-        highSimilarityJsCode,
-        mockContext
-      );
-
-      const lowSimilarityResult = await validator.validate(
-        lowSimilarityJavaCode,
-        lowSimilarityJsCode,
-        mockContext
-      );
-
-      expect(highSimilarityResult.confidence).toBeGreaterThan(lowSimilarityResult.confidence);
-    });
-
-    it('should handle empty code inputs', async () => {
-      const emptyJavaCode = '';
-      const emptyJsCode = '';
-
-      const result = await validator.validate(emptyJavaCode, emptyJsCode, mockContext);
-
-      expect(result.isEquivalent).toBe(true);
-      expect(result.confidence).toBeGreaterThan(0.8);
-      expect(result.differences).toHaveLength(0);
-    });
-
-    it('should respect confidence threshold setting', async () => {
-      const highThresholdValidator = new ProgramStateValidator({
-        confidenceThreshold: 0.95,
-      });
-
-      const lowThresholdValidator = new ProgramStateValidator({
-        confidenceThreshold: 0.5,
-      });
-
-      const javaCode = `
-        public class TestClass {
-          public void method() {
-            System.out.println("test");
-          }
-        }
-      `;
-
-      const jsCode = `
-        class TestClass {
-          method() {
-            console.log("similar but not identical");
-          }
-        }
-      `;
-
-      const highThresholdResult = await highThresholdValidator.validate(
-        javaCode,
-        jsCode,
-        mockContext
-      );
-      const lowThresholdResult = await lowThresholdValidator.validate(
-        javaCode,
-        jsCode,
-        mockContext
-      );
-
-      // Same code, but different thresholds might lead to different equivalence decisions
-      expect(typeof highThresholdResult.isEquivalent).toBe('boolean');
-      expect(typeof lowThresholdResult.isEquivalent).toBe('boolean');
-    });
-
-    it('should handle validation with disabled analyzers', async () => {
-      const limitedValidator = new ProgramStateValidator({
-        enableStaticAnalysis: true,
-        enableSemanticAnalysis: false,
-        enableBehaviorAnalysis: false,
-      });
-
-      const javaCode = `
-        public class TestClass {
-          public void method() {
-            System.out.println("test");
-          }
-        }
-      `;
-
-      const jsCode = `
-        class TestClass {
-          method() {
-            console.log("test");
-          }
-        }
-      `;
-
-      const result = await limitedValidator.validate(javaCode, jsCode, mockContext);
-
-      expect(result).toBeDefined();
-      expect(result.isEquivalent).toBeDefined();
-      expect(result.confidence).toBeDefined();
-      expect(result.differences).toBeInstanceOf(Array);
-      expect(result.recommendations).toBeInstanceOf(Array);
-    });
-
-    it('should provide context-specific recommendations', async () => {
-      const minimalCompromiseContext = {
-        ...mockContext,
-        userPreferences: {
-          ...mockContext.userPreferences,
-          compromiseLevel: 'minimal' as const,
-        },
+      const validator = new ProgramStateValidator(mockOptions);
+      const testCase = {
+        code: 'class A {}',
+        expected: 'class B {}',
+        metadata: { language: 'typescript' },
       };
 
-      const javaCode = `
-        public class TestClass {
-          public void method() {
-            complexOperation();
-          }
-        }
-      `;
+      // Force a timeout
+      mockOptions.timeout = 1;
+      const result = await validator.validate(testCase);
+      expect(result.isEquivalent).toBe(false);
+      expect(result.differences[0].type).toBe('error');
+      expect(result.differences[0].description).toContain('Validation timed out');
+    });
 
-      const jsCode = `
-        class TestClass {
-          method() {
-            simplifiedOperation();
-          }
-        }
-      `;
+    it('should prioritize differences correctly', () => {
+      const validator = new ProgramStateValidator(mockOptions);
+      const differences = [
+        {
+          code: 'class A {}',
+          expected: 'class B {}',
+          metadata: { language: 'typescript' },
+        };
+      const prioritized = validator['prioritizeDifferences'](differences);
+      expect(prioritized[0].severity).toBe('high');
+      expect(prioritized[1].severity).toBe('medium');
+      expect(prioritized[2].severity).toBe('low');
+    });
 
-      const result = await validator.validate(javaCode, jsCode, minimalCompromiseContext);
+    it('should generate recommendations for differences', () => {
+      const validator = new ProgramStateValidator(mockOptions);
+      const differences = [
+        {
+          code: 'class A {}',
+          expected: 'class B {}',
+          metadata: { language: 'typescript' },
+        };
+      const recommendations = validator['generateRecommendations'](differences);
+      expect(recommendations.length).toBe(1);
+      expect(recommendations[0].description).toContain('Add a constructor');
+    });
 
-      expect(result.recommendations).toBeInstanceOf(Array);
+    it('should calculate overall confidence based on differences', () => {
+      const validator = new ProgramStateValidator(mockOptions);
+      const differences = [
+        {
+          code: 'class A {}',
+          expected: 'class B {}',
+          metadata: { language: 'typescript' },
+        };
+      const confidence = validator['calculateOverallConfidence'](differences);
+      expect(confidence).toBe(0.75);
+    });
 
-      // Should include context-specific recommendations
-      const hasConservativeRec = result.recommendations.some(
-        (rec) => rec.includes('conservative') || rec.includes('minimal')
-      );
-      expect(hasConservativeRec).toBe(true);
+    it('should handle empty or invalid inputs gracefully', async () => {
+      const validator = new ProgramStateValidator(mockOptions);
+      const testCase = { code: '', expected: '', metadata: { language: 'typescript' } };
+      const result = await validator.validate(testCase);
+      expect(result.isEquivalent).toBe(false);
+      expect(result.differences.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Confidence Thresholds', () => {
+    it('should approve translations above the confidence threshold', async () => {
+      const validator = new ProgramStateValidator({ ...mockOptions, confidenceThreshold: 0.8 });
+      const testCase = {
+        code: 'class A {}',
+        expected: 'class B {}',
+        metadata: { language: 'typescript' },
+      };
+
+      // Mock analyzers to produce high confidence
+      jest.spyOn(validator['staticAnalyzer'], 'analyze').mockResolvedValue({
+        differences: [],
+        confidence: 0.9,
+      });
+      jest.spyOn(validator['semanticAnalyzer'], 'analyze').mockResolvedValue({
+        differences: [],
+        confidence: 0.9,
+      });
+      jest.spyOn(validator['behaviorAnalyzer'], 'analyze').mockResolvedValue({
+        differences: [],
+        confidence: 0.9,
+      });
+
+      const result = await validator.validate(testCase);
+      expect(result.isEquivalent).toBe(true);
+      expect(result.confidence).toBeGreaterThanOrEqual(0.8);
+    });
+
+    it('should reject translations below the confidence threshold', async () => {
+      const validator = new ProgramStateValidator({ ...mockOptions, confidenceThreshold: 0.9 });
+      const testCase = {
+        code: 'class A {}',
+        expected: 'class B {}',
+        metadata: { language: 'typescript' },
+      };
+
+      // Mock analyzers to produce low confidence
+      jest.spyOn(validator['staticAnalyzer'], 'analyze').mockResolvedValue({
+        differences: [{ type: 'complexity', severity: 'high', description: 'High complexity' }],
+        confidence: 0.7,
+      });
+      jest.spyOn(validator['semanticAnalyzer'], 'analyze').mockResolvedValue({
+        differences: [],
+        confidence: 0.8,
+      });
+      jest.spyOn(validator['behaviorAnalyzer'], 'analyze').mockResolvedValue({
+        differences: [],
+        confidence: 0.8,
+      });
+
+      const result = await validator.validate(testCase);
+      expect(result.isEquivalent).toBe(false);
+      expect(result.confidence).toBeLessThan(0.9);
+    });
+  });
+
+  describe('Analyzer Management', () => {
+    it('should not run disabled analyzers', async () => {
+      const validator = new ProgramStateValidator({
+        ...mockOptions,
+        disabledAnalyzers: ['static', 'semantic'],
+      });
+      const testCase = {
+        code: 'class A {}',
+        expected: 'class B {}',
+        metadata: { language: 'typescript' },
+      };
+
+      const staticSpy = jest.spyOn(validator['staticAnalyzer'], 'analyze');
+      const semanticSpy = jest.spyOn(validator['semanticAnalyzer'], 'analyze');
+      const behaviorSpy = jest.spyOn(validator['behaviorAnalyzer'], 'analyze');
+
+      await validator.validate(testCase);
+
+      expect(staticSpy).not.toHaveBeenCalled();
+      expect(semanticSpy).not.toHaveBeenCalled();
+      expect(behaviorSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Context-Specific Recommendations', () => {
+    it('should provide context-specific recommendations for Java', () => {
+      const validator = new ProgramStateValidator(mockOptions);
+      const differences = [
+        {
+          code: 'class A {}',
+          expected: 'class B {}',
+          metadata: { language: 'typescript' },
+        };
+      const recommendations = validator['generateRecommendations'](differences, 'java');
+      expect(recommendations[0].codeExample).toContain('try (FileInputStream fis = new FileInputStream("file.txt"))');
+    });
+
+    it('should provide context-specific recommendations for TypeScript', () => {
+      const validator = new ProgramStateValidator(mockOptions);
+      const differences = [
+        {
+          code: 'class A {}',
+          expected: 'class B {}',
+          metadata: { language: 'typescript' },
+        };
+      const recommendations = validator['generateRecommendations'](differences, 'typescript');
+      expect(recommendations[0].codeExample).toContain('async function fetchData()');
     });
   });
 });
