@@ -49,7 +49,7 @@ describe('MMIRGenerator', () => {
 
       // Generate MMIR
       const mmirContext = generator.generateMMIR(
-        [{ _ast: parseResult.ast, _sourceFile: 'ExampleMod.java' }],
+        [{ ast: parseResult.ast, sourceFile: 'ExampleMod.java' }],
         'forge',
         { modName: 'Example Mod', modVersion: '1.0.0' }
       );
@@ -62,7 +62,7 @@ describe('MMIRGenerator', () => {
 
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
-      expect(mmirContext._nodes.length).toBeGreaterThan(0);
+      expect(mmirContext.nodes.length).toBeGreaterThan(0);
     });
 
     it('should generate MMIR from a simple Fabric mod', () => {
@@ -88,7 +88,7 @@ describe('MMIRGenerator', () => {
 
       // Generate MMIR
       const mmirContext = generator.generateMMIR(
-        [{ _ast: parseResult.ast, _sourceFile: 'ExampleMod.java' }],
+        [{ ast: parseResult.ast, sourceFile: 'ExampleMod.java' }],
         'fabric',
         { modId: 'examplemod', modName: 'Example Mod', modVersion: '1.0.0' }
       );
@@ -101,7 +101,7 @@ describe('MMIRGenerator', () => {
 
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
-      expect(mmirContext._nodes.length).toBeGreaterThan(0);
+      expect(mmirContext.nodes.length).toBeGreaterThan(0);
     });
   });
 });
@@ -139,13 +139,13 @@ describe('ForgeModParser', () => {
       const parseResult = javaParser.parseSource(forgeModSource, 'ExampleMod.java');
 
       // Parse the AST
-      const { _nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
+      const { nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
 
       // Verify the results
-      expect(_nodes.length).toBeGreaterThan(0);
+      expect(nodes.length).toBeGreaterThan(0);
 
       // Find the mod declaration node
-      const modNode = _nodes.find((node: any) => node.type === MMIRNodeType.ModDeclaration);
+      const modNode = nodes.find((node: any) => node.type === MMIRNodeType.ModDeclaration);
       expect(modNode).toBeDefined();
 
       // In a real test, we would verify more aspects of the parsed nodes and relationships
@@ -209,13 +209,13 @@ describe('FabricModParser', () => {
       const parseResult = javaParser.parseSource(fabricModSource, 'ExampleMod.java');
 
       // Parse the AST
-      const { _nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
+      const { nodes } = parser.parse(parseResult.ast, 'ExampleMod.java');
 
       // Verify the results
-      expect(_nodes.length).toBeGreaterThan(0);
+      expect(nodes.length).toBeGreaterThan(0);
 
       // Find the mod declaration node
-      const modNode = _nodes.find((node: any) => node.type === MMIRNodeType.ModDeclaration);
+      const modNode = nodes.find((node: any) => node.type === MMIRNodeType.ModDeclaration);
       expect(modNode).toBeDefined();
 
       // In a real test, we would verify more aspects of the parsed nodes and relationships

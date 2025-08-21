@@ -98,7 +98,7 @@ describe('SecurityScanner', () => {
       expect(result.isSafe).toBe(false);
       expect(result.threats).toHaveLength(1);
       expect(result.threats[0].type).toBe('zip_bomb');
-      expect(result.threats[0].severity).toBe('high');
+      expect(result.threats[0].severity).toBe('error');
     });
 
     it('should detect path traversal attempts', async () => {
@@ -129,7 +129,7 @@ describe('SecurityScanner', () => {
       expect(result.isSafe).toBe(false);
       expect(result.threats).toHaveLength(1);
       expect(result.threats[0].type).toBe('path_traversal');
-      expect(result.threats[0].severity).toBe('high');
+      expect(result.threats[0].severity).toBe('error');
       expect(result.threats[0].details?.paths).toBeDefined();
     });
 
@@ -155,7 +155,7 @@ describe('SecurityScanner', () => {
       expect(result.isSafe).toBe(false);
       expect(result.threats).toHaveLength(1);
       expect(result.threats[0].type).toBe('malicious_code');
-      expect(result.threats[0].severity).toBe('medium');
+      expect(result.threats[0].severity).toBe('warning');
     });
 
     it('should handle multiple threats in one file', async () => {

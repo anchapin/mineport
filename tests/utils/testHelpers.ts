@@ -145,53 +145,6 @@ export function mockUnzipper(fileStructure: Record<string, string>): void {
   });
 }
 
-/**
- * Creates a mock for the Octokit GitHub API client
- */
-export function mockOctokit(responses: Record<string, any>): void {
-  vi.mock('octokit', () => {
-    return {
-      Octokit: vi.fn().mockImplementation(() => {
-        return {
-          rest: {
-            repos: {
-              getContent: vi.fn(({ owner, repo, path }) => {
-                const key = `${owner}/${repo}/${path}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-              getCommit: vi.fn(({ owner, repo, ref }) => {
-                const key = `${owner}/${repo}/commit/${ref}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-            },
-            git: {
-              getTree: vi.fn(({ owner, repo, tree_sha }) => {
-                const key = `${owner}/${repo}/tree/${tree_sha}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-              getBlob: vi.fn(({ owner, repo, file_sha }) => {
-                const key = `${owner}/${repo}/blob/${file_sha}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-            },
-          },
-        };
-      }),
-    };
-  });
-}
 
 /**
  * Creates a mock for the LLM API client
