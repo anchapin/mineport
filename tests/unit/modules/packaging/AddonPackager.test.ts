@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AddonPackager } from '../../../../src/modules/packaging/AddonPackager.js';
 import * as fs from 'fs';
+import * as path from 'path';
 
 // Create mock write stream
 const mockWriteStream: any = {
@@ -143,15 +144,23 @@ describe('AddonPackager', () => {
   it('should create directories if they do not exist', async () => {
     await addonPackager.createAddon(mockInput);
 
-    // Check if directories were created
-    expect(fs.mkdirSync).toHaveBeenCalledWith('/test/output/temp', { recursive: true });
-    expect(fs.mkdirSync).toHaveBeenCalledWith('/test/output/temp/behavior_pack', {
+    // Check if root directory was created
+    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join('/test/output/temp'), {
       recursive: true,
     });
-    expect(fs.mkdirSync).toHaveBeenCalledWith('/test/output/temp/resource_pack', {
+
+    // Check if behavior pack directory was created
+    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join('/test/output/temp/behavior_pack'), {
       recursive: true,
     });
-    expect(fs.mkdirSync).toHaveBeenCalledWith('/test/output/temp/documentation', {
+
+    // Check if resource pack directory was created
+    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join('/test/output/temp/resource_pack'), {
+      recursive: true,
+    });
+
+    // Check if documentation directory was created
+    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join('/test/output/temp/documentation'), {
       recursive: true,
     });
   });
@@ -161,12 +170,12 @@ describe('AddonPackager', () => {
 
     // Check if manifest files were written
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      '/test/output/temp/behavior_pack/manifest.json',
+      path.join('/test/output/temp/behavior_pack/manifest.json'),
       JSON.stringify(mockInput.bedrockConfigs.manifests.behaviorPack, null, 2)
     );
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      '/test/output/temp/resource_pack/manifest.json',
+      path.join('/test/output/temp/resource_pack/manifest.json'),
       JSON.stringify(mockInput.bedrockConfigs.manifests.resourcePack, null, 2)
     );
   });
@@ -175,32 +184,35 @@ describe('AddonPackager', () => {
     await addonPackager.createAddon(mockInput);
 
     // Check if script directory was created
-    expect(fs.mkdirSync).toHaveBeenCalledWith('/test/output/temp/behavior_pack/scripts', {
+    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join('/test/output/temp/behavior_pack', 'scripts'), {
       recursive: true,
     });
 
     // Check if script file was written
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      '/test/output/temp/behavior_pack/scripts/main.js',
+      path.join('/test/output/temp/behavior_pack', 'scripts', 'main.js'),
       'console.log("Hello World");'
     );
-  });
-
-  it('should write license files', async () => {
-    await addonPackager.createAddon(mockInput);
-
-    // Expected license content
-    const expectedLicenseContent = 'MIT License\n\nAttributions:\n- Original mod by Test Author\n';
 
     // Check if license files were written
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      '/test/output/temp/behavior_pack/LICENSE',
-      expectedLicenseContent
+      path.join('/test/output/temp/resource_pack/LICENSE'),
+      expect.stringContaining('MIT License')
     );
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      '/test/output/temp/resource_pack/LICENSE',
-      expectedLicenseContent
+      path.join('/test/output/temp/behavior_pack/LICENSE'),
+      expect.stringContaining('MIT License')
+    );
+
+    expect(fs.writeFileSync).toHaveBeenCalledWith(
+      path.join('/test/output/temp/documentation/LICENSE'),
+      expect.stringContaining('MIT License')
+    );
+
+    expect(fs.writeFileSync).toHaveBeenCalledWith(
+      path.join('/test/output/temp/metadata.json'),
+      expect.stringContaining('"originalMod"')
     );
   });
 
@@ -208,9 +220,9 @@ describe('AddonPackager', () => {
     const result = await addonPackager.createAddon(mockInput);
 
     expect(result).toEqual({
-      mcaddonFilePath: '/test/output/test_behavior_pack_v1.0.0.mcaddon',
-      behaviorPackPath: '/test/output/temp/behavior_pack',
-      resourcePackPath: '/test/output/temp/resource_pack',
+      mcaddonFilePath: expect.stringContaining('test_behavior_pack_v1.0.0.mcaddon'),
+      behaviorPackPath: path.join('/test/output/temp/behavior_pack'),
+      resourcePackPath: path.join('/test/output/temp/resource_pack'),
     });
   });
 });

@@ -403,7 +403,7 @@ export class JobQueueService extends EventEmitter {
   private async handleJobCompleted(
     jobId: string,
     workerId: string,
-    result: any,
+    result: unknown,
     processingTime: number
   ): Promise<void> {
     const job = await this.statusStore.getJob(jobId);
@@ -483,7 +483,7 @@ export class JobQueueService extends EventEmitter {
     this.processQueue();
   }
 
-  private async handleJobProgress(jobId: string, progress: any): Promise<void> {
+  private async handleJobProgress(jobId: string, progress: unknown): Promise<void> {
     const job = await this.statusStore.getJob(jobId);
     if (!job) return;
 

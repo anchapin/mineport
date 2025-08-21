@@ -44,9 +44,9 @@ export class WorkerPool extends EventEmitter {
   private workers = new Map<string, Worker>();
   private jobWorkerMap = new Map<string, string>();
   private taskQueue: Array<{
-    task: WorkerTask<any, any>;
-    resolve: (value: any) => void;
-    reject: (reason?: any) => void;
+    task: WorkerTask<unknown, unknown>;
+    resolve: (value: unknown) => void;
+    reject: (reason?: unknown) => void;
   }> = [];
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private config: WorkerPoolConfig;
@@ -299,7 +299,7 @@ export class WorkerPool extends EventEmitter {
   private async executeTask<TInput, TOutput>(
     worker: Worker,
     task: WorkerTask<TInput, TOutput>,
-    _reject?: (reason?: any) => void
+    _reject?: (reason?: unknown) => void
   ): Promise<TOutput> {
     try {
       // Check if task was cancelled before execution
@@ -431,7 +431,7 @@ export class WorkerPool extends EventEmitter {
     }
   }
 
-  private async executeJob(job: Job): Promise<any> {
+  private async executeJob(job: Job): Promise<unknown> {
     // Simulate different processing times based on job type
     const processingTimes = {
       conversion: 5000 + Math.random() * 10000, // 5-15 seconds

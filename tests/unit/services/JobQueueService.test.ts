@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { JobQueueService } from '../../../src/services/JobQueueService.js';
-import { JobData } from '../../../src/types/job.js';
+import { JobData, JobType } from '../../../src/types/job.js';
 
 // Mock dependencies
 vi.mock('../../../src/utils/logger.js', () => ({
@@ -71,7 +71,7 @@ describe('JobQueueService', () => {
     it('should validate job data before enqueuing', async () => {
       const invalidJobData = {
         ...mockJobData,
-        type: 'invalid-type' as any,
+        type: 'invalid-type' as unknown as JobType,
       };
 
       await expect(jobQueue.enqueueJob(invalidJobData)).rejects.toThrow('Invalid job data');
@@ -322,7 +322,7 @@ describe('JobQueueService', () => {
       await jobQueue.enqueueJob(mockJobData);
 
       // Listen for status updates
-      const statusUpdates: any[] = [];
+      const statusUpdates: unknown[] = [];
       jobQueue.on('jobStatusUpdate', (update) => {
         statusUpdates.push(update);
       });
@@ -395,7 +395,7 @@ describe('JobQueueService', () => {
         priority: 'normal',
         payload: null,
         options: undefined,
-      } as any;
+      } as unknown as JobData;
 
       await expect(jobQueue.enqueueJob(malformedJob)).rejects.toThrow();
     });
