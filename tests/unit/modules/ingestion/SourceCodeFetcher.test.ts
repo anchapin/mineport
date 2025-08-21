@@ -5,80 +5,133 @@ import {
 } from '../../../../src/modules/ingestion/SourceCodeFetcher.js';
 import {
   createMockGitHubResponse,
-  mockOctokit,
   resetAllMocks,
 } from '../../../utils/testHelpers.js';
 import * as fs from 'fs';
 
-describe('SourceCodeFetcher', () => {
-  let sourceCodeFetcher: SourceCodeFetcher;
-  let mockGitHubResponses: Record<string, any>;
+const mockGitHubResponses: Record<string, any> = {
+  'owner/repo/': createMockGitHubResponse('repo', [
+    'src/main/java/com/example/mod/ModMain.java',
+    'src/main/java/com/example/mod/blocks/CustomBlock.java',
+    'src/main/resources/assets/mod/textures/block/custom_block.png',
+    'build.gradle',
+    'LICENSE',
+  ]),
+  'owner/repo/commit/main': {
+    data: {
+      sha: 'abc123',
+      commit: {
+        message: 'Initial commit',
+      },
+    },
+  },
+  'owner/repo/tree/abc123': {
+    data: {
+      tree: [
+        {
+          path: 'src/main/java/com/example/mod/ModMain.java',
+          type: 'blob',
+          sha: 'file1-sha',
+          url: 'https://api.github.com/repos/owner/repo/git/blobs/file1-sha',
+        },
+        {
+          path: 'src/main/java/com/example/mod/blocks/CustomBlock.java',
+          type: 'blob',
+          sha: 'file2-sha',
+          url: 'https://api.github.com/repos/owner/repo/git/blobs/file2-sha',
+        },
+        {
+          path: 'src/main/resources/assets/mod/textures/block/custom_block.png',
+          type: 'blob',
+          sha: 'file3-sha',
+          url: 'https://api.github.com/repos/owner/repo/git/blobs/file3-sha',
+        },
+      ],
+    },
+  },
+  'owner/repo/blob/file1-sha': {
+    data: {
+      content: Buffer.from('public class ModMain {}').toString('base64'),
+      encoding: 'base64',
+    },
+  },
+  'owner/repo/blob/file2-sha': {
+    data: {
+      content: Buffer.from('public class CustomBlock {}').toString('base64'),
+      encoding: 'base64',
+    },
+  },
+};
 
-  beforeEach(() => {
-    // Create mock GitHub responses
-    mockGitHubResponses = {
-      'owner/repo/': createMockGitHubResponse('repo', [
-        'src/main/java/com/example/mod/ModMain.java',
-        'src/main/java/com/example/mod/blocks/CustomBlock.java',
-        'src/main/resources/assets/mod/textures/block/custom_block.png',
-        'build.gradle',
-        'LICENSE',
-      ]),
-      'owner/repo/commit/main': {
-        data: {
-          sha: 'abc123',
-          commit: {
-            message: 'Initial commit',
+vi.mock('octokit', () => {
+  return {
+    Octokit: vi.fn().mockImplementation(() => {
+      return {
+        rest: {
+          repos: {
+            getContent: vi.fn(({ owner, repo, path }) => {
+              const key = `${owner}/${repo}/${path}`;
+              if (mockGitHubResponses[key]) {
+                return Promise.resolve(mockGitHubResponses[key]);
+              }
+              return Promise.reject(new Error(`Not found: ${key}`));
+            }),
+            getCommit: vi.fn(({ owner, repo, ref }) => {
+              const key = `${owner}/${repo}/commit/${ref}`;
+              if (mockGitHubResponses[key]) {
+                return Promise.resolve(mockGitHubResponses[key]);
+              }
+              return Promise.reject(new Error(`Not found: ${key}`));
+            }),
+          },
+          git: {
+            getTree: vi.fn(({ owner, repo, tree_sha }) => {
+              const key = `${owner}/${repo}/tree/${tree_sha}`;
+              if (mockGitHubResponses[key]) {
+                return Promise.resolve(mockGitHubResponses[key]);
+              }
+              return Promise.reject(new Error(`Not found: ${key}`));
+            }),
+            getBlob: vi.fn(({ owner, repo, file_sha }) => {
+              const key = `${owner}/${repo}/blob/${file_sha}`;
+              if (mockGitHubResponses[key]) {
+                return Promise.resolve(mockGitHubResponses[key]);
+              }
+              return Promise.reject(new Error(`Not found: ${key}`));
+            }),
+          },
+          rateLimit: {
+            get: vi.fn(() =>
+              Promise.resolve({
+                data: {
+                  resources: {
+                    core: {
+                      limit: 5000,
+                      remaining: 4999,
+                      reset: Math.floor(Date.now() / 1000) + 3600,
+                    },
+                  },
+                },
+              })
+            ),
           },
         },
-      },
-      'owner/repo/tree/abc123': {
-        data: {
-          tree: [
-            {
-              path: 'src/main/java/com/example/mod/ModMain.java',
-              type: 'blob',
-              sha: 'file1-sha',
-              url: 'https://api.github.com/repos/owner/repo/git/blobs/file1-sha',
-            },
-            {
-              path: 'src/main/java/com/example/mod/blocks/CustomBlock.java',
-              type: 'blob',
-              sha: 'file2-sha',
-              url: 'https://api.github.com/repos/owner/repo/git/blobs/file2-sha',
-            },
-            {
-              path: 'src/main/resources/assets/mod/textures/block/custom_block.png',
-              type: 'blob',
-              sha: 'file3-sha',
-              url: 'https://api.github.com/repos/owner/repo/git/blobs/file3-sha',
-            },
-          ],
-        },
-      },
-      'owner/repo/blob/file1-sha': {
-        data: {
-          content: Buffer.from('public class ModMain {}').toString('base64'),
-          encoding: 'base64',
-        },
-      },
-      'owner/repo/blob/file2-sha': {
-        data: {
-          content: Buffer.from('public class CustomBlock {}').toString('base64'),
-          encoding: 'base64',
-        },
-      },
-    };
+      };
+    }),
+  };
+});
 
-    // Mock Octokit
-    mockOctokit(mockGitHubResponses);
+describe('SourceCodeFetcher', () => {
+  let sourceCodeFetcher: SourceCodeFetcher;
 
+  beforeEach(() => {
     // Create fetcher
     sourceCodeFetcher = new SourceCodeFetcher('/tmp/test', 'mock-token');
   });
 
   afterEach(() => {
     resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should parse GitHub repository URL correctly', () => {
