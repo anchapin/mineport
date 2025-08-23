@@ -163,6 +163,7 @@ export interface JavaLootFunction {
  */
 export interface JavaLootCondition {
   condition: string;
+  name?: string;
   chance?: number;
   looting_multiplier?: number;
   entity?: string;
@@ -175,6 +176,10 @@ export interface JavaLootCondition {
   value?: { min?: number; max?: number };
   term?: any; // Add missing term property
   terms?: any[]; // Add missing terms property
+  block?: string;
+  properties?: Record<string, string>;
+  enchantment?: string;
+  chances?: number[];
 }
 
 /**
@@ -282,6 +287,7 @@ export interface BedrockLootFunction {
  */
 export interface BedrockLootCondition {
   condition: string;
+  name?: string;
   chance?: number;
   looting_multiplier?: number;
   entity_properties?: Record<string, any>;
@@ -292,6 +298,12 @@ export interface BedrockLootCondition {
   thundering?: boolean;
   value?: { min?: number; max?: number };
   term?: any; // Add missing term property
+  terms?: any[];
+  block?: string;
+  properties?: Record<string, string>;
+  predicate?: Record<string, any>;
+  enchantment?: string;
+  chances?: number[];
 }
 
 /**
@@ -315,8 +327,10 @@ export interface LootTableConversionResult {
  *
  * @since 1.0.0
  */
+import { ErrorSeverity } from '../../types/errors.js';
+
 export interface LootTableConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   component: 'loot_table';
   message: string;
   details?: string;
@@ -420,7 +434,7 @@ export class LootTableConverter {
           bedrockLootTables[lootTableId] = bedrockLootTable;
 
           conversionNotes.push({
-            type: 'info',
+            type: ErrorSeverity.INFO,
             component: 'loot_table',
             message: `Successfully converted loot table to Bedrock format`,
             sourceFile: lootTable.sourceFile,
@@ -430,7 +444,7 @@ export class LootTableConverter {
           errors.push(errorMessage);
 
           conversionNotes.push({
-            type: 'error',
+            type: ErrorSeverity.ERROR,
             component: 'loot_table',
             message: errorMessage,
             sourceFile: lootTable.sourceFile,
@@ -456,7 +470,7 @@ export class LootTableConverter {
         errors: [`Failed to convert loot tables: ${(error as Error).message}`],
         conversionNotes: [
           {
-            type: 'error',
+            type: ErrorSeverity.ERROR,
             component: 'loot_table',
             message: `Failed to convert loot tables: ${(error as Error).message}`,
           },
@@ -1700,7 +1714,7 @@ export class LootTableConverter {
        */
       if (unsupportedFunctions.includes(func.function)) {
         notes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'loot_table',
           message: `Unsupported function '${func.function}' cannot be converted to Bedrock`,
           details: `This function has no direct equivalent in Bedrock and will be omitted. Manual implementation may be required.`,
@@ -1770,7 +1784,7 @@ export class LootTableConverter {
         }
 
         notes.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           component: 'loot_table',
           message: `Special handling required for '${func.function}'`,
           details,
@@ -1814,7 +1828,7 @@ export class LootTableConverter {
        */
       if (complexFunctions.includes(func.function)) {
         notes.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           component: 'loot_table',
           message: `Complex function '${func.function}' may not be fully supported in Bedrock`,
           details: `This function may require manual adjustment after conversion.`,
