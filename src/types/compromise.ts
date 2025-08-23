@@ -27,17 +27,19 @@ export type FeatureType =
 /**
  * Compromise levels indicating the severity of the compromise needed.
  */
-export enum CompromiseLevel {
-  NONE = 0,
-  LOW = 1,
-  MINOR = 1.1, // Slightly different from LOW
-  MEDIUM = 2,
-  MODERATE = 2.1, // Slightly different from MEDIUM
-  HIGH = 3,
-  MAJOR = 3.1, // Slightly different from HIGH
-  CRITICAL = 4,
-  SEVERE = 4.1, // Slightly different from CRITICAL
-}
+export const CompromiseLevel = {
+  NONE: 0,
+  LOW: 1,
+  MINOR: 1.1,
+  MEDIUM: 2,
+  MODERATE: 2.1,
+  HIGH: 3,
+  MAJOR: 3.1,
+  CRITICAL: 4,
+  SEVERE: 4.1,
+} as const;
+
+export type CompromiseLevel = typeof CompromiseLevel[keyof typeof CompromiseLevel];
 
 /**
  * Represents a strategy for compromising on features that cannot be directly translated.

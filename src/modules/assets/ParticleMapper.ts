@@ -242,7 +242,7 @@ export class ParticleMapper {
           parameters: javaParticle.parameters,
         },
         note: {
-          type: 'info',
+          type: ErrorSeverity.INFO,
           message: `Mapped Java particle '${javaParticle.name}' to Bedrock particle '${directMapping}'`,
           particleName: javaParticle.name,
         },
@@ -260,7 +260,7 @@ export class ParticleMapper {
           parameters: javaParticle.parameters,
         },
         note: {
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `No direct mapping for '${javaParticle.name}'. Applied ${fallbackResult.strategyType} fallback to '${fallbackResult.targetParticle}'`,
           particleName: javaParticle.name,
           fallbackApplied: true,

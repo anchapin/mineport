@@ -394,9 +394,13 @@ export class CompromiseEngine {
     const impactDistribution: Record<CompromiseLevel, number> = {
       [CompromiseLevel.NONE]: 0,
       [CompromiseLevel.LOW]: 0,
+      [CompromiseLevel.MINOR]: 0,
       [CompromiseLevel.MEDIUM]: 0,
+      [CompromiseLevel.MODERATE]: 0,
       [CompromiseLevel.HIGH]: 0,
+      [CompromiseLevel.MAJOR]: 0,
       [CompromiseLevel.CRITICAL]: 0,
+      [CompromiseLevel.SEVERE]: 0,
     };
 
     results
