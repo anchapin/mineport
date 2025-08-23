@@ -134,8 +134,9 @@ export class ModValidator {
       // Step 3: Enhanced Java analysis
       const analysisResult = await this.javaAnalyzer.analyzeJarForMVP(jarPath);
 
-      if (!analysisResult.success) {
-        result.errors?.push(`Java analysis failed: ${analysisResult.error}`);
+      // Check if analysis was successful by verifying we got a valid modId
+      if (!analysisResult.modId || analysisResult.modId === 'unknown') {
+        result.errors?.push('Java analysis failed: Could not extract mod information');
         return result;
       }
 
@@ -152,10 +153,10 @@ export class ModValidator {
       result.extractedPath = extractPath;
       result.modInfo = {
         modId: analysisResult.modId || modStructureResult.modInfo?.modId,
-        modName: analysisResult.modName || modStructureResult.modInfo?.modName,
-        modVersion: analysisResult.modVersion || modStructureResult.modInfo?.modVersion,
-        modDescription: analysisResult.modDescription,
-        modAuthor: analysisResult.modAuthor,
+        modName: analysisResult.manifestInfo?.modName || modStructureResult.modInfo?.modName,
+        modVersion: analysisResult.manifestInfo?.version || modStructureResult.modInfo?.modVersion,
+        modDescription: analysisResult.manifestInfo?.description,
+        modAuthor: analysisResult.manifestInfo?.author,
         registryNames: analysisResult.registryNames,
         texturePaths: analysisResult.texturePaths,
       };

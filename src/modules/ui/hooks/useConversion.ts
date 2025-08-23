@@ -6,7 +6,7 @@
 
 import { useCallback } from 'react';
 import { ConversionAPIServiceImpl } from '../services.js';
-import { UserPreferences } from '../types.js';
+import { UserPreferences } from '../types/index.js';
 import { useConversionContext } from '../context/ConversionContext.js';
 
 export const useConversion = () => {

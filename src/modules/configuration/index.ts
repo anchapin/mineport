@@ -288,7 +288,7 @@ export class ConfigurationModule {
             // Add conversion notes
             registrationResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
                 details: note.details,
@@ -377,7 +377,7 @@ export class ConfigurationModule {
             // Add conversion notes
             recipeResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
                 details: note.details,
@@ -466,7 +466,7 @@ export class ConfigurationModule {
             // Add conversion notes
             lootTableResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
                 details: note.details,
@@ -540,7 +540,7 @@ export class ConfigurationModule {
           // Add conversion notes
           licenseResult.conversionNotes.forEach((note) => {
             conversionNotes.push({
-              type: note.type,
+              type: note.type as ErrorSeverity,
               component: note.component,
               message: note.message,
               details: note.details,

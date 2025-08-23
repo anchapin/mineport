@@ -497,7 +497,7 @@ export class ForgeModParser extends ModLoaderParser {
    */
   private extractSourceLocation(
     node: JavaASTNode,
-    _sourceFile: string
+    sourceFile: string
   ): MMIRNode['sourceLocation'] | undefined {
     /**
      * if method.

@@ -76,7 +76,7 @@ export class AssetConverter {
         // Add info note for successful conversion
         if (optimized.compressionRatio > 1.5) {
           warnings.push({
-            type: 'info',
+            type: ErrorSeverity.INFO,
             message: `Texture ${texture.name} compressed by ${optimized.compressionRatio.toFixed(2)}x`,
             component: 'texture',
             assetPath: texture.path,
@@ -198,7 +198,7 @@ export class AssetConverter {
         // Add warning if model has complex features that might not convert perfectly
         if (this.hasComplexFeatures(model.content)) {
           warnings.push({
-            type: 'warning',
+            type: ErrorSeverity.WARNING,
             message: `Model ${model.name} contains complex features that may not convert perfectly`,
             component: 'model',
             assetPath: model.path,

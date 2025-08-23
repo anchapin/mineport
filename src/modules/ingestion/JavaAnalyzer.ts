@@ -110,7 +110,9 @@ export class JavaAnalyzer {
         const cachedResult = await this.cache.get<AnalysisResult>(cacheKey);
 
         if (cachedResult) {
-          this.performanceMonitor?.endProfile(profileId);
+          if (profileId) {
+            this.performanceMonitor?.endProfile(profileId);
+          }
           return cachedResult;
         }
       }
@@ -151,7 +153,9 @@ export class JavaAnalyzer {
         await this.cache.set(cacheKey, result, 7200000); // Cache for 2 hours
       }
 
-      this.performanceMonitor?.endProfile(profileId);
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       return result;
     } catch (error) {
       logger.error('Error analyzing JAR file', { error, jarPath });
@@ -171,7 +175,9 @@ export class JavaAnalyzer {
         suggestion: 'Verify the JAR file is valid and accessible',
       });
 
-      this.performanceMonitor?.endProfile(profileId);
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       // Return minimal result on error
       return {
         modId: 'unknown',

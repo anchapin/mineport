@@ -263,7 +263,7 @@ export class ProgramStateValidator {
 
     // Check for too many high-severity differences
     const highSeverityDifferences = differences.filter(
-      (diff) => diff.severity === ErrorSeverity.ERROR
+      (diff) => diff.severity === 'critical'
     );
     if (highSeverityDifferences.length > 3) {
       return false;
@@ -399,7 +399,7 @@ class StaticAnalyzer {
       differences.push({
         type: 'logic',
         description: `Method '${method.name}' not found in translated code`,
-        severity: ErrorSeverity.ERROR,
+        severity: 'critical',
         location: { line: method.line, column: 0, offset: 0 },
         suggestion: `Implement equivalent method in JavaScript`,
       });
@@ -629,7 +629,7 @@ class SemanticAnalyzer {
       differences.push({
         type: 'logic',
         description: mismatch.description,
-        severity: mismatch.severity,
+        severity: mismatch.severity as 'low' | 'medium' | 'high' | 'critical',
         location: mismatch.location,
         suggestion: mismatch.suggestion,
       });

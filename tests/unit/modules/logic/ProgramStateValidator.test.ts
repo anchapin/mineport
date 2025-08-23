@@ -254,7 +254,7 @@ describe('ProgramStateValidator', () => {
         expected: 'expected result'
       };
 
-      const result = await validator.validate(testCase);
+      const result = await validator.validate(testCase.code || '', testCase.expected || '', mockContext);
       expect(result.isEquivalent).toBe(false);
       expect(result.differences[0].type).toBe('behavior');
       // Just check that there's some error message
@@ -329,7 +329,7 @@ describe('ProgramStateValidator', () => {
     it('should handle empty or invalid inputs gracefully', async () => {
       const validator = new ProgramStateValidator(mockOptions);
       const testCase = { code: '', expected: '', metadata: { language: 'typescript' } };
-      const result = await validator.validate(testCase);
+      const result = await validator.validate(testCase.code, testCase.expected, mockContext);
       expect(result.isEquivalent).toBe(false);
       expect(result.differences.length).toBeGreaterThan(0);
     });
@@ -372,7 +372,7 @@ describe('ProgramStateValidator', () => {
         }
       }; // Provide proper context
 
-      const result = await validator.validate(testCase.code, testCase.expected, context);
+      const result = await validator.validate(testCase.code, testCase.expected, mockContext);
       expect(result.isEquivalent).toBe(true);
       expect(result.confidence).toBeGreaterThanOrEqual(0.8);
     });
@@ -387,42 +387,24 @@ describe('ProgramStateValidator', () => {
 
       // Mock analyzers to produce low confidence
       vi.spyOn(validator['staticAnalyzer'], 'analyze').mockResolvedValue({
-        differences: [{ type: 'complexity', severity: 'high', description: 'High complexity' }],
-        confidence: 0.7,
-        metrics: {
-          structuralSimilarity: 0.6,
-          semanticSimilarity: 0.7,
-          behavioralSimilarity: 0.8,
-          apiCompatibility: 0.75
-        },
-        recommendations: [] // Add missing recommendations property
+        differences: [{ type: 'behavior', severity: 'high', description: 'High complexity', location: { line: 1, column: 1, offset: 0 } }],
+        structuralSimilarity: 0.7,
+        recommendations: []
       });
 
       vi.spyOn(validator['semanticAnalyzer'], 'analyze').mockResolvedValue({
         differences: [],
-        confidence: 0.8,
-        metrics: {
-          structuralSimilarity: 0.7,
-          semanticSimilarity: 0.8,
-          behavioralSimilarity: 0.75,
-          apiCompatibility: 0.8
-        },
+        semanticSimilarity: 0.8,
         recommendations: [] // Add missing recommendations property
       });
 
       vi.spyOn(validator['behaviorAnalyzer'], 'analyze').mockResolvedValue({
         differences: [],
-        confidence: 0.85,
-        metrics: {
-          structuralSimilarity: 0.8,
-          semanticSimilarity: 0.9,
-          behavioralSimilarity: 0.7,
-          apiCompatibility: 0.85
-        },
+        behavioralSimilarity: 0.85,
         recommendations: [] // Add missing recommendations property
       });
 
-      const result = await validator.validate(testCase);
+      const result = await validator.validate(testCase.code, testCase.expected, mockContext);
       expect(result.isEquivalent).toBe(false);
       expect(result.confidence).toBeLessThan(0.9);
     });
@@ -448,7 +430,7 @@ describe('ProgramStateValidator', () => {
 
       const context: any = {};
 
-      validator.validate(testCase, context);
+      validator.validate(testCase.code || '', testCase.expected || '', mockContext);
 
       expect(staticSpy).not.toHaveBeenCalled();
       expect(behaviorSpy).not.toHaveBeenCalled();

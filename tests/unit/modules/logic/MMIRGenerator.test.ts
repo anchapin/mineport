@@ -62,7 +62,7 @@ describe('MMIRGenerator', () => {
 
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
-      expect(mmirContext.nodes.length).toBeGreaterThan(0);
+      expect(mmirContext._nodes.length).toBeGreaterThan(0);
     });
 
     it('should generate MMIR from a simple Fabric mod', () => {
@@ -101,7 +101,7 @@ describe('MMIRGenerator', () => {
 
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
-      expect(mmirContext.nodes.length).toBeGreaterThan(0);
+      expect(mmirContext._nodes.length).toBeGreaterThan(0);
     });
   });
 });

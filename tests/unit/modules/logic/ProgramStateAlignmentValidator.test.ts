@@ -11,6 +11,7 @@ import {
   ValidationResult,
 } from '../../../../src/modules/logic/ProgramStateAlignmentValidator.js';
 import { LLMTranslationResult } from '../../../../src/modules/logic/LLMTranslationService.js';
+import { ErrorSeverity } from '../../../../src/types/errors.js';
 
 describe('ProgramStateAlignmentValidator', () => {
   let validator: ProgramStateAlignmentValidator;
@@ -531,7 +532,7 @@ function add(a, b) {
             },
             divergenceType: 'return_value',
             description: 'Return values differ: Java=15, JS=-5',
-            severity: 'high',
+            severity: ErrorSeverity.CRITICAL,
           },
         ],
         alignmentScore: 0.8,

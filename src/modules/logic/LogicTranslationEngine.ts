@@ -363,7 +363,7 @@ export class LogicTranslationEngine {
           description: segment.reason,
           javaCode: segment.originalCode,
           context: segment.context,
-          severity: ErrorSeverity.WARNING,
+          severity: 'medium',
         },
         strategy: {
           name: 'llm_translation',

@@ -463,6 +463,14 @@ export class FeatureCompatibilityAnalyzer {
         tier3Features: [],
         tier4Features: [],
       },
+      features: [],
+      summary: {
+        tier1Count: 0,
+        tier2Count: 0,
+        tier3Count: 0,
+        totalFeatures: 0,
+        compatibilityScore: 0,
+      },
       errors: [],
     };
 
@@ -504,6 +512,9 @@ export class FeatureCompatibilityAnalyzer {
          * @since 1.0.0
          */
         if (detectedFeature) {
+          // Add to all features list
+          result.features.push(detectedFeature);
+          
           // Add the feature to the appropriate tier list
           /**
            * switch method.
@@ -529,6 +540,21 @@ export class FeatureCompatibilityAnalyzer {
               break;
           }
         }
+      }
+
+      // Calculate summary
+      result.summary.tier1Count = result.compatibilityReport.tier1Features.length;
+      result.summary.tier2Count = result.compatibilityReport.tier2Features.length;
+      result.summary.tier3Count = result.compatibilityReport.tier3Features.length;
+      result.summary.totalFeatures = result.features.length;
+      
+      // Calculate compatibility score (weighted by tiers)
+      const totalFeatures = result.summary.totalFeatures;
+      if (totalFeatures > 0) {
+        const score = (result.summary.tier1Count * 1.0 + 
+                      result.summary.tier2Count * 0.7 + 
+                      result.compatibilityReport.tier3Features.length * 0.3) / totalFeatures;
+        result.summary.compatibilityScore = Math.round(score * 100) / 100;
       }
 
       // Log summary of analysis

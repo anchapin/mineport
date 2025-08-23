@@ -26,7 +26,7 @@ export * from './WorkerPool.js';
 export * from './ResourceAllocator.js';
 export * from './CacheService.js';
 export * from './UpdateService.js';
-export * from './ErrorCollector.js';
+export * from './EnhancedErrorCollector.js';
 export * from './ConversionPipeline.js';
 export * from './ConversionService.js';
 export * from './ValidationPipeline.js';
@@ -41,6 +41,13 @@ export * from './FeatureFlagService.js';
 export * from './JobQueueService.js';
 export * from './ResourceManager.js';
 export * from './JobStatusStore.js';
+export * from './AlertingService.js';
+export * from './ErrorMonitoringService.js';
+export * from './ErrorRecoveryService.js';
+export * from './HealthCheckService.js';
+export * from './MonitoringService.js';
+export * from './PerformanceMonitor.js';
+export * from './StreamingFileProcessor.js';
 
 // Export validation stages
-export * from './validation-stages.js';
+export * from './validation-stages/index.js';

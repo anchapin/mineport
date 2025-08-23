@@ -97,11 +97,12 @@ export class SecurityScanner {
       };
     } catch (error) {
       // If scanning fails, treat as potentially unsafe
+      const errorMessage = error instanceof Error ? error.message : 'Unknown security scan error';
       threats.push({
         type: 'suspicious_pattern',
-        description: `Security scan failed: ${error.message}`,
+        description: `Security scan failed: ${errorMessage}`,
         severity: ErrorSeverity.WARNING,
-        details: { suspiciousFiles: [error.message] },
+        details: { suspiciousFiles: [errorMessage] },
       });
 
       return {
@@ -178,9 +179,10 @@ export class SecurityScanner {
       return null;
     } catch (error) {
       // If we can't read the ZIP, it might be corrupted or malicious
+      const errorMessage = error instanceof Error ? error.message : 'Unknown ZIP analysis error';
       return {
         type: 'zip_bomb',
-        description: `Unable to analyze ZIP file structure: ${error.message}`,
+        description: `Unable to analyze ZIP file structure: ${errorMessage}`,
         severity: ErrorSeverity.WARNING,
       };
     }
@@ -231,9 +233,10 @@ export class SecurityScanner {
         });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown archive analysis error';
       threats.push({
         type: 'path_traversal',
-        description: `Unable to analyze archive paths: ${error.message}`,
+        description: `Unable to analyze archive paths: ${errorMessage}`,
         severity: ErrorSeverity.WARNING,
       });
     }
@@ -303,9 +306,10 @@ export class SecurityScanner {
         }
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown malicious pattern scan error';
       threats.push({
         type: 'suspicious_pattern',
-        description: `Unable to scan for malicious patterns: ${error.message}`,
+        description: `Unable to scan for malicious patterns: ${errorMessage}`,
         severity: ErrorSeverity.INFO,
       });
     }
@@ -324,7 +328,8 @@ export class SecurityScanner {
     try {
       await fs.writeFile(tempPath, buffer);
     } catch (error) {
-      throw new Error(`Failed to create temporary file: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown temporary file error';
+      throw new Error(`Failed to create temporary file: ${errorMessage}`);
     }
 
     return {

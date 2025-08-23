@@ -26,7 +26,7 @@ import { FileProcessor } from './FileProcessor.js';
 import { SecurityScanner } from './SecurityScanner.js';
 import {
   JavaAnalyzer,
-  AnalysisResult,
+  AnalysisResult as JavaAnalysisResult,
   ManifestInfo,
   Dependency,
   AnalysisNote,
@@ -185,7 +185,7 @@ export { LicenseParser, LicenseInfoType as LicenseParseInfo, LicenseParseResult 
 export { FeatureCompatibilityAnalyzer, FeatureAnalysisResult };
 export { FileProcessor };
 export { SecurityScanner };
-export { JavaAnalyzer, AnalysisResult, ManifestInfo, Dependency, AnalysisNote };
+export { JavaAnalyzer, JavaAnalysisResult, ManifestInfo, Dependency, AnalysisNote };
 export { ManifestParser, ParsedManifest, ManifestDependency, ManifestParseResult };
 
 /**
@@ -259,7 +259,6 @@ export class IngestionModule {
     if (input.sourceCodeRepo) {
       const sourceCodeResult = await this.sourceCodeFetcher.fetchSourceCode({
         repoUrl: input.sourceCodeRepo,
-        modId: validationResult.modInfo?.modId || '',
       });
 
       /**
@@ -272,7 +271,7 @@ export class IngestionModule {
        * @since 1.0.0
        */
       if (sourceCodeResult.success) {
-        sourceCodePath = sourceCodeResult.sourcePath;
+        sourceCodePath = sourceCodeResult.extractedPath;
       }
     }
 

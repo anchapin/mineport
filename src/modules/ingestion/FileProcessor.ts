@@ -20,6 +20,7 @@ import {
   FileMetadata,
   SecurityScanResult,
 } from '../../types/file-processing.js';
+import { ErrorSeverity } from '../../types/errors.js';
 import { SecurityScanner } from './SecurityScanner.js';
 import { CacheService } from '../../services/CacheService.js';
 import { PerformanceMonitor } from '../../services/PerformanceMonitor.js';
@@ -79,7 +80,9 @@ export class FileProcessor {
         const cachedResult = await this.cache.get<ValidationResult>(cacheKey);
 
         if (cachedResult) {
-          this.performanceMonitor?.endProfile(profileId);
+          if (profileId) {
+            this.performanceMonitor?.endProfile(profileId);
+          }
           return cachedResult;
         }
       }
@@ -111,7 +114,7 @@ export class FileProcessor {
               errors.push({
                 code: `SECURITY_${threat.type.toUpperCase()}`,
                 message: threat.description,
-                severity: threat.severity === 'high' ? 'critical' : 'error',
+                severity: threat.severity === ErrorSeverity.CRITICAL ? ErrorSeverity.CRITICAL : ErrorSeverity.ERROR,
                 details: { threat, scanId: securityResult.scanId },
               });
             }
@@ -119,8 +122,8 @@ export class FileProcessor {
         } catch (scanError) {
           warnings.push({
             code: 'SECURITY_SCAN_FAILED',
-            message: `Security scan failed: ${scanError.message}`,
-            details: { error: scanError.message },
+            message: `Security scan failed: ${scanError instanceof Error ? scanError.message : 'Unknown error'}`,
+            details: { error: scanError instanceof Error ? scanError.message : String(scanError) },
           });
         }
       }
@@ -144,17 +147,21 @@ export class FileProcessor {
         await this.cache.set(cacheKey, result, 3600000); // Cache for 1 hour
       }
 
-      this.performanceMonitor?.endProfile(profileId);
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       return result;
     } catch (error) {
       errors.push({
         code: 'VALIDATION_FAILED',
-        message: `File validation failed: ${error.message}`,
-        severity: 'critical',
-        details: { error: error.message },
+        message: `File validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        severity: ErrorSeverity.CRITICAL,
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
 
-      this.performanceMonitor?.endProfile(profileId);
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       return {
         isValid: false,
         fileType: 'unknown',

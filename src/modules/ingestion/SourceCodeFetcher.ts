@@ -557,7 +557,7 @@ export class SourceCodeFetcher {
         per_page: 100,
       });
 
-      return data.map((branch) => branch.name);
+      return data.map((branch: { name: string }) => branch.name);
     } catch (error) {
       logger.error('Error listing branches', { error, owner, repo });
       throw new Error(`Failed to list branches: ${(error as Error).message}`);
