@@ -58,11 +58,11 @@ class MockSourceCodeFetcher {
           return { owner, repo };
         }
       }
-      
+
       if (error instanceof Error && error.message.includes('Invalid repository URL')) {
         throw error;
       }
-      
+
       throw new Error(`Invalid repository URL format: ${repoUrl}`);
     }
   }
@@ -118,9 +118,7 @@ describe('SourceCodeFetcher', () => {
     });
 
     // Test URL with branch
-    repoInfo = sourceCodeFetcher.parseRepoUrl(
-      'https://github.com/owner/repo/tree/develop'
-    );
+    repoInfo = sourceCodeFetcher.parseRepoUrl('https://github.com/owner/repo/tree/develop');
     expect(repoInfo).toEqual({
       owner: 'owner',
       repo: 'repo',

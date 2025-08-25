@@ -94,22 +94,20 @@ describe('Input Validation Security Tests', () => {
       const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'test-token' });
 
       // Mock the fetchSourceCode method to avoid actual GitHub API calls
-      sourceCodeFetcher.fetchSourceCode = vi
-        .fn()
-        .mockImplementation(async (options) => {
-          // Attempt to write to a file outside the output directory
-          const traversalPath = path.join(tempDir, '../../../etc/passwd');
+      sourceCodeFetcher.fetchSourceCode = vi.fn().mockImplementation(async (options) => {
+        // Attempt to write to a file outside the output directory
+        const traversalPath = path.join(tempDir, '../../../etc/passwd');
 
-          // This should throw an error or fail safely
-          await expect(fs.promises.writeFile(traversalPath, 'test')).rejects.toThrow();
+        // This should throw an error or fail safely
+        await expect(fs.promises.writeFile(traversalPath, 'test')).rejects.toThrow();
 
-          return { success: true, extractedPath: tempDir };
-        });
+        return { success: true, extractedPath: tempDir };
+      });
 
       // Call fetchSourceCode with a valid repository options
       await sourceCodeFetcher.fetchSourceCode({
         repoUrl: 'https://github.com/test-owner/test-repo',
-        ref: 'main'
+        ref: 'main',
       });
     });
   });

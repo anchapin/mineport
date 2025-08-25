@@ -127,12 +127,14 @@ export class SecurityScanner {
       const errorMessage = error instanceof Error ? error.message : 'Unknown file read error';
       return {
         isSafe: false,
-        threats: [{
-          type: 'suspicious_pattern',
-          description: `Failed to read file: ${errorMessage}`,
-          severity: ErrorSeverity.ERROR,
-          details: { suspiciousFiles: [filePath] }
-        }],
+        threats: [
+          {
+            type: 'suspicious_pattern',
+            description: `Failed to read file: ${errorMessage}`,
+            severity: ErrorSeverity.ERROR,
+            details: { suspiciousFiles: [filePath] },
+          },
+        ],
         scanTime: 0,
         scanId: crypto.randomUUID(),
       };

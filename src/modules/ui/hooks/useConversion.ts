@@ -22,7 +22,8 @@ export const useConversion = () => {
     resetState,
   } = useConversionContext();
 
-  const { uploadState, conversionProgress, conversionJob, userPreferences, conversionResult } = state;
+  const { uploadState, conversionProgress, conversionJob, userPreferences, conversionResult } =
+    state;
 
   // Create API service instance
   const apiService = useCallback(() => {
@@ -466,7 +467,7 @@ export const useConversion = () => {
       uploadState,
       conversionProgress,
       conversionJob,
-      conversionResult
+      conversionResult,
     },
     handleFileSelected,
     handleSourceRepoChange,

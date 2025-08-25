@@ -475,7 +475,7 @@ export class AlertingService extends EventEmitter {
 
     const validLevels = ['error', 'warn', 'info', 'debug'] as const;
     const logLevel = validLevels.includes(level as any) ? level : 'warn';
-    
+
     logger[logLevel as keyof typeof logger]('Alert triggered', {
       alertId: alert.id,
       type: alert.type,

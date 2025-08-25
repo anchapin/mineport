@@ -97,7 +97,7 @@ describe('Performance Integration Tests', () => {
               targetMinecraftVersion: '1.20',
               compromiseStrategy: 'balanced' as const,
               includeDocumentation: false,
-              optimizeAssets: true
+              optimizeAssets: true,
             },
           });
           return { success: true, jobId: job.id };
@@ -135,11 +135,11 @@ describe('Performance Integration Tests', () => {
       const firstJob = await conversionService.createConversionJob({
         modFile: filePath,
         outputPath: path.join(tempDir, 'output-1'),
-        options: { 
+        options: {
           targetMinecraftVersion: '1.20',
           compromiseStrategy: 'balanced' as const,
           includeDocumentation: false,
-          optimizeAssets: true
+          optimizeAssets: true,
         },
       });
       const firstTime = Date.now() - firstStart;
@@ -149,11 +149,11 @@ describe('Performance Integration Tests', () => {
       const secondJob = await conversionService.createConversionJob({
         modFile: filePath,
         outputPath: path.join(tempDir, 'output-2'),
-        options: { 
+        options: {
           targetMinecraftVersion: '1.20',
           compromiseStrategy: 'balanced' as const,
           includeDocumentation: false,
-          optimizeAssets: true
+          optimizeAssets: true,
         },
       });
       const secondTime = Date.now() - secondStart;
@@ -185,11 +185,11 @@ describe('Performance Integration Tests', () => {
       const job = await conversionService.createConversionJob({
         modFile: largeFilePath,
         outputPath: path.join(tempDir, 'large-output'),
-        options: { 
+        options: {
           targetMinecraftVersion: '1.20',
           compromiseStrategy: 'balanced' as const,
           includeDocumentation: false,
-          optimizeAssets: true
+          optimizeAssets: true,
         },
       });
 
@@ -222,12 +222,12 @@ describe('Performance Integration Tests', () => {
         return conversionService.createConversionJob({
           modFile: filePath,
           outputPath: path.join(tempDir, `worker-output-${index}`),
-          options: { 
-          targetMinecraftVersion: '1.20',
-          compromiseStrategy: 'balanced' as const,
-          includeDocumentation: false,
-          optimizeAssets: true
-        },
+          options: {
+            targetMinecraftVersion: '1.20',
+            compromiseStrategy: 'balanced' as const,
+            includeDocumentation: false,
+            optimizeAssets: true,
+          },
         });
       });
 
@@ -272,12 +272,12 @@ describe('Performance Integration Tests', () => {
           return conversionService.createConversionJob({
             modFile: filePath,
             outputPath: path.join(tempDir, `memory-output-${i + index}`),
-            options: { 
-          targetMinecraftVersion: '1.20',
-          compromiseStrategy: 'balanced' as const,
-          includeDocumentation: false,
-          optimizeAssets: true
-        },
+            options: {
+              targetMinecraftVersion: '1.20',
+              compromiseStrategy: 'balanced' as const,
+              includeDocumentation: false,
+              optimizeAssets: true,
+            },
           });
         });
 
@@ -322,11 +322,11 @@ describe('Performance Integration Tests', () => {
       const job = await conversionService.createConversionJob({
         modFile: filePath,
         outputPath: path.join(tempDir, 'monitoring-output'),
-        options: { 
+        options: {
           targetMinecraftVersion: '1.20',
           compromiseStrategy: 'balanced' as const,
           includeDocumentation: false,
-          optimizeAssets: true
+          optimizeAssets: true,
         },
       });
 
@@ -412,12 +412,12 @@ describe('Performance Integration Tests', () => {
         const job = await conversionService.createConversionJob({
           modFile: file.path,
           outputPath: path.join(tempDir, `benchmark-output-${index}`),
-          options: { 
-          targetMinecraftVersion: '1.20',
-          compromiseStrategy: 'balanced' as const,
-          includeDocumentation: false,
-          optimizeAssets: true
-        },
+          options: {
+            targetMinecraftVersion: '1.20',
+            compromiseStrategy: 'balanced' as const,
+            includeDocumentation: false,
+            optimizeAssets: true,
+          },
         });
         const jobTime = Date.now() - jobStart;
 
@@ -460,11 +460,11 @@ describe('Performance Integration Tests', () => {
       const optimizedJob = await conversionService.createConversionJob({
         modFile: filePath,
         outputPath: path.join(tempDir, 'optimized-output'),
-        options: { 
+        options: {
           targetMinecraftVersion: '1.20',
           compromiseStrategy: 'balanced' as const,
           includeDocumentation: false,
-          optimizeAssets: true
+          optimizeAssets: true,
         },
       });
       const optimizedTime = Date.now() - optimizedStart;
@@ -481,11 +481,11 @@ describe('Performance Integration Tests', () => {
       const basicJob = await basicService.createConversionJob({
         modFile: filePath,
         outputPath: path.join(tempDir, 'basic-output'),
-        options: { 
+        options: {
           targetMinecraftVersion: '1.20',
           compromiseStrategy: 'balanced' as const,
           includeDocumentation: false,
-          optimizeAssets: true
+          optimizeAssets: true,
         },
       });
       const basicTime = Date.now() - basicStart;

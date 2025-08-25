@@ -75,7 +75,10 @@ export class SourceCodeFetcher {
   constructor(tempDir: string, githubToken?: string);
   constructor(options: { githubToken: string; tempDir?: string });
   constructor(
-    tempDirOrOptions: string | { githubToken: string; tempDir?: string } = path.join(process.cwd(), 'temp'),
+    tempDirOrOptions: string | { githubToken: string; tempDir?: string } = path.join(
+      process.cwd(),
+      'temp'
+    ),
     githubToken?: string
   ) {
     let actualTempDir: string;
@@ -295,12 +298,12 @@ export class SourceCodeFetcher {
           return { owner, repo };
         }
       }
-      
+
       // If error is already our custom error, re-throw it
       if (error instanceof Error && error.message.includes('Invalid repository URL')) {
         throw error;
       }
-      
+
       logger.error('Error parsing repository URL', { error, repoUrl });
       throw new Error(`Invalid repository URL format: ${repoUrl}`);
     }
