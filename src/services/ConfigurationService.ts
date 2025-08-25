@@ -441,7 +441,7 @@ export class ConfigurationService extends EventEmitter {
   // Helper methods for environment variable parsing
   private getEnvString(key: string, defaultValue?: string): string {
     const value = process.env[key];
-    return value !== undefined ? value : (defaultValue || '');
+    return value !== undefined ? value : defaultValue || '';
   }
 
   private getEnvNumber(key: string, defaultValue: number): number {

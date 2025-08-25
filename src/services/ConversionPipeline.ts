@@ -201,7 +201,7 @@ export class ConversionPipeline {
       // Step 1: Validate the input mod
       logger.info('Validating input mod');
       const modValidator = new ModValidator();
-      
+
       // Read the mod file
       const modBuffer = await fs.readFile(input.inputPath);
       const validationResult = await modValidator.validate(modBuffer);
@@ -225,7 +225,10 @@ export class ConversionPipeline {
       // Step 2: Analyze feature compatibility
       logger.info('Analyzing feature compatibility');
       const featureAnalyzer = new FeatureCompatibilityAnalyzer();
-      const compatibilityResult = await featureAnalyzer.analyze(validationResult.modInfo, 'unknown');
+      const compatibilityResult = await featureAnalyzer.analyze(
+        validationResult.modInfo,
+        'unknown'
+      );
 
       // Add compatibility notes to the collector
       compatibilityResult.notes.forEach((note, index) => {
