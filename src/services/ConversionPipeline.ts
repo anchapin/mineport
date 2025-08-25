@@ -15,6 +15,7 @@ import * as fs from 'fs/promises';
 import { createLogger } from '../utils/logger.js';
 import { ErrorHandler, globalErrorCollector } from '../utils/errorHandler.js';
 import { ErrorCollector } from './ErrorCollector.js';
+import { ConfigurationService } from './ConfigurationService.js';
 import { ErrorSeverity, createErrorCode } from '../types/errors.js';
 import { JobQueue, Job } from './JobQueue.js';
 import { ResourceAllocator } from './ResourceAllocator.js';
@@ -200,35 +201,20 @@ export class ConversionPipeline {
       // Step 1: Validate the input mod
       logger.info('Validating input mod');
       const modValidator = new ModValidator();
-      const validationResult = await modValidator.validate(input.inputPath);
+      
+      // Read the mod file
+      const modBuffer = await fs.readFile(input.inputPath);
+      const validationResult = await modValidator.validate(modBuffer);
 
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (!validationResult.valid) {
+      if (!validationResult.isValid) {
         logger.error('Mod validation failed', { errors: validationResult.errors });
 
         // Add validation errors to the collector
         validationResult.errors?.forEach((error) => {
           ErrorHandler.validationError(
-            error.message,
+            typeof error === 'string' ? error : error.message || 'Validation error',
             'ModValidator',
-            error.details,
-            /**
-             * createErrorCode method.
-             *
-             * TODO: Add detailed description of the method's purpose and behavior.
-             *
-             * @param param - TODO: Document parameters
-             * @returns result - TODO: Document return value
-             * @since 1.0.0
-             */
+            typeof error === 'object' ? error : undefined,
             createErrorCode('INGEST', 'VAL', (validationResult.errors?.indexOf(error) || 0) + 1)
           );
         });
@@ -239,7 +225,7 @@ export class ConversionPipeline {
       // Step 2: Analyze feature compatibility
       logger.info('Analyzing feature compatibility');
       const featureAnalyzer = new FeatureCompatibilityAnalyzer();
-      const compatibilityResult = await featureAnalyzer.analyze(validationResult.modInfo);
+      const compatibilityResult = await featureAnalyzer.analyze(validationResult.modInfo, 'unknown');
 
       // Add compatibility notes to the collector
       compatibilityResult.notes.forEach((note, index) => {
