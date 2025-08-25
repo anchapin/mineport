@@ -24,6 +24,9 @@ paths:
 
 # Custom query packs for enhanced security scanning
 packs:
-  - codeql/javascript-queries:Security
-  - codeql/javascript-queries:Correctness
-  - codeql/javascript-queries:Maintainability
+  - codeql/javascript-queries
+
+# Query filters to exclude specific rules that may not be relevant
+query-filters:
+  - exclude:
+      tags: exclude-from-incremental

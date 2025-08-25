@@ -521,8 +521,9 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+// Execute if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-module.exports = SecurityReportGenerator;
+export default SecurityReportGenerator;

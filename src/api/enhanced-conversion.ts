@@ -20,6 +20,7 @@ const logger = createLogger('EnhancedConversionAPI');
 
 /**
  * Enhanced conversion request interface
+ * Defines the structure for enhanced conversion requests with additional features
  */
 export interface EnhancedConversionRequest {
   modFile: string;
@@ -40,6 +41,7 @@ export interface EnhancedConversionRequest {
 
 /**
  * Enhanced conversion response interface
+ * Defines the structure for enhanced conversion responses with detailed feedback
  */
 export interface EnhancedConversionResponse {
   success: boolean;
@@ -65,8 +67,14 @@ export interface EnhancedConversionResponse {
 
 /**
  * Enhanced conversion API controller
+ * Provides enhanced conversion endpoints with detailed validation and error reporting
  */
 export class EnhancedConversionController {
+  /**
+   * Creates a new EnhancedConversionController instance
+   * @param conversionService - Service for handling conversion operations
+   * @param featureFlagService - Service for managing feature flags
+   */
   constructor(
     private conversionService: ConversionService,
     private featureFlagService: FeatureFlagService
@@ -74,6 +82,9 @@ export class EnhancedConversionController {
 
   /**
    * Create enhanced conversion job with detailed validation and error reporting
+   * @param req - Express request object containing conversion parameters
+   * @param res - Express response object for sending the response
+   * @returns Promise that resolves when the response is sent
    */
   async createEnhancedConversion(req: Request, res: Response): Promise<void> {
     try {
@@ -187,6 +198,9 @@ export class EnhancedConversionController {
 
   /**
    * Get enhanced job status with detailed progress information
+   * @param req - Express request object containing job ID parameter
+   * @param res - Express response object for sending the response
+   * @returns Promise that resolves when the response is sent
    */
   async getEnhancedJobStatus(req: Request, res: Response): Promise<void> {
     try {
@@ -247,6 +261,9 @@ export class EnhancedConversionController {
 
   /**
    * Get available enhanced features
+   * @param req - Express request object
+   * @param res - Express response object for sending the response
+   * @returns Promise that resolves when the response is sent
    */
   async getAvailableFeatures(req: Request, res: Response): Promise<void> {
     try {
@@ -296,6 +313,8 @@ export class EnhancedConversionController {
 
   /**
    * Validate enhanced conversion request
+   * @param request - The conversion request to validate
+   * @returns Array of validation errors, empty if valid
    */
   private validateRequest(request: EnhancedConversionRequest): any[] {
     const errors: any[] = [];
@@ -370,6 +389,9 @@ export class EnhancedConversionController {
 
   /**
    * Estimate processing time based on enabled features
+   * @param request - The conversion request
+   * @param featureFlags - Current feature flag states
+   * @returns Estimated processing time in milliseconds
    */
   private estimateProcessingTime(request: EnhancedConversionRequest, featureFlags: any): number {
     let baseTime = 30000; // 30 seconds base time
@@ -399,6 +421,8 @@ export class EnhancedConversionController {
 
   /**
    * Get supported features based on enabled flags
+   * @param featureFlags - Current feature flag states
+   * @returns Array of supported feature names
    */
   private getSupportedFeatures(featureFlags: any): string[] {
     const features: string[] = ['basic_conversion'];
@@ -424,6 +448,9 @@ export class EnhancedConversionController {
 
   /**
    * Get processing stages based on enabled features
+   * @param status - Current job status
+   * @param featureFlags - Current feature flag states
+   * @returns Array of processing stage names
    */
   private getProcessingStages(status: any, featureFlags: any): string[] {
     const stages: string[] = ['queued'];
@@ -453,6 +480,9 @@ export class EnhancedConversionController {
 
   /**
    * Get detailed progress information
+   * @param status - Current job status
+   * @param featureFlags - Current feature flag states
+   * @returns Detailed progress information object
    */
   private getDetailedProgress(status: any, featureFlags: any): any {
     const stages = this.getProcessingStages(status, featureFlags);

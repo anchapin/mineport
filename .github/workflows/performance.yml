@@ -31,6 +31,11 @@ env:
   CI: true
   PERFORMANCE_BASELINE_THRESHOLD: 20 # 20% regression threshold
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   performance-test:
     name: Performance Tests
@@ -39,7 +44,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
         test-suite: [benchmark, modporter-ai, optimization]
       fail-fast: false
 
