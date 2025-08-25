@@ -5,7 +5,7 @@
  */
 
 import React, { createContext, useContext, useReducer, ReactNode, useCallback } from 'react';
-import { ConversionProgress, UploadState, UserPreferences } from '../types.js';
+import { ConversionProgress, UploadState, UserPreferences } from '../types/index.js';
 import { ConversionJob, ConversionResult } from '../services/ConversionAPIService.js';
 
 // State interface

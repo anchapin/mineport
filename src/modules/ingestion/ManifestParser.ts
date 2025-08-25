@@ -230,8 +230,6 @@ export class ManifestParser {
         const depModIdMatch = depSection.match(/modId\s*=\s*["']([^"']+)["']/);
         const mandatoryMatch = depSection.match(/mandatory\s*=\s*(true|false)/);
         const versionRangeMatch = depSection.match(/versionRange\s*=\s*["']([^"']+)["']/);
-        const orderingMatch = depSection.match(/ordering\s*=\s*["']([^"']+)["']/);
-        const sideMatch = depSection.match(/side\s*=\s*["']([^"']+)["']/);
 
         dependencies.push({
           modId: depModIdMatch ? depModIdMatch[1] : modId,

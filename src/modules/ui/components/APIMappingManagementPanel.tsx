@@ -520,7 +520,7 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .api-mapping-management-panel {
           padding: 20px;
           max-width: 1200px;

@@ -14,9 +14,9 @@
  */
 
 // Export all submodules
-export * from './components.js';
-export * from './pages.js';
-export * from './hooks.js';
-export * from './services.js';
-export * from './types.js';
-export * from './context.js';
+export * from './components/index.js';
+export * from './pages/index.js';
+export * from './hooks/index.js';
+export * from './services/index.js';
+export * from './types/index.js';
+export * from './context/index.js';

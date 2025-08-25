@@ -10,8 +10,8 @@ import { ConversionOptions } from '../../../types/services.js';
 import { FeatureFlagService } from '../../../services/FeatureFlagService.js';
 
 export interface ConversionConfigPanelProps {
-  options: ConversionOptions;
-  onOptionsChange: (options: ConversionOptions) => void;
+  options: ConversionOptions & Record<string, any>;
+  onOptionsChange: (options: ConversionOptions & Record<string, any>) => void;
   featureFlagService: FeatureFlagService;
 }
 
@@ -46,7 +46,7 @@ export const ConversionConfigPanel: React.FC<ConversionConfigPanelProps> = ({
   /**
    * Handle option change
    */
-  const handleOptionChange = (key: keyof ConversionOptions, value: any) => {
+  const handleOptionChange = (key: string, value: any) => {
     const updatedOptions = {
       ...options,
       [key]: value,

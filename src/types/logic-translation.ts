@@ -28,6 +28,9 @@ export interface NodeMetadata {
   bedrockEquivalent?: string;
   complexity: number;
   mappable: boolean;
+  returnType?: string;
+  parameters?: string[];
+  modifiers?: string[];
 }
 
 export interface CodeMetadata {

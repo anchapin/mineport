@@ -5,7 +5,7 @@
  * detailed status messages for each stage.
  */
 
-import { ConversionProgress } from '../types.js';
+import { ConversionProgress } from '../types';
 
 /**
  * Backend pipeline stage

@@ -11,6 +11,7 @@ import {
   ValidationResult,
 } from '../../../../src/modules/logic/ProgramStateAlignmentValidator.js';
 import { LLMTranslationResult } from '../../../../src/modules/logic/LLMTranslationService.js';
+import { ErrorSeverity } from '../../../../src/types/errors.js';
 
 describe('ProgramStateAlignmentValidator', () => {
   let validator: ProgramStateAlignmentValidator;
@@ -131,6 +132,7 @@ const multiply = (a, b) => {
             functionName: 'calculateSum',
             lineNumber: 15,
             returnValue: '15',
+            variables: new Map(),
             callStack: ['calculateSum', 'main'],
           },
         ],
@@ -159,6 +161,7 @@ const multiply = (a, b) => {
             functionName: 'calculateSum',
             lineNumber: 8,
             returnValue: 15,
+            variables: new Map(),
             callStack: ['calculateSum', 'global'],
           },
         ],
@@ -252,6 +255,7 @@ const multiply = (a, b) => {
             functionName: 'calculateSum',
             lineNumber: 15,
             returnValue: '15',
+            variables: new Map(),
             callStack: ['calculateSum', 'main'],
           },
         ],
@@ -280,6 +284,7 @@ const multiply = (a, b) => {
             functionName: 'calculateSum',
             lineNumber: 8,
             returnValue: 50, // Different return value
+            variables: new Map(),
             callStack: ['calculateSum', 'global'],
           },
         ],
@@ -527,7 +532,7 @@ function add(a, b) {
             },
             divergenceType: 'return_value',
             description: 'Return values differ: Java=15, JS=-5',
-            severity: 'high',
+            severity: ErrorSeverity.CRITICAL,
           },
         ],
         alignmentScore: 0.8,

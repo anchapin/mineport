@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CompromiseStrategy, UserPreferences } from '../types.js';
+import { CompromiseStrategy, UserPreferences } from '../types/index.js';
 import {
   CompromisePreferencesService,
   StrategyPreview,

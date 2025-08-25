@@ -157,15 +157,16 @@ export class EnhancedConversionController {
 
       res.status(201).json(response);
     } catch (error) {
-      logger.error('Enhanced conversion creation failed', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Enhanced conversion creation failed', { error: errorMessage });
 
       const conversionError = createConversionError({
         code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.ERROR,
-        message: error.message,
+        message: errorMessage,
         moduleOrigin: 'EnhancedConversionAPI',
-        details: { originalError: error.message },
+        details: { originalError: errorMessage },
       });
 
       const response: EnhancedConversionResponse = {
@@ -230,15 +231,16 @@ export class EnhancedConversionController {
         status: enhancedStatus,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to get enhanced job status', {
-        error: error.message,
+        error: errorMessage,
         jobId: req.params.jobId,
       });
 
       res.status(500).json({
         success: false,
         message: 'Failed to get job status',
-        error: error.message,
+        error: errorMessage,
       });
     }
   }
@@ -281,12 +283,13 @@ export class EnhancedConversionController {
         },
       });
     } catch (error) {
-      logger.error('Failed to get available features', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to get available features', { error: errorMessage });
 
       res.status(500).json({
         success: false,
         message: 'Failed to get available features',
-        error: error.message,
+        error: errorMessage,
       });
     }
   }

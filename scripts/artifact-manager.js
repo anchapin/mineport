@@ -18,7 +18,7 @@ class ArtifactManager {
       registryUrl: options.registryUrl || 'ghcr.io',
       ...options
     };
-    
+
     this.metadata = null;
     this.manifest = {
       manifest_version: '1.0',
@@ -34,7 +34,7 @@ class ArtifactManager {
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     const gitCommit = this.getGitCommit();
     const gitBranch = this.getGitBranch();
-    
+
     this.metadata = {
       artifact: {
         name: this.options.packageName,
@@ -75,15 +75,15 @@ class ArtifactManager {
    */
   generateVersion(packageVersion, branch) {
     const buildNumber = this.generateBuildNumber();
-    
+
     if (this.isRelease()) {
       return process.env.GITHUB_REF_NAME || packageVersion;
     }
-    
+
     if (branch === 'main') {
       return `${packageVersion}-${buildNumber}`;
     }
-    
+
     return `${packageVersion}-${branch}-${buildNumber}`;
   }
 
@@ -162,7 +162,7 @@ class ArtifactManager {
     }
 
     console.log('Creating build artifacts...');
-    
+
     // Build the application
     console.log('Building application...');
     execSync('npm run build', { stdio: 'inherit' });
@@ -212,7 +212,7 @@ class ArtifactManager {
     fileMappings.forEach(({ src, dest }) => {
       if (fs.existsSync(src)) {
         const srcStat = fs.statSync(src);
-        
+
         if (srcStat.isDirectory()) {
           this.copyDirectory(src, dest);
         } else {
@@ -235,11 +235,11 @@ class ArtifactManager {
     }
 
     const entries = fs.readdirSync(src, { withFileTypes: true });
-    
+
     entries.forEach(entry => {
       const srcPath = path.join(src, entry.name);
       const destPath = path.join(dest, entry.name);
-      
+
       if (entry.isDirectory()) {
         this.copyDirectory(srcPath, destPath);
       } else {
@@ -258,11 +258,11 @@ class ArtifactManager {
     console.log('Creating npm package...');
     const tarballPath = path.join(this.options.outputDir, `${artifactName}.tgz`);
     execSync(`cd ${packageDir} && npm pack --pack-destination ${path.resolve(this.options.outputDir)}`, { stdio: 'inherit' });
-    
+
     // Rename the generated tarball to our naming convention
     const generatedTarball = fs.readdirSync(this.options.outputDir)
       .find(file => file.endsWith('.tgz') && file !== path.basename(tarballPath));
-    
+
     if (generatedTarball) {
       fs.renameSync(
         path.join(this.options.outputDir, generatedTarball),
@@ -280,7 +280,7 @@ class ArtifactManager {
     console.log('Creating tar.gz archive...');
     const tarGzPath = path.join(this.options.outputDir, `${artifactName}.tar.gz`);
     execSync(`tar -czf ${tarGzPath} -C ${packageDir} .`, { stdio: 'inherit' });
-    
+
     artifacts.push({
       name: `${artifactName}.tar.gz`,
       path: tarGzPath,
@@ -291,7 +291,7 @@ class ArtifactManager {
     console.log('Creating zip archive...');
     const zipPath = path.join(this.options.outputDir, `${artifactName}.zip`);
     execSync(`cd ${packageDir} && zip -r ${path.resolve(zipPath)} .`, { stdio: 'inherit' });
-    
+
     artifacts.push({
       name: `${artifactName}.zip`,
       path: zipPath,
@@ -306,24 +306,24 @@ class ArtifactManager {
    */
   generateChecksums(artifacts) {
     console.log('Generating checksums...');
-    
+
     const checksumFile = path.join(this.options.outputDir, 'checksums.txt');
     const md5File = path.join(this.options.outputDir, 'checksums.md5');
-    
+
     const checksums = [];
     const md5sums = [];
 
     artifacts.forEach(artifact => {
       const data = fs.readFileSync(artifact.path);
-      
+
       // SHA256
       const sha256 = crypto.createHash('sha256').update(data).digest('hex');
       checksums.push(`${sha256}  ${artifact.name}`);
-      
+
       // MD5
       const md5 = crypto.createHash('md5').update(data).digest('hex');
       md5sums.push(`${md5}  ${artifact.name}`);
-      
+
       // Add to artifact metadata
       artifact.sha256 = sha256;
       artifact.md5 = md5;
@@ -341,7 +341,7 @@ class ArtifactManager {
    */
   createManifest(artifacts) {
     console.log('Creating artifact manifest...');
-    
+
     this.manifest.artifact = this.metadata;
     this.manifest.files = artifacts.map(artifact => ({
       name: artifact.name,
@@ -392,7 +392,7 @@ class ArtifactManager {
       '.json': 'application/json',
       '.txt': 'text/plain'
     };
-    
+
     return mimeTypes[ext] || 'application/octet-stream';
   }
 
@@ -405,13 +405,13 @@ class ArtifactManager {
     }
 
     console.log('Uploading artifacts to registry...');
-    
+
     // Upload npm package
     const packageDir = path.join(this.options.outputDir, 'package');
     if (fs.existsSync(packageDir)) {
       try {
         console.log('Publishing to npm registry...');
-        execSync(`cd ${packageDir} && npm publish --registry=https://npm.pkg.github.com`, { 
+        execSync(`cd ${packageDir} && npm publish --registry=https://npm.pkg.github.com`, {
           stdio: 'inherit',
           env: {
             ...process.env,
@@ -430,7 +430,7 @@ class ArtifactManager {
    */
   validateArtifacts() {
     console.log('Validating artifacts...');
-    
+
     const manifestPath = path.join(this.options.outputDir, 'artifact-manifest.json');
     if (!fs.existsSync(manifestPath)) {
       throw new Error('Artifact manifest not found');
@@ -441,7 +441,7 @@ class ArtifactManager {
 
     manifest.files.forEach(file => {
       const filePath = path.join(this.options.outputDir, file.name);
-      
+
       if (!fs.existsSync(filePath)) {
         validationErrors.push(`File not found: ${file.name}`);
         return;
@@ -449,7 +449,7 @@ class ArtifactManager {
 
       const data = fs.readFileSync(filePath);
       const actualSha256 = crypto.createHash('sha256').update(data).digest('hex');
-      
+
       if (actualSha256 !== file.sha256) {
         validationErrors.push(`SHA256 mismatch for ${file.name}: expected ${file.sha256}, got ${actualSha256}`);
       }
@@ -481,20 +481,20 @@ if (require.main === module) {
         case 'create':
           await manager.createArtifacts();
           break;
-        
+
         case 'validate':
           manager.validateArtifacts();
           break;
-        
+
         case 'upload':
           await manager.uploadToRegistry();
           break;
-        
+
         case 'metadata':
           const metadata = manager.generateMetadata();
           console.log(JSON.stringify(metadata, null, 2));
           break;
-        
+
         case 'all':
           await manager.createArtifacts();
           manager.validateArtifacts();
@@ -502,7 +502,7 @@ if (require.main === module) {
             await manager.uploadToRegistry();
           }
           break;
-        
+
         default:
           console.log('Usage: node artifact-manager.js <command>');
           console.log('Commands:');

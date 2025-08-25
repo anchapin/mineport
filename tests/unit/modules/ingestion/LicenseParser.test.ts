@@ -40,7 +40,7 @@ describe('LicenseParser', () => {
 
   it('should detect MIT license from LICENSE file', async () => {
     // Mock fs.access to find LICENSE file
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return Promise.resolve();
       }
@@ -48,7 +48,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return MIT license content
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return mockLicenseFiles['/tmp/mod/LICENSE'];
       }
@@ -67,7 +67,7 @@ describe('LicenseParser', () => {
 
   it('should detect GPL license from COPYING file', async () => {
     // Mock fs.access to find COPYING file
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/COPYING') {
         return Promise.resolve();
       }
@@ -75,7 +75,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return GPL license content
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/COPYING') {
         return mockLicenseFiles['/tmp/mod/COPYING'];
       }
@@ -93,7 +93,7 @@ describe('LicenseParser', () => {
 
   it('should detect LGPL license from COPYING.LESSER file', async () => {
     // Mock fs.access to find COPYING.LESSER file
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/COPYING.LESSER') {
         return Promise.resolve();
       }
@@ -101,7 +101,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return LGPL license content
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/COPYING.LESSER') {
         return mockLicenseFiles['/tmp/mod/COPYING.LESSER'];
       }
@@ -119,7 +119,7 @@ describe('LicenseParser', () => {
 
   it('should detect Apache license from package.json', async () => {
     // Mock fs.access to not find license files but find package.json
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/package.json') {
         return Promise.resolve();
       }
@@ -127,7 +127,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return package.json content
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/package.json') {
         return mockLicenseFiles['/tmp/mod/package.json'];
       }
@@ -145,7 +145,7 @@ describe('LicenseParser', () => {
 
   it('should handle unknown licenses', async () => {
     // Mock fs.access to find LICENSE file
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return Promise.resolve();
       }
@@ -153,7 +153,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return unknown license content
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return 'Custom License\n\nThis is a custom license that is not recognized.';
       }
@@ -171,7 +171,7 @@ describe('LicenseParser', () => {
 
   it('should handle missing license files', async () => {
     // Mock fs.access to not find any license files
-    vi.mocked(fs.access).mockImplementation(async (_filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (_filePath: any) => {
       return Promise.reject(new Error('File not found'));
     });
 
@@ -186,7 +186,7 @@ describe('LicenseParser', () => {
 
   it('should extract license terms correctly', async () => {
     // Mock fs.access to find LICENSE file
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return Promise.resolve();
       }
@@ -194,7 +194,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return MIT license content
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return mockLicenseFiles['/tmp/mod/LICENSE'];
       }
@@ -215,7 +215,7 @@ describe('LicenseParser', () => {
 
   it('should generate attribution text', async () => {
     // Mock fs.access to find LICENSE file
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return Promise.resolve();
       }
@@ -223,7 +223,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return MIT license content
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return mockLicenseFiles['/tmp/mod/LICENSE'];
       }
@@ -263,7 +263,7 @@ describe('LicenseParser', () => {
 
   it('should handle multiple license files', async () => {
     // Mock fs.access to find LICENSE file first (it will be used)
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return Promise.resolve();
       }
@@ -271,7 +271,7 @@ describe('LicenseParser', () => {
     });
 
     // Mock fs.readFile to return MIT license content (first file found)
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath === '/tmp/mod/LICENSE') {
         return mockLicenseFiles['/tmp/mod/LICENSE'];
       }
@@ -288,7 +288,7 @@ describe('LicenseParser', () => {
 
   it('should extract license from source code headers', async () => {
     // Mock fs.access to not find any license files (will return NONE)
-    vi.mocked(fs.access).mockImplementation(async (_filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (_filePath: any) => {
       return Promise.reject(new Error('File not found'));
     });
 

@@ -15,7 +15,6 @@ import {
   FieldDeclaration,
   Parameter,
   SourcePosition,
-  NodeMetadata,
 } from '../../types/logic-translation.js';
 import { logger } from '../../utils/logger.js';
 
@@ -118,7 +117,7 @@ export class MMIRParser {
       if (trimmedLine.length === 0) continue; // Skip empty lines
 
       // Enhanced tokenization to better handle Java constructs
-      const tokenRegex = /(\/\/.*|"[^"]*"|\w+|[{}();,.\[\]<>=!&|+\-*/])/g;
+      const tokenRegex = /(\/\/.*|"[^"]*"|\w+|[{}();,.[\]<>=!&|+\-*/])/g;
       let tokenMatch;
 
       while ((tokenMatch = tokenRegex.exec(line)) !== null) {
@@ -346,7 +345,7 @@ export class MMIRParser {
   private parseFieldDeclaration(
     tokens: Token[],
     startIndex: number,
-    modifiers: string[]
+    _modifiers: string[]
   ): { node: ASTNode; nextIndex: number } {
     let currentIndex = startIndex;
 
@@ -355,8 +354,8 @@ export class MMIRParser {
       currentIndex++;
     }
 
-    // Get field type
-    const fieldType = currentIndex < tokens.length ? tokens[currentIndex].value : 'Object';
+    // Get field type (skip it)
+    // const _fieldType = currentIndex < tokens.length ? tokens[currentIndex].value : 'Object';
     currentIndex++;
 
     // Get field name
@@ -487,7 +486,7 @@ export class MMIRParser {
     tokens: Token[],
     startIndex: number
   ): { node: ASTNode; nextIndex: number } {
-    const identifierToken = tokens[startIndex];
+    // const _identifierToken = tokens[startIndex];
     let currentIndex = startIndex + 1;
 
     // Look ahead to determine if this is a method call
@@ -1122,8 +1121,8 @@ export class MMIRParser {
    */
   private isMethodMappable(
     methodName: string,
-    returnType: string,
-    parameters: Parameter[]
+    _returnType: string,
+    _parameters: Parameter[]
   ): boolean {
     // Simplified logic - in practice, this would check against API mapping dictionary
     const commonMappableMethods = ['tick', 'onUse', 'onPlace', 'onBreak'];

@@ -6,8 +6,11 @@ import {
 import {
   CompromiseStrategyRegistry,
   CompromiseStrategy,
+  CompromiseResult,
+  CompromiseOptions,
 } from '../../../../src/modules/compromise/CompromiseStrategy.js';
-import { Feature, FeatureType, CompromiseLevel } from '../../../../src/types/compromise.js';
+import { CompromiseLevel } from '../../../../src/types/compromise.js';
+import { Feature, FeatureType } from '../../../../src/modules/ingestion/index.js';
 import { ConversionContext } from '../../../../src/types/modules.js';
 
 // Mock logger
@@ -26,11 +29,35 @@ class HighImpactStrategy extends CompromiseStrategy {
     super('HighImpact', [FeatureType.GUI], CompromiseLevel.HIGH);
   }
 
-  async apply() {
-    throw new Error('Not implemented for test');
+  async apply(
+    _feature: Feature,
+    _context: ConversionContext,
+    _options: CompromiseOptions
+  ): Promise<CompromiseResult> {
+    return {
+      success: true,
+      description: 'High impact compromise applied',
+      impactLevel: CompromiseLevel.HIGH,
+      userExperienceImpact: 80,
+      warnings: [],
+      suggestions: [],
+      metadata: {
+        strategyUsed: this.name,
+        confidence: 0.9,
+        alternativesConsidered: [],
+        reversible: false,
+      },
+    };
   }
 
-  async estimateImpact() {
+  async estimateImpact(
+    _feature: Feature,
+    _context: ConversionContext
+  ): Promise<{
+    impactLevel: CompromiseLevel;
+    userExperienceImpact: number;
+    confidence: number;
+  }> {
     return {
       impactLevel: CompromiseLevel.HIGH,
       userExperienceImpact: 80,
@@ -42,7 +69,7 @@ class HighImpactStrategy extends CompromiseStrategy {
     return 'High impact strategy';
   }
 
-  protected isApplicable(): boolean {
+  protected isApplicable(_feature: Feature, _context: ConversionContext): boolean {
     return true;
   }
 }
@@ -52,11 +79,35 @@ class LowImpactStrategy extends CompromiseStrategy {
     super('LowImpact', [FeatureType.GUI], CompromiseLevel.LOW);
   }
 
-  async apply() {
-    throw new Error('Not implemented for test');
+  async apply(
+    _feature: Feature,
+    _context: ConversionContext,
+    _options: CompromiseOptions
+  ): Promise<CompromiseResult> {
+    return {
+      success: true,
+      description: 'Low impact compromise applied',
+      impactLevel: CompromiseLevel.LOW,
+      userExperienceImpact: 20,
+      warnings: [],
+      suggestions: [],
+      metadata: {
+        strategyUsed: this.name,
+        confidence: 0.9,
+        alternativesConsidered: [],
+        reversible: true,
+      },
+    };
   }
 
-  async estimateImpact() {
+  async estimateImpact(
+    _feature: Feature,
+    _context: ConversionContext
+  ): Promise<{
+    impactLevel: CompromiseLevel;
+    userExperienceImpact: number;
+    confidence: number;
+  }> {
     return {
       impactLevel: CompromiseLevel.LOW,
       userExperienceImpact: 20,
@@ -68,7 +119,7 @@ class LowImpactStrategy extends CompromiseStrategy {
     return 'Low impact strategy';
   }
 
-  protected isApplicable(): boolean {
+  protected isApplicable(_feature: Feature, _context: ConversionContext): boolean {
     return true;
   }
 }
@@ -78,11 +129,22 @@ class FailingStrategy extends CompromiseStrategy {
     super('Failing', [FeatureType.GUI], CompromiseLevel.MEDIUM);
   }
 
-  async apply() {
+  async apply(
+    _feature: Feature,
+    _context: ConversionContext,
+    _options: CompromiseOptions
+  ): Promise<CompromiseResult> {
     throw new Error('Not implemented for test');
   }
 
-  async estimateImpact() {
+  async estimateImpact(
+    _feature: Feature,
+    _context: ConversionContext
+  ): Promise<{
+    impactLevel: CompromiseLevel;
+    userExperienceImpact: number;
+    confidence: number;
+  }> {
     throw new Error('Estimation failed');
   }
 
@@ -90,7 +152,7 @@ class FailingStrategy extends CompromiseStrategy {
     return 'Failing strategy';
   }
 
-  protected isApplicable(): boolean {
+  protected isApplicable(_feature: Feature, _context: ConversionContext): boolean {
     return true;
   }
 }
@@ -106,18 +168,28 @@ describe('CompromiseStrategySelector', () => {
     selector = new CompromiseStrategySelector(registry);
 
     mockFeature = {
+      id: 'test_feature_id',
       name: 'test_feature',
+      description: 'Test feature description',
       type: FeatureType.GUI,
-      properties: {},
-      metadata: {},
+      compatibilityTier: 2,
+      sourceFiles: ['test.java'],
+      sourceLineNumbers: [[1, 10]],
     };
 
     mockContext = {
-      sourceFormat: 'java',
-      targetFormat: 'bedrock',
-      conversionId: 'test-conversion',
-      timestamp: new Date(),
-      options: {},
+      modId: 'test-mod',
+      modName: 'Test Mod',
+      modVersion: '1.0.0',
+      modLoader: 'forge',
+      minecraftVersion: '1.19.2',
+      targetBedrockVersion: '1.19.50',
+      conversionOptions: {
+        preserveComments: true,
+        generateDocumentation: true,
+        optimizeOutput: false,
+        enableExperimentalFeatures: false,
+      },
     };
   });
 

@@ -247,7 +247,7 @@ export class BedrockArchitect {
         outputFiles.push({
           path: fullPath,
           content: asset.content,
-          type: asset.type,
+          type: asset.type === 'particle' || asset.type === 'animation' ? 'other' : asset.type,
           originalPath: asset.path,
         });
 
@@ -499,7 +499,7 @@ export class BedrockArchitect {
     // Warnings for optional but recommended fields
     if (!manifest.header?.description) {
       warnings.push({
-        type: 'warning',
+        type: ErrorSeverity.WARNING,
         message: `Missing description in ${packType} pack manifest`,
         component: 'model',
         details: { packType },
@@ -526,7 +526,7 @@ export class BedrockArchitect {
     for (const dir of requiredBehaviorDirs) {
       if (!structure.behaviorPack.directories[dir]) {
         warnings.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `Missing recommended directory: ${dir} in behavior pack`,
           component: 'model',
           details: { directory: dir, packType: 'behavior' },
@@ -537,7 +537,7 @@ export class BedrockArchitect {
     for (const dir of requiredResourceDirs) {
       if (!structure.resourcePack.directories[dir]) {
         warnings.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `Missing recommended directory: ${dir} in resource pack`,
           component: 'model',
           details: { directory: dir, packType: 'resource' },

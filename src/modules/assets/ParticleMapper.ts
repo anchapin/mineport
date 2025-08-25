@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('ParticleMapper');
 
@@ -38,7 +39,7 @@ export interface ParticleConversionResult {
  * Interface for particle conversion notes/warnings
  */
 export interface ParticleConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   particleName?: string;
   fallbackApplied?: boolean;
@@ -191,7 +192,7 @@ export class ParticleMapper {
       } catch (error) {
         logger.error(`Failed to convert particle ${javaParticle.name}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert particle: ${error instanceof Error ? error.message : String(error)}`,
           particleName: javaParticle.name,
         });
@@ -241,7 +242,7 @@ export class ParticleMapper {
           parameters: javaParticle.parameters,
         },
         note: {
-          type: 'info',
+          type: ErrorSeverity.INFO,
           message: `Mapped Java particle '${javaParticle.name}' to Bedrock particle '${directMapping}'`,
           particleName: javaParticle.name,
         },
@@ -259,7 +260,7 @@ export class ParticleMapper {
           parameters: javaParticle.parameters,
         },
         note: {
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `No direct mapping for '${javaParticle.name}'. Applied ${fallbackResult.strategyType} fallback to '${fallbackResult.targetParticle}'`,
           particleName: javaParticle.name,
           fallbackApplied: true,
@@ -540,9 +541,9 @@ export class ParticleMapper {
     /*
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0

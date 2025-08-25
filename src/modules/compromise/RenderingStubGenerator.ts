@@ -1,12 +1,12 @@
 import { Feature } from '../../types/compromise.js';
-// import { createLogger } from '../../utils/logger.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * RenderingStubGenerator provides functionality to detect advanced rendering code
  * and generate appropriate stubs with recommendations for alternatives.
  */
 export class RenderingStubGenerator {
-  private logger: Logger;
+  private logger = logger;
   private renderingPatterns: RenderingPattern[];
   private alternativeRecommendations: Map<string, string[]>;
 
@@ -19,8 +19,7 @@ export class RenderingStubGenerator {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor() {
     this.renderingPatterns = this.initializeRenderingPatterns();
     this.alternativeRecommendations = this.initializeAlternativeRecommendations();
   }
@@ -239,13 +238,13 @@ export class RenderingStubGenerator {
 
     return `/**
  * STUBBED RENDERING CODE: ${detectedPattern.patternName}
- * 
+ *
  * This code is a stub for Java rendering functionality that cannot be directly
  * translated to Bedrock Edition's JavaScript API.
- * 
+ *
  * Original feature: ${feature.name}
  * Rendering category: ${detectedPattern.category}
- * 
+ *
  * RECOMMENDATIONS:
  * ${recommendations.map((rec) => ` * - ${rec}`).join('\n')}
  */
@@ -287,9 +286,9 @@ ${recommendations.map((rec) => `        "${rec}"`).join(',\n')}
 // Export a factory function to create the stub
 /**
  * create function.
- * 
+ *
  * TODO: Add detailed description of the function's purpose and behavior.
- * 
+ *
  * @param param - TODO: Document parameters
  * @returns result - TODO: Document return value
  * @since 1.0.0

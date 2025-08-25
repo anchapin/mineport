@@ -4,9 +4,34 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { describe, it, expect } from 'vitest';
 import { EnhancedProgressTracker } from '../EnhancedProgressTracker.js';
 import { ConversionStage, ProgressInfo } from '../EnhancedConversionUI.js';
+
+// Setup Vitest DOM matchers
+import { expect as vitestExpect } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+vitestExpect.extend({
+  toBeInTheDocument: (received) => {
+    const pass = received !== null && received !== undefined;
+    return {
+      pass,
+      message: () => pass ? 'element is in document' : 'element is not in document'
+    };
+  },
+  toHaveStyle: (received, style) => {
+    if (typeof received.style === 'undefined') {
+      return { pass: false, message: () => 'element has no style' };
+    }
+    const pass = Object.keys(style).every(key => {
+      return received.style[key] === style[key];
+    });
+    return {
+      pass,
+      message: () => pass ? 'element has expected style' : 'element does not have expected style'
+    };
+  }
+});
 
 describe('EnhancedProgressTracker', () => {
   const createMockProgress = (overrides: Partial<ProgressInfo> = {}): ProgressInfo => ({

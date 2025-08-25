@@ -17,7 +17,7 @@ import {
 
 // Mock logger
 vi.mock('../../../src/utils/logger', async () => {
-  const actual = await vi.importActual('../../../src/utils/logger');
+  const actual = (await vi.importActual('../../../src/utils/logger')) as any;
   return {
     ...actual,
     default: {

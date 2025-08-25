@@ -247,7 +247,6 @@ export class ValidationPipeline {
 
   /**
    * Get all configured validation stages
-   *
    * @returns Array of validation stages
    */
   public getStages(): ValidationStage[] {
@@ -544,8 +543,7 @@ export class ValidationPipeline {
 
   /**
    * Get current validation metrics
-   *
-   * @returns Current metrics
+   * @returns Current metrics including success rate and timing information
    */
   public getMetrics(): ValidationMetrics {
     return { ...this.metrics };
@@ -571,8 +569,12 @@ export class ValidationPipeline {
 
   /**
    * Get error collector instance
-   *
-   * @returns Error collector
+   * @returns Error collector for accessing collected errors and warnings
+   * @example
+   * ```typescript
+   * const errorCollector = pipeline.getErrorCollector();
+   * const allErrors = errorCollector.getAllErrors();
+   * ```
    */
   public getErrorCollector(): ErrorCollector {
     return this.errorCollector;

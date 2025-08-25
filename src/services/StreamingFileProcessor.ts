@@ -53,6 +53,14 @@ export class StreamingFileProcessor {
 
   /**
    * Process a large file using streaming approach
+   * @param filePath - Path to the file to process
+   * @param _validationOptions - Validation options for the file processing
+   * @returns Promise that resolves to streaming validation result
+   * @example
+   * ```typescript
+   * const result = await processor.processLargeFile('/path/to/file.jar', validationOptions);
+   * console.log(`Processed in ${result.streamProcessingTime}ms`);
+   * ```
    */
   async processLargeFile(
     filePath: string,
@@ -265,6 +273,7 @@ export class StreamingFileProcessor {
 
   /**
    * Get current streaming options
+   * @returns Current streaming options configuration
    */
   getOptions(): StreamingOptions {
     return { ...this.options };
@@ -272,6 +281,7 @@ export class StreamingFileProcessor {
 
   /**
    * Update streaming options
+   * @param newOptions - Partial streaming options to merge with current options
    */
   updateOptions(newOptions: Partial<StreamingOptions>): void {
     this.options = { ...this.options, ...newOptions };

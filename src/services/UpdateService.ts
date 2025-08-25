@@ -160,6 +160,11 @@ export class UpdateService extends EventEmitter {
 
   /**
    * Start automatic update checks
+   * @param checkIntervalMs - Optional interval in milliseconds for update checks
+   * @example
+   * ```typescript
+   * updateService.startAutomaticUpdates(300000); // Check every 5 minutes
+   * ```
    */
   public startAutomaticUpdates(checkIntervalMs?: number): void {
     // Clear any existing intervals
@@ -180,6 +185,10 @@ export class UpdateService extends EventEmitter {
 
   /**
    * Stop automatic update checks
+   * @example
+   * ```typescript
+   * updateService.stopAutomaticUpdates();
+   * ```
    */
   public stopAutomaticUpdates(): void {
     Object.values(this.updateIntervals).forEach((interval) => {
@@ -199,6 +208,14 @@ export class UpdateService extends EventEmitter {
 
   /**
    * Check for updates to API mappings
+   * @returns Promise that resolves to true if updates were found and applied
+   * @example
+   * ```typescript
+   * const hasUpdates = await updateService.checkForApiMappingUpdates();
+   * if (hasUpdates) {
+   *   console.log('API mappings updated');
+   * }
+   * ```
    */
   public async checkForApiMappingUpdates(): Promise<boolean> {
     /**
@@ -326,6 +343,11 @@ export class UpdateService extends EventEmitter {
 
   /**
    * Force an immediate update check
+   * @returns Promise that resolves to true if updates were found and applied
+   * @example
+   * ```typescript
+   * const hasUpdates = await updateService.forceUpdateCheck();
+   * ```
    */
   public async forceUpdateCheck(): Promise<boolean> {
     return await this.checkForApiMappingUpdates();
@@ -333,6 +355,12 @@ export class UpdateService extends EventEmitter {
 
   /**
    * Get current API mapping versions
+   * @returns Record of API mapping versions by key
+   * @example
+   * ```typescript
+   * const versions = updateService.getApiMappingVersions();
+   * console.log(`Java version: ${versions.minecraft_java}`);
+   * ```
    */
   public getApiMappingVersions(): Record<string, string> {
     return { ...this.apiMappingVersions };
@@ -340,6 +368,12 @@ export class UpdateService extends EventEmitter {
 
   /**
    * Get last check time for updates
+   * @returns Record of last check times by update type
+   * @example
+   * ```typescript
+   * const checkTimes = updateService.getLastCheckTime();
+   * console.log(`Last API check: ${new Date(checkTimes.api_mappings)}`);
+   * ```
    */
   public getLastCheckTime(): Record<string, number> {
     return { ...this.lastCheckTime };
@@ -376,6 +410,8 @@ export class ApiMappingVersionControl {
 
   /**
    * Register a new mapping version
+   * @param mappingId - Unique identifier for the mapping
+   * @param version - The mapping version to register
    */
   public registerVersion(mappingId: string, version: MappingVersion): void {
     this.mappingVersions[mappingId] = version;
@@ -383,6 +419,8 @@ export class ApiMappingVersionControl {
 
   /**
    * Get a specific mapping version
+   * @param mappingId - Unique identifier for the mapping
+   * @returns The mapping version or undefined if not found
    */
   public getVersion(mappingId: string): MappingVersion | undefined {
     return this.mappingVersions[mappingId];
@@ -390,6 +428,7 @@ export class ApiMappingVersionControl {
 
   /**
    * Get all mapping versions
+   * @returns Record of all mapping versions by ID
    */
   public getAllVersions(): Record<string, MappingVersion> {
     return { ...this.mappingVersions };
@@ -397,6 +436,9 @@ export class ApiMappingVersionControl {
 
   /**
    * Check if a mapping is compatible with a specific Minecraft version
+   * @param mappingId - Unique identifier for the mapping
+   * @param minecraftVersion - The Minecraft version to check compatibility against
+   * @returns True if the mapping is compatible with the specified version
    */
   public isCompatible(mappingId: string, minecraftVersion: string): boolean {
     const mapping = this.mappingVersions[mappingId];

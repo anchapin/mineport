@@ -10,7 +10,7 @@ describe('CacheService', () => {
 
   beforeEach(() => {
     cacheService = new CacheService({ enabled: true, enablePersistence: false });
-    cacheService.resetMetrics();
+    (cacheService as any).resetMetrics();
   });
 
   it('should store and retrieve values', async () => {

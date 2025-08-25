@@ -1,4 +1,5 @@
-import { Feature, FeatureType, CompromiseLevel } from '../../../types/compromise.js';
+import { CompromiseLevel } from '../../../types/compromise.js';
+import { Feature, FeatureType } from '../../ingestion/index.js';
 import { ConversionContext } from '../../../types/modules.js';
 import { CompromiseStrategy, CompromiseResult, CompromiseOptions } from '../CompromiseStrategy.js';
 import { logger } from '../../../utils/logger.js';
@@ -10,15 +11,15 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
   constructor() {
     super(
       'RenderingCompromise',
-      [FeatureType.RENDERING, FeatureType.SHADER, FeatureType.PARTICLE_EFFECT],
+      [FeatureType.RENDERING, FeatureType.PARTICLE],
       CompromiseLevel.MEDIUM
     );
   }
 
   async apply(
     feature: Feature,
-    context: ConversionContext,
-    options: CompromiseOptions
+    _context: ConversionContext,
+    _options: CompromiseOptions
   ): Promise<CompromiseResult> {
     logger.info('Applying rendering compromise strategy', {
       featureName: feature.name,
@@ -125,7 +126,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
 
   async estimateImpact(
     feature: Feature,
-    context: ConversionContext
+    _context: ConversionContext
   ): Promise<{
     impactLevel: CompromiseLevel;
     userExperienceImpact: number;
@@ -173,8 +174,8 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
     return 'Handles custom rendering effects by approximating them with available Bedrock rendering features';
   }
 
-  protected isApplicable(feature: Feature, context: ConversionContext): boolean {
-    if (!this.supportedFeatureTypes.includes(feature.type)) {
+  protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
+    if (!feature.type || !this.supportedFeatureTypes.includes(feature.type)) {
       return false;
     }
 
@@ -410,7 +411,7 @@ export class RenderingCompromiseStrategy extends CompromiseStrategy {
   /**
    * Generate geometry simplification instructions
    */
-  private generateGeometrySimplification(feature: Feature): any {
+  private generateGeometrySimplification(_feature: Feature): any {
     return {
       maxVertices: 1000, // Bedrock model limits
       simplificationLevel: 'medium',

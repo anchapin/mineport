@@ -178,6 +178,7 @@ describe('ConversionPipeline', () => {
       }),
       failJob: vi.fn(),
       completeJob: vi.fn(),
+      cancelJob: vi.fn().mockReturnValue(true), // Add missing cancelJob method
     } as unknown as JobQueue;
 
     // Create mock resource allocator
@@ -224,6 +225,7 @@ describe('ConversionPipeline', () => {
     // Add some errors directly to the error collector
     errorCollector.addError({
       id: '1',
+      code: 'MOD-VAL-001',
       type: ErrorType.VALIDATION,
       severity: ErrorSeverity.ERROR,
       message: 'Validation error 1',
@@ -233,6 +235,7 @@ describe('ConversionPipeline', () => {
 
     errorCollector.addError({
       id: '2',
+      code: 'ASSET-CONV-001',
       type: ErrorType.ASSET,
       severity: ErrorSeverity.WARNING,
       message: 'Asset conversion warning',
@@ -242,6 +245,7 @@ describe('ConversionPipeline', () => {
 
     errorCollector.addError({
       id: '3',
+      code: 'LOGIC-CONV-001',
       type: ErrorType.LOGIC,
       severity: ErrorSeverity.ERROR,
       message: 'Logic conversion error',
@@ -262,6 +266,7 @@ describe('ConversionPipeline', () => {
     // Add a critical system error directly to the error collector
     errorCollector.addError({
       id: '4',
+      code: 'SYS-ERR-001',
       type: ErrorType.SYSTEM,
       severity: ErrorSeverity.CRITICAL,
       message: 'Unexpected system error',

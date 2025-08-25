@@ -433,7 +433,8 @@ describe('MonitoringService', () => {
       }
 
       monitoringService.cleanupOldMetrics();
-      const finalCount = metrics.length;
+      const finalMetrics = (monitoringService as any).metrics;
+      const finalCount = finalMetrics.length;
 
       expect(finalCount).toBeLessThan(initialCount);
       expect(finalCount).toBe(1); // Should keep only the recent metric

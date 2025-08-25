@@ -24,12 +24,10 @@ describe('ResourceAllocator', () => {
 
     expect(allocation).toBeDefined();
     expect(allocation.id).toBeDefined();
-    expect(allocation.resources).toEqual({
-      memory: 256,
-      cpu: 1,
-      storage: 1024,
-    });
-    expect(allocation.timestamp).toBeInstanceOf(Date);
+    expect(allocation.memory).toBe(256);
+    expect(allocation.cpu).toBe(1);
+    expect(allocation.storage).toBe(1024);
+    expect(allocation.createdAt).toBeInstanceOf(Date);
   });
 
   it('should track resource usage correctly', () => {
@@ -155,7 +153,7 @@ describe('ResourceAllocator', () => {
     });
 
     // Conservative strategy adds a buffer
-    expect(allocation.resources.memory).toBeGreaterThan(256);
+    expect(allocation.memory).toBeGreaterThan(256);
 
     // Create a resource allocator with an aggressive strategy
     const aggressiveAllocator = new ResourceAllocator({
@@ -173,7 +171,7 @@ describe('ResourceAllocator', () => {
     });
 
     // Aggressive strategy uses exact requested resources
-    expect(aggressiveAllocation.resources.memory).toBe(256);
+    expect(aggressiveAllocation.memory).toBe(256);
   });
 
   it('should handle resource timeouts', () => {
@@ -186,14 +184,12 @@ describe('ResourceAllocator', () => {
     mockNow.mockReturnValue(1000);
 
     // Allocate resources with timeout
-    resourceAllocator.allocate(
-      {
-        memory: 256,
-        cpu: 1,
-        storage: 1024,
-      },
-      60000
-    ); // 60 second timeout
+    resourceAllocator.allocate({
+      memory: 256,
+      cpu: 1,
+      storage: 1024,
+      timeout: 60000, // 60 second timeout
+    });
 
     // Check initial usage
     let usage = resourceAllocator.getCurrentUsage();

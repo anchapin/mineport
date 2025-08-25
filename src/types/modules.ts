@@ -544,12 +544,18 @@ export interface SourceLocation {
 
   /** Ending column number */
   endColumn?: number;
+
+  /** Line number (alias for startLine) */
+  line: number;
+
+  /** Column number (alias for startColumn) */
+  column: number;
 }
 
 /**
  * Logic conversion note
  */
-export interface LogicConversionNote {
+export interface ModuleLogicConversionNote {
   /** Type/severity of the note */
   type: 'info' | 'warning' | 'error' | 'critical';
 
@@ -590,4 +596,94 @@ export interface LogicFeature {
 
   /** Line numbers where feature is used */
   sourceLineNumbers: number[][];
+}
+
+/**
+ * Java asset collection interface
+ */
+export interface JavaAssetCollection {
+  textures: JavaTextureFile[];
+  models: JavaModelFile[];
+  sounds: JavaSoundFile[];
+  particles: JavaParticleFile[];
+  animations: JavaAnimationFile[];
+}
+
+/**
+ * Bedrock asset collection interface
+ */
+export interface BedrockAssetCollection {
+  textures: BedrockTextureFile[];
+  models: BedrockModelFile[];
+  sounds: BedrockSoundFile[];
+  particles: BedrockParticleFile[];
+  animations: BedrockAnimationFile[];
+  soundsJson?: object; // Optional sounds.json configuration
+}
+
+/**
+ * Asset translation result interface
+ */
+export interface AssetTranslationResult {
+  bedrockAssets: BedrockAssetCollection;
+  conversionNotes: AssetConversionNote[];
+  errors: ConversionError[];
+}
+
+// Import asset interfaces from centralized location
+export { JavaTextureFile, JavaModelFile, JavaSoundFile } from './assets.js';
+
+/**
+ * Java particle file interface
+ */
+export interface JavaParticleFile {
+  path: string;
+  data: Buffer | object;
+  name: string;
+  textures?: string[];
+  parameters?: Record<string, any>;
+}
+
+/**
+ * Java animation file interface
+ */
+export interface JavaAnimationFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+// Import Bedrock asset interfaces from centralized location
+export {
+  BedrockTextureFile,
+  BedrockModelFile,
+  BedrockSoundFile,
+  BedrockParticleFile,
+  BedrockAnimationFile,
+} from './assets.js';
+
+// Import AssetConversionNote from centralized error types
+export { AssetConversionNote } from './errors.js';
+
+/**
+ * Conversion context interface
+ */
+export interface ConversionContext {
+  modId: string;
+  modName: string;
+  modVersion: string;
+  modLoader: 'forge' | 'fabric' | 'unknown';
+  minecraftVersion: string;
+  targetBedrockVersion: string;
+  conversionOptions: ConversionOptions;
+}
+
+/**
+ * Conversion options interface
+ */
+export interface ConversionOptions {
+  preserveComments: boolean;
+  generateDocumentation: boolean;
+  optimizeOutput: boolean;
+  enableExperimentalFeatures: boolean;
 }

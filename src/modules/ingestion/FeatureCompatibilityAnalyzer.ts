@@ -16,7 +16,16 @@
 import fs from 'fs/promises';
 import path from 'path';
 import logger from '../../utils/logger.js';
-import { Feature, FeatureCompatibilityReport, CompromiseStrategy } from './index.js';
+import {
+  Feature,
+  FeatureCompatibilityReport,
+  CompromiseStrategy,
+  CompatibilityTier,
+  FeatureType,
+} from './index.js';
+
+// Re-export types for convenience
+export { CompatibilityTier, FeatureType };
 
 /**
  * FeatureAnalysisResult interface.
@@ -27,6 +36,15 @@ import { Feature, FeatureCompatibilityReport, CompromiseStrategy } from './index
  */
 export interface FeatureAnalysisResult {
   compatibilityReport: FeatureCompatibilityReport;
+  features: Feature[];
+  success: boolean;
+  summary: {
+    tier1Count: number;
+    tier2Count: number;
+    tier3Count: number;
+    totalFeatures: number;
+    compatibilityScore: number;
+  };
   errors?: string[];
 }
 
@@ -446,6 +464,15 @@ export class FeatureCompatibilityAnalyzer {
         tier3Features: [],
         tier4Features: [],
       },
+      features: [],
+      success: true,
+      summary: {
+        tier1Count: 0,
+        tier2Count: 0,
+        tier3Count: 0,
+        totalFeatures: 0,
+        compatibilityScore: 0,
+      },
       errors: [],
     };
 
@@ -487,6 +514,9 @@ export class FeatureCompatibilityAnalyzer {
          * @since 1.0.0
          */
         if (detectedFeature) {
+          // Add to all features list
+          result.features.push(detectedFeature);
+
           // Add the feature to the appropriate tier list
           /**
            * switch method.
@@ -512,6 +542,23 @@ export class FeatureCompatibilityAnalyzer {
               break;
           }
         }
+      }
+
+      // Calculate summary
+      result.summary.tier1Count = result.compatibilityReport.tier1Features.length;
+      result.summary.tier2Count = result.compatibilityReport.tier2Features.length;
+      result.summary.tier3Count = result.compatibilityReport.tier3Features.length;
+      result.summary.totalFeatures = result.features.length;
+
+      // Calculate compatibility score (weighted by tiers)
+      const totalFeatures = result.summary.totalFeatures;
+      if (totalFeatures > 0) {
+        const score =
+          (result.summary.tier1Count * 1.0 +
+            result.summary.tier2Count * 0.7 +
+            result.compatibilityReport.tier3Features.length * 0.3) /
+          totalFeatures;
+        result.summary.compatibilityScore = Math.round(score * 100) / 100;
       }
 
       // Log summary of analysis
@@ -924,5 +971,14 @@ export class FeatureCompatibilityAnalyzer {
     summary += `Overall Conversion Feasibility: ${feasibilityRating} (${feasibilityScore}%)\n`;
 
     return summary;
+  }
+
+  /**
+   * Alias for analyzeFeatures method for backward compatibility
+   * @param extractedModPath Path to the extracted mod files
+   * @returns FeatureAnalysisResult with compatibility report
+   */
+  async analyze(extractedModPath: string): Promise<FeatureAnalysisResult> {
+    return this.analyzeFeatures(extractedModPath, 'unknown');
   }
 }

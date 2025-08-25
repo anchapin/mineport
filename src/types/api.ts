@@ -39,7 +39,7 @@ export interface APIMapperService {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  getMapping(javaSignature: string): APIMapping | undefined;
+  getMapping(javaSignature: string): Promise<APIMapping | undefined>;
   /**
    * getMappings method.
    *
@@ -49,7 +49,7 @@ export interface APIMapperService {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  getMappings(filter?: MappingFilter): APIMapping[];
+  getMappings(filter?: MappingFilter): Promise<APIMapping[]>;
   /**
    * addMapping method.
    *

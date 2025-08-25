@@ -112,8 +112,8 @@ export interface MMIRMetadata {
  * Complete context for the MMIR
  */
 export interface MMIRContext {
-  nodes: MMIRNode[];
-  relationships: MMIRRelationship[];
+  _nodes: MMIRNode[];
+  _relationships: MMIRRelationship[];
   metadata: MMIRMetadata;
 }
 
@@ -484,7 +484,7 @@ export class ForgeModParser extends ModLoaderParser {
    * Extract event type from an event handler method
    * @param handlerMethod The event handler method node
    */
-  private extractEventType(handlerMethod: JavaASTNode): string | null {
+  private extractEventType(_handlerMethod: JavaASTNode): string | null {
     // Find parameter of event type
     // This is a simplified implementation
     return null;
@@ -820,7 +820,7 @@ export class FabricModParser extends ModLoaderParser {
    * Extract event type from an event handler method
    * @param handlerMethod The event handler method node
    */
-  private extractEventType(handlerMethod: JavaASTNode): string | null {
+  private extractEventType(_handlerMethod: JavaASTNode): string | null {
     // Find parameter of event type
     // This is a simplified implementation
     return null;
@@ -972,8 +972,8 @@ export class MMIRGenerator {
     this.createNodeRelationships(allNodes, allRelationships);
 
     return {
-      nodes: allNodes,
-      relationships: allRelationships,
+      _nodes: allNodes,
+      _relationships: allRelationships,
       metadata: fullMetadata,
     };
   }
@@ -983,7 +983,7 @@ export class MMIRGenerator {
    * @param nodes The MMIR nodes
    * @param relationships The relationships collection to add to
    */
-  private createNodeRelationships(nodes: MMIRNode[], relationships: MMIRRelationship[]): void {
+  private createNodeRelationships(_nodes: MMIRNode[], _relationships: MMIRRelationship[]): void {
     // This is a simplified implementation
     // In a real implementation, we would analyze the nodes and create appropriate relationships
     // based on their properties and types

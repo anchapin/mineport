@@ -1,4 +1,5 @@
-import { Feature, FeatureType, CompromiseLevel } from '../../../types/compromise.js';
+import { CompromiseLevel } from '../../../types/compromise.js';
+import { Feature, FeatureType } from '../../ingestion/index.js';
 import { ConversionContext } from '../../../types/modules.js';
 import { CompromiseStrategy, CompromiseResult, CompromiseOptions } from '../CompromiseStrategy.js';
 import { logger } from '../../../utils/logger.js';
@@ -8,17 +9,13 @@ import { logger } from '../../../utils/logger.js';
  */
 export class UICompromiseStrategy extends CompromiseStrategy {
   constructor() {
-    super(
-      'UICompromise',
-      [FeatureType.GUI, FeatureType.HUD, FeatureType.MENU],
-      CompromiseLevel.MEDIUM
-    );
+    super('UICompromise', [FeatureType.GUI], CompromiseLevel.MEDIUM);
   }
 
   async apply(
     feature: Feature,
-    context: ConversionContext,
-    options: CompromiseOptions
+    _context: ConversionContext,
+    _options: CompromiseOptions
   ): Promise<CompromiseResult> {
     logger.info('Applying UI compromise strategy', {
       featureName: feature.name,
@@ -133,7 +130,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
 
   async estimateImpact(
     feature: Feature,
-    context: ConversionContext
+    _context: ConversionContext
   ): Promise<{
     impactLevel: CompromiseLevel;
     userExperienceImpact: number;
@@ -185,8 +182,8 @@ export class UICompromiseStrategy extends CompromiseStrategy {
     return 'Handles custom UI elements by adapting them to available Bedrock interface options';
   }
 
-  protected isApplicable(feature: Feature, context: ConversionContext): boolean {
-    if (!this.supportedFeatureTypes.includes(feature.type)) {
+  protected isApplicable(feature: Feature, _context: ConversionContext): boolean {
+    if (!feature.type || !this.supportedFeatureTypes.includes(feature.type)) {
       return false;
     }
 
@@ -522,7 +519,7 @@ export class UICompromiseStrategy extends CompromiseStrategy {
     );
   }
 
-  private generateDisplayFormat(feature: Feature): any {
+  private generateDisplayFormat(_feature: Feature): any {
     return {
       position: 'sidebar',
       sortOrder: 'descending',

@@ -16,7 +16,7 @@ import {
   JobStatistics,
   SystemResourceUsage,
 } from './AdminAPIService.js';
-import { ConversionJob, JobStatus } from '../../../types/services.js';
+import { ConversionJob } from '../../../types/services.js';
 import { APIError } from './ConversionAPIServiceImpl.js';
 
 /**
@@ -637,7 +637,7 @@ export class AdminAPIServiceImpl implements AdminAPIService {
      * @since 1.0.0
      */
     if (filter?.createdAfter) {
-      filteredJobs = filteredJobs.filter((job) => job.createdAt >= filter.createdAfter);
+      filteredJobs = filteredJobs.filter((job) => job.createdAt >= filter.createdAfter!);
     }
 
     /**
@@ -650,7 +650,7 @@ export class AdminAPIServiceImpl implements AdminAPIService {
      * @since 1.0.0
      */
     if (filter?.createdBefore) {
-      filteredJobs = filteredJobs.filter((job) => job.createdAt <= filter.createdBefore);
+      filteredJobs = filteredJobs.filter((job) => job.createdAt <= filter.createdBefore!);
     }
 
     return filteredJobs;
@@ -728,7 +728,7 @@ export class AdminAPIServiceImpl implements AdminAPIService {
    * @param jobId Job ID
    * @returns Promise resolving to mock cancel result
    */
-  private async mockCancelJob(jobId: string): Promise<boolean> {
+  private async mockCancelJob(_jobId: string): Promise<boolean> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 

@@ -26,17 +26,17 @@ describe('MMIRGenerator', () => {
     it('should generate MMIR from a simple Forge mod', () => {
       const forgeModSource = `
         package com.example.forgemod;
-        
+
         import net.minecraftforge.fml.common.Mod;
         import net.minecraftforge.eventbus.api.SubscribeEvent;
         import net.minecraftforge.event.entity.player.PlayerEvent;
-        
+
         @Mod("examplemod")
         public class ExampleMod {
             public ExampleMod() {
                 // Constructor
             }
-            
+
             @SubscribeEvent
             public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
                 // Event handler
@@ -62,16 +62,16 @@ describe('MMIRGenerator', () => {
 
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
-      expect(mmirContext.nodes.length).toBeGreaterThan(0);
+      expect(mmirContext._nodes.length).toBeGreaterThan(0);
     });
 
     it('should generate MMIR from a simple Fabric mod', () => {
       const fabricModSource = `
         package com.example.fabricmod;
-        
+
         import net.fabricmc.api.ModInitializer;
         import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-        
+
         public class ExampleMod implements ModInitializer {
             @Override
             public void onInitialize() {
@@ -101,7 +101,7 @@ describe('MMIRGenerator', () => {
 
       // In a real test, we would verify more aspects of the MMIR
       // but for this simplified implementation, we'll just check that nodes were created
-      expect(mmirContext.nodes.length).toBeGreaterThan(0);
+      expect(mmirContext._nodes.length).toBeGreaterThan(0);
     });
   });
 });
@@ -119,15 +119,15 @@ describe('ForgeModParser', () => {
     it('should parse a Forge mod class', () => {
       const forgeModSource = `
         package com.example.forgemod;
-        
+
         import net.minecraftforge.fml.common.Mod;
         import net.minecraftforge.registries.DeferredRegister;
         import net.minecraftforge.registries.ForgeRegistries;
-        
+
         @Mod("examplemod")
         public class ExampleMod {
             private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, "examplemod");
-            
+
             public ExampleMod() {
                 // Constructor
                 ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
@@ -145,7 +145,7 @@ describe('ForgeModParser', () => {
       expect(nodes.length).toBeGreaterThan(0);
 
       // Find the mod declaration node
-      const modNode = nodes.find((node) => node.type === MMIRNodeType.ModDeclaration);
+      const modNode = nodes.find((node: any) => node.type === MMIRNodeType.ModDeclaration);
       expect(modNode).toBeDefined();
 
       // In a real test, we would verify more aspects of the parsed nodes and relationships
@@ -154,9 +154,9 @@ describe('ForgeModParser', () => {
     it('should extract metadata from a Forge mod', () => {
       const forgeModSource = `
         package com.example.forgemod;
-        
+
         import net.minecraftforge.fml.common.Mod;
-        
+
         @Mod("examplemod")
         public class ExampleMod {
             // Mod class
@@ -192,10 +192,10 @@ describe('FabricModParser', () => {
     it('should parse a Fabric mod class', () => {
       const fabricModSource = `
         package com.example.fabricmod;
-        
+
         import net.fabricmc.api.ModInitializer;
         import net.minecraft.util.registry.Registry;
-        
+
         public class ExampleMod implements ModInitializer {
             @Override
             public void onInitialize() {
@@ -215,7 +215,7 @@ describe('FabricModParser', () => {
       expect(nodes.length).toBeGreaterThan(0);
 
       // Find the mod declaration node
-      const modNode = nodes.find((node) => node.type === MMIRNodeType.ModDeclaration);
+      const modNode = nodes.find((node: any) => node.type === MMIRNodeType.ModDeclaration);
       expect(modNode).toBeDefined();
 
       // In a real test, we would verify more aspects of the parsed nodes and relationships
@@ -224,9 +224,9 @@ describe('FabricModParser', () => {
     it('should extract metadata from a Fabric mod', () => {
       const fabricModSource = `
         package com.example.fabricmod;
-        
+
         import net.fabricmc.api.ModInitializer;
-        
+
         public class ExampleMod implements ModInitializer {
             @Override
             public void onInitialize() {

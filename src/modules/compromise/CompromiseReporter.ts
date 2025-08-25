@@ -1,6 +1,7 @@
-import { Feature, CompromiseLevel } from '../../types/compromise.js';
+import { CompromiseLevel } from '../../types/compromise.js';
+import { Feature } from '../ingestion/index.js';
 import { CompromiseEngineResult, BatchCompromiseResult } from './CompromiseEngine.js';
-import { CompromiseResult } from './CompromiseStrategy.js';
+// import { CompromiseResult } from './CompromiseStrategy.js';
 import { logger } from '../../utils/logger.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -527,7 +528,7 @@ export class CompromiseReporter {
 <body>
     <h1>Compromise Report</h1>
     <p>Generated: ${report.metadata.generatedAt.toISOString()}</p>
-    
+
     <div class="summary">
         <h2>Summary</h2>
         <div class="metric">Total Features: ${report.metadata.totalFeatures}</div>
@@ -535,7 +536,7 @@ export class CompromiseReporter {
         <div class="metric">Success Rate: ${report.metadata.successRate.toFixed(1)}%</div>
         <div class="metric">Average Impact: ${report.metadata.averageImpact.toFixed(1)}%</div>
     </div>
-    
+
     <h2>Detailed Results</h2>
     <p>See JSON report for complete details.</p>
 </body>
@@ -567,18 +568,18 @@ export class CompromiseReporter {
   private getRequiredSkills(feature: Feature): string[] {
     const skills = ['Bedrock development'];
 
-    if (feature.type.includes('UI')) {
+    if (feature.type?.includes('UI')) {
       skills.push('UI/UX design');
     }
 
-    if (feature.type.includes('RENDERING')) {
+    if (feature.type?.includes('RENDERING')) {
       skills.push('Shader programming');
     }
 
     return skills;
   }
 
-  private getRequiredResources(feature: Feature): string[] {
+  private getRequiredResources(_feature: Feature): string[] {
     return ['Bedrock documentation', 'Development environment', 'Testing devices'];
   }
 

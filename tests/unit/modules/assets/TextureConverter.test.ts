@@ -3,10 +3,9 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   TextureConverter,
-  JavaTextureFile,
-  BedrockTextureFile,
   TextureAtlasConfig,
 } from '../../../../src/modules/assets/TextureConverter.js';
+import { JavaTextureFile, BedrockTextureFile } from '../../../../src/types/assets.js';
 
 // Mock the logger
 vi.mock('../../../../src/utils/logger', () => ({
@@ -192,8 +191,10 @@ describe('TextureConverter', () => {
 
       // Check that writeFile was called with the correct arguments for the animation file
       // We need to check the second call to writeFile
-      const writeFileCalls = (fs.writeFile as jest.Mock).mock.calls;
-      const animationFileCall = writeFileCalls.find((call) => call[0].includes('animation.json'));
+      const writeFileCalls = (fs.writeFile as any).mock.calls;
+      const animationFileCall = writeFileCalls.find((call: any[]) =>
+        call[0].includes('animation.json')
+      );
 
       expect(animationFileCall).toBeDefined();
       expect(animationFileCall[0]).toContain('examplemod_lava_flow.animation.json');

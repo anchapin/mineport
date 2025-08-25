@@ -79,7 +79,7 @@ export interface ConversionMetadata {
 export interface OutputFile {
   path: string;
   content: Buffer | string;
-  type: 'texture' | 'model' | 'sound' | 'json' | 'manifest';
+  type: 'texture' | 'model' | 'sound' | 'json' | 'manifest' | 'other';
   originalPath?: string;
 }
 
@@ -232,4 +232,6 @@ export interface RecipeDefinition {
   'minecraft:recipe_shaped'?: any;
   'minecraft:recipe_shapeless'?: any;
   'minecraft:recipe_furnace'?: any;
+  'minecraft:recipe_stonecutter'?: any;
+  'minecraft:recipe_smithing_transform'?: any;
 }

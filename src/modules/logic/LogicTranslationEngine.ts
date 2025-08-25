@@ -15,6 +15,7 @@ import {
   TranslationWarning,
   CompromiseResult,
 } from '../../types/logic-translation.js';
+import { ErrorSeverity } from '../../types/errors.js';
 import { ASTTranspiler } from './ASTTranspiler.js';
 import { LLMTranslator } from './LLMTranslator.js';
 import { ProgramStateValidator } from './ProgramStateValidator.js';
@@ -36,16 +37,16 @@ export class LogicTranslationEngine {
   private options: LogicTranslationEngineOptions;
 
   constructor(
-    astTranspiler: ASTTranspiler,
-    llmTranslator: LLMTranslator,
-    programStateValidator: ProgramStateValidator,
-    mmirParser: MMIRParser,
+    astTranspiler?: ASTTranspiler,
+    llmTranslator?: LLMTranslator,
+    programStateValidator?: ProgramStateValidator,
+    mmirParser?: MMIRParser,
     options: Partial<LogicTranslationEngineOptions> = {}
   ) {
-    this.astTranspiler = astTranspiler;
-    this.llmTranslator = llmTranslator;
-    this.programStateValidator = programStateValidator;
-    this.mmirParser = mmirParser;
+    this.astTranspiler = astTranspiler || ({} as ASTTranspiler);
+    this.llmTranslator = llmTranslator || ({} as LLMTranslator);
+    this.programStateValidator = programStateValidator || ({} as ProgramStateValidator);
+    this.mmirParser = mmirParser || ({} as MMIRParser);
     this.options = {
       maxRefinementIterations: 3,
       confidenceThreshold: 0.8,
@@ -88,8 +89,6 @@ export class LogicTranslationEngine {
       // Step 6: Iteratively refine if needed
       let finalCode = integratedCode;
       let finalValidation = validation;
-      let refinementIterations: RefinementIteration[] = [];
-
       if (!validation.isEquivalent && validation.confidence < this.options.confidenceThreshold) {
         const refinementResult = await this.refineTranslation(
           javaCode,
@@ -99,7 +98,6 @@ export class LogicTranslationEngine {
         );
         finalCode = refinementResult.code;
         finalValidation = refinementResult.validation;
-        refinementIterations = refinementResult.iterations;
       }
 
       // Step 7: Generate metadata and results
@@ -418,8 +416,8 @@ export class LogicTranslationEngine {
    * Generate refinement suggestions based on validation results
    */
   private generateRefinementSuggestions(
-    validation: ValidationResult,
-    context: TranslationContext
+    _validation: ValidationResult,
+    _context: TranslationContext
   ): any[] {
     // This would generate specific code changes based on validation differences
     // For now, return empty array as this is a complex implementation
@@ -431,8 +429,8 @@ export class LogicTranslationEngine {
    */
   private async applyRefinements(
     code: string,
-    suggestions: any[],
-    context: TranslationContext
+    _suggestions: any[],
+    _context: TranslationContext
   ): Promise<string> {
     // This would apply the refinement suggestions to the code
     // For now, return the original code

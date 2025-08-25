@@ -304,8 +304,8 @@ export class APIMapperServiceImpl implements APIMapperService {
     this.database = database || new InMemoryMappingDatabase();
 
     // Load configuration
-    this.cacheEnabled = this.configService.get('apiMapper.cacheEnabled', true);
-    this.cacheMaxSize = this.configService.get('apiMapper.cacheMaxSize', 1000);
+    this.cacheEnabled = this.configService.get('apiMapper.cacheEnabled') ?? true;
+    this.cacheMaxSize = this.configService.get('apiMapper.cacheMaxSize') ?? 1000;
 
     logger.info('APIMapperService initialized', {
       cacheEnabled: this.cacheEnabled,

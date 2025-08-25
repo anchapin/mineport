@@ -28,10 +28,10 @@ export * as ui from './ui';
 export * as conversionAgents from './conversion-agents';
 
 // Re-export main module classes for convenience
-export { IngestionModule } from './ingestion.js';
-export { AssetTranslationModule } from './assets.js';
-export { ConfigurationModule } from './configuration.js';
-export { LogicTranslationEngine } from './logic.js';
-export { CompromiseStrategyEngine } from './compromise.js';
-export { AddonPackager } from './packaging.js';
-export { AssetConverter, BedrockArchitect, BlockItemGenerator } from './conversion-agents.js';
+export { IngestionModule } from './ingestion/index.js';
+export { AssetTranslationModule } from './assets/index.js';
+export { ConfigurationModule } from './configuration/index.js';
+export { LogicTranslationEngine } from './logic/index.js';
+export { CompromiseEngine } from './compromise/index.js';
+export { AddonPackager } from './packaging/index.js';
+export { AssetConverter, BedrockArchitect, BlockItemGenerator } from './conversion-agents/index.js';

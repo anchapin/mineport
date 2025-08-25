@@ -7,6 +7,7 @@ import { LoggingConfig } from '../types/config.js';
 
 /**
  * Setup the logger with enhanced error handling
+ * @returns Configured Winston logger instance
  */
 export function setupLogger() {
   // Handle cases where config might not be available (e.g., in tests)
@@ -137,19 +138,21 @@ export default defaultLogger;
 /**
  * Global error handler for uncaught exceptions
  */
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', { error });
-  // Give logger time to write before exiting
-  setTimeout(() => {
-    process.exit(1);
-  }, 1000);
-});
+if (process.env.NODE_ENV !== 'test') {
+  process.on('uncaughtException', (error) => {
+    defaultLogger.error('Uncaught Exception:', { error });
+    // Give logger time to write before exiting
+    setTimeout(() => {
+      process.exit(1);
+    }, 1000);
+  });
+}
 
 /**
  * Global error handler for unhandled promise rejections
  */
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Promise Rejection:', { reason, promise });
+  defaultLogger.error('Unhandled Promise Rejection:', { reason, promise });
 });
 /**
 
@@ -319,13 +322,28 @@ class EnhancedLogger {
   error(message: string, meta?: any): void {
     this.winston.error(message, meta);
   }
+
+  verbose(message: string, meta?: any): void {
+    this.winston.verbose(message, meta);
+  }
 }
 
 // Create enhanced logger instance
 export const logger = new EnhancedLogger(setupLogger());
 
+// Export Logger type for testing
+export type Logger = EnhancedLogger;
+
 /**
  * Create an enhanced logger for a specific module
+ * @param moduleId - Unique identifier for the module
+ * @param config - Optional logging configuration overrides
+ * @returns Enhanced logger instance for the module
+ * @example
+ * ```typescript
+ * const logger = createEnhancedLogger('USER_SERVICE');
+ * logger.info('User logged in', { userId: '123' });
+ * ```
  */
 export function createEnhancedLogger(
   moduleId: string,

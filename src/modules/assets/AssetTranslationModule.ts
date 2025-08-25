@@ -193,6 +193,7 @@ export class AssetTranslationModule {
         models: modelResult.convertedModels,
         sounds: soundResult.convertedSounds,
         particles: particleResult.convertedParticles,
+        animations: [], // TODO: Add animation conversion
         soundsJson: soundResult.soundsJson,
       };
 
@@ -201,6 +202,7 @@ export class AssetTranslationModule {
       return {
         bedrockAssets,
         conversionNotes,
+        errors: [], // TODO: Collect conversion errors
       };
     } catch (error) {
       // Handle unexpected errors
@@ -240,9 +242,11 @@ export class AssetTranslationModule {
           models: [],
           sounds: [],
           particles: [],
+          animations: [],
           soundsJson: {},
         },
         conversionNotes,
+        errors: [], // TODO: Collect conversion errors
       };
     }
   }
@@ -286,7 +290,7 @@ export class AssetTranslationModule {
       // Organize sounds and write sounds.json
       await this.soundProcessor.organizeSounds(
         bedrockAssets.sounds,
-        bedrockAssets.soundsJson,
+        bedrockAssets.soundsJson || {},
         outputDir
       );
 

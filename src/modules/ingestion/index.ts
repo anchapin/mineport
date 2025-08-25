@@ -26,7 +26,7 @@ import { FileProcessor } from './FileProcessor.js';
 import { SecurityScanner } from './SecurityScanner.js';
 import {
   JavaAnalyzer,
-  AnalysisResult,
+  AnalysisResult as JavaAnalysisResult,
   ManifestInfo,
   Dependency,
   AnalysisNote,
@@ -37,6 +37,7 @@ import {
   ManifestDependency,
   ManifestParseResult,
 } from './ManifestParser.js';
+import path from 'path';
 
 /**
  * ModInput interface.
@@ -96,6 +97,54 @@ export interface FeatureCompatibilityReport {
 }
 
 /**
+ * Compatibility tiers for features
+ */
+export enum CompatibilityTier {
+  FULLY_TRANSLATABLE = 1,
+  APPROXIMATION_POSSIBLE = 2,
+  NATIVELY_IMPOSSIBLE = 3,
+  UNANALYZABLE = 4,
+}
+
+/**
+ * Types of features that can be analyzed
+ */
+export enum FeatureType {
+  BLOCK = 'block',
+  ITEM = 'item',
+  ENTITY = 'entity',
+  RECIPE = 'recipe',
+  LOOT_TABLE = 'loot_table',
+  TEXTURE = 'texture',
+  MODEL = 'model',
+  SOUND = 'sound',
+  LANGUAGE = 'language',
+  BLOCK_ENTITY = 'block_entity',
+  PARTICLE = 'particle',
+  PARTICLE_EFFECT = 'particle_effect', // Add missing PARTICLE_EFFECT
+  GUI = 'gui',
+  HUD = 'hud', // Add missing HUD
+  CONTAINER = 'container', // Add missing CONTAINER
+  COMMAND = 'command', // Add missing COMMAND
+  SCOREBOARD = 'scoreboard', // Add missing SCOREBOARD
+  WORLD_GEN = 'world_gen',
+  WORLD_GENERATION = 'world_generation', // Add missing WORLD_GENERATION
+  DIMENSION = 'dimension',
+  RENDERING = 'rendering',
+  MIXIN = 'mixin',
+  NATIVE = 'native',
+  REFLECTION = 'reflection',
+  ASM = 'asm',
+  OBFUSCATED = 'obfuscated',
+  ASSET = 'asset',
+  CONFIGURATION = 'configuration',
+  API = 'api',
+  BIOME = 'biome', // Add missing BIOME
+  BEHAVIOR = 'behavior', // Add missing BEHAVIOR
+  DOCUMENTATION = 'documentation', // Add missing DOCUMENTATION
+}
+
+/**
  * Feature interface.
  *
  * TODO: Add detailed description of what this interface represents.
@@ -106,10 +155,13 @@ export interface Feature {
   id: string;
   name: string;
   description: string;
+  type?: FeatureType;
   compatibilityTier: 1 | 2 | 3 | 4;
   sourceFiles: string[];
   sourceLineNumbers: number[][];
   compromiseStrategy?: CompromiseStrategy;
+  properties?: Record<string, any>; // Add missing properties field
+  metadata?: Record<string, any>; // Add missing metadata field
 }
 
 /**
@@ -134,7 +186,7 @@ export { LicenseParser, LicenseInfoType as LicenseParseInfo, LicenseParseResult 
 export { FeatureCompatibilityAnalyzer, FeatureAnalysisResult };
 export { FileProcessor };
 export { SecurityScanner };
-export { JavaAnalyzer, AnalysisResult, ManifestInfo, Dependency, AnalysisNote };
+export { JavaAnalyzer, JavaAnalysisResult, ManifestInfo, Dependency, AnalysisNote };
 export { ManifestParser, ParsedManifest, ManifestDependency, ManifestParseResult };
 
 /**
@@ -162,7 +214,7 @@ export class IngestionModule {
    */
   constructor(tempDir?: string) {
     this.modValidator = new ModValidator(tempDir);
-    this.sourceCodeFetcher = new SourceCodeFetcher();
+    this.sourceCodeFetcher = new SourceCodeFetcher(path.join(process.cwd(), 'temp'));
     this.modLoaderDetector = new ModLoaderDetector();
     this.licenseParser = new LicenseParser();
     this.featureAnalyzer = new FeatureCompatibilityAnalyzer();
@@ -208,7 +260,6 @@ export class IngestionModule {
     if (input.sourceCodeRepo) {
       const sourceCodeResult = await this.sourceCodeFetcher.fetchSourceCode({
         repoUrl: input.sourceCodeRepo,
-        modId: validationResult.modInfo?.modId || '',
       });
 
       /**
@@ -221,7 +272,7 @@ export class IngestionModule {
        * @since 1.0.0
        */
       if (sourceCodeResult.success) {
-        sourceCodePath = sourceCodeResult.sourcePath;
+        sourceCodePath = sourceCodeResult.extractedPath;
       }
     }
 

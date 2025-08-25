@@ -1,34 +1,11 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('TextureConverter');
 
-/**
- * Interface representing a texture file in Java format
- */
-export interface JavaTextureFile {
-  path: string;
-  data: Buffer;
-  metadata?: {
-    animated?: boolean;
-    frameTime?: number;
-    frames?: number[];
-  };
-}
-
-/**
- * Interface representing a texture file in Bedrock format
- */
-export interface BedrockTextureFile {
-  path: string;
-  data: Buffer;
-  metadata?: {
-    animated?: boolean;
-    frameTime?: number;
-    frames?: number[];
-  };
-}
+import { JavaTextureFile, BedrockTextureFile } from '../../types/assets.js';
 
 /**
  * Interface for texture atlas configuration
@@ -52,7 +29,7 @@ export interface TextureConversionResult {
  * Interface for texture conversion notes/warnings
  */
 export interface TextureConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   texturePath?: string;
 }
@@ -90,7 +67,7 @@ export class TextureConverter {
       } catch (error) {
         logger.error(`Failed to convert texture ${javaTexture.path}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert texture: ${error instanceof Error ? error.message : String(error)}`,
           texturePath: javaTexture.path,
         });

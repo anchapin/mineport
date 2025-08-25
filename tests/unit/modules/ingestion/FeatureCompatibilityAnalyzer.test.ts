@@ -195,7 +195,7 @@ describe('FeatureCompatibilityAnalyzer', () => {
     const result = await featureCompatibilityAnalyzer.analyze('/tmp/mod');
 
     // Check result
-    expect(result.error).toBeDefined();
+    expect(result.errors).toBeDefined();
     expect(result.features).toHaveLength(0);
   });
 
