@@ -238,6 +238,17 @@ export class MonitoringService extends EventEmitter {
 
   /**
    * Get metrics summary for a time range
+   * @param startTime - Start of the time range to analyze
+   * @param endTime - End of the time range to analyze
+   * @returns Aggregated metrics summary for the specified time range
+   * @example
+   * ```typescript
+   * const summary = monitoringService.getMetricsSummary(
+   *   new Date(Date.now() - 24*60*60*1000), // Last 24 hours
+   *   new Date()
+   * );
+   * console.log(`Security threats: ${summary.security.threatsDetected}`);
+   * ```
    */
   getMetricsSummary(startTime: Date, endTime: Date): MetricsSummary {
     const filteredMetrics = this.metrics.filter(
@@ -268,6 +279,7 @@ export class MonitoringService extends EventEmitter {
 
   /**
    * Get all active alerts
+   * @returns Array of unresolved alerts
    */
   getActiveAlerts(): Alert[] {
     return this.alerts.filter((alert) => !alert.resolved);
@@ -275,6 +287,8 @@ export class MonitoringService extends EventEmitter {
 
   /**
    * Resolve an alert
+   * @param alertId - Unique identifier of the alert to resolve
+   * @returns True if the alert was found and resolved, false otherwise
    */
   resolveAlert(alertId: string): boolean {
     const alert = this.alerts.find((a) => a.id === alertId);
@@ -289,6 +303,7 @@ export class MonitoringService extends EventEmitter {
 
   /**
    * Add or update an alert rule
+   * @param rule - Alert rule configuration to set
    */
   setAlertRule(rule: AlertRule): void {
     this.alertRules.set(rule.id, rule);
@@ -297,6 +312,8 @@ export class MonitoringService extends EventEmitter {
 
   /**
    * Remove an alert rule
+   * @param ruleId - Unique identifier of the rule to remove
+   * @returns True if the rule was found and removed, false otherwise
    */
   removeAlertRule(ruleId: string): boolean {
     const removed = this.alertRules.delete(ruleId);
@@ -308,6 +325,7 @@ export class MonitoringService extends EventEmitter {
 
   /**
    * Get health status of all components
+   * @returns Record mapping component names to their current health status
    */
   getHealthStatus(): Record<string, string> {
     const recentHealthMetrics = this.metrics
@@ -334,6 +352,11 @@ export class MonitoringService extends EventEmitter {
 
   /**
    * Clean up old metrics
+   * @example
+   * ```typescript
+   * // Clean up metrics older than retention period
+   * monitoringService.cleanupOldMetrics();
+   * ```
    */
   cleanupOldMetrics(): void {
     const cutoffTime = new Date(Date.now() - this.metricsRetentionPeriod);

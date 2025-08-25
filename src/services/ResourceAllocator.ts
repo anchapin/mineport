@@ -97,6 +97,7 @@ export class ResourcePool<T> {
 
   /**
    * Acquire a resource from the pool
+   * @returns Promise resolving to resource wrapper with release function
    */
   async acquire(): Promise<{ id: string; resource: T; release: () => Promise<void> }> {
     // Try to find an idle resource
@@ -263,6 +264,7 @@ export class ResourcePool<T> {
 
   /**
    * Get current metrics
+   * @returns Copy of current resource pool metrics
    */
   getMetrics(): ResourceMetrics {
     return { ...this.metrics };
@@ -270,6 +272,7 @@ export class ResourcePool<T> {
 
   /**
    * Destroy the pool and all resources
+   * @returns Promise that resolves when all resources are destroyed
    */
   async destroy(): Promise<void> {
     if (this.cleanupTimer) {
@@ -306,6 +309,8 @@ export class TempFileManager {
 
   /**
    * Create a temporary file
+   * @param options - Configuration options for the temporary file
+   * @returns Promise resolving to file path and cleanup function
    */
   async createTempFile(
     options: TempFileOptions = {}
@@ -337,6 +342,17 @@ export class TempFileManager {
 
   /**
    * Create a temporary directory
+   * @param options - Configuration options for the temporary directory
+   * @returns Promise resolving to directory path and cleanup function
+   * @example
+   * ```typescript
+   * const { path, cleanup } = await tempManager.createTempDirectory({
+   *   prefix: 'mod_extraction',
+   *   maxAge: 3600000 // 1 hour
+   * });
+   * // Use directory...
+   * await cleanup();
+   * ```
    */
   async createTempDirectory(
     options: TempFileOptions = {}
@@ -416,6 +432,11 @@ export class TempFileManager {
 
   /**
    * Get current temporary files count
+   * @returns Number of active temporary files being managed
+   * @example
+   * ```typescript
+   * console.log(`Managing ${tempManager.getTempFilesCount()} temp files`);
+   * ```
    */
   getTempFilesCount(): number {
     return this.tempFiles.size;
@@ -423,6 +444,7 @@ export class TempFileManager {
 
   /**
    * Clean up all temporary files and destroy manager
+   * @returns Promise that resolves when all temp files are cleaned up
    */
   async destroy(): Promise<void> {
     if (this.cleanupTimer) {
@@ -602,6 +624,12 @@ export class ResourceAllocator {
 
   /**
    * Get temp file manager
+   * @returns The temporary file manager instance
+   * @example
+   * ```typescript
+   * const tempManager = allocator.getTempFileManager();
+   * const { path } = await tempManager.createTempFile({ prefix: 'mod' });
+   * ```
    */
   getTempFileManager(): TempFileManager {
     return this.tempFileManager;
@@ -609,6 +637,7 @@ export class ResourceAllocator {
 
   /**
    * Get metrics for all pools
+   * @returns Record mapping pool names to their metrics
    */
   getAllMetrics(): Record<string, ResourceMetrics> {
     const metrics: Record<string, ResourceMetrics> = {};
@@ -620,6 +649,8 @@ export class ResourceAllocator {
 
   /**
    * Allocate resources
+   * @param request - Resource allocation request with memory, CPU, and storage requirements
+   * @returns Resource allocation object with unique ID
    */
   allocate(request: ResourceRequest): ResourceAllocation {
     const currentUsage = this.getCurrentUsage();
@@ -648,6 +679,7 @@ export class ResourceAllocator {
 
   /**
    * Release allocated resources
+   * @param allocationId - Unique identifier of the allocation to release
    */
   release(allocationId: string): void {
     this.allocations.delete(allocationId);
@@ -655,6 +687,7 @@ export class ResourceAllocator {
 
   /**
    * Get current resource usage
+   * @returns Current resource usage across all allocations
    */
   getCurrentUsage(): ResourceUsage {
     let memory = 0;
