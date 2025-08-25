@@ -544,12 +544,18 @@ export interface SourceLocation {
 
   /** Ending column number */
   endColumn?: number;
+
+  /** Line number (alias for startLine) */
+  line: number;
+
+  /** Column number (alias for startColumn) */
+  column: number;
 }
 
 /**
  * Logic conversion note
  */
-export interface LogicConversionNote {
+export interface ModuleLogicConversionNote {
   /** Type/severity of the note */
   type: 'info' | 'warning' | 'error' | 'critical';
 

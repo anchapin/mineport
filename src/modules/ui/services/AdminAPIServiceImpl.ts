@@ -637,7 +637,7 @@ export class AdminAPIServiceImpl implements AdminAPIService {
      * @since 1.0.0
      */
     if (filter?.createdAfter) {
-      filteredJobs = filteredJobs.filter((job) => job.createdAt >= filter.createdAfter);
+      filteredJobs = filteredJobs.filter((job) => job.createdAt >= filter.createdAfter!);
     }
 
     /**
@@ -650,7 +650,7 @@ export class AdminAPIServiceImpl implements AdminAPIService {
      * @since 1.0.0
      */
     if (filter?.createdBefore) {
-      filteredJobs = filteredJobs.filter((job) => job.createdAt <= filter.createdBefore);
+      filteredJobs = filteredJobs.filter((job) => job.createdAt <= filter.createdBefore!);
     }
 
     return filteredJobs;

@@ -176,7 +176,7 @@ describe('AddonValidator', () => {
     });
 
     const result = await addonValidator.validateAddon(mockAddonPaths);
-    
+
     // Debug output
     console.log('Validation result errors:', result.errors);
 
@@ -233,7 +233,7 @@ describe('AddonValidator', () => {
             },
           ],
           // Empty dependencies array - should trigger missing dependency error
-          dependencies: []
+          dependencies: [],
         });
       }
       if (normalizedPath === '/test/resource_pack/manifest.json') {
@@ -265,13 +265,15 @@ describe('AddonValidator', () => {
 
     // Check if it detected missing dependency
     const missingDependencyError = result.errors.find(
-      (error) => error.type === 'manifest' && error.message.includes('dependency on the resource pack')
+      (error) =>
+        error.type === 'manifest' && error.message.includes('dependency on the resource pack')
     );
     expect(missingDependencyError).toBeDefined();
 
     // Check if it detected version mismatch
     const versionMismatchError = result.errors.find(
-      (error) => error.type === 'manifest' && error.message.includes('does not match resource pack version')
+      (error) =>
+        error.type === 'manifest' && error.message.includes('does not match resource pack version')
     );
     expect(versionMismatchError).toBeUndefined(); // No version mismatch in this test
   });

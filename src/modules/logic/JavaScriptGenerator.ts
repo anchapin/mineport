@@ -276,7 +276,9 @@ export class JavaScriptGenerator {
         const specifiers = (node.specifiers || [])
           .map((spec) => this.generateNodeCode(spec, 0, indent, options))
           .join(', ');
-        const source = node.source ? this.generateNodeCode(node.source, 0, indent, options) : '"unknown"';
+        const source = node.source
+          ? this.generateNodeCode(node.source, 0, indent, options)
+          : '"unknown"';
         return `${currentIndent}import ${specifiers} from ${source}${semicolon}`;
       }
 
@@ -301,7 +303,9 @@ export class JavaScriptGenerator {
         } else {
           body = '{}';
         }
-        const functionName = node.id ? this.generateNodeCode(node.id, 0, indent, options) : 'anonymous';
+        const functionName = node.id
+          ? this.generateNodeCode(node.id, 0, indent, options)
+          : 'anonymous';
         return `${currentIndent}function ${functionName}(${params}) ${body}`;
       }
 
@@ -313,23 +317,29 @@ export class JavaScriptGenerator {
       }
 
       case 'ExpressionStatement':
-        const expression = node.expression ? this.generateNodeCode(node.expression, 0, indent, options) : '/* empty */';
+        const expression = node.expression
+          ? this.generateNodeCode(node.expression, 0, indent, options)
+          : '/* empty */';
         return `${currentIndent}${expression}${semicolon}`;
 
       case 'CallExpression': {
         const args = (node.arguments || [])
           .map((arg) => this.generateNodeCode(arg, 0, indent, options))
           .join(', ');
-        const callee = node.callee ? this.generateNodeCode(node.callee, 0, indent, options) : 'unknown';
+        const callee = node.callee
+          ? this.generateNodeCode(node.callee, 0, indent, options)
+          : 'unknown';
         return `${callee}(${args})`;
       }
 
       case 'MemberExpression': {
-        const object = node.object ? this.generateNodeCode(node.object, 0, indent, options) : 'unknown';
-        const property = node.property ? 
-          (node.computed
+        const object = node.object
+          ? this.generateNodeCode(node.object, 0, indent, options)
+          : 'unknown';
+        const property = node.property
+          ? node.computed
             ? `[${this.generateNodeCode(node.property, 0, indent, options)}]`
-            : `.${this.generateNodeCode(node.property, 0, indent, options)}`)
+            : `.${this.generateNodeCode(node.property, 0, indent, options)}`
           : '.unknown';
         return `${object}${property}`;
       }
@@ -382,18 +392,22 @@ export class JavaScriptGenerator {
       }
 
       case 'Property': {
-        const key = node.key ? 
-          (node.computed
+        const key = node.key
+          ? node.computed
             ? `[${this.generateNodeCode(node.key, 0, indent, options)}]`
-            : this.generateNodeCode(node.key, 0, indent, options))
+            : this.generateNodeCode(node.key, 0, indent, options)
           : 'unknown';
-        const value = node.value ? this.generateNodeCode(node.value, 0, indent, options) : 'undefined';
+        const value = node.value
+          ? this.generateNodeCode(node.value, 0, indent, options)
+          : 'undefined';
         return `${key}: ${value}`;
       }
 
       case 'ClassDeclaration': {
-        const className = node.id ? this.generateNodeCode(node.id, 0, indent, options) : 'UnknownClass';
-        // Handle body properly - if it's an array, wrap appropriately  
+        const className = node.id
+          ? this.generateNodeCode(node.id, 0, indent, options)
+          : 'UnknownClass';
+        // Handle body properly - if it's an array, wrap appropriately
         let classBody: string;
         if (node.body) {
           if (Array.isArray(node.body)) {
@@ -424,7 +438,9 @@ export class JavaScriptGenerator {
       }
 
       case 'MethodDefinition': {
-        const methodKey = node.key ? this.generateNodeCode(node.key, 0, indent, options) : 'unknownMethod';
+        const methodKey = node.key
+          ? this.generateNodeCode(node.key, 0, indent, options)
+          : 'unknownMethod';
         // Handle value properly - if it's an array, wrap appropriately
         let methodValue: string;
         if (node.value) {

@@ -215,7 +215,7 @@ export class ConversionPipeline {
         logger.error('Mod validation failed', { errors: validationResult.errors });
 
         // Add validation errors to the collector
-        validationResult.errors.forEach((error) => {
+        validationResult.errors?.forEach((error) => {
           ErrorHandler.validationError(
             error.message,
             'ModValidator',
@@ -229,7 +229,7 @@ export class ConversionPipeline {
              * @returns result - TODO: Document return value
              * @since 1.0.0
              */
-            createErrorCode('INGEST', 'VAL', validationResult.errors.indexOf(error) + 1)
+            createErrorCode('INGEST', 'VAL', (validationResult.errors?.indexOf(error) || 0) + 1)
           );
         });
 

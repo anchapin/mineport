@@ -1339,6 +1339,7 @@ ${jsCode}
             timestamp: 5,
             functionName: 'exampleMethod',
             lineNumber: 15,
+            variables: new Map([['returnValue', 'result']]),
             returnValue: 'result',
             callStack: ['exampleMethod', 'main'],
           },
@@ -1358,7 +1359,7 @@ ${jsCode}
             functionName: 'exampleMethod',
             lineNumber: 5,
             variables: new Map([
-              ['param1', 42],
+              ['param1', '42'],
               ['param2', 'test'],
             ]),
             callStack: ['exampleMethod', 'global'],
@@ -1367,6 +1368,7 @@ ${jsCode}
             timestamp: 3,
             functionName: 'exampleMethod',
             lineNumber: 8,
+            variables: new Map([['returnValue', 'result']]),
             returnValue: 'result',
             callStack: ['exampleMethod', 'global'],
           },
@@ -1445,7 +1447,6 @@ ${refinedCode}
       ],
       metadata: {
         ...originalTranslation.metadata,
-        refinementApplied: true,
       },
     };
   }

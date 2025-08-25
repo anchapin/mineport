@@ -12,7 +12,7 @@ const mockOptions = {
   enableSemanticAnalysis: true,
   enableBehaviorAnalysis: true,
   confidenceThreshold: 0.8,
-  timeoutMs: 5000
+  timeoutMs: 5000,
 };
 
 vi.mock('../../../../src/utils/logger.js', async () => {
@@ -137,7 +137,7 @@ describe('ProgramStateValidator', () => {
         diff.description.includes('method2')
       );
       expect(missingMethodDiff).toBeDefined();
-      expect(missingMethodDiff?.severity).toBe('error');
+      expect(missingMethodDiff?.severity).toBe('critical');
     });
 
     it('should detect complexity differences', async () => {
@@ -173,7 +173,7 @@ describe('ProgramStateValidator', () => {
         diff.description.includes('complexity difference')
       );
       expect(complexityDiff).toBeDefined();
-      expect(complexityDiff?.severity).toBe('warning');
+      expect(complexityDiff?.severity).toBe('medium');
     });
 
     it('should detect async/sync behavior differences', async () => {
@@ -203,7 +203,7 @@ describe('ProgramStateValidator', () => {
         diff.description.includes('Asynchronous behavior')
       );
       expect(asyncDiff).toBeDefined();
-      expect(asyncDiff?.severity).toBe('warning');
+      expect(asyncDiff?.severity).toBe('medium');
     });
 
     it('should detect missing error handling', async () => {
@@ -239,22 +239,26 @@ describe('ProgramStateValidator', () => {
         diff.description.includes('exception handling')
       );
       expect(errorHandlingDiff).toBeDefined();
-      expect(errorHandlingDiff?.severity).toBe('warning');
+      expect(errorHandlingDiff?.severity).toBe('medium');
     });
 
     it('should handle validation timeout', async () => {
       const validator = new ProgramStateValidator({
         ...mockOptions,
-        timeoutMs: 1 // Very short timeout
+        timeoutMs: 1, // Very short timeout
       });
-      
+
       // Create a test case that would take longer than the timeout
       const testCase: any = {
         code: 'test code that causes timeout',
-        expected: 'expected result'
+        expected: 'expected result',
       };
 
-      const result = await validator.validate(testCase.code || '', testCase.expected || '', mockContext);
+      const result = await validator.validate(
+        testCase.code || '',
+        testCase.expected || '',
+        mockContext
+      );
       expect(result.isEquivalent).toBe(false);
       expect(result.differences[0].type).toBe('behavior');
       // Just check that there's some error message
@@ -266,7 +270,7 @@ describe('ProgramStateValidator', () => {
       const differences: any = [
         { type: 'structure', severity: 'low', description: 'Minor structure difference' },
         { type: 'behavior', severity: 'high', description: 'Critical behavior difference' },
-        { type: 'api', severity: 'medium', description: 'API mapping difference' }
+        { type: 'api', severity: 'medium', description: 'API mapping difference' },
       ];
 
       const prioritized = validator['prioritizeDifferences'](differences);
@@ -279,20 +283,20 @@ describe('ProgramStateValidator', () => {
       const validator = new ProgramStateValidator(mockOptions);
       const differences: any = [
         { type: 'structure', severity: 'high', description: 'Structure mismatch' },
-        { type: 'behavior', severity: 'medium', description: 'Async behavior difference' }
+        { type: 'behavior', severity: 'medium', description: 'Async behavior difference' },
       ];
-      
+
       const metrics: any = {
         structuralSimilarity: 0.7,
         semanticSimilarity: 0.95,
         behavioralSimilarity: 0.75,
-        apiCompatibility: 0.98
+        apiCompatibility: 0.98,
       };
-      
+
       const context: any = {
         userPreferences: {
-          compromiseLevel: 'minimal'
-        }
+          compromiseLevel: 'minimal',
+        },
       };
 
       const recommendations = validator['generateRecommendations'](differences, metrics, context);
@@ -308,20 +312,20 @@ describe('ProgramStateValidator', () => {
       const differences: any = [
         { type: 'structure', severity: 'high', description: 'Structure mismatch' },
         { type: 'behavior', severity: 'medium', description: 'Behavior difference' },
-        { type: 'api', severity: 'low', description: 'API mapping difference' }
+        { type: 'api', severity: 'low', description: 'API mapping difference' },
       ];
-      
+
       // Based on the calculateOverallConfidence implementation:
       // weights = { structural: 0.2, semantic: 0.3, behavioral: 0.4, api: 0.1 }
       // For a simple test, we'll create a mock metrics object with values that result in 0.75
       const metrics: any = {
-        structuralSimilarity: 0.5,   // 0.5 * 0.2 = 0.1
-        semanticSimilarity: 0.5,     // 0.5 * 0.3 = 0.15
-        behavioralSimilarity: 1.0,   // 1.0 * 0.4 = 0.4
-        apiCompatibility: 0.5        // 0.5 * 0.1 = 0.05
+        structuralSimilarity: 0.5, // 0.5 * 0.2 = 0.1
+        semanticSimilarity: 0.5, // 0.5 * 0.3 = 0.15
+        behavioralSimilarity: 1.0, // 1.0 * 0.4 = 0.4
+        apiCompatibility: 0.5, // 0.5 * 0.1 = 0.05
         // Total = 0.1 + 0.15 + 0.4 + 0.05 = 0.7
       };
-      
+
       const confidence = validator['calculateOverallConfidence'](metrics);
       expect(confidence).toBeCloseTo(0.7, 2); // Adjusting expectation to match actual calculation
     });
@@ -339,37 +343,37 @@ describe('ProgramStateValidator', () => {
     it('should approve translations above the confidence threshold', async () => {
       const validator = new ProgramStateValidator({
         ...mockOptions,
-        confidenceThreshold: 0.8
+        confidenceThreshold: 0.8,
       });
 
       // Mock analyzers to produce high confidence with no critical differences
       const staticSpy = vi.spyOn(validator['staticAnalyzer'], 'analyze').mockResolvedValue({
         differences: [], // No differences at all
         structuralSimilarity: 0.95,
-        recommendations: [] // Add missing recommendations property
+        recommendations: [], // Add missing recommendations property
       });
 
       const semanticSpy = vi.spyOn(validator['semanticAnalyzer'], 'analyze').mockResolvedValue({
         differences: [],
         semanticSimilarity: 0.95,
-        recommendations: [] // Add missing recommendations property
+        recommendations: [], // Add missing recommendations property
       });
 
       const behaviorSpy = vi.spyOn(validator['behaviorAnalyzer'], 'analyze').mockResolvedValue({
         differences: [],
         behavioralSimilarity: 0.95,
-        recommendations: [] // Add missing recommendations property
+        recommendations: [], // Add missing recommendations property
       });
 
       const testCase: any = {
         code: 'simple Java code',
-        expected: 'simple TypeScript code'
+        expected: 'simple TypeScript code',
       };
 
       const context: any = {
         userPreferences: {
-          compromiseLevel: 'moderate'
-        }
+          compromiseLevel: 'moderate',
+        },
       }; // Provide proper context
 
       const result = await validator.validate(testCase.code, testCase.expected, mockContext);
@@ -387,21 +391,28 @@ describe('ProgramStateValidator', () => {
 
       // Mock analyzers to produce low confidence
       vi.spyOn(validator['staticAnalyzer'], 'analyze').mockResolvedValue({
-        differences: [{ type: 'behavior', severity: 'high', description: 'High complexity', location: { line: 1, column: 1, offset: 0 } }],
+        differences: [
+          {
+            type: 'behavior',
+            severity: 'high',
+            description: 'High complexity',
+            location: { line: 1, column: 1, offset: 0 },
+          },
+        ],
         structuralSimilarity: 0.7,
-        recommendations: []
+        recommendations: [],
       });
 
       vi.spyOn(validator['semanticAnalyzer'], 'analyze').mockResolvedValue({
         differences: [],
         semanticSimilarity: 0.8,
-        recommendations: [] // Add missing recommendations property
+        recommendations: [], // Add missing recommendations property
       });
 
       vi.spyOn(validator['behaviorAnalyzer'], 'analyze').mockResolvedValue({
         differences: [],
         behavioralSimilarity: 0.85,
-        recommendations: [] // Add missing recommendations property
+        recommendations: [], // Add missing recommendations property
       });
 
       const result = await validator.validate(testCase.code, testCase.expected, mockContext);
@@ -416,7 +427,7 @@ describe('ProgramStateValidator', () => {
         ...mockOptions,
         enableStaticAnalysis: false,
         enableSemanticAnalysis: true,
-        enableBehaviorAnalysis: false
+        enableBehaviorAnalysis: false,
       });
 
       const staticSpy = vi.spyOn(validator['staticAnalyzer'], 'analyze');
@@ -425,7 +436,7 @@ describe('ProgramStateValidator', () => {
 
       const testCase: any = {
         code: 'test code',
-        expected: 'expected code'
+        expected: 'expected code',
       };
 
       const context: any = {};
@@ -442,22 +453,22 @@ describe('ProgramStateValidator', () => {
     it('should provide context-specific recommendations for Java', () => {
       const validator = new ProgramStateValidator(mockOptions);
       const differences: any = [
-        { type: 'api', severity: 'high', description: 'API mapping difference' }
+        { type: 'api', severity: 'high', description: 'API mapping difference' },
       ];
-      
+
       const metrics: any = {
         structuralSimilarity: 0.9,
         semanticSimilarity: 0.85,
         behavioralSimilarity: 0.92,
-        apiCompatibility: 0.7
+        apiCompatibility: 0.7,
       };
-      
+
       const context: any = {
         sourceLanguage: 'java',
         targetLanguage: 'typescript',
         userPreferences: {
-          compromiseLevel: 'minimal'
-        }
+          compromiseLevel: 'minimal',
+        },
       };
 
       const recommendations = validator['generateRecommendations'](differences, metrics, context);
@@ -468,22 +479,22 @@ describe('ProgramStateValidator', () => {
     it('should provide context-specific recommendations for TypeScript', () => {
       const validator = new ProgramStateValidator(mockOptions);
       const differences: any = [
-        { type: 'api', severity: 'high', description: 'API mapping difference' }
+        { type: 'api', severity: 'high', description: 'API mapping difference' },
       ];
-      
+
       const metrics: any = {
         structuralSimilarity: 0.9,
         semanticSimilarity: 0.85,
         behavioralSimilarity: 0.92,
-        apiCompatibility: 0.7
+        apiCompatibility: 0.7,
       };
-      
+
       const context: any = {
         sourceLanguage: 'typescript',
         targetLanguage: 'java',
         userPreferences: {
-          compromiseLevel: 'minimal'
-        }
+          compromiseLevel: 'minimal',
+        },
       };
 
       const recommendations = validator['generateRecommendations'](differences, metrics, context);

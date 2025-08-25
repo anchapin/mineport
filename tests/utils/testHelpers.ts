@@ -145,7 +145,6 @@ export function mockUnzipper(fileStructure: Record<string, string>): void {
   });
 }
 
-
 /**
  * Creates a mock for the LLM API client
  */

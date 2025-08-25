@@ -833,7 +833,7 @@ export class FabricModParser extends ModLoaderParser {
    */
   private extractSourceLocation(
     node: JavaASTNode,
-    _sourceFile: string
+    sourceFile: string
   ): MMIRNode['sourceLocation'] | undefined {
     /**
      * if method.
@@ -972,8 +972,8 @@ export class MMIRGenerator {
     this.createNodeRelationships(allNodes, allRelationships);
 
     return {
-      nodes: allNodes,
-      relationships: allRelationships,
+      _nodes: allNodes,
+      _relationships: allRelationships,
       metadata: fullMetadata,
     };
   }

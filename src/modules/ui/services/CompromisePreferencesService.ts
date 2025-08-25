@@ -8,7 +8,7 @@ import {
   FeatureType,
   CompromiseStrategy as CoreCompromiseStrategy,
 } from '../../../types/compromise.js';
-import { UserPreferences, CompromiseStrategy as UICompromiseStrategy } from '../types.js';
+import { UserPreferences, CompromiseStrategy as UICompromiseStrategy } from '../types';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('CompromisePreferencesService');

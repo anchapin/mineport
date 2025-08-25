@@ -454,7 +454,9 @@ describe('ModelConverter', () => {
 
       // Check that writeFile was called with the correct arguments for the material file
       const writeFileCalls = (fs.writeFile as any).mock.calls;
-      const materialFileCall = writeFileCalls.find((call: any[]) => call[0].includes('material.json'));
+      const materialFileCall = writeFileCalls.find((call: any[]) =>
+        call[0].includes('material.json')
+      );
 
       expect(materialFileCall).toBeDefined();
       expect(materialFileCall[0]).toContain('examplemod_material_block.material.json');

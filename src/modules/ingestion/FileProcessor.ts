@@ -114,7 +114,10 @@ export class FileProcessor {
               errors.push({
                 code: `SECURITY_${threat.type.toUpperCase()}`,
                 message: threat.description,
-                severity: threat.severity === ErrorSeverity.CRITICAL ? ErrorSeverity.CRITICAL : ErrorSeverity.ERROR,
+                severity:
+                  threat.severity === ErrorSeverity.CRITICAL
+                    ? ErrorSeverity.CRITICAL
+                    : ErrorSeverity.ERROR,
                 details: { threat, scanId: securityResult.scanId },
               });
             }

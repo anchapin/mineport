@@ -129,7 +129,7 @@ describe('ModPorter-AI Security Tests', () => {
       const result = await securityScanner.scanFile(tempFile);
 
       expect(result.isSafe).toBe(true);
-      expect(result.threats.filter((t) => t.type === 'path_traversal')).toHaveLength(0);
+      expect(result.threats.filter((t: any) => t.type === 'path_traversal')).toHaveLength(0);
     });
   });
 
@@ -187,7 +187,7 @@ describe('ModPorter-AI Security Tests', () => {
 
       const result = await securityScanner.scanFile(tempFile);
 
-      expect(result.threats.some((t) => t.type === 'malicious_code')).toBe(true);
+      expect(result.threats.some((t: any) => t.type === 'malicious_code')).toBe(true);
       expect(result.isSafe).toBe(false);
     });
 
@@ -215,7 +215,7 @@ describe('ModPorter-AI Security Tests', () => {
       const result = await securityScanner.scanFile(tempFile);
 
       expect(result.isSafe).toBe(true);
-      expect(result.threats.filter((t) => t.type === 'malicious_code')).toHaveLength(0);
+      expect(result.threats.filter((t: any) => t.type === 'malicious_code')).toHaveLength(0);
     });
   });
 
@@ -309,7 +309,7 @@ describe('ModPorter-AI Security Tests', () => {
       const results = await Promise.all(promises);
 
       expect(results).toHaveLength(5);
-      results.forEach((result) => {
+      results.forEach((result: any) => {
         expect(result).toHaveProperty('isSafe');
         expect(result).toHaveProperty('threats');
         expect(result).toHaveProperty('scanTime');

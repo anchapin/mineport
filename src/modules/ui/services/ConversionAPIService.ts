@@ -6,7 +6,7 @@
  */
 
 import { ConversionError } from '../../../types/errors.js';
-import { ConversionProgress } from '../types.js';
+import { ConversionProgress } from '../types';
 
 /**
  * Input for starting a conversion

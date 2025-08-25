@@ -115,6 +115,31 @@ export class SecurityScanner {
   }
 
   /**
+   * Scan a file by path for security threats
+   */
+  async scanFile(filePath: string): Promise<SecurityScanResult> {
+    const fs = require('fs').promises;
+    try {
+      const fileBuffer = await fs.readFile(filePath);
+      const filename = require('path').basename(filePath);
+      return await this.scanBuffer(fileBuffer, filename);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown file read error';
+      return {
+        isSafe: false,
+        threats: [{
+          type: 'suspicious_pattern',
+          description: `Failed to read file: ${errorMessage}`,
+          severity: ErrorSeverity.ERROR,
+          details: { suspiciousFiles: [filePath] }
+        }],
+        scanTime: 0,
+        scanId: crypto.randomUUID(),
+      };
+    }
+  }
+
+  /**
    * Perform all security checks on the temporary file
    */
   private async performSecurityChecks(
@@ -233,7 +258,8 @@ export class SecurityScanner {
         });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown archive analysis error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown archive analysis error';
       threats.push({
         type: 'path_traversal',
         description: `Unable to analyze archive paths: ${errorMessage}`,
@@ -306,7 +332,8 @@ export class SecurityScanner {
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown malicious pattern scan error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown malicious pattern scan error';
       threats.push({
         type: 'suspicious_pattern',
         description: `Unable to scan for malicious patterns: ${errorMessage}`,

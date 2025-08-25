@@ -1464,8 +1464,8 @@ export class AddonValidator {
          * @since 1.0.0
          */
         if (Array.isArray(manifest.header.version)) {
-          manifest.header.version = manifest.header.version.map((v) => {
-            const num = parseInt(v);
+          manifest.header.version = manifest.header.version.map((v: number) => {
+            const num = parseInt(v.toString());
             return isNaN(num) ? 0 : num;
           });
         }

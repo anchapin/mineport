@@ -473,7 +473,10 @@ export class AlertingService extends EventEmitter {
   ): Promise<void> {
     const { level = 'warn' } = action.config;
 
-    logger[level as keyof typeof logger]('Alert triggered', {
+    const validLevels = ['error', 'warn', 'info', 'debug'] as const;
+    const logLevel = validLevels.includes(level as any) ? level : 'warn';
+    
+    logger[logLevel as keyof typeof logger]('Alert triggered', {
       alertId: alert.id,
       type: alert.type,
       severity: alert.severity,

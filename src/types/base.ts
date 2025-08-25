@@ -65,6 +65,10 @@ export interface SourceLocation {
   startColumn: number;
   endLine: number;
   endColumn: number;
+  /** Line number (alias for startLine) */
+  line: number;
+  /** Column number (alias for startColumn) */
+  column: number;
 }
 
 /**

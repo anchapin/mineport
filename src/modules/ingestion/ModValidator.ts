@@ -179,6 +179,30 @@ export class ModValidator {
   }
 
   /**
+   * Alias for validateMod for test compatibility
+   * @param jarFile Buffer containing the .jar file
+   * @param filename Original filename for context
+   * @returns Enhanced ModValidationResult with security and analysis information
+   */
+  async validate(jarFile: Buffer, filename?: string): Promise<ModValidationResult> {
+    return this.validateMod(jarFile, filename);
+  }
+
+  /**
+   * Extract and validate a mod file
+   * @param jarFile Buffer containing the .jar file
+   * @param modName Optional mod name for context
+   * @returns Promise resolving to extracted mod path
+   */
+  async extractMod(jarFile: Buffer, modName?: string): Promise<string> {
+    const result = await this.validateMod(jarFile, modName);
+    if (!result.isValid || !result.extractedPath) {
+      throw new Error(`Mod extraction failed: ${result.errors?.join(', ')}`);
+    }
+    return result.extractedPath;
+  }
+
+  /**
    * Checks if the file is a valid JAR archive
    * @param jarPath Path to the JAR file
    * @returns boolean indicating if it's a valid JAR

@@ -262,9 +262,7 @@ export class ProgramStateValidator {
     }
 
     // Check for too many high-severity differences
-    const highSeverityDifferences = differences.filter(
-      (diff) => diff.severity === 'critical'
-    );
+    const highSeverityDifferences = differences.filter((diff) => diff.severity === 'critical');
     if (highSeverityDifferences.length > 3) {
       return false;
     }
@@ -412,7 +410,7 @@ class StaticAnalyzer {
       differences.push({
         type: 'logic',
         description: `Significant complexity difference (Java: ${javaStructure.complexity}, JS: ${jsStructure.complexity})`,
-        severity: ErrorSeverity.WARNING,
+        severity: 'medium',
         location: { line: 0, column: 0, offset: 0 },
         suggestion: 'Review code complexity and ensure equivalent logic',
       });
@@ -908,7 +906,7 @@ class BehaviorAnalyzer {
       differences.push({
         type: 'behavior',
         description: 'Asynchronous behavior patterns differ between Java and JavaScript versions',
-        severity: ErrorSeverity.WARNING,
+        severity: 'medium',
         location: { line: 0, column: 0, offset: 0 },
         suggestion: 'Ensure consistent async/sync behavior patterns',
       });
@@ -922,7 +920,7 @@ class BehaviorAnalyzer {
       differences.push({
         type: 'behavior',
         description: 'Java code has exception handling that may not be present in JavaScript',
-        severity: ErrorSeverity.WARNING,
+        severity: 'medium',
         location: { line: 0, column: 0, offset: 0 },
         suggestion: 'Implement equivalent error handling in JavaScript',
       });

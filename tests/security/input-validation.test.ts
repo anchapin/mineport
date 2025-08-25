@@ -27,7 +27,7 @@ describe('Input Validation Security Tests', () => {
       const result = await modValidator.validate(malformedJar);
 
       // Should reject the file
-      expect(result.valid).toBe(false);
+      expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Invalid JAR file format');
     });
 
@@ -41,8 +41,8 @@ describe('Input Validation Security Tests', () => {
       const result = await modValidator.validate(emptyFile);
 
       // Should reject the file
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.isValid).toBe(false);
+      expect(result.errors?.length).toBeGreaterThan(0);
     });
 
     it('should reject oversized files', async () => {
@@ -55,8 +55,8 @@ describe('Input Validation Security Tests', () => {
       const result = await modValidator.validate(largeFile);
 
       // Should reject the file
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.isValid).toBe(false);
+      expect(result.errors?.length).toBeGreaterThan(0);
     });
 
     it('should handle path traversal attempts', async () => {
@@ -96,21 +96,21 @@ describe('Input Validation Security Tests', () => {
       // Mock the fetchSourceCode method to avoid actual GitHub API calls
       sourceCodeFetcher.fetchSourceCode = vi
         .fn()
-        .mockImplementation(async (repoInfo, outputDir) => {
+        .mockImplementation(async (options) => {
           // Attempt to write to a file outside the output directory
-          const traversalPath = path.join(outputDir, '../../../etc/passwd');
+          const traversalPath = path.join(tempDir, '../../../etc/passwd');
 
           // This should throw an error or fail safely
           await expect(fs.promises.writeFile(traversalPath, 'test')).rejects.toThrow();
 
-          return { success: true, fileCount: 0, outputPath: outputDir };
+          return { success: true, extractedPath: tempDir };
         });
 
-      // Call fetchSourceCode with a valid repository info
-      await sourceCodeFetcher.fetchSourceCode(
-        { owner: 'test-owner', repo: 'test-repo', branch: 'main' },
-        path.join(tempDir, 'output')
-      );
+      // Call fetchSourceCode with a valid repository options
+      await sourceCodeFetcher.fetchSourceCode({
+        repoUrl: 'https://github.com/test-owner/test-repo',
+        ref: 'main'
+      });
     });
   });
 

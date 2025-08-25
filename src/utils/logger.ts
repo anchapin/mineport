@@ -321,6 +321,10 @@ class EnhancedLogger {
   error(message: string, meta?: any): void {
     this.winston.error(message, meta);
   }
+
+  verbose(message: string, meta?: any): void {
+    this.winston.verbose(message, meta);
+  }
 }
 
 // Create enhanced logger instance

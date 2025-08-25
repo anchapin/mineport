@@ -37,6 +37,7 @@ import {
   ManifestDependency,
   ManifestParseResult,
 } from './ManifestParser.js';
+import path from 'path';
 
 /**
  * ModInput interface.
@@ -213,7 +214,7 @@ export class IngestionModule {
    */
   constructor(tempDir?: string) {
     this.modValidator = new ModValidator(tempDir);
-    this.sourceCodeFetcher = new SourceCodeFetcher();
+    this.sourceCodeFetcher = new SourceCodeFetcher(path.join(process.cwd(), 'temp'));
     this.modLoaderDetector = new ModLoaderDetector();
     this.licenseParser = new LicenseParser();
     this.featureAnalyzer = new FeatureCompatibilityAnalyzer();

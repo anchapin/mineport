@@ -39,7 +39,7 @@ export const CompromiseLevel = {
   SEVERE: 4.1,
 } as const;
 
-export type CompromiseLevel = typeof CompromiseLevel[keyof typeof CompromiseLevel];
+export type CompromiseLevel = (typeof CompromiseLevel)[keyof typeof CompromiseLevel];
 
 /**
  * Represents a strategy for compromising on features that cannot be directly translated.

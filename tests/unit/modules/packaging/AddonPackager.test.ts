@@ -184,9 +184,12 @@ describe('AddonPackager', () => {
     await addonPackager.createAddon(mockInput);
 
     // Check if script directory was created
-    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join('/test/output/temp/behavior_pack', 'scripts'), {
-      recursive: true,
-    });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(
+      path.join('/test/output/temp/behavior_pack', 'scripts'),
+      {
+        recursive: true,
+      }
+    );
 
     // Check if script file was written
     expect(fs.writeFileSync).toHaveBeenCalledWith(

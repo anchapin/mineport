@@ -37,6 +37,7 @@ export { CompatibilityTier, FeatureType };
 export interface FeatureAnalysisResult {
   compatibilityReport: FeatureCompatibilityReport;
   features: Feature[];
+  success: boolean;
   summary: {
     tier1Count: number;
     tier2Count: number;
@@ -464,6 +465,7 @@ export class FeatureCompatibilityAnalyzer {
         tier4Features: [],
       },
       features: [],
+      success: true,
       summary: {
         tier1Count: 0,
         tier2Count: 0,
@@ -514,7 +516,7 @@ export class FeatureCompatibilityAnalyzer {
         if (detectedFeature) {
           // Add to all features list
           result.features.push(detectedFeature);
-          
+
           // Add the feature to the appropriate tier list
           /**
            * switch method.
@@ -547,13 +549,15 @@ export class FeatureCompatibilityAnalyzer {
       result.summary.tier2Count = result.compatibilityReport.tier2Features.length;
       result.summary.tier3Count = result.compatibilityReport.tier3Features.length;
       result.summary.totalFeatures = result.features.length;
-      
+
       // Calculate compatibility score (weighted by tiers)
       const totalFeatures = result.summary.totalFeatures;
       if (totalFeatures > 0) {
-        const score = (result.summary.tier1Count * 1.0 + 
-                      result.summary.tier2Count * 0.7 + 
-                      result.compatibilityReport.tier3Features.length * 0.3) / totalFeatures;
+        const score =
+          (result.summary.tier1Count * 1.0 +
+            result.summary.tier2Count * 0.7 +
+            result.compatibilityReport.tier3Features.length * 0.3) /
+          totalFeatures;
         result.summary.compatibilityScore = Math.round(score * 100) / 100;
       }
 

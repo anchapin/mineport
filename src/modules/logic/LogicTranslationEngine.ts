@@ -37,16 +37,16 @@ export class LogicTranslationEngine {
   private options: LogicTranslationEngineOptions;
 
   constructor(
-    astTranspiler: ASTTranspiler,
-    llmTranslator: LLMTranslator,
-    programStateValidator: ProgramStateValidator,
-    mmirParser: MMIRParser,
+    astTranspiler?: ASTTranspiler,
+    llmTranslator?: LLMTranslator,
+    programStateValidator?: ProgramStateValidator,
+    mmirParser?: MMIRParser,
     options: Partial<LogicTranslationEngineOptions> = {}
   ) {
-    this.astTranspiler = astTranspiler;
-    this.llmTranslator = llmTranslator;
-    this.programStateValidator = programStateValidator;
-    this.mmirParser = mmirParser;
+    this.astTranspiler = astTranspiler || ({} as ASTTranspiler);
+    this.llmTranslator = llmTranslator || ({} as LLMTranslator);
+    this.programStateValidator = programStateValidator || ({} as ProgramStateValidator);
+    this.mmirParser = mmirParser || ({} as MMIRParser);
     this.options = {
       maxRefinementIterations: 3,
       confidenceThreshold: 0.8,

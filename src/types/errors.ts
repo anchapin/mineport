@@ -635,18 +635,30 @@ export function noteToConversionError(
       file: note.sourceLocation.file,
       line: note.sourceLocation.line,
       column: note.sourceLocation.column,
+      startLine: note.sourceLocation.line,
+      startColumn: note.sourceLocation.column,
+      endLine: note.sourceLocation.line,
+      endColumn: note.sourceLocation.column + 1,
     };
   } else if ('assetPath' in note && note.assetPath) {
     sourceLocation = {
       file: note.assetPath,
       line: 0,
       column: 0,
+      startLine: 0,
+      startColumn: 0,
+      endLine: 0,
+      endColumn: 0,
     };
   } else if ('configPath' in note && note.configPath) {
     sourceLocation = {
       file: note.configPath,
       line: 0,
       column: 0,
+      startLine: 0,
+      startColumn: 0,
+      endLine: 0,
+      endColumn: 0,
     };
   }
 

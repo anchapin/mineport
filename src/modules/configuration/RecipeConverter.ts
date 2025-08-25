@@ -877,7 +877,9 @@ export class RecipeConverter {
    * @param ingredient The ingredient to process
    * @returns The item identifier string
    */
-  private getIngredientItem(ingredient: { item: string } | { tag: string } | Array<{ item: string } | { tag: string }>): string {
+  private getIngredientItem(
+    ingredient: { item: string } | { tag: string } | Array<{ item: string } | { tag: string }>
+  ): string {
     if (Array.isArray(ingredient)) {
       if (ingredient.length > 0) {
         const itemOrTag = ingredient[0];
