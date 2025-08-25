@@ -264,6 +264,16 @@ export function createErrorCode(module: string, type: string, number: number): E
  *
  * @param options Error properties
  * @returns Conversion error object
+ * @example
+ * ```typescript
+ * const error = createConversionError({
+ *   code: 'ASSET-TEX-001',
+ *   type: ErrorType.ASSET,
+ *   severity: ErrorSeverity.ERROR,
+ *   message: 'Texture conversion failed',
+ *   moduleOrigin: 'ASSET'
+ * });
+ * ```
  */
 export function createConversionError(options: {
   code: ErrorCode;
@@ -481,6 +491,14 @@ export interface ComponentHealth {
  * @param recoveryActions Available recovery actions
  * @param context Additional context for recovery
  * @returns Enhanced conversion error
+ * @example
+ * ```typescript
+ * const enhancedError = createEnhancedConversionError(
+ *   baseError,
+ *   [{ strategy: RecoveryStrategy.RETRY, description: 'Retry operation', automated: true }],
+ *   { retryCount: 0 }
+ * );
+ * ```
  */
 export function createEnhancedConversionError(
   baseError: ConversionError,
@@ -503,6 +521,11 @@ export function createEnhancedConversionError(
  * @param error Conversion error
  * @param context Error context
  * @returns Array of recovery actions
+ * @example
+ * ```typescript
+ * const recoveryActions = createRecoveryActions(error, { fileSize: 1024 });
+ * recoveryActions.forEach(action => console.log(action.description));
+ * ```
  */
 export function createRecoveryActions(
   error: ConversionError,
@@ -616,6 +639,14 @@ export function createRecoveryActions(
  * @param moduleOrigin Module identifier
  * @param type Error type
  * @returns Standardized conversion error
+ * @example
+ * ```typescript
+ * const error = noteToConversionError(
+ *   { message: 'Asset not found', type: 'warning' },
+ *   'ASSET_MODULE',
+ *   ErrorType.ASSET
+ * );
+ * ```
  */
 export function noteToConversionError(
   note:

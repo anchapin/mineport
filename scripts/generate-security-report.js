@@ -1,12 +1,11 @@
 #!/usr/bin/env node
-
 /**
  * Security Report Generator
  * Aggregates security scan results and generates comprehensive reports
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 class SecurityReportGenerator {
   constructor() {

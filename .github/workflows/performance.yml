@@ -261,10 +261,10 @@ jobs:
 
           # Create load test script
           cat > load-test.js << 'EOF'
-          const { FileProcessor } = require('./dist/src/modules/ingestion/FileProcessor.js');
-          const AdmZip = require('adm-zip');
-          const fs = require('fs');
-          const path = require('path');
+          import { FileProcessor } from './dist/src/modules/ingestion/FileProcessor.js';
+          import AdmZip from 'adm-zip';
+          import fs from 'fs';
+          import path from 'path';
 
           async function runLoadTest() {
             const fileProcessor = new FileProcessor();
@@ -380,8 +380,13 @@ jobs:
 
           # Create performance report script
           cat > generate-performance-report.js << 'EOF'
-          const fs = require('fs');
-          const path = require('path');
+          import fs from 'fs';
+          import path from 'path';
+          import { fileURLToPath } from 'url';
+
+          // Get __dirname equivalent in ES modules
+          const __filename = fileURLToPath(import.meta.url);
+          const __dirname = path.dirname(__filename);
 
           function generateReport() {
             const artifactsDir = 'performance-artifacts';
@@ -485,10 +490,10 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
+            const fs = await import('fs');
 
-            if (fs.existsSync('performance-report.md')) {
-              const report = fs.readFileSync('performance-report.md', 'utf8');
+            if (fs.default.existsSync('performance-report.md')) {
+              const report = fs.default.readFileSync('performance-report.md', 'utf8');
 
               // Truncate report if too long for GitHub comment
               const maxLength = 65000;

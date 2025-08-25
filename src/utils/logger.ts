@@ -7,6 +7,7 @@ import { LoggingConfig } from '../types/config.js';
 
 /**
  * Setup the logger with enhanced error handling
+ * @returns Configured Winston logger instance
  */
 export function setupLogger() {
   // Handle cases where config might not be available (e.g., in tests)
@@ -335,6 +336,14 @@ export type Logger = EnhancedLogger;
 
 /**
  * Create an enhanced logger for a specific module
+ * @param moduleId - Unique identifier for the module
+ * @param config - Optional logging configuration overrides
+ * @returns Enhanced logger instance for the module
+ * @example
+ * ```typescript
+ * const logger = createEnhancedLogger('USER_SERVICE');
+ * logger.info('User logged in', { userId: '123' });
+ * ```
  */
 export function createEnhancedLogger(
   moduleId: string,

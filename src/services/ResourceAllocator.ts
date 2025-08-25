@@ -672,6 +672,7 @@ export class ResourceAllocator {
 
   /**
    * Get available resources
+   * @returns The available resources including memory, CPU, and storage
    */
   getAvailability(): ResourceUsage {
     const currentUsage = this.getCurrentUsage();
@@ -684,6 +685,11 @@ export class ResourceAllocator {
 
   /**
    * Clean up expired allocations
+   * @example
+   * ```typescript
+   * // Cleanup expired allocations
+   * allocator.cleanupExpiredAllocations();
+   * ```
    */
   cleanupExpiredAllocations(): void {
     const now = Date.now();

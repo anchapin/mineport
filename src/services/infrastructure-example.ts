@@ -5,6 +5,14 @@ import { ResourceAllocator } from './ResourceAllocator.js';
 /**
  * Example of how to use the infrastructure services together
  * This demonstrates the scalable processing system for requirement 7.2
+ * @returns Object containing infrastructure components and helper functions
+ * @example
+ * ```typescript
+ * const infrastructure = setupInfrastructure();
+ * const job = await infrastructure.addModConversionJob(modData);
+ * // ... use infrastructure
+ * infrastructure.shutdown();
+ * ```
  */
 export function setupInfrastructure() {
   // Create the job queue with a maximum of 5 concurrent jobs

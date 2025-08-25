@@ -189,6 +189,7 @@ export class WorkerPool extends EventEmitter {
 
   /**
    * Get worker pool statistics
+   * @returns Current statistics including worker counts and pending tasks
    */
   getStats(): WorkerPoolStats {
     const workers = Array.from(this.workers.values());
@@ -202,6 +203,8 @@ export class WorkerPool extends EventEmitter {
 
   /**
    * Cancel a task by ID
+   * @param taskId - Unique identifier of the task to cancel
+   * @returns True if the task was found and cancelled, false otherwise
    */
   cancelTask(taskId: string): boolean {
     // First check if task is in queue
@@ -231,6 +234,7 @@ export class WorkerPool extends EventEmitter {
 
   /**
    * Shutdown the worker pool
+   * @returns Promise that resolves when all workers have been shutdown
    */
   async shutdown(): Promise<void> {
     // Cancel all pending tasks
