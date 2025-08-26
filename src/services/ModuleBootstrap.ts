@@ -60,17 +60,10 @@ export class ModuleBootstrap {
 
   /**
    * Initialize the bootstrap system
+   * @returns Promise that resolves when initialization is complete
+   * @throws {Error} When bootstrap system is already initialized
    */
   public async initialize(): Promise<void> {
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.isInitialized) {
       throw new Error('Bootstrap system is already initialized');
     }
@@ -100,30 +93,14 @@ export class ModuleBootstrap {
 
   /**
    * Start all modules
+   * @returns Promise that resolves when all modules are started
+   * @throws {Error} When bootstrap system is not initialized or already started
    */
   public async start(): Promise<void> {
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (!this.isInitialized) {
       throw new Error('Bootstrap system must be initialized before starting');
     }
 
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.isStarted) {
       throw new Error('Bootstrap system is already started');
     }
@@ -142,17 +119,9 @@ export class ModuleBootstrap {
 
   /**
    * Stop all modules
+   * @returns Promise that resolves when all modules are stopped
    */
   public async stop(): Promise<void> {
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (!this.isStarted) {
       return; // Not started, nothing to stop
     }
@@ -171,33 +140,16 @@ export class ModuleBootstrap {
 
   /**
    * Shutdown the entire system
+   * @returns Promise that resolves when shutdown is complete
    */
   public async shutdown(): Promise<void> {
     logger.info('Shutting down Module Bootstrap System...');
 
     try {
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (this.isStarted) {
         await this.stop();
       }
 
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (this.isInitialized) {
         await this.moduleRegistry.destroyAll();
         this.dependencyContainer.clear();
@@ -213,6 +165,7 @@ export class ModuleBootstrap {
 
   /**
    * Get module registry
+   * @returns The module registry instance
    */
   public getModuleRegistry(): ModuleRegistryImpl {
     return this.moduleRegistry;
@@ -220,6 +173,7 @@ export class ModuleBootstrap {
 
   /**
    * Get dependency container
+   * @returns The dependency container instance
    */
   public getDependencyContainer(): DependencyContainerImpl {
     return this.dependencyContainer;
@@ -227,6 +181,7 @@ export class ModuleBootstrap {
 
   /**
    * Get system health status
+   * @returns Object containing health status of bootstrap, modules, and dependencies
    */
   public getHealthStatus(): any {
     return {
@@ -241,35 +196,18 @@ export class ModuleBootstrap {
 
   /**
    * Initialize configuration service
+   * @returns Promise that resolves when configuration is initialized
    */
   private async initializeConfiguration(): Promise<void> {
     logger.debug('Initializing configuration service...');
 
     // Load configuration from file if specified
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.config.configPath) {
       // In a real implementation, this would load from the specified path
       logger.debug(`Loading configuration from: ${this.config.configPath}`);
     }
 
     // Set environment-specific configuration
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.config.environment) {
       logger.debug(`Setting environment: ${this.config.environment}`);
     }
@@ -279,6 +217,7 @@ export class ModuleBootstrap {
 
   /**
    * Register core dependencies
+   * @returns Promise that resolves when core dependencies are registered
    */
   private async registerCoreDependencies(): Promise<void> {
     logger.debug('Registering core dependencies...');
@@ -301,6 +240,7 @@ export class ModuleBootstrap {
 
   /**
    * Register all modules
+   * @returns Promise that resolves when all modules are registered
    */
   private async registerModules(): Promise<void> {
     logger.debug('Registering modules...');
@@ -337,6 +277,8 @@ export class ModuleBootstrap {
 
 /**
  * Create and configure the bootstrap system
+ * @param config - Bootstrap configuration options
+ * @returns Configured ModuleBootstrap instance
  */
 export function createBootstrap(config: BootstrapConfig = {}): ModuleBootstrap {
   return new ModuleBootstrap(config);
