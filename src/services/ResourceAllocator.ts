@@ -12,6 +12,9 @@ import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger.js';
 
+/**
+ * Pooled resource wrapper with metadata
+ */
 export interface PooledResource<T> {
   id: string;
   resource: T;
@@ -21,6 +24,9 @@ export interface PooledResource<T> {
   usageCount: number;
 }
 
+/**
+ * Configuration options for resource pool
+ */
 export interface ResourcePoolOptions {
   maxSize: number;
   maxIdleTime: number; // milliseconds
@@ -41,6 +47,9 @@ export enum ResourceAllocationStrategy {
   AGGRESSIVE = 'aggressive',
 }
 
+/**
+ * Configuration options for temporary files
+ */
 export interface TempFileOptions {
   prefix?: string;
   suffix?: string;
@@ -49,6 +58,9 @@ export interface TempFileOptions {
   maxAge?: number; // milliseconds
 }
 
+/**
+ * Resource pool metrics for monitoring usage and performance
+ */
 export interface ResourceMetrics {
   totalCreated: number;
   totalDestroyed: number;
@@ -59,7 +71,7 @@ export interface ResourceMetrics {
 }
 
 /**
- * Generic resource pool for managing reusable components
+ * Generic resource pool for managing reusable components with automatic cleanup
  */
 export class ResourcePool<T> {
   private pool: Map<string, PooledResource<T>> = new Map();
@@ -244,6 +256,14 @@ export class ResourcePool<T> {
   }
 
   /**
+   * Get current metrics
+   * @returns Copy of current resource pool metrics
+   */
+  getMetrics(): ResourceMetrics {
+    return { ...this.metrics };
+  }
+
+  /**
    * Update metrics
    */
   private updateMetrics(): void {
@@ -260,14 +280,6 @@ export class ResourcePool<T> {
 
     const totalUsage = Array.from(this.pool.values()).reduce((sum, r) => sum + r.usageCount, 0);
     this.metrics.averageUsage = this.pool.size > 0 ? totalUsage / this.pool.size : 0;
-  }
-
-  /**
-   * Get current metrics
-   * @returns Copy of current resource pool metrics
-   */
-  getMetrics(): ResourceMetrics {
-    return { ...this.metrics };
   }
 
   /**
@@ -294,7 +306,7 @@ export class ResourcePool<T> {
 }
 
 /**
- * Temporary file manager with automatic cleanup
+ * Temporary file manager with automatic cleanup and resource management
  */
 export class TempFileManager {
   private tempFiles: Map<string, { path: string; createdAt: Date; options: TempFileOptions }> =
@@ -457,7 +469,7 @@ export class TempFileManager {
 }
 
 /**
- * Main resource allocator service
+ * Resource allocation with unique identifier and resource requirements
  */
 export interface ResourceAllocation {
   id: string;
@@ -468,12 +480,18 @@ export interface ResourceAllocation {
   timeout?: number;
 }
 
+/**
+ * Resource usage metrics for tracking current resource consumption
+ */
 export interface ResourceUsage {
   memory: number;
   cpu: number;
   storage: number;
 }
 
+/**
+ * Resource allocation request with requirements and preferences
+ */
 export interface ResourceRequest {
   memory: number;
   cpu: number;
@@ -482,6 +500,9 @@ export interface ResourceRequest {
   timeout?: number;
 }
 
+/**
+ * Main resource allocator service for managing resource pools, temporary files, and allocations
+ */
 export class ResourceAllocator {
   private pools: Map<string, ResourcePool<any>> = new Map();
   private tempFileManager: TempFileManager;
@@ -680,6 +701,7 @@ export class ResourceAllocator {
   /**
    * Release allocated resources
    * @param allocationId - Unique identifier of the allocation to release
+   * @returns void
    */
   release(allocationId: string): void {
     this.allocations.delete(allocationId);
@@ -718,6 +740,7 @@ export class ResourceAllocator {
 
   /**
    * Clean up expired allocations
+   * @returns void
    * @example
    * ```typescript
    * // Cleanup expired allocations
@@ -735,6 +758,7 @@ export class ResourceAllocator {
 
   /**
    * Start the resource allocator
+   * @returns void
    */
   start(): void {
     logger.info('ResourceAllocator started');
@@ -743,6 +767,7 @@ export class ResourceAllocator {
 
   /**
    * Stop the resource allocator
+   * @returns void
    */
   stop(): void {
     logger.info('ResourceAllocator stopped');
@@ -751,6 +776,7 @@ export class ResourceAllocator {
 
   /**
    * Destroy all pools and cleanup
+   * @returns Promise that resolves when all resources are destroyed
    */
   async destroy(): Promise<void> {
     const destroyPromises = Array.from(this.pools.values()).map((pool) => pool.destroy());

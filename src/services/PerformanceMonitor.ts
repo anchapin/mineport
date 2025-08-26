@@ -12,6 +12,9 @@ import { EventEmitter } from 'events';
 import { PerformanceObserver } from 'perf_hooks';
 import logger from '../utils/logger.js';
 
+/**
+ * Performance metrics collected from the system and process
+ */
 export interface PerformanceMetrics {
   timestamp: Date;
   cpu: {
@@ -46,6 +49,9 @@ export interface PerformanceMetrics {
   };
 }
 
+/**
+ * Performance profile for tracking operation performance
+ */
 export interface PerformanceProfile {
   name: string;
   startTime: number;
@@ -58,6 +64,9 @@ export interface PerformanceProfile {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Performance alert for notifying about performance issues
+ */
 export interface PerformanceAlert {
   type: 'cpu' | 'memory' | 'gc' | 'custom';
   severity: 'low' | 'medium' | 'high' | 'critical';
@@ -68,6 +77,9 @@ export interface PerformanceAlert {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Configuration options for performance monitoring
+ */
 export interface MonitoringOptions {
   interval: number; // milliseconds
   enableGCMonitoring: boolean;
@@ -83,7 +95,7 @@ export interface MonitoringOptions {
 }
 
 /**
- * Performance monitoring and profiling service
+ * Performance monitoring and profiling service for tracking system metrics and identifying bottlenecks
  */
 export class PerformanceMonitor extends EventEmitter {
   private options: MonitoringOptions;
@@ -122,6 +134,7 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Start performance monitoring
+   * @returns void
    */
   startMonitoring(): void {
     if (this.monitoringTimer) {
@@ -137,6 +150,7 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Stop performance monitoring
+   * @returns void
    */
   stopMonitoring(): void {
     if (this.monitoringTimer) {
@@ -528,6 +542,7 @@ export class PerformanceMonitor extends EventEmitter {
    * @param value - Current value that triggered the alert
    * @param threshold - Threshold value that was exceeded
    * @param metadata - Optional additional metadata
+   * @returns void
    */
   createAlert(
     type: string,
@@ -552,7 +567,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Destroy the performance monitor
+   * Destroy the performance monitor and clean up resources
+   * @returns void
    */
   destroy(): void {
     this.stopMonitoring();

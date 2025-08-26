@@ -3,7 +3,7 @@ import { logger } from '../utils/logger.js';
 import { MonitoringConfig } from '../types/config.js';
 
 /**
- * Metric types for different monitoring categories
+ * Security metric for tracking security events and threats
  */
 export interface SecurityMetric {
   type: 'security_event';
@@ -19,6 +19,9 @@ export interface SecurityMetric {
   timestamp: Date;
 }
 
+/**
+ * Performance metric for tracking operation performance and success rates
+ */
 export interface PerformanceMetric {
   type: 'performance';
   operation: 'file_processing' | 'java_analysis' | 'asset_conversion' | 'validation';
@@ -33,6 +36,9 @@ export interface PerformanceMetric {
   timestamp: Date;
 }
 
+/**
+ * Conversion quality metric for tracking conversion process quality and success rates
+ */
 export interface ConversionQualityMetric {
   type: 'conversion_quality';
   stage: 'analysis' | 'conversion' | 'validation' | 'packaging';
@@ -47,6 +53,9 @@ export interface ConversionQualityMetric {
   timestamp: Date;
 }
 
+/**
+ * System health metric for tracking component health status
+ */
 export interface SystemHealthMetric {
   type: 'system_health';
   component: 'file_processor' | 'java_analyzer' | 'asset_converter' | 'validation_pipeline';
@@ -67,7 +76,7 @@ export type Metric =
   | SystemHealthMetric;
 
 /**
- * Aggregated metrics for reporting
+ * Aggregated metrics summary for reporting and analysis
  */
 export interface MetricsSummary {
   timeRange: {
@@ -101,7 +110,7 @@ export interface MetricsSummary {
 }
 
 /**
- * Alert configuration
+ * Alert rule configuration for defining alert conditions and thresholds
  */
 export interface AlertRule {
   id: string;
@@ -118,6 +127,9 @@ export interface AlertRule {
   lastTriggered?: Date;
 }
 
+/**
+ * Alert instance representing a triggered alert with metadata
+ */
 export interface Alert {
   id: string;
   ruleId: string;
@@ -130,7 +142,7 @@ export interface Alert {
 }
 
 /**
- * Monitoring service for collecting and analyzing metrics
+ * Monitoring service for collecting, analyzing, and alerting on system metrics
  */
 export class MonitoringService extends EventEmitter {
   private metrics: Metric[] = [];
@@ -151,7 +163,20 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Record a security metric
+   * Record a security metric event
+   * @param metric - Security metric data without type and timestamp
+   * @returns void
+   * @example
+   * ```typescript
+   * monitoringService.recordSecurityMetric({
+   *   event: 'threat_detected',
+   *   severity: 'high',
+   *   details: {
+   *     threatType: 'malware',
+   *     fileName: 'suspicious.jar'
+   *   }
+   * });
+   * ```
    */
   recordSecurityMetric(metric: Omit<SecurityMetric, 'type' | 'timestamp'>): void {
     const fullMetric: SecurityMetric = {
@@ -172,7 +197,20 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Record a performance metric
+   * Record a performance metric event
+   * @param metric - Performance metric data without type and timestamp
+   * @returns void
+   * @example
+   * ```typescript
+   * monitoringService.recordPerformanceMetric({
+   *   operation: 'file_processing',
+   *   duration: 1500,
+   *   success: true,
+   *   details: {
+   *     fileSize: 1024000
+   *   }
+   * });
+   * ```
    */
   recordPerformanceMetric(metric: Omit<PerformanceMetric, 'type' | 'timestamp'>): void {
     const fullMetric: PerformanceMetric = {
@@ -193,7 +231,20 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Record a conversion quality metric
+   * Record a conversion quality metric event
+   * @param metric - Conversion quality metric data without type and timestamp
+   * @returns void
+   * @example
+   * ```typescript
+   * monitoringService.recordConversionQualityMetric({
+   *   stage: 'analysis',
+   *   success: true,
+   *   qualityScore: 95.5,
+   *   details: {
+   *     extractedItems: 42
+   *   }
+   * });
+   * ```
    */
   recordConversionQualityMetric(metric: Omit<ConversionQualityMetric, 'type' | 'timestamp'>): void {
     const fullMetric: ConversionQualityMetric = {
@@ -214,7 +265,19 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Record a system health metric
+   * Record a system health metric event
+   * @param metric - System health metric data without type and timestamp
+   * @returns void
+   * @example
+   * ```typescript
+   * monitoringService.recordSystemHealthMetric({
+   *   component: 'file_processor',
+   *   status: 'healthy',
+   *   details: {
+   *     memoryUsage: 256.5
+   *   }
+   * });
+   * ```
    */
   recordSystemHealthMetric(metric: Omit<SystemHealthMetric, 'type' | 'timestamp'>): void {
     const fullMetric: SystemHealthMetric = {
@@ -278,7 +341,7 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Get all active alerts
+   * Get all active alerts that have not been resolved
    * @returns Array of unresolved alerts
    */
   getActiveAlerts(): Alert[] {
@@ -286,7 +349,7 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Resolve an alert
+   * Resolve an alert by marking it as resolved
    * @param alertId - Unique identifier of the alert to resolve
    * @returns True if the alert was found and resolved, false otherwise
    */
@@ -304,6 +367,7 @@ export class MonitoringService extends EventEmitter {
   /**
    * Add or update an alert rule
    * @param rule - Alert rule configuration to set
+   * @returns void
    */
   setAlertRule(rule: AlertRule): void {
     this.alertRules.set(rule.id, rule);
@@ -324,7 +388,7 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Get health status of all components
+   * Get health status of all system components
    * @returns Record mapping component names to their current health status
    */
   getHealthStatus(): Record<string, string> {
@@ -351,7 +415,8 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Clean up old metrics
+   * Clean up old metrics that are beyond the retention period
+   * @returns void
    * @example
    * ```typescript
    * // Clean up metrics older than retention period
@@ -712,7 +777,8 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Dispose of the monitoring service
+   * Dispose of the monitoring service and clean up resources
+   * @returns void
    */
   dispose(): void {
     if (this.healthCheckInterval) {
