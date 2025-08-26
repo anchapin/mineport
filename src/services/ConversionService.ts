@@ -170,15 +170,6 @@ export class ConversionService extends EventEmitter implements IConversionServic
       configService: this.configService,
     });
 
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.configService) {
       // Get status update interval from configuration
       this.statusUpdateInterval = this.configService.get(
