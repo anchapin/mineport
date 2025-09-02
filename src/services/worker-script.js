@@ -80,7 +80,7 @@ const taskHandlers = {
         pipeline.addStage({
           name: stageConfig.name,
           validator: stage.validate.bind(stage),
-          required: stageConfig.required
+          required: stageConfig.required,
         });
       }
     }
@@ -153,8 +153,8 @@ const taskHandlers = {
         memoryUsage: {
           start: startMemory,
           end: endMemory,
-          peak: endMemory.heapUsed - startMemory.heapUsed
-        }
+          peak: endMemory.heapUsed - startMemory.heapUsed,
+        },
       };
     } catch (error) {
       // Clean up on error
@@ -163,7 +163,7 @@ const taskHandlers = {
       }
       throw error;
     }
-  }
+  },
 };
 
 /**
@@ -186,16 +186,15 @@ if (parentPort) {
       parentPort.postMessage({
         taskId,
         data: result,
-        workerId
+        workerId,
       });
-
     } catch (error) {
       // Send error back to main thread
       parentPort.postMessage({
         taskId,
         error: error.message,
         stack: error.stack,
-        workerId
+        workerId,
       });
     }
   });
@@ -214,7 +213,7 @@ if (parentPort) {
   // Signal that worker is ready
   parentPort.postMessage({
     type: 'ready',
-    workerId
+    workerId,
   });
 }
 

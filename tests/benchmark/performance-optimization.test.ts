@@ -209,7 +209,7 @@ describe('Performance Optimization Tests', () => {
       // Perform many cache operations
       const operations = 1000;
       const keys = Array.from({ length: operations }, (_, i) => ({
-        type: 'test' as const,
+        type: 'java_analysis' as const,
         identifier: `key-${i}`,
       }));
 
@@ -255,7 +255,7 @@ describe('Performance Optimization Tests', () => {
       // Fill cache beyond capacity
       for (let i = 0; i < 200; i++) {
         await cache.set(
-          { type: 'test', identifier: `eviction-key-${i}` },
+          { type: 'java_analysis', identifier: `eviction-key-${i}` },
           { data: largeData, id: i }
         );
       }
@@ -290,12 +290,12 @@ describe('Performance Optimization Tests', () => {
           execute: async (input: { buffer: Buffer; filename: string; options: any }) => {
             // Simulate memory-intensive file validation
             const { buffer, filename, options } = input;
-            await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
+            await new Promise((resolve) => setTimeout(resolve, 50 + Math.random() * 100));
             return {
               isValid: true,
               filename,
               size: buffer.length,
-              processingTime: 50 + Math.random() * 100
+              processingTime: 50 + Math.random() * 100,
             };
           },
           input: {
@@ -344,14 +344,16 @@ describe('Performance Optimization Tests', () => {
           const taskId = batch * batchSize + i;
           const task = workerPool.runTask({
             id: `batch-task-${taskId}`,
-            execute: async (input: { files: Array<{ buffer: Buffer; filename: string; options: any }> }) => {
+            execute: async (input: {
+              files: Array<{ buffer: Buffer; filename: string; options: any }>;
+            }) => {
               // Simulate parallel file processing
               const { files } = input;
-              await new Promise(resolve => setTimeout(resolve, 10 + Math.random() * 20));
+              await new Promise((resolve) => setTimeout(resolve, 10 + Math.random() * 20));
               return {
                 processedFiles: files.length,
                 totalSize: files.reduce((sum, f) => sum + f.buffer.length, 0),
-                processingTime: 10 + Math.random() * 20
+                processingTime: 10 + Math.random() * 20,
               };
             },
             input: {
@@ -400,7 +402,7 @@ describe('Performance Optimization Tests', () => {
         // Cache operations
         for (let i = 0; i < 50; i++) {
           await cache.set(
-            { type: 'test', identifier: `cycle-${cycle}-${i}` },
+            { type: 'java_analysis', identifier: `cycle-${cycle}-${i}` },
             { data: Buffer.alloc(10 * 1024), cycle, index: i }
           );
         }
@@ -545,8 +547,8 @@ describe('Performance Optimization Tests', () => {
       // Benchmark cache operations
       const cacheStart = Date.now();
       for (let i = 0; i < operations; i++) {
-        await cache.set({ type: 'benchmark', identifier: `key-${i}` }, testData);
-        await cache.get({ type: 'benchmark', identifier: `key-${i}` });
+        await cache.set({ type: 'java_analysis', identifier: `key-${i}` }, testData);
+        await cache.get({ type: 'java_analysis', identifier: `key-${i}` });
       }
       const cacheTime = Date.now() - cacheStart;
 
@@ -560,12 +562,12 @@ describe('Performance Optimization Tests', () => {
             execute: async (input: { buffer: Buffer; filename: string; options: any }) => {
               // Simulate file validation
               const { buffer, filename } = input;
-              await new Promise(resolve => setTimeout(resolve, 5 + Math.random() * 10));
+              await new Promise((resolve) => setTimeout(resolve, 5 + Math.random() * 10));
               return {
                 isValid: true,
                 filename,
                 size: buffer.length,
-                processingTime: 5 + Math.random() * 10
+                processingTime: 5 + Math.random() * 10,
               };
             },
             input: {

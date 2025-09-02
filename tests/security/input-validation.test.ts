@@ -24,7 +24,7 @@ describe('Input Validation Security Tests', () => {
       const malformedJar = Buffer.from('This is not a valid JAR file', 'utf-8');
 
       // Validate the file
-      const result = await modValidator.validate(malformedJar);
+      const result = await modValidator.validateMod(malformedJar);
 
       // Should reject the file
       expect(result.isValid).toBe(false);
@@ -38,7 +38,7 @@ describe('Input Validation Security Tests', () => {
       const emptyFile = Buffer.alloc(0);
 
       // Validate the file
-      const result = await modValidator.validate(emptyFile);
+      const result = await modValidator.validateMod(emptyFile);
 
       // Should reject the file
       expect(result.isValid).toBe(false);
@@ -52,7 +52,7 @@ describe('Input Validation Security Tests', () => {
       const largeFile = Buffer.alloc(100 * 1024 * 1024, 'X');
 
       // Validate the file
-      const result = await modValidator.validate(largeFile);
+      const result = await modValidator.validateMod(largeFile);
 
       // Should reject the file
       expect(result.isValid).toBe(false);

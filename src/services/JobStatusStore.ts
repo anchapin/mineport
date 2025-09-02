@@ -247,10 +247,10 @@ export class JobStatusStore {
    * ```typescript
    * // Get all job history
    * const allHistory = await statusStore.getJobHistory();
-   * 
+   *
    * // Get history for specific job
    * const jobHistory = await statusStore.getJobHistory('job-123');
-   * 
+   *
    * // Get last 10 entries
    * const recentHistory = await statusStore.getJobHistory(undefined, 10);
    * ```
@@ -308,7 +308,7 @@ export class JobStatusStore {
    * ```typescript
    * // Clean up jobs older than 24 hours
    * const cleaned = await statusStore.cleanupOldJobs();
-   * 
+   *
    * // Clean up jobs older than 1 hour
    * const cleaned = await statusStore.cleanupOldJobs(1);
    * console.log(`Cleaned up ${cleaned} old jobs`);

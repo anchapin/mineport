@@ -37,11 +37,28 @@ export {
   JavaParticleFile,
   JavaAnimationFile,
   ConversionContext,
-  ModuleConversionOptions
+  ModuleConversionOptions,
 } from './modules.js';
 
-// Asset types
-export * from './assets.js';
+// Asset types (selective exports to avoid BedrockParticleFile conflicts)
+export {
+  JavaTextureFile,
+  JavaModelFile,
+  JavaSoundFile,
+  JavaParticleDefinition,
+  BedrockTextureFile,
+  BedrockModelFile,
+  BedrockSoundFile,
+  BedrockAnimationFile,
+  TextureConversionResult,
+  ModelConversionResult,
+  SoundConversionResult,
+  ParticleConversionResult,
+  BedrockParticleDefinition,
+} from './assets.js';
+
+// Export BedrockParticleFile with alias to avoid conflicts
+export { BedrockParticleFile as BedrockParticleAsset } from './assets.js';
 
 // API types
 export * from './api.js';
@@ -57,14 +74,27 @@ export {
   ConversionStatus,
   ConversionResult,
   ConversionOrchestrator,
-  ConversionService
+  ConversionService,
 } from './services.js';
 
 // Compromise types
 export * from './compromise.js';
 
-// File processing types
-export * from './file-processing.js';
+// File processing types (selective exports to avoid ValidationResult conflict)
+export {
+  FileValidationOptions,
+  ValidationError as FileValidationError,
+  ValidationWarning,
+  FileMetadata,
+  SecurityScanResult,
+  ThreatInfo,
+  ThreatDetails,
+  SecurityScanOptions,
+  TempFileInfo,
+} from './file-processing.js';
+
+// Export ValidationResult with alias to avoid conflict
+export { ValidationResult as FileValidationResult } from './file-processing.js';
 
 // Logic translation types (selective exports to avoid conflicts)
 export {
@@ -104,7 +134,7 @@ export {
   LogicValidationResult,
   FunctionalDifference,
   RefinementIteration,
-  CodeChange
+  CodeChange,
 } from './logic-translation.js';
 
 // Job types

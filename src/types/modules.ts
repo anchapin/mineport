@@ -6,12 +6,12 @@
  */
 
 import { SourceLocation } from './base.js';
-import { 
-  BedrockTextureFile, 
-  BedrockModelFile, 
-  BedrockSoundFile, 
-  BedrockParticleFile, 
-  BedrockAnimationFile
+import {
+  BedrockTextureFile,
+  BedrockModelFile,
+  BedrockSoundFile,
+  BedrockParticleFile,
+  BedrockAnimationFile,
 } from './assets.js';
 import { ConversionError, AssetConversionNote } from './errors.js';
 
@@ -674,4 +674,77 @@ export interface ModuleConversionOptions {
   generateDocumentation: boolean;
   optimizeOutput: boolean;
   enableExperimentalFeatures: boolean;
+}
+
+/**
+ * Bedrock configuration collection interface
+ */
+export interface BedrockConfigCollection {
+  manifests: {
+    behaviorPack: BedrockManifest;
+    resourcePack: BedrockManifest;
+  };
+  definitions: {
+    blocks: BedrockDefinitionFile[];
+    items: BedrockDefinitionFile[];
+  };
+  recipes: BedrockRecipeFile[];
+  lootTables: BedrockLootTableFile[];
+}
+
+/**
+ * Bedrock manifest interface
+ */
+export interface BedrockManifest {
+  format_version: number;
+  header: {
+    name: string;
+    description: string;
+    uuid: string;
+    version: number[];
+    min_engine_version: number[];
+  };
+  modules: BedrockModule[];
+  dependencies?: BedrockDependency[];
+}
+
+/**
+ * Bedrock module interface
+ */
+export interface BedrockModule {
+  type: string;
+  uuid: string;
+  version: number[];
+}
+
+/**
+ * Bedrock dependency interface
+ */
+export interface BedrockDependency {
+  uuid: string;
+  version: number[];
+}
+
+/**
+ * Bedrock definition file interface
+ */
+export interface BedrockDefinitionFile {
+  path: string;
+  content: object;
+}
+
+/**
+ * Bedrock recipe file interface
+ */
+export interface BedrockRecipeFile {
+  path: string;
+  content: object;
+}
+
+/**
+ * Bedrock loot table file interface
+ */
+export interface BedrockLootTableFile {
+  path: string;
+  content: object;
 }

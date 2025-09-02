@@ -136,14 +136,14 @@ export class StreamingFileProcessor {
     let fileTypeDetected = 'unknown';
 
     // Create streaming transforms
-    const self = this;
+    const detectFileType = this.detectFileTypeFromMagic.bind(this);
     const validationTransform = new Transform({
       transform(chunk: Buffer, _encoding, callback) {
         try {
           // Check magic number on first chunk
           if (!magicNumberChecked && chunk.length >= 4) {
             const magicNumber = chunk.subarray(0, 4);
-            fileTypeDetected = self.detectFileTypeFromMagic(magicNumber);
+            fileTypeDetected = detectFileType(magicNumber);
             magicNumberChecked = true;
           }
 

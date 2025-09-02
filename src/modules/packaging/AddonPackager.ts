@@ -1,6 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { createWriteStream } from 'fs';
+import {
+  BedrockAssetCollection,
+  BedrockConfigCollection,
+  JavaScriptFile,
+} from '../../types/modules.js';
+import { ConversionNote, LicenseInfo } from '../../types/errors.js';
 
 /**
  * Interface for the input to the AddonPackager
@@ -23,59 +29,13 @@ interface PackagingOutput {
   resourcePackPath: string;
 }
 
-/**
- * Interface for Bedrock asset collection
- */
-interface BedrockAssetCollection {
-  textures: BedrockTextureFile[];
-  models: BedrockModelFile[];
-  sounds: BedrockSoundFile[];
-  particles: BedrockParticleFile[];
-}
+// BedrockAssetCollection is imported from types/modules.js
 
-/**
- * Interface for Bedrock configuration collection
- */
-interface BedrockConfigCollection {
-  manifests: {
-    behaviorPack: BedrockManifest;
-    resourcePack: BedrockManifest;
-  };
-  definitions: {
-    blocks: BedrockBlockDefinition[];
-    items: BedrockItemDefinition[];
-  };
-  recipes: BedrockRecipe[];
-  lootTables: BedrockLootTable[];
-}
+// BedrockConfigCollection is imported from types/modules.js
 
-/**
- * Interface for JavaScript file
- */
-interface JavaScriptFile {
-  path: string;
-  content: string;
-}
+// JavaScriptFile is imported from types/modules.js
 
-/**
- * Interface for conversion note
- */
-interface ConversionNote {
-  type: string;
-  message: string;
-  severity: 'info' | 'warning' | 'error';
-  sourceFile?: string;
-  sourceLine?: number;
-}
-
-/**
- * Interface for license information
- */
-interface LicenseInfo {
-  type: string;
-  text: string;
-  attributions: string[];
-}
+// ConversionNote is imported from types/errors.js
 
 /**
  * Interface for Bedrock manifest
@@ -118,10 +78,7 @@ interface BedrockSoundFile {
   content: Buffer;
 }
 
-interface BedrockParticleFile {
-  path: string;
-  content: string;
-}
+// BedrockParticleFile is imported from types/assets.js
 
 interface BedrockBlockDefinition {
   path: string;
@@ -270,7 +227,7 @@ export class AddonPackager {
     for (const block of input.bedrockConfigs.definitions.blocks) {
       const blockPath = path.join(blocksDir, block.path);
       await this.ensureDirectoryExists(path.dirname(blockPath));
-      fs.writeFileSync(blockPath, block.content);
+      fs.writeFileSync(blockPath, JSON.stringify(block.content));
     }
 
     // Write item definitions
@@ -289,7 +246,7 @@ export class AddonPackager {
     for (const item of input.bedrockConfigs.definitions.items) {
       const itemPath = path.join(itemsDir, item.path);
       await this.ensureDirectoryExists(path.dirname(itemPath));
-      fs.writeFileSync(itemPath, item.content);
+      fs.writeFileSync(itemPath, JSON.stringify(item.content));
     }
 
     // Write recipes
@@ -308,7 +265,7 @@ export class AddonPackager {
     for (const recipe of input.bedrockConfigs.recipes) {
       const recipePath = path.join(recipesDir, recipe.path);
       await this.ensureDirectoryExists(path.dirname(recipePath));
-      fs.writeFileSync(recipePath, recipe.content);
+      fs.writeFileSync(recipePath, JSON.stringify(recipe.content));
     }
 
     // Write loot tables
@@ -327,7 +284,7 @@ export class AddonPackager {
     for (const lootTable of input.bedrockConfigs.lootTables) {
       const lootTablePath = path.join(lootTablesDir, lootTable.path);
       await this.ensureDirectoryExists(path.dirname(lootTablePath));
-      fs.writeFileSync(lootTablePath, lootTable.content);
+      fs.writeFileSync(lootTablePath, JSON.stringify(lootTable.content));
     }
   }
 
@@ -359,7 +316,7 @@ export class AddonPackager {
     for (const texture of input.bedrockAssets.textures) {
       const texturePath = path.join(texturesDir, texture.path);
       await this.ensureDirectoryExists(path.dirname(texturePath));
-      fs.writeFileSync(texturePath, texture.content);
+      fs.writeFileSync(texturePath, texture.data);
     }
 
     // Write models
@@ -378,7 +335,10 @@ export class AddonPackager {
     for (const model of input.bedrockAssets.models) {
       const modelPath = path.join(modelsDir, model.path);
       await this.ensureDirectoryExists(path.dirname(modelPath));
-      fs.writeFileSync(modelPath, model.content);
+      fs.writeFileSync(
+        modelPath,
+        typeof model.data === 'string' ? model.data : JSON.stringify(model.data)
+      );
     }
 
     // Write sounds
@@ -397,7 +357,7 @@ export class AddonPackager {
     for (const sound of input.bedrockAssets.sounds) {
       const soundPath = path.join(soundsDir, sound.path);
       await this.ensureDirectoryExists(path.dirname(soundPath));
-      fs.writeFileSync(soundPath, sound.content);
+      fs.writeFileSync(soundPath, sound.data);
     }
 
     // Write particles
@@ -515,7 +475,7 @@ export class AddonPackager {
     // Construct license content with attributions
     let licenseContent = `${licenseInfo.text}\n\n`;
     licenseContent += 'Attributions:\n';
-    licenseInfo.attributions.forEach((attribution) => {
+    licenseInfo.attributions?.forEach((attribution) => {
       licenseContent += `- ${attribution}\n`;
     });
 
@@ -543,9 +503,9 @@ export class AddonPackager {
 
     // Add conversion notes to README
     readmeContent += `## Conversion Notes\n\n`;
-    const infoNotes = input.conversionNotes.filter((note) => note.severity === 'info');
-    const warningNotes = input.conversionNotes.filter((note) => note.severity === 'warning');
-    const errorNotes = input.conversionNotes.filter((note) => note.severity === 'error');
+    const infoNotes = input.conversionNotes.filter((note) => note.type === 'info');
+    const warningNotes = input.conversionNotes.filter((note) => note.type === 'warning');
+    const errorNotes = input.conversionNotes.filter((note) => note.type === 'error');
 
     /**
      * if method.
@@ -656,9 +616,9 @@ export class AddonPackager {
         totalRecipes: input.bedrockConfigs.recipes.length,
         totalLootTables: input.bedrockConfigs.lootTables.length,
         conversionNotes: {
-          info: input.conversionNotes.filter((note) => note.severity === 'info').length,
-          warning: input.conversionNotes.filter((note) => note.severity === 'warning').length,
-          error: input.conversionNotes.filter((note) => note.severity === 'error').length,
+          info: input.conversionNotes.filter((note) => note.type === 'info').length,
+          warning: input.conversionNotes.filter((note) => note.type === 'warning').length,
+          error: input.conversionNotes.filter((note) => note.type === 'error').length,
         },
       },
     };

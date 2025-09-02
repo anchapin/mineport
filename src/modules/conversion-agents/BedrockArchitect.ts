@@ -211,7 +211,10 @@ export class BedrockArchitect {
   /**
    * Organize assets into the proper addon structure
    */
-  async organizeAssets(assets: AssetInfo[], structure: AddonStructure): Promise<ConversionAgentResult> {
+  async organizeAssets(
+    assets: AssetInfo[],
+    structure: AddonStructure
+  ): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];

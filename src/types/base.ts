@@ -2,7 +2,7 @@
  * Core type definitions used throughout the application
  */
 
-import { ErrorSeverity } from './errors.js';
+import { ErrorSeverity, LicenseInfo } from './errors.js';
 
 /**
  * Represents a Java mod
@@ -46,17 +46,6 @@ export interface ConfigFile {
 }
 
 /**
- * Represents license information
- */
-export interface LicenseInfo {
-  type: string;
-  text: string;
-  permissions: string[];
-  limitations: string[];
-  conditions: string[];
-}
-
-/**
  * Represents a source code location
  */
 export interface SourceLocation {
@@ -69,14 +58,4 @@ export interface SourceLocation {
   line: number;
   /** Column number (alias for startColumn) */
   column: number;
-}
-
-/**
- * Common interface for conversion notes
- */
-export interface ConversionNote {
-  type: ErrorSeverity;
-  message: string;
-  sourceLocation?: SourceLocation;
-  moduleOrigin: string;
 }

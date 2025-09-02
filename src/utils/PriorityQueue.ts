@@ -1,6 +1,6 @@
 /**
  * Priority Queue implementation for job scheduling
- * 
+ *
  * A min-heap based priority queue where lower priority numbers indicate higher priority.
  * Items with the same priority are processed in FIFO order.
  */

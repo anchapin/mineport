@@ -16,21 +16,21 @@ vitestExpect.extend({
     const pass = received !== null && received !== undefined;
     return {
       pass,
-      message: () => pass ? 'element is in document' : 'element is not in document'
+      message: () => (pass ? 'element is in document' : 'element is not in document'),
     };
   },
   toHaveStyle: (received, style) => {
     if (typeof received.style === 'undefined') {
       return { pass: false, message: () => 'element has no style' };
     }
-    const pass = Object.keys(style).every(key => {
+    const pass = Object.keys(style).every((key) => {
       return received.style[key] === style[key];
     });
     return {
       pass,
-      message: () => pass ? 'element has expected style' : 'element does not have expected style'
+      message: () => (pass ? 'element has expected style' : 'element does not have expected style'),
     };
-  }
+  },
 });
 
 describe('EnhancedProgressTracker', () => {

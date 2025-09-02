@@ -187,12 +187,19 @@ export class AssetTranslationModule {
         );
       });
 
+      // Convert particle definitions to particle files
+      const particleFiles = particleResult.convertedParticles.map((particle) => ({
+        path: particle.path,
+        content: particle.content,
+        metadata: { name: particle.name },
+      }));
+
       // Assemble the result
       const bedrockAssets: BedrockAssetCollection = {
         textures: textureResult.convertedTextures,
         models: modelResult.convertedModels,
         sounds: soundResult.convertedSounds,
-        particles: particleResult.convertedParticles,
+        particles: particleFiles,
         animations: [], // TODO: Add animation conversion
         soundsJson: soundResult.soundsJson,
       };
@@ -294,8 +301,15 @@ export class AssetTranslationModule {
         outputDir
       );
 
+      // Convert particle files back to particle definitions for organization
+      const particleDefinitions = bedrockAssets.particles.map((particle) => ({
+        path: particle.path,
+        data: Buffer.from(particle.content),
+        name: particle.metadata?.name || 'unknown',
+      }));
+
       // Organize particles
-      await this.particleMapper.organizeParticles(bedrockAssets.particles, outputDir);
+      await this.particleMapper.organizeParticles(particleDefinitions, outputDir);
 
       logger.info('Asset organization completed successfully');
     } catch (error) {

@@ -206,7 +206,9 @@ export const EnhancedConversionUI: React.FC<EnhancedConversionUIProps> = ({
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [conversionOptions, setConversionOptions] = useState<ConversionOptions & Record<string, any>>({
+  const [conversionOptions, setConversionOptions] = useState<
+    ConversionOptions & Record<string, any>
+  >({
     targetMinecraftVersion: '1.20.0',
     compromiseStrategy: 'balanced' as const,
     includeDocumentation: true,
@@ -334,32 +336,35 @@ export const EnhancedConversionUI: React.FC<EnhancedConversionUIProps> = ({
   /**
    * Update progress from job status
    */
-  const updateProgressFromJobStatus = useCallback((status: ConversionStatus & Record<string, any>) => {
-    setUIState((prevState) => ({
-      ...prevState,
-      currentStage: {
-        name: status.currentStage || 'processing',
-        status:
-          status.status === 'completed'
-            ? 'completed'
-            : status.status === 'failed'
-              ? 'failed'
-              : 'running',
-        progress: status.progress || 0,
-        details: {
-          description: getStageDescription(status.currentStage || 'processing'),
-          currentTask: status.currentTask,
-          metadata: status.metadata,
+  const updateProgressFromJobStatus = useCallback(
+    (status: ConversionStatus & Record<string, any>) => {
+      setUIState((prevState) => ({
+        ...prevState,
+        currentStage: {
+          name: status.currentStage || 'processing',
+          status:
+            status.status === 'completed'
+              ? 'completed'
+              : status.status === 'failed'
+                ? 'failed'
+                : 'running',
+          progress: status.progress || 0,
+          details: {
+            description: getStageDescription(status.currentStage || 'processing'),
+            currentTask: status.currentTask,
+            metadata: status.metadata,
+          },
         },
-      },
-      progress: {
-        ...prevState.progress,
-        overall: status.progress || 0,
-        currentStage: status.currentStage,
-        estimatedTimeRemaining: status.estimatedTimeRemaining,
-      },
-    }));
-  }, []);
+        progress: {
+          ...prevState.progress,
+          overall: status.progress || 0,
+          currentStage: status.currentStage,
+          estimatedTimeRemaining: status.estimatedTimeRemaining,
+        },
+      }));
+    },
+    []
+  );
 
   /**
    * Handle job completion

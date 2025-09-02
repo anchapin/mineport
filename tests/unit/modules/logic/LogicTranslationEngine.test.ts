@@ -176,7 +176,7 @@ describe('LogicTranslationEngine', () => {
       mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
 
       // Mock validation
-      const mockValidation: ValidationResult = {
+      const mockValidation: LogicValidationResult = {
         isEquivalent: true,
         confidence: 0.95,
         differences: [],
@@ -288,7 +288,7 @@ describe('LogicTranslationEngine', () => {
       mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
 
       // Mock validation
-      const mockValidation: ValidationResult = {
+      const mockValidation: LogicValidationResult = {
         isEquivalent: true,
         confidence: 0.8,
         differences: [],
@@ -367,7 +367,7 @@ describe('LogicTranslationEngine', () => {
       mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
 
       // Mock validation failure
-      const mockValidation: ValidationResult = {
+      const mockValidation: LogicValidationResult = {
         isEquivalent: false,
         confidence: 0.5, // Below threshold
         differences: [
@@ -603,7 +603,7 @@ describe('LogicTranslationEngine', () => {
       const originalCode = 'original java code';
       const translatedCode = 'translated js code';
 
-      const mockResult: ValidationResult = {
+      const mockResult: LogicValidationResult = {
         isEquivalent: true,
         confidence: 0.9,
         differences: [],

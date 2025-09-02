@@ -246,6 +246,7 @@ describe('ModPorter-AI Performance Tests', () => {
           path: texturePath,
           name: `texture${i}`,
           type: 'block' as const,
+          buffer: Buffer.alloc(256),
         });
       }
 
@@ -272,6 +273,7 @@ describe('ModPorter-AI Performance Tests', () => {
           path: texturePath,
           name: `large_texture${i}`,
           type: i % 2 === 0 ? ('block' as const) : ('item' as const),
+          buffer: Buffer.alloc(1024),
         });
       }
 
@@ -291,8 +293,40 @@ describe('ModPorter-AI Performance Tests', () => {
     it('should validate simple conversions quickly', async () => {
       const mockConversionInput = {
         modId: 'testmod',
-        files: ['test.json'],
-        assets: ['texture.png'],
+        modName: 'Test Mod',
+        modVersion: '1.0.0',
+        bedrockConfigs: {
+          manifests: {
+            behaviorPack: {
+              format_version: 2,
+              header: {
+                name: 'Test Mod',
+                description: 'A test mod',
+                uuid: '00000000-0000-0000-0000-000000000001',
+                version: [1, 0, 0],
+                min_engine_version: [1, 19, 0],
+              },
+              modules: [],
+            },
+            resourcePack: {
+              format_version: 2,
+              header: {
+                name: 'Test Mod Resources',
+                description: 'Resources for Test Mod',
+                uuid: '00000000-0000-0000-0000-000000000002',
+                version: [1, 0, 0],
+                min_engine_version: [1, 19, 0],
+              },
+              modules: [],
+            },
+          },
+          definitions: {
+            blocks: [],
+            items: [],
+          },
+          recipes: {},
+          lootTables: {},
+        },
       };
 
       const startTime = process.hrtime.bigint();
@@ -308,8 +342,40 @@ describe('ModPorter-AI Performance Tests', () => {
     it('should handle complex validations efficiently', async () => {
       const mockConversionInput = {
         modId: 'complexmod',
-        files: Array.from({ length: 100 }, (_, i) => `file${i}.json`),
-        assets: Array.from({ length: 50 }, (_, i) => `texture${i}.png`),
+        modName: 'Complex Mod',
+        modVersion: '1.0.0',
+        bedrockConfigs: {
+          manifests: {
+            behaviorPack: {
+              format_version: 2,
+              header: {
+                name: 'Complex Mod',
+                description: 'A complex test mod',
+                uuid: '00000000-0000-0000-0000-000000000003',
+                version: [1, 0, 0],
+                min_engine_version: [1, 19, 0],
+              },
+              modules: [],
+            },
+            resourcePack: {
+              format_version: 2,
+              header: {
+                name: 'Complex Mod Resources',
+                description: 'Resources for Complex Mod',
+                uuid: '00000000-0000-0000-0000-000000000004',
+                version: [1, 0, 0],
+                min_engine_version: [1, 19, 0],
+              },
+              modules: [],
+            },
+          },
+          definitions: {
+            blocks: [],
+            items: [],
+          },
+          recipes: {},
+          lootTables: {},
+        },
       };
 
       const startTime = process.hrtime.bigint();

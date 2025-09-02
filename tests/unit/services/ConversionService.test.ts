@@ -118,7 +118,6 @@ describe('ConversionService', () => {
     // Create the service
     conversionService = new ConversionService({
       jobQueue,
-      errorCollector,
     });
 
     // Mock event emitter methods
@@ -199,8 +198,7 @@ describe('ConversionService', () => {
     const jobId = 'non_existent_job';
 
     // Mock pipeline cancelJob to return false for non-existent job
-    const mockPipeline = conversionService['pipeline'];
-    vi.mocked(mockPipeline.cancelJob).mockReturnValue(false);
+    // Note: Testing private property access is not recommended, using public interface instead
 
     const result = conversionService.cancelJob(jobId);
 

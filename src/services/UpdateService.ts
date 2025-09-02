@@ -80,7 +80,8 @@ export class UpdateService extends EventEmitter {
         fabric: '0.14.9',
       };
 
-      this.apiMappingVersions = this.configService.get('updates.apiMappingVersions') || defaultVersions;
+      this.apiMappingVersions =
+        this.configService.get('updates.apiMappingVersions') || defaultVersions;
 
       // Also check for individual version keys
       for (const key of Object.keys(defaultVersions)) {

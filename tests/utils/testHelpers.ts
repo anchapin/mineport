@@ -262,39 +262,43 @@ export function createMockConversionResult(
   return {
     jobId: `job-${Math.random().toString(36).substr(2, 9)}`,
     success,
-    result: success ? {
-      modId,
-      manifestInfo: {
-        modId,
-        modName: `Test Mod ${modId}`,
-        version: '1.0.0',
-        author: 'Test Author',
-      },
-      registryNames: ['test_block', 'test_item'],
-      texturePaths: [`assets/${modId}/textures/block/test_block.png`],
-      analysisNotes: [
-        {
-          type: 'info' as const,
-          message: 'Successfully processed test mod',
-        },
-      ],
-      bedrockAddon: {
-        resourcePack: 'resource-pack-data',
-        behaviorPack: 'behavior-pack-data',
-      },
-      report: {
-        summary: {
-          totalFeatures: 10,
-          convertedFeatures: 8,
-          compromisedFeatures: 1,
-          failedFeatures: 1,
-        },
-      },
-    } : undefined,
-    bedrockAddon: success ? {
-      resourcePack: 'resource-pack-data',
-      behaviorPack: 'behavior-pack-data',
-    } : undefined,
+    result: success
+      ? {
+          modId,
+          manifestInfo: {
+            modId,
+            modName: `Test Mod ${modId}`,
+            version: '1.0.0',
+            author: 'Test Author',
+          },
+          registryNames: ['test_block', 'test_item'],
+          texturePaths: [`assets/${modId}/textures/block/test_block.png`],
+          analysisNotes: [
+            {
+              type: 'info' as const,
+              message: 'Successfully processed test mod',
+            },
+          ],
+          bedrockAddon: {
+            resourcePack: 'resource-pack-data',
+            behaviorPack: 'behavior-pack-data',
+          },
+          report: {
+            summary: {
+              totalFeatures: 10,
+              convertedFeatures: 8,
+              compromisedFeatures: 1,
+              failedFeatures: 1,
+            },
+          },
+        }
+      : undefined,
+    bedrockAddon: success
+      ? {
+          resourcePack: 'resource-pack-data',
+          behaviorPack: 'behavior-pack-data',
+        }
+      : undefined,
     validation: {
       isValid: success,
       errors: success ? [] : [{ message: 'Test error' }],

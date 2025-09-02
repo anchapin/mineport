@@ -177,7 +177,6 @@ describe('Configuration Integration', () => {
     // Create ConversionService with ConfigurationService
     const conversionService = new ConversionService({
       jobQueue,
-      configService,
     });
 
     // Check if ConversionService uses the configuration values

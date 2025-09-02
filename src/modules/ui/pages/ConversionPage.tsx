@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { FileUploader, ProgressTracker, StatusDisplay, SettingsPanel } from '../components/index.js';
+import {
+  FileUploader,
+  ProgressTracker,
+  StatusDisplay,
+  SettingsPanel,
+} from '../components/index.js';
 import { useConversion } from '../hooks/useConversion.js';
 import { ConversionProvider } from '../context/ConversionContext.js';
 

@@ -3,7 +3,14 @@
  */
 
 import { EventEmitter } from 'events';
-import { Job, JobData, JobPriority, JobStatusUpdate, QueueStats, JobProgress } from '../types/job.js';
+import {
+  Job,
+  JobData,
+  JobPriority,
+  JobStatusUpdate,
+  QueueStats,
+  JobProgress,
+} from '../types/job.js';
 import { PriorityQueue } from '../utils/PriorityQueue.js';
 import { WorkerPool } from './WorkerPool.js';
 import { ResourceManager } from './ResourceManager.js';
@@ -303,10 +310,10 @@ export class JobQueueService extends EventEmitter {
    * ```typescript
    * // Get all job history
    * const allHistory = await jobQueue.getJobHistory();
-   * 
+   *
    * // Get history for specific job
    * const jobHistory = await jobQueue.getJobHistory('job-123');
-   * 
+   *
    * // Get last 10 entries
    * const recentHistory = await jobQueue.getJobHistory(undefined, 10);
    * ```

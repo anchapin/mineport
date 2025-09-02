@@ -76,7 +76,7 @@ export interface BedrockModelFile {
   metadata?: {
     textures?: Record<string, string>;
     geometry?: string;
-    materials?: Record<string, any>;
+    materials?: Record<string, unknown>;
   };
 }
 
@@ -87,9 +87,16 @@ export interface BedrockModelFile {
  *
  * @since 1.0.0
  */
+export interface ModelConversionNote {
+  type: 'info' | 'warning' | 'error';
+  message: string;
+  modelPath?: string;
+  details?: string;
+}
+
 export interface ModelConversionResult {
   convertedModels: BedrockModelFile[];
-  conversionNotes: any[];
+  conversionNotes: ModelConversionNote[];
 }
 
 /**
@@ -159,6 +166,7 @@ export interface JavaParticleDefinition {
  */
 export interface BedrockParticleDefinition {
   name: string;
+  path: string;
   content: string;
   textures: BedrockTextureFile[];
 }

@@ -94,6 +94,20 @@ export interface BaseConversionNote {
 }
 
 /**
+ * Generic conversion note (alias for BaseConversionNote)
+ */
+export interface ConversionNote extends BaseConversionNote {}
+
+/**
+ * License information interface
+ */
+export interface LicenseInfo {
+  type: string;
+  text: string;
+  attributions?: string[];
+}
+
+/**
  * Represents a logic conversion note
  */
 export interface LogicConversionNote extends BaseConversionNote {

@@ -20,12 +20,12 @@ describe('End-to-End Conversion Tests', () => {
     const assetConverter = new AssetConverter();
     const validationPipeline = new ValidationPipeline();
 
-    conversionService = new ConversionService(
+    conversionService = new ConversionService({
       fileProcessor,
       javaAnalyzer,
       assetConverter,
       validationPipeline
-    );
+    });
 
     tempDir = path.join(process.cwd(), 'temp', `e2e-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
@@ -65,7 +65,8 @@ describe('End-to-End Conversion Tests', () => {
       expect(result.result?.texturePaths?.length).toBeGreaterThan(0);
 
       // Verify no critical errors
-      const criticalErrors = result.result?.analysisNotes?.filter((note) => note.type === 'error') || [];
+      const criticalErrors =
+        result.result?.analysisNotes?.filter((note) => note.type === 'error') || [];
       expect(criticalErrors).toHaveLength(0);
     });
 
@@ -88,12 +89,14 @@ describe('End-to-End Conversion Tests', () => {
       expect(result.result?.texturePaths?.length).toBeGreaterThan(20); // Should find many textures
 
       // Verify blocks and items were detected
-      const blockNames = result.result?.registryNames?.filter((name) =>
-        testData.blocks.some((block) => block.name.includes(name) || name.includes(block.name))
-      ) || [];
-      const itemNames = result.result?.registryNames?.filter((name) =>
-        testData.items.some((item) => item.name.includes(name) || name.includes(item.name))
-      ) || [];
+      const blockNames =
+        result.result?.registryNames?.filter((name) =>
+          testData.blocks.some((block) => block.name.includes(name) || name.includes(block.name))
+        ) || [];
+      const itemNames =
+        result.result?.registryNames?.filter((name) =>
+          testData.items.some((item) => item.name.includes(name) || name.includes(item.name))
+        ) || [];
 
       expect(blockNames.length).toBeGreaterThan(5);
       expect(itemNames.length).toBeGreaterThan(5);
@@ -148,7 +151,8 @@ describe('End-to-End Conversion Tests', () => {
       expect(result.result?.modId).toBe(testData.modId);
 
       // Should have warnings about edge cases
-      const warnings = result.result?.analysisNotes?.filter((note) => note.type === 'warning') || [];
+      const warnings =
+        result.result?.analysisNotes?.filter((note) => note.type === 'warning') || [];
       expect(warnings.length).toBeGreaterThan(0);
 
       // Should still extract some valid data
@@ -305,7 +309,8 @@ describe('End-to-End Conversion Tests', () => {
 
       // Should categorize notes properly
       const infoNotes = result.result?.analysisNotes?.filter((note) => note.type === 'info') || [];
-      const errorNotes = result.result?.analysisNotes?.filter((note) => note.type === 'error') || [];
+      const errorNotes =
+        result.result?.analysisNotes?.filter((note) => note.type === 'error') || [];
 
       expect(infoNotes.length).toBeGreaterThan(0);
       // Should have minimal errors for valid mod

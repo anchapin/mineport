@@ -53,8 +53,10 @@ export class JobQueue extends EventEmitter {
 
     // Use configuration service if available, otherwise use provided options or defaults
     if (this.configService) {
-      this.maxConcurrent = this.configService.get('processing.maxConcurrent') || options.maxConcurrent || 5;
-      this.defaultPriority = this.configService.get('processing.defaultPriority') || options.defaultPriority || 1;
+      this.maxConcurrent =
+        this.configService.get('processing.maxConcurrent') || options.maxConcurrent || 5;
+      this.defaultPriority =
+        this.configService.get('processing.defaultPriority') || options.defaultPriority || 1;
 
       // Listen for configuration changes
       this.configService.on('config:updated', this.handleConfigUpdate.bind(this));

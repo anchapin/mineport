@@ -259,47 +259,50 @@ describe('Packaging Pipeline Integration', () => {
     const reportGenerator = new ConversionReportGenerator();
 
     // Generate report
-    const report = await reportGenerator.generateReport({
-      modId: 'mock-forge-mod',
-      modName: 'Mock Forge Mod',
-      modVersion: '1.0.0',
-      modLoader: 'forge',
-      conversionDate: new Date(),
-      features: [
-        {
-          id: 'feature-1',
-          name: 'Custom Block',
-          description: 'A custom block implementation',
-          type: 'BLOCK',
-          compatibilityTier: 1,
-          sourceFiles: ['src/main/java/com/example/mockmod/blocks/CustomBlock.java'],
+    const report = await reportGenerator.generateReport(
+      {
+        modId: 'mock-forge-mod',
+        modName: 'Mock Forge Mod',
+        modVersion: '1.0.0',
+        modLoader: 'forge',
+        conversionDate: new Date(),
+        features: [
+          {
+            id: 'feature-1',
+            name: 'Custom Block',
+            description: 'A custom block implementation',
+            type: 'BLOCK',
+            compatibilityTier: 1,
+            sourceFiles: ['src/main/java/com/example/mockmod/blocks/CustomBlock.java'],
+          },
+          {
+            id: 'feature-2',
+            name: 'Custom Item',
+            description: 'A custom item implementation',
+            type: 'ITEM',
+            compatibilityTier: 1,
+            sourceFiles: ['src/main/java/com/example/mockmod/items/CustomItem.java'],
+          },
+        ],
+        assets: {
+          textures: 2,
+          models: 1,
+          sounds: 0,
         },
-        {
-          id: 'feature-2',
-          name: 'Custom Item',
-          description: 'A custom item implementation',
-          type: 'ITEM',
-          compatibilityTier: 1,
-          sourceFiles: ['src/main/java/com/example/mockmod/items/CustomItem.java'],
+        configuration: {
+          blocks: 1,
+          items: 1,
+          recipes: 0,
+          lootTables: 0,
         },
-      ],
-      assets: {
-        textures: 2,
-        models: 1,
-        sounds: 0,
+        scripts: {
+          generatedFiles: 1,
+          totalLines: 10,
+        },
+        compromises: [],
       },
-      configuration: {
-        blocks: 1,
-        items: 1,
-        recipes: 0,
-        lootTables: 0,
-      },
-      scripts: {
-        generatedFiles: 1,
-        totalLines: 10,
-      },
-      compromises: [],
-    }, outputDir);
+      outputDir
+    );
 
     expect(report).toBeDefined();
     expect(report.html).toBeDefined();
@@ -322,26 +325,29 @@ describe('Packaging Pipeline Integration', () => {
     const guideGenerator = new ManualPostProcessingGuide();
 
     // Generate guide
-    const guide = await guideGenerator.generateGuide({
-      modId: 'mock-forge-mod',
-      modName: 'Mock Forge Mod',
-      manualSteps: [
-        {
-          id: 'step-1',
-          title: 'Configure Custom Block Properties',
-          description: 'Adjust the custom block properties in the blocks/custom_block.json file.',
-          priority: 'high',
-          codeSnippet:
-            '{\n  "minecraft:block": {\n    "components": {\n      "minecraft:material": { "stone": true },\n      // Add additional properties here\n    }\n  }\n}',
-        },
-        {
-          id: 'step-2',
-          title: 'Test the Addon In-Game',
-          description: 'Import the addon into Minecraft and test all features.',
-          priority: 'medium',
-        },
-      ],
-    }, outputDir);
+    const guide = await guideGenerator.generateGuide(
+      {
+        modId: 'mock-forge-mod',
+        modName: 'Mock Forge Mod',
+        manualSteps: [
+          {
+            id: 'step-1',
+            title: 'Configure Custom Block Properties',
+            description: 'Adjust the custom block properties in the blocks/custom_block.json file.',
+            priority: 'high',
+            codeSnippet:
+              '{\n  "minecraft:block": {\n    "components": {\n      "minecraft:material": { "stone": true },\n      // Add additional properties here\n    }\n  }\n}',
+          },
+          {
+            id: 'step-2',
+            title: 'Test the Addon In-Game',
+            description: 'Import the addon into Minecraft and test all features.',
+            priority: 'medium',
+          },
+        ],
+      },
+      outputDir
+    );
 
     expect(guide).toBeDefined();
     expect(guide.markdown).toBeDefined();

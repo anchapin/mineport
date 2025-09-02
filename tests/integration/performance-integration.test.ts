@@ -55,8 +55,6 @@ describe('Performance Integration Tests', () => {
     // Initialize conversion service with performance optimizations
     conversionService = new ConversionService({
       jobQueue,
-      resourceAllocator,
-      cacheService,
       workerPool,
       performanceMonitor,
       streamingFileProcessor: new StreamingFileProcessor(),
@@ -473,7 +471,6 @@ describe('Performance Integration Tests', () => {
       // Test without optimizations (basic service)
       const basicService = new ConversionService({
         jobQueue: new JobQueue(),
-        // No performance optimizations
       });
 
       basicService.start();

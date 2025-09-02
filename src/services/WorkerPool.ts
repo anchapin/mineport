@@ -377,9 +377,9 @@ export class WorkerPool extends EventEmitter {
 
     availableWorker.status = 'busy';
     // Create a minimal job-like object for task tracking
-    const taskJob: Partial<Job> = { 
-      id: task.id || 'unknown', 
-      type: 'conversion' as JobType 
+    const taskJob: Partial<Job> = {
+      id: task.id || 'unknown',
+      type: 'conversion' as JobType,
     };
     availableWorker.currentJob = taskJob as Job;
     availableWorker.lastHeartbeat = new Date();
