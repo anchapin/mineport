@@ -5,7 +5,7 @@
 
 import {
   TranslationContext,
-  ValidationResult,
+  LogicValidationResult,
   FunctionalDifference,
   SourcePosition,
 } from '../../types/logic-translation.js';
@@ -62,7 +62,7 @@ export class ProgramStateValidator {
     originalJavaCode: string,
     translatedJavaScriptCode: string,
     context: TranslationContext
-  ): Promise<ValidationResult> {
+  ): Promise<LogicValidationResult> {
     logger.debug('Starting program state validation');
 
     try {
@@ -161,7 +161,7 @@ export class ProgramStateValidator {
     semanticResult: SemanticAnalysisResult | undefined,
     behaviorResult: BehaviorAnalysisResult | undefined,
     context: TranslationContext
-  ): ValidationResult {
+  ): LogicValidationResult {
     const allDifferences: FunctionalDifference[] = [];
     const allRecommendations: string[] = [];
 

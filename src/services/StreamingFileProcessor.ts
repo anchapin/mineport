@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as crypto from 'crypto';
 import { FileValidationOptions, ValidationResult } from '../types/file-processing.js';
+import { ErrorSeverity } from '../types/errors.js';
 import { SecurityScanner } from '../modules/ingestion/SecurityScanner.js';
 import logger from '../utils/logger.js';
 
@@ -135,13 +136,14 @@ export class StreamingFileProcessor {
     let fileTypeDetected = 'unknown';
 
     // Create streaming transforms
+    const self = this;
     const validationTransform = new Transform({
-      transform(chunk: Buffer, encoding, callback) {
+      transform(chunk: Buffer, _encoding, callback) {
         try {
           // Check magic number on first chunk
           if (!magicNumberChecked && chunk.length >= 4) {
             const magicNumber = chunk.subarray(0, 4);
-            fileTypeDetected = this.detectFileTypeFromMagic(magicNumber);
+            fileTypeDetected = self.detectFileTypeFromMagic(magicNumber);
             magicNumberChecked = true;
           }
 
@@ -151,7 +153,7 @@ export class StreamingFileProcessor {
           // Memory management - don't accumulate chunks
           callback(null, null); // Don't pass chunk downstream to save memory
         } catch (error) {
-          callback(error);
+          callback(error instanceof Error ? error : new Error(String(error)));
         }
       },
     });
@@ -160,7 +162,7 @@ export class StreamingFileProcessor {
     const progressTransform = this.options.enableProgressTracking
       ? this.createProgressTracker(fileSize)
       : new Transform({
-          transform(chunk, encoding, callback) {
+          transform(chunk, _encoding, callback) {
             callback(null, chunk);
           },
         });
@@ -189,14 +191,14 @@ export class StreamingFileProcessor {
           errors.push({
             code: `SECURITY_${threat.type.toUpperCase()}`,
             message: threat.description,
-            severity: threat.severity === 'high' ? 'critical' : 'error',
+            severity: threat.severity === ErrorSeverity.CRITICAL ? 'critical' : 'error',
           });
         });
       }
     } catch (scanError) {
       warnings.push({
         code: 'SECURITY_SCAN_FAILED',
-        message: `Security scan failed: ${scanError.message}`,
+        message: `Security scan failed: ${scanError instanceof Error ? scanError.message : String(scanError)}`,
       });
     }
 
@@ -225,7 +227,7 @@ export class StreamingFileProcessor {
     let lastProgressReport = 0;
 
     return new Transform({
-      transform(chunk: Buffer, encoding, callback) {
+      transform(chunk: Buffer, _encoding, callback) {
         processedBytes += chunk.length;
         const progress = (processedBytes / totalSize) * 100;
 

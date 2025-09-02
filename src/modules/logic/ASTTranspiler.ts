@@ -10,6 +10,7 @@ import {
   ASTNode,
   UnmappableCodeSegment,
   APIMapping,
+  LogicAPIMapping,
   TranslationWarning,
 } from '../../types/logic-translation.js';
 import { logger } from '../../utils/logger.js';
@@ -131,13 +132,13 @@ export class ASTTranspiler {
   ): Promise<{
     code: string;
     unmappableSegments: UnmappableCodeSegment[];
-    mappedAPIs: APIMapping[];
+    mappedAPIs: LogicAPIMapping[];
     confidence: number;
     warnings: TranslationWarning[];
   }> {
     const codeSegments: string[] = [];
     const unmappableSegments: UnmappableCodeSegment[] = [];
-    const mappedAPIs: APIMapping[] = [];
+    const mappedAPIs: LogicAPIMapping[] = [];
     const warnings: TranslationWarning[] = [];
     let totalConfidence = 0;
     let processedNodes = 0;
@@ -207,7 +208,7 @@ export class ASTTranspiler {
   ): Promise<{
     success: boolean;
     code: string;
-    mappedAPIs: APIMapping[];
+    mappedAPIs: LogicAPIMapping[];
     confidence: number;
     warnings: TranslationWarning[];
     reason?: string;
@@ -271,7 +272,7 @@ export class ASTTranspiler {
     context: TranslationContext
   ): Promise<{
     code: string;
-    mappedAPIs: APIMapping[];
+    mappedAPIs: LogicAPIMapping[];
     confidence: number;
     warnings: TranslationWarning[];
   }> {
@@ -395,8 +396,8 @@ export class ASTTranspiler {
     _node: ASTNode,
     _transpiledCode: string,
     _context: TranslationContext
-  ): Promise<APIMapping[]> {
-    const mappings: APIMapping[] = [];
+  ): Promise<LogicAPIMapping[]> {
+    const mappings: LogicAPIMapping[] = [];
 
     // This would analyze the transpiled code and identify which API mappings were used
     // For now, return empty array as this requires integration with API mapping service

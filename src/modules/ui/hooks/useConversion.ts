@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { ConversionAPIServiceImpl } from '../services';
+import { ConversionAPIServiceImpl } from '../services/index.js';
 import { UserPreferences } from '../types/index.js';
 import { useConversionContext } from '../context/ConversionContext.js';
 

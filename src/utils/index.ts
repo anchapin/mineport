@@ -3,5 +3,5 @@
  */
 
 export { logger } from './logger.js';
-export { errorHandler } from './errorHandler.js';
+export { ErrorHandler } from './errorHandler.js';
 export { PriorityQueue } from './PriorityQueue.js';

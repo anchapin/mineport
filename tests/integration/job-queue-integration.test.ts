@@ -50,6 +50,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 3000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 256,
@@ -100,6 +101,7 @@ describe('JobQueue Integration Tests', () => {
           options: {
             timeout: 2000,
             maxRetries: 0,
+            retryCount: 0,
             priority: 'normal',
             resourceRequirements: {
               memory: 128,
@@ -135,6 +137,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 2000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'low',
           resourceRequirements: { memory: 128, cpu: 1, disk: 64 },
         },
@@ -147,6 +150,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 2000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'urgent',
           resourceRequirements: { memory: 128, cpu: 1, disk: 64 },
         },
@@ -178,6 +182,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 5000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 2048, // Most of available memory
@@ -195,6 +200,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 5000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 1536, // Would exceed available memory with first job
@@ -234,6 +240,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 2000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 1024,
@@ -250,6 +257,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 5000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 1024,
@@ -287,6 +295,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 3000,
           maxRetries: 1,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 512,
@@ -328,6 +337,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 2000,
           maxRetries: 2,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 256,
@@ -356,6 +366,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 5000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 512,
@@ -396,6 +407,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 10000,
           maxRetries: 0,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 512,
@@ -435,6 +447,7 @@ describe('JobQueue Integration Tests', () => {
           options: {
             timeout: 3000,
             maxRetries: 0,
+            retryCount: 0,
             priority: 'normal',
             resourceRequirements: {
               memory: 128,
@@ -472,6 +485,7 @@ describe('JobQueue Integration Tests', () => {
           options: {
             timeout: 4000,
             maxRetries: 0,
+            retryCount: 0,
             priority: 'normal',
             resourceRequirements: {
               memory: 256,
@@ -508,6 +522,7 @@ describe('JobQueue Integration Tests', () => {
         options: {
           timeout: 3000,
           maxRetries: 1,
+          retryCount: 0,
           priority: 'normal',
           resourceRequirements: {
             memory: 512,

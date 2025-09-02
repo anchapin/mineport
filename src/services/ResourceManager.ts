@@ -102,6 +102,20 @@ export class ResourceManager {
     this.startMonitoring();
   }
 
+  /**
+   * Allocates system resources for a job based on its requirements
+   *
+   * @param job - The job object containing resource requirements
+   * @returns Promise that resolves to resource allocation details or null if resources cannot be allocated
+   *
+   * @example
+   * ```typescript
+   * const allocation = await resourceManager.allocateResources(job);
+   * if (allocation) {
+   *   console.log(`Allocated ${allocation.memory}MB memory to job ${job.id}`);
+   * }
+   * ```
+   */
   async allocateResources(job: Job): Promise<ResourceAllocation | null> {
     const requirements = job.payload.options.resourceRequirements;
 
@@ -134,6 +148,18 @@ export class ResourceManager {
     return allocation;
   }
 
+  /**
+   * Releases system resources that were allocated to a specific job
+   *
+   * @param jobId - The unique identifier of the job whose resources should be released
+   * @returns Promise that resolves when resources are released
+   *
+   * @example
+   * ```typescript
+   * await resourceManager.releaseResources('job-123');
+   * console.log('Resources released for job-123');
+   * ```
+   */
   async releaseResources(jobId: string): Promise<void> {
     const allocation = this.allocations.get(jobId);
 
@@ -148,6 +174,24 @@ export class ResourceManager {
     logger.info(`Resources released for job ${jobId}`, allocation);
   }
 
+  /**
+   * Checks if the specified resource requirements can be satisfied with current available resources
+   *
+   * @param requirements - The resource requirements to check (memory, CPU, disk)
+   * @returns True if resources can be allocated, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const canAllocate = resourceManager.canAllocateResources({
+   *   memory: 1024,
+   *   cpu: 1,
+   *   disk: 512
+   * });
+   * if (canAllocate) {
+   *   console.log('Resources are available');
+   * }
+   * ```
+   */
   canAllocateResources(requirements: ResourceRequirements): boolean {
     const available = this.getAvailableResources();
 
@@ -158,6 +202,17 @@ export class ResourceManager {
     );
   }
 
+  /**
+   * Gets the currently available system resources
+   *
+   * @returns Object containing available memory, CPU, and disk resources
+   *
+   * @example
+   * ```typescript
+   * const available = resourceManager.getAvailableResources();
+   * console.log(`Available: ${available.memory}MB memory, ${available.cpu} CPU cores`);
+   * ```
+   */
   getAvailableResources(): ResourceRequirements {
     // Return the current available resources (already calculated in updateSystemResources)
     return {
@@ -167,6 +222,17 @@ export class ResourceManager {
     };
   }
 
+  /**
+   * Gets the total amount of resources currently allocated to all jobs
+   *
+   * @returns Object containing total allocated memory, CPU, and disk resources
+   *
+   * @example
+   * ```typescript
+   * const allocated = resourceManager.getTotalAllocatedResources();
+   * console.log(`Allocated: ${allocated.memory}MB memory, ${allocated.cpu} CPU cores`);
+   * ```
+   */
   getTotalAllocatedResources(): ResourceRequirements {
     const allocated = Array.from(this.allocations.values()).reduce(
       (total, allocation) => ({
@@ -180,6 +246,17 @@ export class ResourceManager {
     return allocated;
   }
 
+  /**
+   * Gets the current resource utilization percentages
+   *
+   * @returns Object containing utilization percentages (0-100) for memory, CPU, and disk
+   *
+   * @example
+   * ```typescript
+   * const utilization = resourceManager.getResourceUtilization();
+   * console.log(`Memory utilization: ${utilization.memory.toFixed(1)}%`);
+   * ```
+   */
   getResourceUtilization(): { memory: number; cpu: number; disk: number } {
     const allocated = this.getTotalAllocatedResources();
 
@@ -190,10 +267,32 @@ export class ResourceManager {
     };
   }
 
+  /**
+   * Gets the historical resource monitoring data
+   *
+   * @returns Array of resource monitoring data points with timestamps and utilization metrics
+   *
+   * @example
+   * ```typescript
+   * const monitoringData = resourceManager.getMonitoringData();
+   * console.log(`Collected ${monitoringData.length} monitoring data points`);
+   * ```
+   */
   getMonitoringData(): ResourceMonitoringData[] {
     return [...this.monitoringData];
   }
 
+  /**
+   * Optimizes resource allocation by identifying and cleaning up stale allocations
+   *
+   * @returns Promise that resolves when optimization is complete
+   *
+   * @example
+   * ```typescript
+   * await resourceManager.optimizeResourceAllocation();
+   * console.log('Resource allocation optimized');
+   * ```
+   */
   async optimizeResourceAllocation(): Promise<void> {
     // Identify underutilized allocations
     const currentTime = new Date();
@@ -266,6 +365,15 @@ export class ResourceManager {
     }, 30000); // Monitor every 30 seconds
   }
 
+  /**
+   * Destroys the resource manager, cleaning up all resources and stopping monitoring
+   *
+   * @example
+   * ```typescript
+   * resourceManager.destroy();
+   * console.log('Resource manager destroyed');
+   * ```
+   */
   destroy(): void {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);

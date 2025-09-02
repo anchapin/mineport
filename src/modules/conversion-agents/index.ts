@@ -13,7 +13,7 @@ export type {
   TextureInfo,
   SoundInfo,
   ModelInfo,
-  ConversionResult,
+  ConversionAgentResult,
   ConversionMetadata,
   OptimizedTexture,
   BedrockModel,

@@ -9,7 +9,7 @@ import {
   MMIRRepresentation,
   ASTTranspilationResult,
   LLMTranslationResult,
-  ValidationResult,
+  LogicValidationResult,
 } from '../../../../src/types/logic-translation.js';
 
 // Mock dependencies

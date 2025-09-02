@@ -51,9 +51,9 @@ export interface ModelInfo {
 }
 
 /**
- * Result of a conversion operation
+ * Result of a conversion agent operation
  */
-export interface ConversionResult {
+export interface ConversionAgentResult {
   success: boolean;
   outputFiles: OutputFile[];
   errors: ConversionError[];

@@ -223,7 +223,7 @@ export class ErrorRecoveryService {
             return {
               success: false,
               strategy: RecoveryStrategy.RETRY,
-              message: `Retry failed: ${retryError.message}`,
+              message: `Retry failed: ${retryError instanceof Error ? retryError.message : String(retryError)}`,
             };
           }
         }
@@ -243,7 +243,7 @@ export class ErrorRecoveryService {
             return {
               success: false,
               strategy: RecoveryStrategy.FALLBACK,
-              message: `Fallback failed: ${fallbackError.message}`,
+              message: `Fallback failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`,
             };
           }
         }
@@ -263,7 +263,7 @@ export class ErrorRecoveryService {
             return {
               success: false,
               strategy: RecoveryStrategy.COMPROMISE,
-              message: `Compromise failed: ${compromiseError.message}`,
+              message: `Compromise failed: ${compromiseError instanceof Error ? compromiseError.message : String(compromiseError)}`,
             };
           }
         }
@@ -282,7 +282,7 @@ export class ErrorRecoveryService {
             return {
               success: false,
               strategy: RecoveryStrategy.SKIP,
-              message: `Skip failed: ${skipError.message}`,
+              message: `Skip failed: ${skipError instanceof Error ? skipError.message : String(skipError)}`,
             };
           }
         } else {

@@ -46,7 +46,7 @@ describe('Performance Integration Tests', () => {
     workerPool = new WorkerPool({
       maxWorkers: 2,
       minWorkers: 1,
-      taskTimeout: 10000,
+      idleTimeout: 10000,
     });
 
     resourceAllocator = new ResourceAllocator(tempDir);

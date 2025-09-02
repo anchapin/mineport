@@ -466,7 +466,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
       return conversionJob;
     } catch (error) {
       logger.error('Failed to create conversion job', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         modFile: input.modFile,
       });
       throw error;
@@ -831,29 +831,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
     }
   }
 
-  /**
-   * Update job statuses
-   */
-  private updateJobStatuses(): void {
-    // This is a simplified implementation
-    // In a real system, we would query the actual progress of each job
 
-    /**
-     * for method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const [, activeJob] of this.activeJobs.entries()) {
-      if (activeJob.job.status === 'processing') {
-        // Emit status update event
-        this.emit('job:status', activeJob.status);
-      }
-    }
-  }
 
   /**
    * Extract mod ID from file path
@@ -913,12 +891,12 @@ export class ConversionService extends EventEmitter implements IConversionServic
    */
   public async processModFile(
     modFilePath: string,
-    options: ConversionOptions = {}
+    options: Partial<ConversionOptions> = {}
   ): Promise<ConversionResult> {
     logger.warn('processModFile is deprecated, use createConversionJob instead');
 
     // Create a temporary output path if not provided
-    const outputPath = options.outputPath || `/tmp/conversion-${Date.now()}`;
+    const outputPath = (options as any).outputPath || `/tmp/conversion-${Date.now()}`;
 
     // Create conversion input
     const input: ConversionInput = {

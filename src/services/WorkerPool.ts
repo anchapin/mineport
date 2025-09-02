@@ -51,6 +51,20 @@ export class WorkerPool extends EventEmitter {
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private config: WorkerPoolConfig;
 
+  /**
+   * Creates a new WorkerPool instance with the specified configuration
+   *
+   * @param config - Configuration options for the worker pool
+   *
+   * @example
+   * ```typescript
+   * const workerPool = new WorkerPool({
+   *   maxWorkers: 8,
+   *   minWorkers: 2,
+   *   workerTimeout: 300000
+   * });
+   * ```
+   */
   constructor(config: Partial<WorkerPoolConfig> = {}) {
     super();
 
@@ -74,6 +88,20 @@ export class WorkerPool extends EventEmitter {
     this.startHeartbeatMonitoring();
   }
 
+  /**
+   * Assigns a job to an available worker for processing
+   *
+   * @param job - The job to be assigned to a worker
+   * @returns Promise that resolves to the worker ID if assignment was successful, null otherwise
+   *
+   * @example
+   * ```typescript
+   * const workerId = await workerPool.assignJob(job);
+   * if (workerId) {
+   *   console.log(`Job ${job.id} assigned to worker ${workerId}`);
+   * }
+   * ```
+   */
   async assignJob(job: Job): Promise<string | null> {
     const availableWorker = this.findAvailableWorker(job.type);
 
@@ -96,6 +124,20 @@ export class WorkerPool extends EventEmitter {
     return availableWorker.id;
   }
 
+  /**
+   * Cancels a job that is currently being processed by a worker
+   *
+   * @param jobId - The unique identifier of the job to cancel
+   * @returns Promise that resolves to true if the job was successfully cancelled, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const cancelled = await workerPool.cancelJob('job-123');
+   * if (cancelled) {
+   *   console.log('Job cancelled successfully');
+   * }
+   * ```
+   */
   async cancelJob(jobId: string): Promise<boolean> {
     const workerId = this.jobWorkerMap.get(jobId);
 
@@ -122,10 +164,34 @@ export class WorkerPool extends EventEmitter {
     return true;
   }
 
+  /**
+   * Gets all workers that are currently available (idle) for job assignment
+   *
+   * @returns Array of available worker objects
+   *
+   * @example
+   * ```typescript
+   * const availableWorkers = workerPool.getAvailableWorkers();
+   * console.log(`${availableWorkers.length} workers available`);
+   * ```
+   */
   getAvailableWorkers(): Worker[] {
     return Array.from(this.workers.values()).filter((worker) => worker.status === 'idle');
   }
 
+  /**
+   * Gets detailed information about all workers including their status and resource usage
+   *
+   * @returns Array of worker information objects containing status, capabilities, and resource metrics
+   *
+   * @example
+   * ```typescript
+   * const workerInfo = workerPool.getWorkerInfo();
+   * workerInfo.forEach(worker => {
+   *   console.log(`Worker ${worker.id}: ${worker.status}`);
+   * });
+   * ```
+   */
   getWorkerInfo(): WorkerInfo[] {
     return Array.from(this.workers.values()).map((worker) => ({
       id: worker.id,
@@ -146,6 +212,17 @@ export class WorkerPool extends EventEmitter {
     }));
   }
 
+  /**
+   * Gets comprehensive statistics about the worker pool performance and status
+   *
+   * @returns Object containing worker counts, job processing statistics, and performance metrics
+   *
+   * @example
+   * ```typescript
+   * const stats = workerPool.getWorkerStats();
+   * console.log(`Total workers: ${stats.totalWorkers}, Busy: ${stats.busyWorkers}`);
+   * ```
+   */
   getWorkerStats() {
     const workers = Array.from(this.workers.values());
 
@@ -182,7 +259,7 @@ export class WorkerPool extends EventEmitter {
         }
       }
 
-      this.taskQueue.splice(insertIndex, 0, queueItem);
+      this.taskQueue.splice(insertIndex, 0, queueItem as any);
       this.processTaskQueue();
     });
   }
@@ -217,7 +294,7 @@ export class WorkerPool extends EventEmitter {
     }
 
     // Check if task is currently running
-    for (const worker of this.workers.values()) {
+    for (const worker of Array.from(this.workers.values())) {
       if (worker.status === 'busy' && worker.currentJob?.id === taskId) {
         // Mark worker as idle and clear current job
         worker.status = 'idle';
@@ -260,6 +337,20 @@ export class WorkerPool extends EventEmitter {
     this.destroy();
   }
 
+  /**
+   * Checks if there is at least one worker available for the specified job type
+   *
+   * @param jobType - Optional job type to check worker capabilities for
+   * @returns True if an available worker exists, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const hasWorker = workerPool.hasAvailableWorker('conversion');
+   * if (hasWorker) {
+   *   console.log('Worker available for conversion jobs');
+   * }
+   * ```
+   */
   hasAvailableWorker(jobType?: JobType): boolean {
     return this.findAvailableWorker(jobType) !== null;
   }
@@ -285,7 +376,12 @@ export class WorkerPool extends EventEmitter {
     const { task, resolve, reject } = this.taskQueue.shift()!;
 
     availableWorker.status = 'busy';
-    availableWorker.currentJob = { id: task.id || 'unknown', type: 'task' as JobType };
+    // Create a minimal job-like object for task tracking
+    const taskJob: Partial<Job> = { 
+      id: task.id || 'unknown', 
+      type: 'conversion' as JobType 
+    };
+    availableWorker.currentJob = taskJob as Job;
     availableWorker.lastHeartbeat = new Date();
 
     this.executeTask(availableWorker, task, reject)
@@ -486,10 +582,10 @@ export class WorkerPool extends EventEmitter {
     this.heartbeatInterval = setInterval(() => {
       const now = new Date();
 
-      for (const worker of this.workers.values()) {
+      for (const worker of Array.from(this.workers.values())) {
         const timeSinceHeartbeat = now.getTime() - worker.lastHeartbeat.getTime();
 
-        if (timeSinceHeartbeat > this.config.workerTimeout) {
+        if (timeSinceHeartbeat > this.config.workerTimeout!) {
           logger.warn(`Worker ${worker.id} timeout detected`);
 
           if (worker.currentJob) {
@@ -517,6 +613,15 @@ export class WorkerPool extends EventEmitter {
     }, this.config.heartbeatInterval);
   }
 
+  /**
+   * Destroys the worker pool, cancelling all jobs and cleaning up all resources
+   *
+   * @example
+   * ```typescript
+   * workerPool.destroy();
+   * console.log('Worker pool destroyed');
+   * ```
+   */
   destroy(): void {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
@@ -524,7 +629,7 @@ export class WorkerPool extends EventEmitter {
     }
 
     // Cancel all running jobs
-    for (const [jobId] of this.jobWorkerMap.entries()) {
+    for (const [jobId] of Array.from(this.jobWorkerMap.entries())) {
       this.cancelJob(jobId);
     }
 

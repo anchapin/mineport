@@ -122,7 +122,7 @@ export interface JobStatusUpdate {
 
 export interface WorkerInfo {
   id: string;
-  status: 'idle' | 'busy' | 'error';
+  status: 'idle' | 'busy' | 'error' | 'terminated';
   currentJobId?: string;
   capabilities: JobType[];
   resourceCapacity: ResourceRequirements;

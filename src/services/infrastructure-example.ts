@@ -18,19 +18,17 @@ export function setupInfrastructure() {
   // Create the job queue with a maximum of 5 concurrent jobs
   const jobQueue = new JobQueue({ maxConcurrent: 5 });
 
-  // Create the worker pool with the job queue
+  // Create the worker pool
   const workerPool = new WorkerPool({
     maxWorkers: 5,
-    jobQueue,
+    minWorkers: 2,
   });
 
-  // Create the resource allocator with adaptive strategy
+  // Create the resource allocator
   const resourceAllocator = new ResourceAllocator({
-    workerPool,
-    jobQueue,
-    checkInterval: 30000, // Check every 30 seconds
-    minWorkers: 2,
-    maxWorkers: 10,
+    maxMemory: 1024,
+    maxCpu: 4,
+    maxStorage: 2048,
   });
 
   // Set up event listeners for monitoring

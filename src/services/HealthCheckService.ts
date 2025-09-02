@@ -3,9 +3,10 @@
  * Provides comprehensive health monitoring for all system components
  */
 
-import { Logger } from '../utils/logger.js';
+import { createEnhancedLogger, type Logger } from '../utils/logger.js';
 import { ConfigurationService } from './ConfigurationService.js';
 import { FeatureFlagService } from './FeatureFlagService.js';
+import { ModPorterAIConfig } from '../types/config.js';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -44,7 +45,7 @@ export class HealthCheckService {
   private readinessProbes: Map<string, ReadinessProbe> = new Map();
 
   constructor(configService: ConfigurationService, featureFlagService: FeatureFlagService) {
-    this.logger = new Logger('HealthCheckService');
+    this.logger = createEnhancedLogger('HealthCheckService');
     this.configService = configService;
     this.featureFlagService = featureFlagService;
 
@@ -173,14 +174,15 @@ export class HealthCheckService {
       };
     } catch (error) {
       const duration = Date.now() - startTime;
-      const isTimeout = error.message === 'Timeout';
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isTimeout = errorMessage === 'Timeout';
 
       return {
         name: probe.name,
         status: 'unhealthy',
-        message: isTimeout ? `Check timed out after ${probe.timeout}ms` : error.message,
+        message: isTimeout ? `Check timed out after ${probe.timeout}ms` : errorMessage,
         duration,
-        metadata: { error: error.message },
+        metadata: { error: errorMessage },
       };
     }
   }
@@ -257,7 +259,7 @@ export class HealthCheckService {
       ];
 
       for (const configKey of requiredConfigs) {
-        if (!config.modporterAI?.[configKey]) {
+        if (!config[configKey as keyof ModPorterAIConfig]) {
           this.logger.warn(`Missing ModPorter-AI configuration: ${configKey}`);
           return false;
         }

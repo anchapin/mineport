@@ -10,7 +10,7 @@ import {
   AddonStructure,
   PackStructure,
   OutputFile,
-  ConversionResult,
+  ConversionAgentResult,
   ConversionMetadata,
 } from './types.js';
 import {
@@ -211,7 +211,7 @@ export class BedrockArchitect {
   /**
    * Organize assets into the proper addon structure
    */
-  async organizeAssets(assets: AssetInfo[], structure: AddonStructure): Promise<ConversionResult> {
+  async organizeAssets(assets: AssetInfo[], structure: AddonStructure): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -295,7 +295,7 @@ export class BedrockArchitect {
   /**
    * Validate structure compliance with Bedrock standards
    */
-  validateStructureCompliance(structure: AddonStructure): ConversionResult {
+  validateStructureCompliance(structure: AddonStructure): ConversionAgentResult {
     const errors: ConversionError[] = [];
     const warnings: AssetConversionNote[] = [];
 

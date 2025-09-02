@@ -3,7 +3,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Job, JobData, JobPriority, JobStatusUpdate, QueueStats } from '../types/job.js';
+import { Job, JobData, JobPriority, JobStatusUpdate, QueueStats, JobProgress } from '../types/job.js';
 import { PriorityQueue } from '../utils/PriorityQueue.js';
 import { WorkerPool } from './WorkerPool.js';
 import { ResourceManager } from './ResourceManager.js';
@@ -145,10 +145,38 @@ export class JobQueueService extends EventEmitter {
     return job.id;
   }
 
+  /**
+   * Retrieves the current status and details of a specific job
+   *
+   * @param jobId - The unique identifier of the job to retrieve
+   * @returns Promise that resolves to the job object or null if not found
+   *
+   * @example
+   * ```typescript
+   * const job = await jobQueue.getJobStatus('job-123');
+   * if (job) {
+   *   console.log(`Job status: ${job.status}`);
+   * }
+   * ```
+   */
   async getJobStatus(jobId: string): Promise<Job | null> {
     return await this.statusStore.getJob(jobId);
   }
 
+  /**
+   * Cancels a job that is currently pending or running
+   *
+   * @param jobId - The unique identifier of the job to cancel
+   * @returns Promise that resolves to true if the job was successfully cancelled, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const cancelled = await jobQueue.cancelJob('job-123');
+   * if (cancelled) {
+   *   console.log('Job cancelled successfully');
+   * }
+   * ```
+   */
   async cancelJob(jobId: string): Promise<boolean> {
     const job = await this.statusStore.getJob(jobId);
 
@@ -191,6 +219,20 @@ export class JobQueueService extends EventEmitter {
     return true;
   }
 
+  /**
+   * Retries a failed job by re-queuing it for processing
+   *
+   * @param jobId - The unique identifier of the job to retry
+   * @returns Promise that resolves to true if the job was successfully queued for retry, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const retried = await jobQueue.retryJob('job-123');
+   * if (retried) {
+   *   console.log('Job queued for retry');
+   * }
+   * ```
+   */
   async retryJob(jobId: string): Promise<boolean> {
     const job = await this.statusStore.getJob(jobId);
 
@@ -228,6 +270,17 @@ export class JobQueueService extends EventEmitter {
     return true;
   }
 
+  /**
+   * Retrieves comprehensive statistics about the job queue and worker pool
+   *
+   * @returns Promise that resolves to queue statistics including job counts and worker status
+   *
+   * @example
+   * ```typescript
+   * const stats = await jobQueue.getQueueStats();
+   * console.log(`Pending jobs: ${stats.pendingJobs}, Active workers: ${stats.activeWorkers}`);
+   * ```
+   */
   async getQueueStats(): Promise<QueueStats> {
     const baseStats = await this.statusStore.getQueueStats();
     const workerStats = this.workerPool.getWorkerStats();
@@ -239,16 +292,57 @@ export class JobQueueService extends EventEmitter {
     };
   }
 
+  /**
+   * Retrieves the status update history for jobs
+   *
+   * @param jobId - Optional job ID to filter history for a specific job
+   * @param limit - Optional maximum number of history entries to return
+   * @returns Promise that resolves to an array of job status updates
+   *
+   * @example
+   * ```typescript
+   * // Get all job history
+   * const allHistory = await jobQueue.getJobHistory();
+   * 
+   * // Get history for specific job
+   * const jobHistory = await jobQueue.getJobHistory('job-123');
+   * 
+   * // Get last 10 entries
+   * const recentHistory = await jobQueue.getJobHistory(undefined, 10);
+   * ```
+   */
   async getJobHistory(jobId?: string, limit?: number): Promise<JobStatusUpdate[]> {
     return await this.statusStore.getJobHistory(jobId, limit);
   }
 
+  /**
+   * Pauses the job queue processing, preventing new jobs from being started
+   *
+   * @returns Promise that resolves when the queue is paused
+   *
+   * @example
+   * ```typescript
+   * await jobQueue.pauseQueue();
+   * console.log('Queue processing paused');
+   * ```
+   */
   async pauseQueue(): Promise<void> {
     this.isProcessing = false;
     logger.info('Job queue processing paused');
     this.emit('queuePaused');
   }
 
+  /**
+   * Resumes the job queue processing after it has been paused
+   *
+   * @returns Promise that resolves when the queue processing is resumed
+   *
+   * @example
+   * ```typescript
+   * await jobQueue.resumeQueue();
+   * console.log('Queue processing resumed');
+   * ```
+   */
   async resumeQueue(): Promise<void> {
     this.isProcessing = true;
     this.processQueue();
@@ -256,6 +350,17 @@ export class JobQueueService extends EventEmitter {
     this.emit('queueResumed');
   }
 
+  /**
+   * Clears all pending jobs from the queue
+   *
+   * @returns Promise that resolves to the number of jobs that were cleared
+   *
+   * @example
+   * ```typescript
+   * const clearedCount = await jobQueue.clearQueue();
+   * console.log(`Cleared ${clearedCount} jobs from queue`);
+   * ```
+   */
   async clearQueue(): Promise<number> {
     const queueSize = this.queue.size;
     this.queue.clear();
@@ -483,7 +588,7 @@ export class JobQueueService extends EventEmitter {
     this.processQueue();
   }
 
-  private async handleJobProgress(jobId: string, progress: unknown): Promise<void> {
+  private async handleJobProgress(jobId: string, progress: JobProgress): Promise<void> {
     const job = await this.statusStore.getJob(jobId);
     if (!job) return;
 
@@ -571,6 +676,15 @@ export class JobQueueService extends EventEmitter {
     logger.debug(`Job ${job.id} assigned to worker ${workerId}`);
   }
 
+  /**
+   * Destroys the job queue service, cleaning up all resources and stopping all processing
+   *
+   * @example
+   * ```typescript
+   * jobQueue.destroy();
+   * console.log('Job queue service destroyed');
+   * ```
+   */
   destroy(): void {
     this.isProcessing = false;
 

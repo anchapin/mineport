@@ -5,9 +5,10 @@
  * Implements continuous security posture assessment and policy enforcement
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const crypto = require('crypto');
+// Convert CommonJS requires to ES module imports
+import { promises as fs } from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 
 class SecurityPostureMonitor {
   constructor(options = {}) {
@@ -833,7 +834,7 @@ class SecurityPostureMonitor {
 }
 
 // CLI interface
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
   const monitor = new SecurityPostureMonitor();
 
@@ -869,4 +870,5 @@ if (require.main === module) {
   }
 }
 
-module.exports = SecurityPostureMonitor;
+export default SecurityPostureMonitor;
+export { SecurityPostureMonitor };

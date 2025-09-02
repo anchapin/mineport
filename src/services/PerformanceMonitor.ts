@@ -213,7 +213,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Collect current performance metrics
+   * Collect current performance metrics from system and process
+   * @returns void
    */
   private collectMetrics(): void {
     const now = new Date();
@@ -275,7 +276,9 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Calculate CPU usage percentage
+   * Calculate CPU usage percentage from CPU usage data
+   * @param cpuUsage - CPU usage data from process.cpuUsage()
+   * @returns CPU usage as a percentage (0-100)
    */
   private calculateCpuUsage(cpuUsage: NodeJS.CpuUsage): number {
     const totalUsage = cpuUsage.user + cpuUsage.system;
@@ -284,7 +287,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Setup garbage collection monitoring
+   * Setup garbage collection monitoring and event listeners
+   * @returns void
    */
   private setupGCMonitoring(): void {
     if (!this.options.enableGCMonitoring) {
@@ -294,9 +298,9 @@ export class PerformanceMonitor extends EventEmitter {
     // Enable GC monitoring if available
     if (typeof global.gc === 'function') {
       const originalGC = global.gc;
-      global.gc = () => {
+      global.gc = async () => {
         const start = Date.now();
-        originalGC();
+        await originalGC();
         const duration = Date.now() - start;
 
         this.gcStats.collections++;
@@ -334,7 +338,9 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Check for performance alerts
+   * Check for performance alerts based on current metrics
+   * @param metrics - Current performance metrics to evaluate
+   * @returns void
    */
   private checkAlerts(metrics: PerformanceMetrics): void {
     if (!this.options.enableAlerts) {
@@ -394,7 +400,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Clean up old metrics
+   * Clean up old metrics beyond the retention period
+   * @returns void
    */
   private cleanupOldMetrics(): void {
     const cutoff = Date.now() - this.options.retentionPeriod;
@@ -402,7 +409,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Clean up old alerts
+   * Clean up old alerts beyond the retention period
+   * @returns void
    */
   private cleanupOldAlerts(): void {
     const cutoff = Date.now() - this.options.retentionPeriod;
@@ -526,9 +534,9 @@ export class PerformanceMonitor extends EventEmitter {
    * Force garbage collection (if available)
    * @returns True if GC was triggered, false if not available
    */
-  forceGC(): boolean {
+  async forceGC(): Promise<boolean> {
     if (typeof global.gc === 'function') {
-      global.gc();
+      await global.gc();
       return true;
     }
     return false;

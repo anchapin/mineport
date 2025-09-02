@@ -6,14 +6,14 @@
 
 import React, { createContext, useContext, useReducer, ReactNode, useCallback } from 'react';
 import { ConversionProgress, UploadState, UserPreferences } from '../types/index.js';
-import { ConversionJob, ConversionResult } from '../services/ConversionAPIService.js';
+import { ConversionJob, ConversionAPIResult } from '../services/ConversionAPIService.js';
 
 // State interface
 interface ConversionState {
   uploadState: UploadState;
   conversionProgress?: ConversionProgress;
   conversionJob?: ConversionJob;
-  conversionResult?: ConversionResult;
+  conversionResult?: ConversionAPIResult;
   userPreferences: UserPreferences;
 }
 
@@ -24,7 +24,7 @@ type ConversionAction =
   | { type: 'SET_UPLOAD_STATE'; payload: Partial<UploadState> }
   | { type: 'SET_CONVERSION_PROGRESS'; payload: ConversionProgress }
   | { type: 'SET_CONVERSION_JOB'; payload: ConversionJob }
-  | { type: 'SET_CONVERSION_RESULT'; payload: ConversionResult }
+  | { type: 'SET_CONVERSION_RESULT'; payload: ConversionAPIResult }
   | { type: 'SET_USER_PREFERENCES'; payload: UserPreferences }
   | { type: 'RESET_STATE' };
 
@@ -170,7 +170,7 @@ interface ConversionContextType {
   setUploadState: (state: Partial<UploadState>) => void;
   setConversionProgress: (progress: ConversionProgress) => void;
   setConversionJob: (job: ConversionJob) => void;
-  setConversionResult: (result: ConversionResult) => void;
+  setConversionResult: (result: ConversionAPIResult) => void;
   setUserPreferences: (preferences: UserPreferences) => void;
   resetState: () => void;
 }
@@ -206,7 +206,7 @@ export const ConversionProvider: React.FC<ConversionProviderProps> = ({ children
     dispatch({ type: 'SET_CONVERSION_JOB', payload: job });
   }, []);
 
-  const setConversionResult = useCallback((result: ConversionResult) => {
+  const setConversionResult = useCallback((result: ConversionAPIResult) => {
     dispatch({ type: 'SET_CONVERSION_RESULT', payload: result });
   }, []);
 

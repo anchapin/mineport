@@ -80,10 +80,7 @@ export class UpdateService extends EventEmitter {
         fabric: '0.14.9',
       };
 
-      this.apiMappingVersions = this.configService.get(
-        'updates.apiMappingVersions',
-        defaultVersions
-      );
+      this.apiMappingVersions = this.configService.get('updates.apiMappingVersions') || defaultVersions;
 
       // Also check for individual version keys
       for (const key of Object.keys(defaultVersions)) {
@@ -97,7 +94,7 @@ export class UpdateService extends EventEmitter {
       }
 
       // Get default check interval from configuration
-      this.defaultCheckInterval = this.configService.get('updates.checkInterval', 3600000);
+      this.defaultCheckInterval = this.configService.get('updates.checkInterval') || 3600000;
 
       // Listen for configuration changes
       this.configService.on('configChanged', this.handleConfigUpdate.bind(this));

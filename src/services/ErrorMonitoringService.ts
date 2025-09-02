@@ -185,11 +185,13 @@ export class ErrorMonitoringService {
       this.cleanupHistoricalData();
 
       // Update monitoring metrics
-      this.monitoringService.recordMetric('error_monitoring.checks_performed', 1);
-      this.monitoringService.recordMetric(
-        'error_monitoring.active_alerts',
-        this.getActiveAlerts().length
-      );
+      this.monitoringService.recordSystemHealthMetric({
+        component: 'file_processor',
+        status: 'healthy',
+        details: {
+          errorRate: this.getActiveAlerts().length
+        }
+      });
     } catch (error) {
       logger.error('Error monitoring check failed', { error });
     }
@@ -412,12 +414,14 @@ export class ErrorMonitoringService {
     this.alerts.set(alert.id, alert);
 
     // Send alert through alerting service
-    await this.alertingService.sendAlert({
-      title: alert.title,
-      message: alert.message,
-      severity: alert.severity,
-      data: alert.data,
-    });
+    await this.alertingService.createAlert(
+      alert.type,
+      alert.severity,
+      alert.title,
+      alert.message,
+      alert.data || {},
+      'error_monitoring'
+    );
 
     logger.warn('Error alert created', {
       alertId: alert.id,

@@ -62,6 +62,18 @@ export class JobStatusStore {
     this.startCleanupProcess();
   }
 
+  /**
+   * Saves a new job to the status store and adds it to the history
+   *
+   * @param job - The job object to save
+   * @returns Promise that resolves when the job is saved
+   *
+   * @example
+   * ```typescript
+   * await statusStore.saveJob(newJob);
+   * console.log(`Job ${newJob.id} saved successfully`);
+   * ```
+   */
   async saveJob(job: Job): Promise<void> {
     this.jobs.set(job.id, { ...job });
 
@@ -81,6 +93,19 @@ export class JobStatusStore {
     logger.debug(`Job ${job.id} saved with status: ${job.status}`);
   }
 
+  /**
+   * Updates an existing job in the status store and records the status change in history
+   *
+   * @param job - The updated job object
+   * @returns Promise that resolves when the job is updated
+   *
+   * @example
+   * ```typescript
+   * job.status = 'completed';
+   * await statusStore.updateJob(job);
+   * console.log(`Job ${job.id} updated to completed status`);
+   * ```
+   */
   async updateJob(job: Job): Promise<void> {
     const existingJob = this.jobs.get(job.id);
 
@@ -110,11 +135,39 @@ export class JobStatusStore {
     logger.debug(`Job ${job.id} updated with status: ${job.status}`);
   }
 
+  /**
+   * Retrieves a job by its unique identifier
+   *
+   * @param jobId - The unique identifier of the job to retrieve
+   * @returns Promise that resolves to the job object or null if not found
+   *
+   * @example
+   * ```typescript
+   * const job = await statusStore.getJob('job-123');
+   * if (job) {
+   *   console.log(`Found job: ${job.type} - ${job.status}`);
+   * }
+   * ```
+   */
   async getJob(jobId: string): Promise<Job | null> {
     const job = this.jobs.get(jobId);
     return job ? { ...job } : null;
   }
 
+  /**
+   * Deletes a job from the status store and removes it from history
+   *
+   * @param jobId - The unique identifier of the job to delete
+   * @returns Promise that resolves to true if the job was deleted, false if not found
+   *
+   * @example
+   * ```typescript
+   * const deleted = await statusStore.deleteJob('job-123');
+   * if (deleted) {
+   *   console.log('Job deleted successfully');
+   * }
+   * ```
+   */
   async deleteJob(jobId: string): Promise<boolean> {
     const deleted = this.jobs.delete(jobId);
 
@@ -132,22 +185,76 @@ export class JobStatusStore {
     return deleted;
   }
 
+  /**
+   * Retrieves all jobs currently stored in the status store
+   *
+   * @returns Promise that resolves to an array of all job objects
+   *
+   * @example
+   * ```typescript
+   * const allJobs = await statusStore.getAllJobs();
+   * console.log(`Total jobs in store: ${allJobs.length}`);
+   * ```
+   */
   async getAllJobs(): Promise<Job[]> {
     return Array.from(this.jobs.values()).map((job) => ({ ...job }));
   }
 
+  /**
+   * Retrieves all jobs with a specific status
+   *
+   * @param status - The job status to filter by (pending, running, completed, failed, cancelled)
+   * @returns Promise that resolves to an array of jobs with the specified status
+   *
+   * @example
+   * ```typescript
+   * const runningJobs = await statusStore.getJobsByStatus('running');
+   * console.log(`Currently running jobs: ${runningJobs.length}`);
+   * ```
+   */
   async getJobsByStatus(status: Job['status']): Promise<Job[]> {
     return Array.from(this.jobs.values())
       .filter((job) => job.status === status)
       .map((job) => ({ ...job }));
   }
 
+  /**
+   * Retrieves all jobs of a specific type
+   *
+   * @param type - The job type to filter by (conversion, validation, analysis, packaging)
+   * @returns Promise that resolves to an array of jobs with the specified type
+   *
+   * @example
+   * ```typescript
+   * const conversionJobs = await statusStore.getJobsByType('conversion');
+   * console.log(`Conversion jobs: ${conversionJobs.length}`);
+   * ```
+   */
   async getJobsByType(type: Job['type']): Promise<Job[]> {
     return Array.from(this.jobs.values())
       .filter((job) => job.type === type)
       .map((job) => ({ ...job }));
   }
 
+  /**
+   * Retrieves the status update history for jobs
+   *
+   * @param jobId - Optional job ID to filter history for a specific job
+   * @param limit - Optional maximum number of history entries to return
+   * @returns Promise that resolves to an array of job status updates, sorted by timestamp (most recent first)
+   *
+   * @example
+   * ```typescript
+   * // Get all job history
+   * const allHistory = await statusStore.getJobHistory();
+   * 
+   * // Get history for specific job
+   * const jobHistory = await statusStore.getJobHistory('job-123');
+   * 
+   * // Get last 10 entries
+   * const recentHistory = await statusStore.getJobHistory(undefined, 10);
+   * ```
+   */
   async getJobHistory(jobId?: string, limit?: number): Promise<JobStatusUpdate[]> {
     let history = jobId
       ? this.jobHistory.filter((update) => update.jobId === jobId)
@@ -163,6 +270,17 @@ export class JobStatusStore {
     return history.map((update) => ({ ...update }));
   }
 
+  /**
+   * Retrieves comprehensive statistics about jobs in the status store
+   *
+   * @returns Promise that resolves to queue statistics including job counts and processing metrics
+   *
+   * @example
+   * ```typescript
+   * const stats = await statusStore.getQueueStats();
+   * console.log(`Total jobs: ${stats.totalJobs}, Completed: ${stats.completedJobs}`);
+   * ```
+   */
   async getQueueStats(): Promise<QueueStats> {
     const jobs = Array.from(this.jobs.values());
 
@@ -180,11 +298,27 @@ export class JobStatusStore {
     return stats;
   }
 
+  /**
+   * Removes old completed, failed, or cancelled jobs from the store to free up memory
+   *
+   * @param olderThanHours - Jobs older than this many hours will be cleaned up (default: 24)
+   * @returns Promise that resolves to the number of jobs that were cleaned up
+   *
+   * @example
+   * ```typescript
+   * // Clean up jobs older than 24 hours
+   * const cleaned = await statusStore.cleanupOldJobs();
+   * 
+   * // Clean up jobs older than 1 hour
+   * const cleaned = await statusStore.cleanupOldJobs(1);
+   * console.log(`Cleaned up ${cleaned} old jobs`);
+   * ```
+   */
   async cleanupOldJobs(olderThanHours: number = 24): Promise<number> {
     const cutoffTime = new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
     const jobsToDelete: string[] = [];
 
-    for (const [jobId, job] of this.jobs.entries()) {
+    for (const [jobId, job] of Array.from(this.jobs.entries())) {
       // Only cleanup completed, failed, or cancelled jobs
       if (['completed', 'failed', 'cancelled'].includes(job.status) && job.createdAt < cutoffTime) {
         jobsToDelete.push(jobId);
@@ -249,6 +383,15 @@ export class JobStatusStore {
     }, this.config.cleanupInterval);
   }
 
+  /**
+   * Destroys the job status store, cleaning up all resources and stopping background processes
+   *
+   * @example
+   * ```typescript
+   * statusStore.destroy();
+   * console.log('Job status store destroyed');
+   * ```
+   */
   destroy(): void {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);

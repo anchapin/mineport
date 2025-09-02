@@ -2,6 +2,9 @@
  * Types and interfaces for the Logic Translation Engine
  */
 
+import { APIMapping } from './api.js';
+export { APIMapping };
+
 export interface MMIRRepresentation {
   ast: ASTNode[];
   metadata: CodeMetadata;
@@ -93,9 +96,9 @@ export interface Parameter {
 
 export interface TranslationContext {
   modInfo: ModInfo;
-  apiMappings: APIMapping[];
+  apiMappings: LogicAPIMapping[];
   targetVersion: string;
-  compromiseStrategy: CompromiseStrategy;
+  compromiseStrategy: LogicCompromiseStrategy;
   userPreferences: UserPreferences;
 }
 
@@ -107,7 +110,7 @@ export interface ModInfo {
   dependencies: string[];
 }
 
-export interface APIMapping {
+export interface LogicAPIMapping {
   javaAPI: JavaAPISignature;
   bedrockAPI: BedrockAPISignature;
   mappingType: MappingType;
@@ -140,7 +143,7 @@ export interface MappingExample {
   description: string;
 }
 
-export interface CompromiseStrategy {
+export interface LogicCompromiseStrategy {
   name: string;
   type: CompromiseType;
   description: string;
@@ -177,7 +180,7 @@ export interface TranslationMetadata {
 
 export interface CompromiseResult {
   originalFeature: UnmappableFeature;
-  strategy: CompromiseStrategy;
+  strategy: LogicCompromiseStrategy;
   implementation: string;
   documentation: string;
   userImpact: UserImpactAssessment;
@@ -224,7 +227,7 @@ export interface TranslationError {
 export interface ASTTranspilationResult {
   code: string;
   unmappableCode: UnmappableCodeSegment[];
-  mappedAPIs: APIMapping[];
+  mappedAPIs: LogicAPIMapping[];
   confidence: number;
   warnings: TranslationWarning[];
 }
@@ -244,7 +247,7 @@ export interface LLMTranslationResult {
   warnings: TranslationWarning[];
 }
 
-export interface ValidationResult {
+export interface LogicValidationResult {
   isEquivalent: boolean;
   confidence: number;
   differences: FunctionalDifference[];
@@ -262,7 +265,7 @@ export interface FunctionalDifference {
 export interface RefinementIteration {
   iteration: number;
   changes: CodeChange[];
-  validationResult: ValidationResult;
+  validationResult: LogicValidationResult;
   improvement: number;
 }
 

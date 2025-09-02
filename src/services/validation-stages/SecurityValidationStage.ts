@@ -238,6 +238,8 @@ export class SecurityValidationStage implements ValidationStage {
           sourceLocation: filePath
             ? {
                 file: filePath,
+                line: 0,
+                column: 0,
                 startLine: 0,
                 startColumn: 0,
                 endLine: 0,
@@ -289,6 +291,8 @@ export class SecurityValidationStage implements ValidationStage {
             moduleOrigin: MODULE_ID,
             sourceLocation: {
               file: filePath,
+              line: 0,
+              column: 0,
               startLine: 0,
               startColumn: 0,
               endLine: 0,

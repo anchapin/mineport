@@ -55,17 +55,17 @@ describe('End-to-End Conversion Tests', () => {
       // Verify conversion success
       expect(result.success).toBe(true);
       expect(result.result).toBeDefined();
-      expect(result.validation.passed).toBe(true);
+      expect(result.validation?.isValid).toBe(true);
 
       // Verify extracted data
-      expect(result.result.modId).toBe(testData.modId);
-      expect(result.result.manifestInfo.modName).toBe(testData.name);
-      expect(result.result.registryNames).toContain('test_block');
-      expect(result.result.registryNames).toContain('test_item');
-      expect(result.result.texturePaths.length).toBeGreaterThan(0);
+      expect(result.result?.modId).toBe(testData.modId);
+      expect(result.result?.manifestInfo?.modName).toBe(testData.name);
+      expect(result.result?.registryNames).toContain('test_block');
+      expect(result.result?.registryNames).toContain('test_item');
+      expect(result.result?.texturePaths?.length).toBeGreaterThan(0);
 
       // Verify no critical errors
-      const criticalErrors = result.result.analysisNotes.filter((note) => note.type === 'error');
+      const criticalErrors = result.result?.analysisNotes?.filter((note) => note.type === 'error') || [];
       expect(criticalErrors).toHaveLength(0);
     });
 
@@ -83,17 +83,17 @@ describe('End-to-End Conversion Tests', () => {
 
       // Verify conversion success
       expect(result.success).toBe(true);
-      expect(result.result.modId).toBe(testData.modId);
-      expect(result.result.registryNames.length).toBeGreaterThan(20); // Should find many registry names
-      expect(result.result.texturePaths.length).toBeGreaterThan(20); // Should find many textures
+      expect(result.result?.modId).toBe(testData.modId);
+      expect(result.result?.registryNames?.length).toBeGreaterThan(20); // Should find many registry names
+      expect(result.result?.texturePaths?.length).toBeGreaterThan(20); // Should find many textures
 
       // Verify blocks and items were detected
-      const blockNames = result.result.registryNames.filter((name) =>
+      const blockNames = result.result?.registryNames?.filter((name) =>
         testData.blocks.some((block) => block.name.includes(name) || name.includes(block.name))
-      );
-      const itemNames = result.result.registryNames.filter((name) =>
+      ) || [];
+      const itemNames = result.result?.registryNames?.filter((name) =>
         testData.items.some((item) => item.name.includes(name) || name.includes(item.name))
-      );
+      ) || [];
 
       expect(blockNames.length).toBeGreaterThan(5);
       expect(itemNames.length).toBeGreaterThan(5);
@@ -113,20 +113,20 @@ describe('End-to-End Conversion Tests', () => {
 
       // Verify conversion success
       expect(result.success).toBe(true);
-      expect(result.result.modId).toBe(testData.modId);
+      expect(result.result?.modId).toBe(testData.modId);
 
       // Verify specific realistic mod components
-      expect(result.result.registryNames).toContain('copper_ore');
-      expect(result.result.registryNames).toContain('copper_ingot');
-      expect(result.result.registryNames).toContain('copper_sword');
+      expect(result.result?.registryNames).toContain('copper_ore');
+      expect(result.result?.registryNames).toContain('copper_ingot');
+      expect(result.result?.registryNames).toContain('copper_sword');
 
       // Verify textures were found
-      expect(result.result.texturePaths.some((path) => path.includes('copper_ore'))).toBe(true);
-      expect(result.result.texturePaths.some((path) => path.includes('copper_ingot'))).toBe(true);
+      expect(result.result?.texturePaths?.some((path) => path.includes('copper_ore'))).toBe(true);
+      expect(result.result?.texturePaths?.some((path) => path.includes('copper_ingot'))).toBe(true);
 
       // Verify manifest information
-      expect(result.result.manifestInfo.version).toBe(testData.version);
-      expect(result.result.manifestInfo.author).toBe(testData.author);
+      expect(result.result?.manifestInfo?.version).toBe(testData.version);
+      expect(result.result?.manifestInfo?.author).toBe(testData.author);
     });
   });
 
@@ -145,14 +145,14 @@ describe('End-to-End Conversion Tests', () => {
 
       // Should succeed despite edge cases
       expect(result.success).toBe(true);
-      expect(result.result.modId).toBe(testData.modId);
+      expect(result.result?.modId).toBe(testData.modId);
 
       // Should have warnings about edge cases
-      const warnings = result.result.analysisNotes.filter((note) => note.type === 'warning');
+      const warnings = result.result?.analysisNotes?.filter((note) => note.type === 'warning') || [];
       expect(warnings.length).toBeGreaterThan(0);
 
       // Should still extract some valid data
-      expect(result.result.registryNames.length).toBeGreaterThan(0);
+      expect(result.result?.registryNames?.length).toBeGreaterThan(0);
     });
 
     it('should provide detailed error information for failed conversions', async () => {
@@ -182,7 +182,7 @@ describe('End-to-End Conversion Tests', () => {
       const result = await conversionService.processModFile(jarBuffer, 'partial_corrupt.jar');
 
       expect(result.success).toBe(true);
-      expect(result.result.analysisNotes.some((note) => note.type === 'warning')).toBe(true);
+      expect(result.result?.analysisNotes?.some((note) => note.type === 'warning')).toBe(true);
     });
   });
 
@@ -202,7 +202,7 @@ describe('End-to-End Conversion Tests', () => {
 
       expect(result.success).toBe(true);
       expect(processingTimeMs).toBeLessThan(5000); // Should complete within 5 seconds
-      expect(result.result.registryNames.length).toBeGreaterThan(15);
+      expect(result.result?.registryNames?.length).toBeGreaterThan(15);
     });
 
     it('should handle medium mods within reasonable time', async () => {
@@ -220,7 +220,7 @@ describe('End-to-End Conversion Tests', () => {
 
       expect(result.success).toBe(true);
       expect(processingTimeMs).toBeLessThan(15000); // Should complete within 15 seconds
-      expect(result.result.registryNames.length).toBeGreaterThan(80);
+      expect(result.result?.registryNames?.length).toBeGreaterThan(80);
     });
 
     it('should handle large mods with acceptable performance', async () => {
@@ -238,7 +238,7 @@ describe('End-to-End Conversion Tests', () => {
 
       expect(result.success).toBe(true);
       expect(processingTimeMs).toBeLessThan(30000); // Should complete within 30 seconds
-      expect(result.result.registryNames.length).toBeGreaterThan(300);
+      expect(result.result?.registryNames?.length).toBeGreaterThan(300);
     });
   });
 
@@ -252,14 +252,14 @@ describe('End-to-End Conversion Tests', () => {
       const result = await conversionService.processModFile(jarBuffer, 'quality_test.jar');
 
       expect(result.success).toBe(true);
-      expect(result.validation.passed).toBe(true);
+      expect(result.validation?.isValid).toBe(true);
 
       // Verify validation details
-      expect(result.validation.stages).toBeDefined();
-      expect(result.validation.errors).toHaveLength(0);
+      expect(result.validation?.errors).toBeDefined();
+      expect(result.validation?.errors).toHaveLength(0);
 
       // Should have minimal warnings
-      expect(result.validation.warnings.length).toBeLessThan(5);
+      expect(result.validation?.warnings?.length || 0).toBeLessThan(5);
     });
 
     it('should maintain data consistency throughout pipeline', async () => {
@@ -273,19 +273,19 @@ describe('End-to-End Conversion Tests', () => {
       expect(result.success).toBe(true);
 
       // Verify mod ID consistency
-      expect(result.result.modId).toBe(testData.modId);
-      expect(result.result.manifestInfo.modId).toBe(testData.modId);
+      expect(result.result?.modId).toBe(testData.modId);
+      expect(result.result?.manifestInfo?.modId).toBe(testData.modId);
 
       // Verify registry names match expected blocks/items
       testData.blocks.forEach((block) => {
-        expect(result.result.registryNames).toContain(block.name);
+        expect(result.result?.registryNames).toContain(block.name);
       });
       testData.items.forEach((item) => {
-        expect(result.result.registryNames).toContain(item.name);
+        expect(result.result?.registryNames).toContain(item.name);
       });
 
       // Verify texture paths are correctly formatted
-      result.result.texturePaths.forEach((texturePath) => {
+      result.result?.texturePaths?.forEach((texturePath) => {
         expect(texturePath).toMatch(/^assets\/[^/]+\/textures\/(block|item|entity)\/[^/]+\.png$/);
       });
     });
@@ -301,18 +301,18 @@ describe('End-to-End Conversion Tests', () => {
       expect(result.success).toBe(true);
 
       // Should have analysis notes
-      expect(result.result.analysisNotes.length).toBeGreaterThan(0);
+      expect(result.result?.analysisNotes?.length).toBeGreaterThan(0);
 
       // Should categorize notes properly
-      const infoNotes = result.result.analysisNotes.filter((note) => note.type === 'info');
-      const errorNotes = result.result.analysisNotes.filter((note) => note.type === 'error');
+      const infoNotes = result.result?.analysisNotes?.filter((note) => note.type === 'info') || [];
+      const errorNotes = result.result?.analysisNotes?.filter((note) => note.type === 'error') || [];
 
       expect(infoNotes.length).toBeGreaterThan(0);
       // Should have minimal errors for valid mod
       expect(errorNotes.length).toBeLessThan(3);
 
       // Notes should have helpful messages
-      result.result.analysisNotes.forEach((note) => {
+      result.result?.analysisNotes?.forEach((note) => {
         expect(note.message).toBeDefined();
         expect(note.message.length).toBeGreaterThan(10);
       });
@@ -341,8 +341,8 @@ describe('End-to-End Conversion Tests', () => {
       expect(results).toHaveLength(concurrentCount);
       results.forEach((result, index) => {
         expect(result.success).toBe(true);
-        expect(result.result.modId).toBe(`concurrent${index}`);
-        expect(result.result.registryNames).toContain('test_block');
+        expect(result.result?.modId).toBe(`concurrent${index}`);
+        expect(result.result?.registryNames).toContain('test_block');
       });
     });
 

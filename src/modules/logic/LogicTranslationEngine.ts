@@ -10,7 +10,7 @@ import {
   TranslationMetadata,
   ASTTranspilationResult,
   LLMTranslationResult,
-  ValidationResult,
+  LogicValidationResult,
   RefinementIteration,
   TranslationWarning,
   CompromiseResult,
@@ -198,7 +198,7 @@ export class LogicTranslationEngine {
     originalCode: string,
     translatedCode: string,
     context: TranslationContext
-  ): Promise<ValidationResult> {
+  ): Promise<LogicValidationResult> {
     logger.debug('Validating translation functional equivalence');
     return await this.programStateValidator.validate(originalCode, translatedCode, context);
   }
@@ -209,11 +209,11 @@ export class LogicTranslationEngine {
   private async refineTranslation(
     originalCode: string,
     translatedCode: string,
-    validation: ValidationResult,
+    validation: LogicValidationResult,
     context: TranslationContext
   ): Promise<{
     code: string;
-    validation: ValidationResult;
+    validation: LogicValidationResult;
     iterations: RefinementIteration[];
   }> {
     logger.debug('Starting iterative refinement process');
@@ -310,7 +310,7 @@ export class LogicTranslationEngine {
     mmir: MMIRRepresentation,
     astResult: ASTTranspilationResult,
     llmResult: LLMTranslationResult,
-    validation: ValidationResult,
+    validation: LogicValidationResult,
     processingTime: number
   ): TranslationMetadata {
     const totalTranslatedLines = this.countLines(astResult.code) + this.countLines(llmResult.code);
@@ -391,7 +391,7 @@ export class LogicTranslationEngine {
   private consolidateWarnings(
     astResult: ASTTranspilationResult,
     llmResult: LLMTranslationResult,
-    validation: ValidationResult
+    validation: LogicValidationResult
   ): TranslationWarning[] {
     const warnings: TranslationWarning[] = [];
 
@@ -416,7 +416,7 @@ export class LogicTranslationEngine {
    * Generate refinement suggestions based on validation results
    */
   private generateRefinementSuggestions(
-    _validation: ValidationResult,
+    _validation: LogicValidationResult,
     _context: TranslationContext
   ): any[] {
     // This would generate specific code changes based on validation differences

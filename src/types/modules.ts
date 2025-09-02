@@ -5,6 +5,16 @@
  * including initialization, lifecycle management, and dependency injection.
  */
 
+import { SourceLocation } from './base.js';
+import { 
+  BedrockTextureFile, 
+  BedrockModelFile, 
+  BedrockSoundFile, 
+  BedrockParticleFile, 
+  BedrockAnimationFile
+} from './assets.js';
+import { ConversionError, AssetConversionNote } from './errors.js';
+
 /**
  * Base interface for all modules
  */
@@ -406,7 +416,7 @@ export interface LogicTranslationOutput {
   stubFunctions: StubFunction[];
 
   /** Notes and warnings from the conversion process */
-  conversionNotes: LogicConversionNote[];
+  conversionNotes: ModuleLogicConversionNote[];
 }
 
 /**
@@ -526,31 +536,7 @@ export interface MMIRMetadata {
   properties?: Record<string, any>;
 }
 
-/**
- * Source location information
- */
-export interface SourceLocation {
-  /** File path */
-  file: string;
-
-  /** Starting line number */
-  startLine: number;
-
-  /** Ending line number */
-  endLine: number;
-
-  /** Starting column number */
-  startColumn?: number;
-
-  /** Ending column number */
-  endColumn?: number;
-
-  /** Line number (alias for startLine) */
-  line: number;
-
-  /** Column number (alias for startColumn) */
-  column: number;
-}
+// SourceLocation already imported at the top of the file
 
 /**
  * Logic conversion note
@@ -598,6 +584,9 @@ export interface LogicFeature {
   sourceLineNumbers: number[][];
 }
 
+// Import asset interfaces from centralized location
+import { JavaTextureFile, JavaModelFile, JavaSoundFile } from './assets.js';
+
 /**
  * Java asset collection interface
  */
@@ -630,8 +619,7 @@ export interface AssetTranslationResult {
   errors: ConversionError[];
 }
 
-// Import asset interfaces from centralized location
-export { JavaTextureFile, JavaModelFile, JavaSoundFile } from './assets.js';
+// Asset interfaces already imported above
 
 /**
  * Java particle file interface
@@ -662,8 +650,8 @@ export {
   BedrockAnimationFile,
 } from './assets.js';
 
-// Import AssetConversionNote from centralized error types
-export { AssetConversionNote } from './errors.js';
+// Import AssetConversionNote and ConversionError from centralized error types
+export { AssetConversionNote, ConversionError } from './errors.js';
 
 /**
  * Conversion context interface
@@ -675,13 +663,13 @@ export interface ConversionContext {
   modLoader: 'forge' | 'fabric' | 'unknown';
   minecraftVersion: string;
   targetBedrockVersion: string;
-  conversionOptions: ConversionOptions;
+  conversionOptions: ModuleConversionOptions;
 }
 
 /**
- * Conversion options interface
+ * Module conversion options interface
  */
-export interface ConversionOptions {
+export interface ModuleConversionOptions {
   preserveComments: boolean;
   generateDocumentation: boolean;
   optimizeOutput: boolean;
