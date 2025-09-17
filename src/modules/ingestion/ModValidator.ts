@@ -26,6 +26,8 @@ const execAsync = promisify(exec);
  *
  * @since 1.0.0
  */
+import { ExtractedFiles, SourceCodeAnalysis } from './JavaAnalyzer';
+
 export interface ModValidationResult {
   isValid: boolean;
   /** Alias for isValid for backward compatibility */
@@ -56,6 +58,8 @@ export interface ModValidationResult {
     scanTime: number;
   };
   analysisNotes?: any[];
+  extractedFiles?: ExtractedFiles;
+  sourceCodeAnalysis?: SourceCodeAnalysis;
 }
 
 /**
@@ -142,7 +146,7 @@ export class ModValidator {
       await fs.writeFile(jarPath, jarFile);
 
       // Step 3: Enhanced Java analysis
-      const analysisResult = await this.javaAnalyzer.analyzeJarForMVP(jarPath);
+      const analysisResult = await this.javaAnalyzer.analyzeJarFull(jarPath);
 
       // Check if analysis was successful by verifying we got a valid modId
       if (!analysisResult.modId || analysisResult.modId === 'unknown') {
@@ -182,7 +186,8 @@ export class ModValidator {
         texturePaths: analysisResult.texturePaths,
       };
       result.analysisNotes = analysisResult.analysisNotes;
-
+      result.extractedFiles = analysisResult.extractedFiles;
+      result.sourceCodeAnalysis = analysisResult.sourceCodeAnalysis;
       logger.info('Enhanced mod validation completed successfully', {
         modId: result.modInfo?.modId,
         registryNames: result.modInfo?.registryNames?.length || 0,
