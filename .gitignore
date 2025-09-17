@@ -13,6 +13,17 @@ npm-debug.log*
 # Coverage directory
 coverage/
 
+# Temporary files and test artifacts
+temp/
+test-results/
+*.tmp
+*.temp
+
+# API mapping database files (test instances)
+**/test-*.json
+**/test-api-mappings.json
+**/test-mapping-db.json
+
 # Environment variables
 .env
 .env.local

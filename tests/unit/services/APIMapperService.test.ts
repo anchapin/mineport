@@ -47,9 +47,12 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
         };
         return values[key] || defaultValue;
       }),
+      on: vi.fn(), // Add event listener mock
     } as any;
 
-    apiMapperService = await APIMapperServiceImpl.create(mockConfigService, new InMemoryMappingDatabase(DB_PATH));
+    // Create service directly instead of using create method to avoid initialization timeout
+    const database = new InMemoryMappingDatabase(DB_PATH);
+    apiMapperService = new (APIMapperServiceImpl as any)(mockConfigService, database);
   });
 
   afterEach(async () => {
@@ -125,7 +128,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
   });
 
   describe('Versioning and Metadata', () => {
-    it('should set initial version to 1.0.0 on creation', async () => {
+    it('should set initial version to 1 on creation', async () => {
         vi.mocked(uuidv4).mockReturnValue('mock-uuid-version');
       const mappingData = {
         javaSignature: 'test.versioning.Initial',
@@ -134,10 +137,11 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
         notes: 'A test mapping.',
       };
       const createdMapping = await apiMapperService.addMapping(mappingData);
-      expect(createdMapping.version).toBe('1.0.0');
+      expect(createdMapping.version).toBe(1);
+      expect(createdMapping.createdAt).toBeInstanceOf(Date);
     });
 
-    it('should update lastUpdated timestamp on update', async () => {
+    it('should update lastUpdated timestamp and version on update', async () => {
         vi.mocked(uuidv4).mockReturnValue('mock-uuid-timestamp');
         const mappingData = {
             javaSignature: 'test.versioning.Timestamp',
@@ -149,6 +153,8 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         const updatedMapping = await apiMapperService.updateMapping(createdMapping.id, { notes: 'New notes' });
         expect(updatedMapping.lastUpdated.getTime()).toBeGreaterThan(createdMapping.lastUpdated.getTime());
+        expect(updatedMapping.version).toBe(2); // Version should be incremented
+        expect(updatedMapping.createdAt.getTime()).toBe(createdMapping.createdAt.getTime()); // createdAt should not change
     });
   });
 

@@ -41,10 +41,10 @@ export interface ImportResult {
 export interface MappingDatabase {
   /**
    * Creates a new API mapping in the database.
-   * @param mappingData - The mapping data to create, without id, version, or lastUpdated.
+   * @param mappingData - The mapping data to create, without id, version, createdAt, or lastUpdated.
    * @returns The newly created APIMapping with all fields.
    */
-  create(mappingData: Omit<APIMapping, 'id' | 'version' | 'lastUpdated'>): Promise<APIMapping>;
+  create(mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>): Promise<APIMapping>;
 
   /**
    * Retrieves a single API mapping by its unique ID.
@@ -121,7 +121,7 @@ export interface APIMapperService {
    * @param mappingData - The data for the new mapping.
    * @returns The created APIMapping.
    */
-  addMapping(mappingData: Omit<APIMapping, 'id' | 'version' | 'lastUpdated'>): Promise<APIMapping>;
+  addMapping(mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>): Promise<APIMapping>;
 
   /**
    * Updates an existing API mapping.

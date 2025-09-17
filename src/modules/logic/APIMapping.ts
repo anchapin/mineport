@@ -17,9 +17,14 @@ export interface APIMapping {
   id: string;
 
   /**
-   * The version of this mapping entry. Follows semantic versioning.
+   * The version of this mapping entry as a number (auto-incremented).
    */
-  version: string;
+  version: number;
+
+  /**
+   * The timestamp when this mapping was first created.
+   */
+  createdAt: Date;
 
   /**
    * The timestamp of the last update to this mapping.
@@ -54,6 +59,11 @@ export interface APIMapping {
   notes: string;
 
   /**
+   * Whether this mapping is deprecated and should not be used for new conversions.
+   */
+  deprecated?: boolean;
+
+  /**
    * Optional code examples demonstrating the usage in both Java and Bedrock.
    */
   exampleUsage?: {
@@ -72,4 +82,65 @@ export interface APIMapping {
    * If not specified, it is considered applicable to all mod loaders.
    */
   modLoaders?: ('forge' | 'fabric')[];
+
+  /**
+   * Additional metadata for extensibility and future-proofing.
+   */
+  metadata?: { [key: string]: any };
+}
+
+/**
+ * Validates an APIMapping object for correctness
+ * @param mapping The mapping object to validate
+ * @throws Error if the mapping is invalid
+ */
+export function validateAPIMapping(mapping: Partial<APIMapping>): void {
+  if (!mapping.javaSignature || typeof mapping.javaSignature !== 'string' || mapping.javaSignature.trim().length === 0) {
+    throw new Error('Java signature is required and must be a non-empty string');
+  }
+  
+  if (!mapping.bedrockEquivalent || typeof mapping.bedrockEquivalent !== 'string' || mapping.bedrockEquivalent.trim().length === 0) {
+    throw new Error('Bedrock equivalent is required and must be a non-empty string');
+  }
+  
+  const validConversionTypes = ['direct', 'wrapper', 'complex', 'impossible'];
+  if (!mapping.conversionType || !validConversionTypes.includes(mapping.conversionType)) {
+    throw new Error(`Conversion type must be one of: ${validConversionTypes.join(', ')}`);
+  }
+  
+  if (mapping.notes !== undefined && typeof mapping.notes !== 'string') {
+    throw new Error('Notes must be a string if provided');
+  }
+  
+  if (mapping.deprecated !== undefined && typeof mapping.deprecated !== 'boolean') {
+    throw new Error('Deprecated must be a boolean if provided');
+  }
+  
+  if (mapping.version !== undefined && (typeof mapping.version !== 'number' || mapping.version < 1)) {
+    throw new Error('Version must be a positive number if provided');
+  }
+  
+  if (mapping.createdAt !== undefined && !(mapping.createdAt instanceof Date)) {
+    throw new Error('createdAt must be a Date object if provided');
+  }
+  
+  if (mapping.lastUpdated !== undefined && !(mapping.lastUpdated instanceof Date)) {
+    throw new Error('lastUpdated must be a Date object if provided');
+  }
+  
+  if (mapping.minecraftVersions !== undefined && !Array.isArray(mapping.minecraftVersions)) {
+    throw new Error('minecraftVersions must be an array if provided');
+  }
+  
+  if (mapping.modLoaders !== undefined) {
+    if (!Array.isArray(mapping.modLoaders)) {
+      throw new Error('modLoaders must be an array if provided');
+    }
+    const validLoaders = ['forge', 'fabric'];
+    for (const loader of mapping.modLoaders) {
+      if (!validLoaders.includes(loader)) {
+        throw new Error(`Invalid mod loader: ${loader}. Must be one of: ${validLoaders.join(', ')}`);
+      }
+    }
+  }
 }

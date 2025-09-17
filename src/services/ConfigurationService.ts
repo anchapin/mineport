@@ -1,20 +1,24 @@
+import { EventEmitter } from 'events';
 import { 
   ModPorterAIConfig, 
   ConfigValidationResult, 
   ConfigValidationError, 
   ConfigValidationWarning 
 } from '../types/config.js';
-import { logger } from '../utils/logger.js';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ConfigurationService');
 
 /**
  * Configuration service for ModPorter-AI integration components
  * Handles environment-based configuration loading and validation
  */
-export class ConfigurationService {
+export class ConfigurationService extends EventEmitter {
   private config: ModPorterAIConfig;
   private static instance: ConfigurationService;
 
   private constructor() {
+    super();
     this.config = this.loadConfiguration();
     this.validateConfiguration();
   }
@@ -80,6 +84,29 @@ export class ConfigurationService {
    */
   public getLoggingConfig() {
     return JSON.parse(JSON.stringify(this.config.logging));
+  }
+
+  /**
+   * Get a configuration value by key path with optional default value
+   * This method provides compatibility with services expecting a generic get method
+   */
+  public get<T = any>(keyPath: string, defaultValue?: T): T {
+    try {
+      const keys = keyPath.split('.');
+      let value: any = this.config;
+      
+      for (const key of keys) {
+        if (value && typeof value === 'object' && key in value) {
+          value = value[key];
+        } else {
+          return defaultValue as T;
+        }
+      }
+      
+      return value !== undefined ? value : defaultValue as T;
+    } catch (error) {
+      return defaultValue as T;
+    }
   }
 
   /**
