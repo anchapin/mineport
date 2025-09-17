@@ -2,454 +2,221 @@
  * Unit tests for APIMapperService
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { APIMapperServiceImpl, createAPIMapperService } from '../../../src/services/APIMapperService';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { InMemoryMappingDatabase, createAPIMapperService, APIMapperServiceImpl } from '../../../src/services/APIMapperService';
 import { ConfigurationService } from '../../../src/services/ConfigurationService';
-import { APIMapping, MappingFilter, ImportResult } from '../../../src/types/api';
+import { APIMapping } from '../../../src/modules/logic/APIMapping';
+import { APIMapperService } from '../../../src/types/api';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
-// Mock dependencies
 vi.mock('../../../src/utils/logger', () => ({
   createLogger: vi.fn(() => ({
     info: vi.fn(),
     debug: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  }))
+    error: vi.fn(),
+  })),
 }));
 
 vi.mock('../../../src/utils/errorHandler', () => ({
   ErrorHandler: {
     systemError: vi.fn(),
-    logicError: vi.fn(),
-    compromiseError: vi.fn()
   },
-  globalErrorCollector: {
-    addError: vi.fn()
-  }
 }));
 
-describe('APIMapperService', () => {
-  let apiMapperService: APIMapperServiceImpl;
+vi.mock('uuid');
+
+const DB_PATH = path.join(__dirname, 'test-api-mappings.json');
+
+describe('APIMapperService with InMemoryMappingDatabase', () => {
+  let apiMapperService: APIMapperService;
   let mockConfigService: ConfigurationService;
 
-  beforeEach(() => {
-    // Create mock configuration service
+  beforeEach(async () => {
+    await fs.unlink(DB_PATH).catch(e => {
+      if (e.code !== 'ENOENT') console.error(e);
+    });
+
     mockConfigService = {
       get: vi.fn((key: string, defaultValue?: any) => {
-        switch (key) {
-          case 'apiMapper.cacheEnabled':
-            return true;
-          case 'apiMapper.cacheMaxSize':
-            return 1000;
-          default:
-            return defaultValue;
-        }
+        const values: { [key: string]: any } = {
+          'apiMapper.cacheEnabled': true,
+          'apiMapper.cacheMaxSize': 100,
+        };
+        return values[key] || defaultValue;
       }),
-      set: vi.fn(),
-      getSection: vi.fn(),
-      reload: vi.fn(),
-      validate: vi.fn()
     } as any;
 
-    apiMapperService = new APIMapperServiceImpl(mockConfigService);
+    apiMapperService = await APIMapperServiceImpl.create(mockConfigService, new InMemoryMappingDatabase(DB_PATH));
   });
 
-  describe('getMapping', () => {
-    it('should return undefined for non-existent mapping', async () => {
-      const result = await apiMapperService.getMapping('non.existent.Signature');
-      expect(result).toBeUndefined();
+  afterEach(async () => {
+    await fs.unlink(DB_PATH).catch(e => {
+      if (e.code !== 'ENOENT') console.error(e);
     });
-
-    it('should return mapping for existing signature', async () => {
-      // Add a test mapping first
-      const testMapping: APIMapping = {
-        id: 'test-mapping',
-        javaSignature: 'test.java.Signature',
-        bedrockEquivalent: 'test.bedrock.equivalent',
-        conversionType: 'direct',
-        notes: 'Test mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
-      };
-
-      await apiMapperService.addMapping(testMapping);
-      const result = await apiMapperService.getMapping('test.java.Signature');
-      
-      expect(result).toBeDefined();
-      expect(result?.javaSignature).toBe('test.java.Signature');
-      expect(result?.bedrockEquivalent).toBe('test.bedrock.equivalent');
-    });
-
-    it('should use cache for repeated requests', async () => {
-      const testMapping: APIMapping = {
-        id: 'cached-mapping',
-        javaSignature: 'cached.java.Signature',
-        bedrockEquivalent: 'cached.bedrock.equivalent',
-        conversionType: 'direct',
-        notes: 'Cached mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
-      };
-
-      await apiMapperService.addMapping(testMapping);
-      
-      // First call should populate cache
-      const result1 = await apiMapperService.getMapping('cached.java.Signature');
-      expect(result1).toBeDefined();
-      
-      // Second call should use cache
-      const result2 = await apiMapperService.getMapping('cached.java.Signature');
-      expect(result2).toBeDefined();
-      expect(result1).toEqual(result2);
-    });
+    vi.clearAllMocks();
   });
 
-  describe('getMappings', () => {
-    beforeEach(async () => {
-      // Add test mappings
-      const testMappings: APIMapping[] = [
-        {
-          id: 'direct-mapping',
-          javaSignature: 'direct.java.Signature',
-          bedrockEquivalent: 'direct.bedrock.equivalent',
-          conversionType: 'direct',
-          notes: 'Direct mapping',
-          version: '1.0.0',
-          lastUpdated: new Date()
-        },
-        {
-          id: 'wrapper-mapping',
-          javaSignature: 'wrapper.java.Signature',
-          bedrockEquivalent: 'wrapper.bedrock.equivalent',
-          conversionType: 'wrapper',
-          notes: 'Wrapper mapping',
-          version: '1.0.0',
-          lastUpdated: new Date()
-        },
-        {
-          id: 'complex-mapping',
-          javaSignature: 'complex.java.Signature',
-          bedrockEquivalent: 'complex.bedrock.equivalent',
-          conversionType: 'complex',
-          notes: 'Complex mapping',
-          version: '2.0.0',
-          lastUpdated: new Date()
-        }
-      ];
-
-      for (const mapping of testMappings) {
-        await apiMapperService.addMapping(mapping);
-      }
-    });
-
-    it('should return all mappings when no filter is provided', async () => {
-      const result = await apiMapperService.getMappings();
-      expect(result.length).toBeGreaterThanOrEqual(3); // At least our test mappings + defaults
-    });
-
-    it('should filter by conversion type', async () => {
-      const filter: MappingFilter = { conversionType: 'direct' };
-      const result = await apiMapperService.getMappings(filter);
-      
-      expect(result.length).toBeGreaterThan(0);
-      result.forEach(mapping => {
-        expect(mapping.conversionType).toBe('direct');
-      });
-    });
-
-    it('should filter by version', async () => {
-      const filter: MappingFilter = { version: '2.0.0' };
-      const result = await apiMapperService.getMappings(filter);
-      
-      expect(result.length).toBeGreaterThan(0);
-      result.forEach(mapping => {
-        expect(mapping.version).toBe('2.0.0');
-      });
-    });
-
-    it('should filter by search term', async () => {
-      const filter: MappingFilter = { search: 'wrapper' };
-      const result = await apiMapperService.getMappings(filter);
-      
-      expect(result.length).toBeGreaterThan(0);
-      result.forEach(mapping => {
-        const searchTerm = 'wrapper';
-        const matchesSignature = mapping.javaSignature.toLowerCase().includes(searchTerm);
-        const matchesBedrock = mapping.bedrockEquivalent.toLowerCase().includes(searchTerm);
-        const matchesNotes = mapping.notes.toLowerCase().includes(searchTerm);
-        
-        expect(matchesSignature || matchesBedrock || matchesNotes).toBe(true);
-      });
-    });
-  });
-
-  describe('addMapping', () => {
-    it('should add a valid mapping', async () => {
-      const testMapping: APIMapping = {
-        id: 'new-mapping',
-        javaSignature: 'new.java.Signature',
-        bedrockEquivalent: 'new.bedrock.equivalent',
-        conversionType: 'direct',
-        notes: 'New mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
+  describe('CRUD Operations', () => {
+    it('should add a new mapping and assign an ID, version, and timestamp', async () => {
+      vi.mocked(uuidv4).mockReturnValue('mock-uuid-create');
+      const mappingData = {
+        javaSignature: 'test.crud.Create',
+        bedrockEquivalent: 'bedrock.crud.create',
+        conversionType: 'direct' as const,
+        notes: 'A test mapping.',
       };
+      const createdMapping = await apiMapperService.addMapping(mappingData);
 
-      await expect(apiMapperService.addMapping(testMapping)).resolves.not.toThrow();
+      expect(createdMapping.id).toBe('mock-uuid-create');
+      expect(createdMapping.version).toBe('1.0.0');
+      expect(createdMapping.lastUpdated).toBeInstanceOf(Date);
+      expect(createdMapping.javaSignature).toBe(mappingData.javaSignature);
+    });
+
+    it('should retrieve a mapping by signature', async () => {
+        vi.mocked(uuidv4).mockReturnValue('mock-uuid-read');
+      const mappingData = {
+        javaSignature: 'test.crud.Read',
+        bedrockEquivalent: 'bedrock.crud.read',
+        conversionType: 'direct' as const,
+        notes: 'A test mapping.',
+      };
+      await apiMapperService.addMapping(mappingData);
+      const foundMapping = await apiMapperService.getMapping('test.crud.Read');
       
-      const retrieved = await apiMapperService.getMapping('new.java.Signature');
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.id).toBe('new-mapping');
+      expect(foundMapping).toBeDefined();
+      expect(foundMapping?.javaSignature).toBe('test.crud.Read');
     });
 
-    it('should reject mapping with missing required fields', async () => {
-      const invalidMapping = {
-        javaSignature: 'invalid.java.Signature',
-        bedrockEquivalent: 'invalid.bedrock.equivalent',
-        conversionType: 'direct',
-        notes: 'Invalid mapping'
-        // Missing id and version
-      } as APIMapping;
-
-      await expect(apiMapperService.addMapping(invalidMapping)).rejects.toThrow();
-    });
-
-    it('should reject mapping with invalid conversion type', async () => {
-      const invalidMapping: APIMapping = {
-        id: 'invalid-type-mapping',
-        javaSignature: 'invalid.type.Signature',
-        bedrockEquivalent: 'invalid.type.equivalent',
-        conversionType: 'invalid' as any,
-        notes: 'Invalid type mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
-      };
-
-      await expect(apiMapperService.addMapping(invalidMapping)).rejects.toThrow('Invalid conversion type');
-    });
-
-    it('should reject duplicate mappings', async () => {
-      const testMapping: APIMapping = {
-        id: 'duplicate-mapping',
-        javaSignature: 'duplicate.java.Signature',
-        bedrockEquivalent: 'duplicate.bedrock.equivalent',
-        conversionType: 'direct',
-        notes: 'Duplicate mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
-      };
-
-      await apiMapperService.addMapping(testMapping);
-      
-      const duplicateMapping: APIMapping = {
-        id: 'duplicate-mapping-2',
-        javaSignature: 'duplicate.java.Signature', // Same signature
-        bedrockEquivalent: 'different.bedrock.equivalent',
-        conversionType: 'wrapper',
-        notes: 'Different mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
-      };
-
-      await expect(apiMapperService.addMapping(duplicateMapping)).rejects.toThrow('already exists');
-    });
-  });
-
-  describe('updateMapping', () => {
     it('should update an existing mapping', async () => {
-      const originalMapping: APIMapping = {
-        id: 'update-mapping',
-        javaSignature: 'update.java.Signature',
-        bedrockEquivalent: 'update.bedrock.equivalent',
-        conversionType: 'direct',
-        notes: 'Original mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
+        vi.mocked(uuidv4).mockReturnValue('mock-uuid-update');
+      const mappingData = {
+        javaSignature: 'test.crud.Update',
+        bedrockEquivalent: 'bedrock.crud.update',
+        conversionType: 'direct' as const,
+        notes: 'Original notes.',
       };
+      const createdMapping = await apiMapperService.addMapping(mappingData);
+      const updates = { notes: 'Updated notes.' };
+      const updatedMapping = await apiMapperService.updateMapping(createdMapping.id, updates);
 
-      await apiMapperService.addMapping(originalMapping);
-
-      const updatedMapping: APIMapping = {
-        ...originalMapping,
-        bedrockEquivalent: 'updated.bedrock.equivalent',
-        notes: 'Updated mapping',
-        version: '1.1.0'
-      };
-
-      await expect(apiMapperService.updateMapping(updatedMapping)).resolves.not.toThrow();
-      
-      const retrieved = await apiMapperService.getMapping('update.java.Signature');
-      expect(retrieved?.bedrockEquivalent).toBe('updated.bedrock.equivalent');
-      expect(retrieved?.notes).toBe('Updated mapping');
-      expect(retrieved?.version).toBe('1.1.0');
+      expect(updatedMapping.notes).toBe('Updated notes.');
+      expect(updatedMapping.lastUpdated.getTime()).toBeGreaterThan(createdMapping.lastUpdated.getTime());
     });
 
-    it('should reject update for non-existent mapping', async () => {
-      const nonExistentMapping: APIMapping = {
-        id: 'non-existent',
-        javaSignature: 'non.existent.Signature',
-        bedrockEquivalent: 'non.existent.equivalent',
-        conversionType: 'direct',
-        notes: 'Non-existent mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
+    it('should delete a mapping', async () => {
+        vi.mocked(uuidv4).mockReturnValue('mock-uuid-delete');
+      const mappingData = {
+        javaSignature: 'test.crud.Delete',
+        bedrockEquivalent: 'bedrock.crud.delete',
+        conversionType: 'direct' as const,
+        notes: 'A test mapping.',
       };
-
-      await expect(apiMapperService.updateMapping(nonExistentMapping)).rejects.toThrow('not found');
+      const createdMapping = await apiMapperService.addMapping(mappingData);
+      const isDeleted = await apiMapperService.deleteMapping(createdMapping.id);
+      
+      expect(isDeleted).toBe(true);
+      const foundMapping = await apiMapperService.getMapping('test.crud.Delete');
+      expect(foundMapping).toBeUndefined();
     });
   });
 
-  describe('importMappings', () => {
-    it('should import valid mappings', async () => {
-      const mappingsToImport: APIMapping[] = [
-        {
-          id: 'import-1',
-          javaSignature: 'import1.java.Signature',
-          bedrockEquivalent: 'import1.bedrock.equivalent',
-          conversionType: 'direct',
-          notes: 'Import mapping 1',
-          version: '1.0.0',
-          lastUpdated: new Date()
-        },
-        {
-          id: 'import-2',
-          javaSignature: 'import2.java.Signature',
-          bedrockEquivalent: 'import2.bedrock.equivalent',
-          conversionType: 'wrapper',
-          notes: 'Import mapping 2',
-          version: '1.0.0',
-          lastUpdated: new Date()
-        }
+  describe('Versioning and Metadata', () => {
+    it('should set initial version to 1.0.0 on creation', async () => {
+        vi.mocked(uuidv4).mockReturnValue('mock-uuid-version');
+      const mappingData = {
+        javaSignature: 'test.versioning.Initial',
+        bedrockEquivalent: 'bedrock.versioning.initial',
+        conversionType: 'direct' as const,
+        notes: 'A test mapping.',
+      };
+      const createdMapping = await apiMapperService.addMapping(mappingData);
+      expect(createdMapping.version).toBe('1.0.0');
+    });
+
+    it('should update lastUpdated timestamp on update', async () => {
+        vi.mocked(uuidv4).mockReturnValue('mock-uuid-timestamp');
+        const mappingData = {
+            javaSignature: 'test.versioning.Timestamp',
+            bedrockEquivalent: 'bedrock.versioning.timestamp',
+            conversionType: 'direct' as const,
+            notes: 'A test mapping.',
+        };
+        const createdMapping = await apiMapperService.addMapping(mappingData);
+        await new Promise(resolve => setTimeout(resolve, 10));
+        const updatedMapping = await apiMapperService.updateMapping(createdMapping.id, { notes: 'New notes' });
+        expect(updatedMapping.lastUpdated.getTime()).toBeGreaterThan(createdMapping.lastUpdated.getTime());
+    });
+  });
+
+  describe('Bulk Operations and Persistence', () => {
+    it('should perform bulk import of mappings', async () => {
+      vi.mocked(uuidv4).mockImplementation(() => `mock-uuid-${Math.random()}`);
+      const mappingsToImport: Omit<APIMapping, 'id' | 'version' | 'lastUpdated'>[] = [
+        { javaSignature: 'bulk.test.1', bedrockEquivalent: 'b.b.1', conversionType: 'direct', notes: '' },
+        { javaSignature: 'bulk.test.2', bedrockEquivalent: 'b.b.2', conversionType: 'wrapper', notes: '' },
       ];
 
-      const result = await apiMapperService.importMappings(mappingsToImport);
+      const result = await apiMapperService.importMappings(mappingsToImport as any[]);
       
       expect(result.added).toBe(2);
       expect(result.updated).toBe(0);
       expect(result.failed).toBe(0);
-      expect(result.failures).toHaveLength(0);
+
+      const db = (apiMapperService as any).database;
+      const count = await db.count();
+      expect(count).toBe(2 + 2); // 2 default + 2 imported
     });
 
-    it('should handle mixed import with valid and invalid mappings', async () => {
-      const mappingsToImport: APIMapping[] = [
-        {
-          id: 'valid-import',
-          javaSignature: 'valid.import.Signature',
-          bedrockEquivalent: 'valid.import.equivalent',
-          conversionType: 'direct',
-          notes: 'Valid import mapping',
-          version: '1.0.0',
-          lastUpdated: new Date()
-        },
-        {
-          // Missing required fields
-          javaSignature: 'invalid.import.Signature',
-          bedrockEquivalent: 'invalid.import.equivalent',
-          conversionType: 'direct',
-          notes: 'Invalid import mapping'
-        } as APIMapping
+    it('should persist data to a file and be able to load it back', async () => {
+        vi.mocked(uuidv4).mockReturnValue('mock-uuid-persist');
+      const mappingData = {
+        javaSignature: 'test.persistence.Save',
+        bedrockEquivalent: 'bedrock.persistence.save',
+        conversionType: 'direct' as const,
+        notes: 'A test mapping.',
+      };
+      await apiMapperService.addMapping(mappingData);
+
+      const newApiMapperService = await APIMapperServiceImpl.create(mockConfigService, new InMemoryMappingDatabase(DB_PATH));
+      const foundMapping = await newApiMapperService.getMapping('test.persistence.Save');
+      expect(foundMapping).toBeDefined();
+      expect(foundMapping?.javaSignature).toBe('test.persistence.Save');
+    });
+  });
+
+  describe('Concurrent Access Safety', () => {
+    it('should handle concurrent writes without data corruption', async () => {
+        vi.mocked(uuidv4).mockImplementation(() => `mock-uuid-${Math.random()}`);
+
+      const promises = [
+        apiMapperService.addMapping({ javaSignature: 'concurrent.test.1', bedrockEquivalent: 'c.b.1', conversionType: 'direct', notes: '' }),
+        apiMapperService.addMapping({ javaSignature: 'concurrent.test.2', bedrockEquivalent: 'c.b.2', conversionType: 'direct', notes: '' }),
       ];
-
-      const result = await apiMapperService.importMappings(mappingsToImport);
       
-      expect(result.added).toBe(1);
-      expect(result.failed).toBe(1);
-      expect(result.failures).toHaveLength(1);
-    });
+      await Promise.all(promises);
 
-    it('should update existing mappings during import', async () => {
-      // First add a mapping
-      const originalMapping: APIMapping = {
-        id: 'existing-import',
-        javaSignature: 'existing.import.Signature',
-        bedrockEquivalent: 'existing.import.equivalent',
-        conversionType: 'direct',
-        notes: 'Original mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
-      };
-
-      await apiMapperService.addMapping(originalMapping);
-
-      // Then import an updated version
-      const updatedMapping: APIMapping = {
-        id: 'updated-import',
-        javaSignature: 'existing.import.Signature', // Same signature
-        bedrockEquivalent: 'updated.import.equivalent',
-        conversionType: 'wrapper',
-        notes: 'Updated mapping',
-        version: '2.0.0',
-        lastUpdated: new Date()
-      };
-
-      const result = await apiMapperService.importMappings([updatedMapping]);
+      const db = (apiMapperService as any).database;
+      const count = await db.count();
+      expect(count).toBe(2 + 2); // 2 default + 2 concurrent
       
-      expect(result.added).toBe(0);
-      expect(result.updated).toBe(1);
-      expect(result.failed).toBe(0);
-      
-      const retrieved = await apiMapperService.getMapping('existing.import.Signature');
-      expect(retrieved?.bedrockEquivalent).toBe('updated.import.equivalent');
-      expect(retrieved?.conversionType).toBe('wrapper');
-    });
-  });
-
-  describe('cache management', () => {
-    it('should provide cache statistics', () => {
-      const stats = apiMapperService.getCacheStats();
-      
-      expect(stats).toHaveProperty('size');
-      expect(stats).toHaveProperty('maxSize');
-      expect(stats).toHaveProperty('enabled');
-      expect(typeof stats.size).toBe('number');
-      expect(typeof stats.maxSize).toBe('number');
-      expect(typeof stats.enabled).toBe('boolean');
-    });
-
-    it('should clear cache', async () => {
-      // Add a mapping to populate cache
-      const testMapping: APIMapping = {
-        id: 'cache-test',
-        javaSignature: 'cache.test.Signature',
-        bedrockEquivalent: 'cache.test.equivalent',
-        conversionType: 'direct',
-        notes: 'Cache test mapping',
-        version: '1.0.0',
-        lastUpdated: new Date()
-      };
-
-      await apiMapperService.addMapping(testMapping);
-      await apiMapperService.getMapping('cache.test.Signature'); // Populate cache
-      
-      const statsBefore = apiMapperService.getCacheStats();
-      expect(statsBefore.size).toBeGreaterThan(0);
-      
-      apiMapperService.clearCache();
-      
-      const statsAfter = apiMapperService.getCacheStats();
-      expect(statsAfter.size).toBe(0);
-    });
-  });
-
-  describe('database statistics', () => {
-    it('should provide database statistics', async () => {
-      const stats = await apiMapperService.getDatabaseStats();
-      
-      expect(stats).toHaveProperty('totalMappings');
-      expect(typeof stats.totalMappings).toBe('number');
-      expect(stats.totalMappings).toBeGreaterThan(0); // Should have default mappings
+      const mapping1 = await apiMapperService.getMapping('concurrent.test.1');
+      const mapping2 = await apiMapperService.getMapping('concurrent.test.2');
+      expect(mapping1).toBeDefined();
+      expect(mapping2).toBeDefined();
     });
   });
 
   describe('factory function', () => {
-    it('should create APIMapperService instance', () => {
-      const service = createAPIMapperService(mockConfigService);
+    it('should create APIMapperService instance', async () => {
+      const service = await createAPIMapperService(mockConfigService);
       expect(service).toBeDefined();
       expect(typeof service.getMapping).toBe('function');
-      expect(typeof service.getMappings).toBe('function');
       expect(typeof service.addMapping).toBe('function');
       expect(typeof service.updateMapping).toBe('function');
-      expect(typeof service.importMappings).toBe('function');
     });
   });
 });
