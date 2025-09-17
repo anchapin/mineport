@@ -40,7 +40,7 @@ interface PackagingOutput {
 /**
  * Interface for Bedrock manifest
  */
-interface BedrockManifest {
+interface _BedrockManifest {
   format_version: number;
   header: {
     name: string;
@@ -63,39 +63,39 @@ interface BedrockManifest {
 /**
  * Interfaces for Bedrock file types
  */
-interface BedrockTextureFile {
+interface _BedrockTextureFile {
   path: string;
   content: Buffer;
 }
 
-interface BedrockModelFile {
+interface _BedrockModelFile {
   path: string;
   content: string;
 }
 
-interface BedrockSoundFile {
+interface _BedrockSoundFile {
   path: string;
   content: Buffer;
 }
 
 // BedrockParticleFile is imported from types/assets.js
 
-interface BedrockBlockDefinition {
+interface _BedrockBlockDefinition {
   path: string;
   content: string;
 }
 
-interface BedrockItemDefinition {
+interface _BedrockItemDefinition {
   path: string;
   content: string;
 }
 
-interface BedrockRecipe {
+interface _BedrockRecipe {
   path: string;
   content: string;
 }
 
-interface BedrockLootTable {
+interface _BedrockLootTable {
   path: string;
   content: string;
 }

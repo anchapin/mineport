@@ -2,7 +2,7 @@
  * Core type definitions used throughout the application
  */
 
-import { ErrorSeverity, LicenseInfo } from './errors.js';
+import { LicenseInfo } from './errors.js';
 
 /**
  * Represents a Java mod

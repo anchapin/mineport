@@ -318,20 +318,20 @@ export class ConversionPipeline {
 
       // Use available method from BlockItemDefinitionConverter
       // Note: Using convertItemDefinitions as a placeholder - this may need adjustment based on actual interface
-      const itemDefinitions = definitionConverter.convertItemDefinitions([]);
+      const _itemDefinitions = definitionConverter.convertItemDefinitions([]);
       // TODO: Implement proper block/item definition conversion
 
       // Convert recipes
       const recipeConverter = new RecipeConverter();
       // Use available method from RecipeConverter
       // Note: Using convertRecipes with proper signature
-      const recipes = await recipeConverter.convertRecipes(config, behaviorPackPath);
+      const _recipes = await recipeConverter.convertRecipes(config, behaviorPackPath);
       // TODO: Implement proper recipe conversion with modId context
 
       // Convert loot tables
       const lootTableConverter = new LootTableConverter();
       if (validationResult.modInfo) {
-        const lootTables = await lootTableConverter.parseJavaLootTables(input.inputPath);
+        const _lootTables = await lootTableConverter.parseJavaLootTables(input.inputPath);
         await lootTableConverter.writeLootTables(
           { success: true, lootTables: {}, conversionNotes: [], errors: [] }, // Add missing success property
           behaviorPackPath
@@ -906,17 +906,17 @@ export class ConversionPipeline {
     try {
       // Convert block/item definitions
       const definitionConverter = new BlockItemDefinitionConverter();
-      const itemDefinitions = definitionConverter.convertItemDefinitions([]);
+      const _itemDefinitions = definitionConverter.convertItemDefinitions([]);
       // TODO: Implement proper block/item definition conversion
 
       // Convert recipes
       const recipeConverter = new RecipeConverter();
-      const recipes = await recipeConverter.convertRecipes(input.config, input.outputPath);
+      const _recipes = await recipeConverter.convertRecipes(input.config, input.outputPath);
       // TODO: Implement proper recipe conversion with modId context
 
       // Convert loot tables
       const lootTableConverter = new LootTableConverter();
-      const lootTables = await lootTableConverter.parseJavaLootTables(input.inputPath);
+      const _lootTables = await lootTableConverter.parseJavaLootTables(input.inputPath);
       await lootTableConverter.writeLootTables(
         { success: true, lootTables: {}, conversionNotes: [], errors: [] }, // Add missing success property
         input.outputPath

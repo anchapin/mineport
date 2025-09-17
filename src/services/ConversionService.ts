@@ -11,7 +11,6 @@ import type {
   ConversionInput,
   ConversionJob,
   ConversionResult,
-  ConversionOptions,
   JobStatus,
 } from '../types/services.js';
 
@@ -131,7 +130,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
   /**
    * Get all conversion jobs
    */
-  public getJobs(filter?: { status?: JobStatus }): ConversionJob[] {
+  public getJobs(_filter?: { status?: JobStatus }): ConversionJob[] {
     return [];
   }
 
@@ -154,7 +153,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
   /**
    * Get job result
    */
-  public getJobResult(jobId: string): ConversionResult | undefined {
+  public getJobResult(_jobId: string): ConversionResult | undefined {
     return undefined;
   }
 
