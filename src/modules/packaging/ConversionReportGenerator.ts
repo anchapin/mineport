@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import logger from '../../utils/logger';
-import { Feature, CompromiseReport, AppliedCompromiseStrategy } from '../../types/compromise';
-import { ManualPostProcessingGuide, PostProcessingStep } from './ManualPostProcessingGuide';
+import logger from '../../utils/logger.js';
+import { Feature, CompromiseReport, AppliedCompromiseStrategy } from '../../types/compromise.js';
+import { ManualPostProcessingGuide, PostProcessingStep } from './ManualPostProcessingGuide.js';
 
 /**
  * Interface for conversion report input
@@ -81,7 +81,7 @@ interface ConversionQualityMetrics {
  * ConversionReportGenerator class responsible for generating comprehensive reports
  * about the mod conversion process, including detailed sections for each conversion aspect
  * and visual indicators for conversion quality.
- * 
+ *
  * This class handles:
  * 1. Creating a structured report with sections for each conversion aspect
  * 2. Generating visual indicators for conversion quality
@@ -94,15 +94,18 @@ export class ConversionReportGenerator {
    * @param outputDir The directory to save the report to
    * @returns A promise that resolves to the conversion report output
    */
-  public async generateReport(input: ConversionReportInput, outputDir: string): Promise<ConversionReportOutput> {
+  public async generateReport(
+    input: ConversionReportInput,
+    outputDir: string
+  ): Promise<ConversionReportOutput> {
     logger.info('Generating conversion report');
-    
+
     // Ensure output directory exists
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -110,44 +113,47 @@ export class ConversionReportGenerator {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-    
+
     // Calculate quality metrics
     const qualityMetrics = this.calculateQualityMetrics(input);
-    
+
     // Generate reports in different formats
     const htmlReportPath = path.join(outputDir, 'conversion-report.html');
     const jsonReportPath = path.join(outputDir, 'conversion-report.json');
     const markdownReportPath = path.join(outputDir, 'conversion-report.md');
-    
+
     // Generate HTML report
     await this.generateHtmlReport(input, qualityMetrics, htmlReportPath);
-    
+
     // Generate JSON report
     await this.generateJsonReport(input, qualityMetrics, jsonReportPath);
-    
+
     // Generate Markdown report
     await this.generateMarkdownReport(input, qualityMetrics, markdownReportPath);
-    
+
     // Generate manual post-processing guide
     const postProcessingGuide = new ManualPostProcessingGuide();
-    const postProcessingGuideOutput = await postProcessingGuide.generateGuide({
-      modName: input.modName,
-      modVersion: input.modVersion,
-      features: input.features,
-      compromiseReport: input.compromiseReport,
-      conversionNotes: input.conversionNotes
-    }, outputDir);
-    
+    const postProcessingGuideOutput = await postProcessingGuide.generateGuide(
+      {
+        modName: input.modName,
+        modVersion: input.modVersion,
+        features: input.features,
+        compromiseReport: input.compromiseReport,
+        conversionNotes: input.conversionNotes,
+      },
+      outputDir
+    );
+
     logger.info('Conversion report and manual post-processing guide generated successfully');
-    
+
     return {
       htmlReportPath,
       jsonReportPath,
       markdownReportPath,
-      manualPostProcessingGuide: postProcessingGuideOutput
+      manualPostProcessingGuide: postProcessingGuideOutput,
     };
   }
-  
+
   /**
    * Calculates quality metrics for the conversion
    * @param input The conversion report input data
@@ -155,71 +161,100 @@ export class ConversionReportGenerator {
    */
   private calculateQualityMetrics(input: ConversionReportInput): ConversionQualityMetrics {
     // Calculate asset quality (0-100)
-    const totalAssets = input.assets.textures + input.assets.models + input.assets.sounds + input.assets.particles;
-    const assetNotes = input.conversionNotes.filter(note => 
-      note.type === 'texture' || note.type === 'model' || note.type === 'sound' || note.type === 'particle'
+    const totalAssets =
+      input.assets.textures + input.assets.models + input.assets.sounds + input.assets.particles;
+    const assetNotes = input.conversionNotes.filter(
+      (note) =>
+        note.type === 'texture' ||
+        note.type === 'model' ||
+        note.type === 'sound' ||
+        note.type === 'particle'
     );
-    const assetWarnings = assetNotes.filter(note => note.severity === 'warning').length;
-    const assetErrors = assetNotes.filter(note => note.severity === 'error').length;
-    
-    const assetQuality = totalAssets === 0 ? 100 : Math.max(0, 100 - (assetWarnings * 5 + assetErrors * 15) / totalAssets * 100);
-    
+    const assetWarnings = assetNotes.filter((note) => note.severity === 'warning').length;
+    const assetErrors = assetNotes.filter((note) => note.severity === 'error').length;
+
+    const assetQuality =
+      totalAssets === 0
+        ? 100
+        : Math.max(0, 100 - ((assetWarnings * 5 + assetErrors * 15) / totalAssets) * 100);
+
     // Calculate configuration quality (0-100)
-    const totalConfigs = input.configurations.blocks + input.configurations.items + 
-                         input.configurations.recipes + input.configurations.lootTables;
-    const configNotes = input.conversionNotes.filter(note => 
-      note.type === 'block' || note.type === 'item' || note.type === 'recipe' || note.type === 'lootTable'
+    const totalConfigs =
+      input.configurations.blocks +
+      input.configurations.items +
+      input.configurations.recipes +
+      input.configurations.lootTables;
+    const configNotes = input.conversionNotes.filter(
+      (note) =>
+        note.type === 'block' ||
+        note.type === 'item' ||
+        note.type === 'recipe' ||
+        note.type === 'lootTable'
     );
-    const configWarnings = configNotes.filter(note => note.severity === 'warning').length;
-    const configErrors = configNotes.filter(note => note.severity === 'error').length;
-    
-    const configQuality = totalConfigs === 0 ? 100 : Math.max(0, 100 - (configWarnings * 5 + configErrors * 15) / totalConfigs * 100);
-    
+    const configWarnings = configNotes.filter((note) => note.severity === 'warning').length;
+    const configErrors = configNotes.filter((note) => note.severity === 'error').length;
+
+    const configQuality =
+      totalConfigs === 0
+        ? 100
+        : Math.max(0, 100 - ((configWarnings * 5 + configErrors * 15) / totalConfigs) * 100);
+
     // Calculate logic quality (0-100)
-    const logicNotes = input.conversionNotes.filter(note => 
-      note.type === 'script' || note.type === 'logic' || note.type === 'api'
+    const logicNotes = input.conversionNotes.filter(
+      (note) => note.type === 'script' || note.type === 'logic' || note.type === 'api'
     );
-    const logicWarnings = logicNotes.filter(note => note.severity === 'warning').length;
-    const logicErrors = logicNotes.filter(note => note.severity === 'error').length;
-    
-    const stubbedPercentage = input.scripts.total === 0 ? 0 : (input.scripts.stubbed / input.scripts.total) * 100;
-    const logicQuality = input.scripts.total === 0 ? 100 : Math.max(0, 100 - stubbedPercentage - 
-                        (logicWarnings * 2 + logicErrors * 10) / input.scripts.total * 100);
-    
+    const logicWarnings = logicNotes.filter((note) => note.severity === 'warning').length;
+    const logicErrors = logicNotes.filter((note) => note.severity === 'error').length;
+
+    const stubbedPercentage =
+      input.scripts.total === 0 ? 0 : (input.scripts.stubbed / input.scripts.total) * 100;
+    const logicQuality =
+      input.scripts.total === 0
+        ? 100
+        : Math.max(
+            0,
+            100 -
+              stubbedPercentage -
+              ((logicWarnings * 2 + logicErrors * 10) / input.scripts.total) * 100
+          );
+
     // Calculate compatibility quality (0-100)
-    const totalFeatures = input.features.tier1.length + input.features.tier2.length + 
-                          input.features.tier3.length + input.features.tier4.length;
-    
+    const totalFeatures =
+      input.features.tier1.length +
+      input.features.tier2.length +
+      input.features.tier3.length +
+      input.features.tier4.length;
+
     const tier1Weight = 1.0;
     const tier2Weight = 0.7;
     const tier3Weight = 0.3;
     const tier4Weight = 0.0;
-    
-    const compatibilityScore = totalFeatures === 0 ? 100 : (
-      (input.features.tier1.length * tier1Weight + 
-       input.features.tier2.length * tier2Weight + 
-       input.features.tier3.length * tier3Weight + 
-       input.features.tier4.length * tier4Weight) / totalFeatures * 100
-    );
-    
+
+    const compatibilityScore =
+      totalFeatures === 0
+        ? 100
+        : ((input.features.tier1.length * tier1Weight +
+            input.features.tier2.length * tier2Weight +
+            input.features.tier3.length * tier3Weight +
+            input.features.tier4.length * tier4Weight) /
+            totalFeatures) *
+          100;
+
     // Calculate overall quality (weighted average)
     const overall = Math.round(
-      assetQuality * 0.25 + 
-      configQuality * 0.25 + 
-      logicQuality * 0.3 + 
-      compatibilityScore * 0.2
+      assetQuality * 0.25 + configQuality * 0.25 + logicQuality * 0.3 + compatibilityScore * 0.2
     );
-    
+
     return {
       overall: Math.min(100, Math.max(0, overall)),
       assets: Math.min(100, Math.max(0, Math.round(assetQuality))),
       configurations: Math.min(100, Math.max(0, Math.round(configQuality))),
       logic: Math.min(100, Math.max(0, Math.round(logicQuality))),
-      compatibility: Math.min(100, Math.max(0, Math.round(compatibilityScore)))
+      compatibility: Math.min(100, Math.max(0, Math.round(compatibilityScore))),
     };
-  }  
-  
-/**
+  }
+
+  /**
    * Gets the CSS class for a quality score
    * @param score The quality score (0-100)
    * @returns The CSS class name
@@ -230,7 +265,7 @@ export class ConversionReportGenerator {
     if (score >= 40) return 'fair';
     return 'poor';
   }
-  
+
   /**
    * Gets a descriptive label for a quality score
    * @param score The quality score (0-100)
@@ -242,7 +277,7 @@ export class ConversionReportGenerator {
     if (score >= 40) return 'Fair';
     return 'Poor';
   }
-  
+
   /**
    * Generates HTML for feature table rows
    * @param features The features object
@@ -255,9 +290,9 @@ export class ConversionReportGenerator {
     tier4: Feature[];
   }): string {
     let rows = '';
-    
+
     // Add Tier 1 features
-    features.tier1.forEach(feature => {
+    features.tier1.forEach((feature) => {
       rows += `
         <tr>
           <td>${feature.name}</td>
@@ -267,9 +302,9 @@ export class ConversionReportGenerator {
         </tr>
       `;
     });
-    
+
     // Add Tier 2 features
-    features.tier2.forEach(feature => {
+    features.tier2.forEach((feature) => {
       rows += `
         <tr>
           <td>${feature.name}</td>
@@ -279,9 +314,9 @@ export class ConversionReportGenerator {
         </tr>
       `;
     });
-    
+
     // Add Tier 3 features
-    features.tier3.forEach(feature => {
+    features.tier3.forEach((feature) => {
       rows += `
         <tr>
           <td>${feature.name}</td>
@@ -291,9 +326,9 @@ export class ConversionReportGenerator {
         </tr>
       `;
     });
-    
+
     // Add Tier 4 features
-    features.tier4.forEach(feature => {
+    features.tier4.forEach((feature) => {
       rows += `
         <tr>
           <td>${feature.name}</td>
@@ -303,10 +338,10 @@ export class ConversionReportGenerator {
         </tr>
       `;
     });
-    
+
     return rows;
   }
-  
+
   /**
    * Generates Markdown for feature table
    * @param features The features object
@@ -320,30 +355,30 @@ export class ConversionReportGenerator {
   }): string {
     let markdown = '| Feature | Type | Compatibility | Description |\n';
     markdown += '|---------|------|--------------|-------------|\n';
-    
+
     // Add Tier 1 features
-    features.tier1.forEach(feature => {
+    features.tier1.forEach((feature) => {
       markdown += `| ${feature.name} | ${feature.type} | Tier 1 | ${feature.description} |\n`;
     });
-    
+
     // Add Tier 2 features
-    features.tier2.forEach(feature => {
+    features.tier2.forEach((feature) => {
       markdown += `| ${feature.name} | ${feature.type} | Tier 2 | ${feature.description} |\n`;
     });
-    
+
     // Add Tier 3 features
-    features.tier3.forEach(feature => {
+    features.tier3.forEach((feature) => {
       markdown += `| ${feature.name} | ${feature.type} | Tier 3 | ${feature.description} |\n`;
     });
-    
+
     // Add Tier 4 features
-    features.tier4.forEach(feature => {
+    features.tier4.forEach((feature) => {
       markdown += `| ${feature.name} | ${feature.type} | Tier 4 | ${feature.description} |\n`;
     });
-    
+
     return markdown;
   }
-  
+
   /**
    * Generates HTML for conversion notes
    * @param notes The conversion notes
@@ -353,27 +388,27 @@ export class ConversionReportGenerator {
     if (notes.length === 0) {
       return '<p>No notes for this section.</p>';
     }
-    
+
     let html = '';
-    
+
     // Group notes by severity
-    const infoNotes = notes.filter(note => note.severity === 'info');
-    const warningNotes = notes.filter(note => note.severity === 'warning');
-    const errorNotes = notes.filter(note => note.severity === 'error');
-    
+    const infoNotes = notes.filter((note) => note.severity === 'info');
+    const warningNotes = notes.filter((note) => note.severity === 'warning');
+    const errorNotes = notes.filter((note) => note.severity === 'error');
+
     // Add info notes
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (infoNotes.length > 0) {
       html += '<h5>Information</h5>';
-      infoNotes.forEach(note => {
+      infoNotes.forEach((note) => {
         html += `
           <div class="note info">
             <strong>${note.type}:</strong> ${note.message}
@@ -382,20 +417,20 @@ export class ConversionReportGenerator {
         `;
       });
     }
-    
+
     // Add warning notes
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (warningNotes.length > 0) {
       html += '<h5>Warnings</h5>';
-      warningNotes.forEach(note => {
+      warningNotes.forEach((note) => {
         html += `
           <div class="note warning">
             <strong>${note.type}:</strong> ${note.message}
@@ -404,20 +439,20 @@ export class ConversionReportGenerator {
         `;
       });
     }
-    
+
     // Add error notes
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (errorNotes.length > 0) {
       html += '<h5>Errors</h5>';
-      errorNotes.forEach(note => {
+      errorNotes.forEach((note) => {
         html += `
           <div class="note error">
             <strong>${note.type}:</strong> ${note.message}
@@ -426,10 +461,10 @@ export class ConversionReportGenerator {
         `;
       });
     }
-    
+
     return html;
   }
-  
+
   /**
    * Generates Markdown for conversion notes
    * @param notes The conversion notes
@@ -439,33 +474,33 @@ export class ConversionReportGenerator {
     if (notes.length === 0) {
       return 'No notes for this section.\n';
     }
-    
+
     let markdown = '';
-    
+
     // Group notes by severity
-    const infoNotes = notes.filter(note => note.severity === 'info');
-    const warningNotes = notes.filter(note => note.severity === 'warning');
-    const errorNotes = notes.filter(note => note.severity === 'error');
-    
+    const infoNotes = notes.filter((note) => note.severity === 'info');
+    const warningNotes = notes.filter((note) => note.severity === 'warning');
+    const errorNotes = notes.filter((note) => note.severity === 'error');
+
     // Add info notes
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (infoNotes.length > 0) {
       markdown += '#### Information\n\n';
-      infoNotes.forEach(note => {
+      infoNotes.forEach((note) => {
         markdown += `- **${note.type}:** ${note.message}`;
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -477,26 +512,26 @@ export class ConversionReportGenerator {
       });
       markdown += '\n';
     }
-    
+
     // Add warning notes
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (warningNotes.length > 0) {
       markdown += '#### Warnings\n\n';
-      warningNotes.forEach(note => {
+      warningNotes.forEach((note) => {
         markdown += `- **${note.type}:** ${note.message}`;
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -508,26 +543,26 @@ export class ConversionReportGenerator {
       });
       markdown += '\n';
     }
-    
+
     // Add error notes
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (errorNotes.length > 0) {
       markdown += '#### Errors\n\n';
-      errorNotes.forEach(note => {
+      errorNotes.forEach((note) => {
         markdown += `- **${note.type}:** ${note.message}`;
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -539,10 +574,10 @@ export class ConversionReportGenerator {
       });
       markdown += '\n';
     }
-    
+
     return markdown;
   }
-  
+
   /**
    * Generates HTML for compromise strategies
    * @param strategies The applied compromise strategies
@@ -552,10 +587,10 @@ export class ConversionReportGenerator {
     if (strategies.length === 0) {
       return '<p>No compromise strategies were applied.</p>';
     }
-    
+
     let html = '';
-    
-    strategies.forEach(strategy => {
+
+    strategies.forEach((strategy) => {
       html += `
         <div class="compromise-strategy">
           <h4>${strategy.strategyName}</h4>
@@ -564,10 +599,10 @@ export class ConversionReportGenerator {
         </div>
       `;
     });
-    
+
     return html;
   }
-  
+
   /**
    * Generates Markdown for compromise strategies
    * @param strategies The applied compromise strategies
@@ -577,26 +612,26 @@ export class ConversionReportGenerator {
     if (strategies.length === 0) {
       return 'No compromise strategies were applied.\n';
     }
-    
+
     let markdown = '';
-    
-    strategies.forEach(strategy => {
+
+    strategies.forEach((strategy) => {
       markdown += `### ${strategy.strategyName}\n\n`;
       markdown += `${strategy.strategyDescription}\n\n`;
       markdown += `**Applied to feature:** ${strategy.featureId}\n\n`;
     });
-    
+
     return markdown;
-  }  
-/**
+  }
+  /**
    * Generates an HTML report
    * @param input The conversion report input data
    * @param qualityMetrics The calculated quality metrics
    * @param outputPath The path to save the HTML report to
    */
   private async generateHtmlReport(
-    input: ConversionReportInput, 
-    qualityMetrics: ConversionQualityMetrics, 
+    input: ConversionReportInput,
+    qualityMetrics: ConversionQualityMetrics,
     outputPath: string
   ): Promise<void> {
     // Generate HTML content with styling and interactive elements
@@ -784,7 +819,7 @@ export class ConversionReportGenerator {
     <p>Mod Loader: ${input.modLoader.toUpperCase()}</p>
     <p>Conversion Date: ${input.conversionDate.toLocaleDateString()} ${input.conversionDate.toLocaleTimeString()}</p>
     <p>Conversion Time: ${(input.conversionTime / 1000).toFixed(2)} seconds</p>
-    
+
     <h3>Overall Conversion Quality</h3>
     <div class="quality-indicator">
       <div class="quality-bar">
@@ -848,7 +883,7 @@ export class ConversionReportGenerator {
         <div class="stat-label">Total Scripts</div>
       </div>
     </div>
-    
+
     <h3>Feature Compatibility Breakdown</h3>
     <div class="stats-container">
       <div class="stat-box">
@@ -916,11 +951,17 @@ export class ConversionReportGenerator {
           <div class="stat-label">Particles</div>
         </div>
       </div>
-      
+
       <h4>Asset Conversion Notes</h4>
-      ${this.generateNotesHtml(input.conversionNotes.filter(note => 
-        note.type === 'texture' || note.type === 'model' || note.type === 'sound' || note.type === 'particle'
-      ))}
+      ${this.generateNotesHtml(
+        input.conversionNotes.filter(
+          (note) =>
+            note.type === 'texture' ||
+            note.type === 'model' ||
+            note.type === 'sound' ||
+            note.type === 'particle'
+        )
+      )}
     </div>
   </div>
 
@@ -946,11 +987,17 @@ export class ConversionReportGenerator {
           <div class="stat-label">Loot Tables</div>
         </div>
       </div>
-      
+
       <h4>Configuration Conversion Notes</h4>
-      ${this.generateNotesHtml(input.conversionNotes.filter(note => 
-        note.type === 'block' || note.type === 'item' || note.type === 'recipe' || note.type === 'lootTable'
-      ))}
+      ${this.generateNotesHtml(
+        input.conversionNotes.filter(
+          (note) =>
+            note.type === 'block' ||
+            note.type === 'item' ||
+            note.type === 'recipe' ||
+            note.type === 'lootTable'
+        )
+      )}
     </div>
   </div>
 
@@ -976,11 +1023,13 @@ export class ConversionReportGenerator {
           <div class="stat-label">Stubbed Percentage</div>
         </div>
       </div>
-      
+
       <h4>Logic Conversion Notes</h4>
-      ${this.generateNotesHtml(input.conversionNotes.filter(note => 
-        note.type === 'script' || note.type === 'logic' || note.type === 'api'
-      ))}
+      ${this.generateNotesHtml(
+        input.conversionNotes.filter(
+          (note) => note.type === 'script' || note.type === 'logic' || note.type === 'api'
+        )
+      )}
     </div>
   </div>
 
@@ -989,7 +1038,7 @@ export class ConversionReportGenerator {
     <div class="section">
       <h3>Applied Compromise Strategies</h3>
       <p>Total compromises applied: ${input.compromiseReport.totalCompromisesApplied}</p>
-      
+
       ${this.generateCompromiseStrategiesHtml(input.compromiseReport.appliedStrategies)}
     </div>
   </div>
@@ -1010,9 +1059,9 @@ export class ConversionReportGenerator {
         var content = this.nextElementSibling;
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -1027,10 +1076,10 @@ export class ConversionReportGenerator {
   </script>
 </body>
 </html>`;
-    
+
     fs.writeFileSync(outputPath, html);
   }
-  
+
   /**
    * Generates a JSON report
    * @param input The conversion report input data
@@ -1038,19 +1087,19 @@ export class ConversionReportGenerator {
    * @param outputPath The path to save the JSON report to
    */
   private async generateJsonReport(
-    input: ConversionReportInput, 
-    qualityMetrics: ConversionQualityMetrics, 
+    input: ConversionReportInput,
+    qualityMetrics: ConversionQualityMetrics,
     outputPath: string
   ): Promise<void> {
     const jsonReport = {
       modInfo: {
         name: input.modName,
         version: input.modVersion,
-        modLoader: input.modLoader
+        modLoader: input.modLoader,
       },
       conversionInfo: {
         date: input.conversionDate.toISOString(),
-        durationMs: input.conversionTime
+        durationMs: input.conversionTime,
       },
       qualityMetrics,
       features: {
@@ -1058,39 +1107,48 @@ export class ConversionReportGenerator {
         tier2: input.features.tier2,
         tier3: input.features.tier3,
         tier4: input.features.tier4,
-        total: input.features.tier1.length + input.features.tier2.length + 
-               input.features.tier3.length + input.features.tier4.length
+        total:
+          input.features.tier1.length +
+          input.features.tier2.length +
+          input.features.tier3.length +
+          input.features.tier4.length,
       },
       assets: {
         textures: input.assets.textures,
         models: input.assets.models,
         sounds: input.assets.sounds,
         particles: input.assets.particles,
-        total: input.assets.textures + input.assets.models + 
-               input.assets.sounds + input.assets.particles
+        total:
+          input.assets.textures +
+          input.assets.models +
+          input.assets.sounds +
+          input.assets.particles,
       },
       configurations: {
         blocks: input.configurations.blocks,
         items: input.configurations.items,
         recipes: input.configurations.recipes,
         lootTables: input.configurations.lootTables,
-        total: input.configurations.blocks + input.configurations.items + 
-               input.configurations.recipes + input.configurations.lootTables
+        total:
+          input.configurations.blocks +
+          input.configurations.items +
+          input.configurations.recipes +
+          input.configurations.lootTables,
       },
       scripts: {
         total: input.scripts.total,
         generated: input.scripts.generated,
         stubbed: input.scripts.stubbed,
-        stubbedPercentage: input.scripts.total > 0 ? 
-                          (input.scripts.stubbed / input.scripts.total) * 100 : 0
+        stubbedPercentage:
+          input.scripts.total > 0 ? (input.scripts.stubbed / input.scripts.total) * 100 : 0,
       },
       compromiseReport: input.compromiseReport,
-      conversionNotes: input.conversionNotes
+      conversionNotes: input.conversionNotes,
     };
-    
+
     fs.writeFileSync(outputPath, JSON.stringify(jsonReport, null, 2));
   }
-  
+
   /**
    * Generates a Markdown report
    * @param input The conversion report input data
@@ -1098,14 +1156,14 @@ export class ConversionReportGenerator {
    * @param outputPath The path to save the Markdown report to
    */
   private async generateMarkdownReport(
-    input: ConversionReportInput, 
-    qualityMetrics: ConversionQualityMetrics, 
+    input: ConversionReportInput,
+    qualityMetrics: ConversionQualityMetrics,
     outputPath: string
   ): Promise<void> {
     const markdown = `# Conversion Report: ${input.modName} v${input.modVersion}
 
-**Mod Loader:** ${input.modLoader.toUpperCase()}  
-**Conversion Date:** ${input.conversionDate.toLocaleDateString()} ${input.conversionDate.toLocaleTimeString()}  
+**Mod Loader:** ${input.modLoader.toUpperCase()}
+**Conversion Date:** ${input.conversionDate.toLocaleDateString()} ${input.conversionDate.toLocaleTimeString()}
 **Conversion Time:** ${(input.conversionTime / 1000).toFixed(2)} seconds
 
 ## Overall Conversion Quality
@@ -1152,9 +1210,15 @@ ${this.generateFeatureTableMarkdown(input.features)}
 
 ### Asset Conversion Notes
 
-${this.generateNotesMarkdown(input.conversionNotes.filter(note => 
-  note.type === 'texture' || note.type === 'model' || note.type === 'sound' || note.type === 'particle'
-))}
+${this.generateNotesMarkdown(
+  input.conversionNotes.filter(
+    (note) =>
+      note.type === 'texture' ||
+      note.type === 'model' ||
+      note.type === 'sound' ||
+      note.type === 'particle'
+  )
+)}
 
 ## Configuration Conversion Details
 
@@ -1167,9 +1231,15 @@ ${this.generateNotesMarkdown(input.conversionNotes.filter(note =>
 
 ### Configuration Conversion Notes
 
-${this.generateNotesMarkdown(input.conversionNotes.filter(note => 
-  note.type === 'block' || note.type === 'item' || note.type === 'recipe' || note.type === 'lootTable'
-))}
+${this.generateNotesMarkdown(
+  input.conversionNotes.filter(
+    (note) =>
+      note.type === 'block' ||
+      note.type === 'item' ||
+      note.type === 'recipe' ||
+      note.type === 'lootTable'
+  )
+)}
 
 ## Logic Conversion Details
 
@@ -1182,9 +1252,11 @@ ${this.generateNotesMarkdown(input.conversionNotes.filter(note =>
 
 ### Logic Conversion Notes
 
-${this.generateNotesMarkdown(input.conversionNotes.filter(note => 
-  note.type === 'script' || note.type === 'logic' || note.type === 'api'
-))}
+${this.generateNotesMarkdown(
+  input.conversionNotes.filter(
+    (note) => note.type === 'script' || note.type === 'logic' || note.type === 'api'
+  )
+)}
 
 ## Applied Compromise Strategies
 
@@ -1196,7 +1268,7 @@ ${this.generateCompromiseStrategiesMarkdown(input.compromiseReport.appliedStrate
 
 ${this.generateNotesMarkdown(input.conversionNotes)}
 `;
-    
+
     fs.writeFileSync(outputPath, markdown);
   }
 }

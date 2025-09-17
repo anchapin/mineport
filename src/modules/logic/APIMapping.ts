@@ -1,6 +1,6 @@
 /**
  * APIMapping.ts
- * 
+ *
  * This module provides a database of mappings between Java mod APIs and Bedrock script APIs.
  * It supports different types of mappings and includes versioning for different Minecraft versions.
  */

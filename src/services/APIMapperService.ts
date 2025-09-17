@@ -1,6 +1,6 @@
 /**
  * API Mapper Service
- * 
+ *
  * Service for managing and providing access to Java-to-Bedrock API mappings.
  * Implements database integration, versioning, and caching for API mappings.
  */
@@ -14,7 +14,6 @@ import { ConfigurationService } from './ConfigurationService';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-
 
 const logger = createLogger('APIMapperService');
 const MODULE_ID = 'API_MAPPER';
@@ -436,9 +435,9 @@ export class APIMapperServiceImpl implements APIMapperService {
           conversionType: 'direct',
           notes: 'Player join event mapping',
           exampleUsage: {
-            java: '@SubscribeEvent\npublic void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) { ... }',
-            bedrock: 'system.events.playerJoin.subscribe(event => { ... });'
-          }
+            java: '@SubscribeEvent\\npublic void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) { ... }',
+            bedrock: 'system.events.playerJoin.subscribe(event => { ... });',
+          },
         },
         {
           javaSignature: 'net.minecraft.world.World.setBlockState',

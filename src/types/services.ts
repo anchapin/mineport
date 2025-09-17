@@ -1,32 +1,32 @@
 /**
  * Service-related type definitions
- * 
+ *
  * This file contains interfaces and types related to application services
  * including job queues, resource allocation, caching, and conversion orchestration.
  * These types define the contracts between different service components.
- * 
+ *
  * @since 1.0.0
  */
 
 /**
  * Job status enumeration representing the lifecycle states of a conversion job.
- * 
+ *
  * - pending: Job is queued but not yet started
  * - processing: Job is currently being processed
  * - completed: Job finished successfully
  * - failed: Job encountered an error and failed
  * - cancelled: Job was cancelled by user or system
- * 
+ *
  * @since 1.0.0
  */
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
 /**
  * Represents a conversion job in the system.
- * 
+ *
  * This interface defines the structure of a conversion job, including its
  * input parameters, current status, progress tracking, and results.
- * 
+ *
  * @since 1.0.0
  */
 export interface ConversionJob {
@@ -54,15 +54,15 @@ export interface ConversionJob {
 
 /**
  * Input parameters for a conversion job.
- * 
+ *
  * Defines the required information to start a mod conversion process,
  * including source file, output location, and conversion options.
- * 
+ *
  * @since 1.0.0
  */
 export interface ConversionInput {
-  /** Path to the Java mod file to convert */
-  modFile: string;
+  /** Path to the Java mod file to convert or Buffer containing the mod file */
+  modFile: string | Buffer;
   /** Output directory for the converted Bedrock addon */
   outputPath: string;
   /** Configuration options for the conversion process */
@@ -71,10 +71,10 @@ export interface ConversionInput {
 
 /**
  * Configuration options for the conversion process.
- * 
+ *
  * These options control various aspects of how the conversion is performed,
  * including target version, compromise strategies, and optimization settings.
- * 
+ *
  * @since 1.0.0
  */
 export interface ConversionOptions {
@@ -107,26 +107,53 @@ export interface ConversionStatus {
  */
 export interface ConversionResult {
   jobId: string;
-  bedrockAddon: {
+  success: boolean;
+  result?: {
+    modId: string;
+    manifestInfo: {
+      modId: string;
+      modName: string;
+      version: string;
+      author: string;
+    };
+    registryNames: string[];
+    texturePaths: string[];
+    analysisNotes: Array<{
+      type: 'info' | 'warning' | 'error';
+      message: string;
+    }>;
+    bedrockAddon: {
+      resourcePack: string;
+      behaviorPack: string;
+    };
+    report: any;
+    convertedFiles?: any[];
+    [key: string]: any;
+  };
+  bedrockAddon?: {
     resourcePack: string;
     behaviorPack: string;
   };
-  report: any;
+  validation?: {
+    isValid: boolean;
+    errors: any[];
+    warnings: any[];
+  };
   errors: any[];
   warnings: any[];
 }
 
 /**
  * Interface for conversion orchestrator
- * 
+ *
  * This interface aligns with the design document's ConversionOrchestrator specification.
  */
 export interface ConversionOrchestrator {
   /**
    * queueConversion method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -134,9 +161,9 @@ export interface ConversionOrchestrator {
   queueConversion(input: any): Promise<string>; // Returns job ID
   /**
    * processNextJob method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -144,9 +171,9 @@ export interface ConversionOrchestrator {
   processNextJob(): Promise<void>;
   /**
    * getJobStatus method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -154,9 +181,9 @@ export interface ConversionOrchestrator {
   getJobStatus(jobId: string): JobStatus;
   /**
    * cancelJob method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -166,7 +193,7 @@ export interface ConversionOrchestrator {
 
 /**
  * Interface for conversion service
- * 
+ *
  * This service connects the JobQueue with the conversion pipeline components,
  * providing job creation, tracking, and management capabilities.
  */
@@ -175,55 +202,55 @@ export interface ConversionService {
    * Start the conversion service
    */
   start(): void;
-  
+
   /**
    * Stop the conversion service
    */
   stop(): void;
-  
+
   /**
    * Create a new conversion job
-   * 
+   *
    * @param input Conversion input
    * @returns Created conversion job
    */
   createConversionJob(input: ConversionInput): ConversionJob;
-  
+
   /**
    * Get the status of a conversion job
-   * 
+   *
    * @param jobId Job ID
    * @returns Conversion status or undefined if job not found
    */
   getJobStatus(jobId: string): ConversionStatus | undefined;
-  
+
   /**
    * Get all conversion jobs with optional filtering
-   * 
+   *
    * @param filter Optional filter criteria
    * @returns Array of conversion jobs
    */
   getJobs(filter?: { status?: JobStatus }): ConversionJob[];
-  
+
   /**
    * Cancel a conversion job
-   * 
+   *
    * @param jobId Job ID
    * @returns True if job was cancelled, false otherwise
    */
   cancelJob(jobId: string): boolean;
-  
+
   /**
    * Get the result of a completed conversion job
-   * 
+   *
    * @param jobId Job ID
    * @returns Conversion result or undefined if job not found or not completed
    */
   getJobResult(jobId: string): ConversionResult | undefined;
-  
+
   /**
    * Update job priority
-   * 
+   *
    * @param jobId Job ID
    * @param priority New priority (higher number = higher priority)
    * @returns True if job priority was updated, false otherwise

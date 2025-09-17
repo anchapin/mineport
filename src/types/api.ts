@@ -1,6 +1,6 @@
 /**
  * API-related type definitions
- * 
+ *
  * This file contains interfaces related to API mappings and services
  * that translate between Java and Bedrock APIs.
  */
@@ -160,3 +160,10 @@ export interface APIMapperService {
    */
   getDatabaseStats(): Promise<{ totalMappings: number }>;
 }
+=======
+  failures: {
+    mapping: APIMapping;
+    reason: string;
+  }[];
+}
+>>>>>>> origin/main

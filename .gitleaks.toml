@@ -1,0 +1,192 @@
+# GitLeaks configuration for ModPorter-AI
+# This configuration defines rules for detecting secrets in code and commit history
+
+title = "ModPorter-AI GitLeaks Configuration"
+
+[extend]
+# Use default GitLeaks rules as a base
+useDefault = true
+
+[[rules]]
+id = "github-token"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+id = "github-oauth"
+description = "GitHub OAuth Token"
+regex = '''gho_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+id = "github-app-token"
+description = "GitHub App Token"
+regex = '''(ghu|ghs)_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+id = "snyk-token"
+description = "Snyk API Token"
+regex = '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'''
+tags = ["key", "snyk"]
+
+[[rules]]
+id = "npm-token"
+description = "NPM Access Token"
+regex = '''npm_[A-Za-z0-9]{36}'''
+tags = ["key", "npm"]
+
+[[rules]]
+id = "docker-config"
+description = "Docker configuration with auth"
+regex = '''(?i)(docker|\.dockercfg).*auth.*[=:].*[A-Za-z0-9+/]{20,}'''
+tags = ["key", "docker"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["key", "aws"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Access Key"
+regex = '''(?i)aws.{0,20}?['\"][0-9a-zA-Z/+]{40}['\"]'''
+tags = ["key", "aws"]
+
+[[rules]]
+id = "azure-storage-key"
+description = "Azure Storage Account Key"
+regex = '''(?i)azure.{0,20}?['\"][0-9a-zA-Z+/]{88}['\"]'''
+tags = ["key", "azure"]
+
+[[rules]]
+id = "gcp-service-account"
+description = "Google Cloud Service Account Key"
+regex = '''(?i)type.*service_account'''
+tags = ["key", "gcp"]
+
+[[rules]]
+id = "slack-webhook"
+description = "Slack Webhook URL"
+regex = '''https://hooks\.slack\.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}'''
+tags = ["key", "slack"]
+
+[[rules]]
+id = "discord-webhook"
+description = "Discord Webhook URL"
+regex = '''https://discord(app)?\.com/api/webhooks/[0-9]{18}/[a-zA-Z0-9_-]{68}'''
+tags = ["key", "discord"]
+
+[[rules]]
+id = "database-url"
+description = "Database Connection String"
+regex = '''(?i)(postgres|mysql|mongodb)://[a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+'''
+tags = ["key", "database"]
+
+[[rules]]
+id = "jwt-token"
+description = "JWT Token"
+regex = '''eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'''
+tags = ["key", "jwt"]
+
+[[rules]]
+id = "api-key-generic"
+description = "Generic API Key Pattern"
+regex = '''(?i)(api[_-]?key|apikey|secret[_-]?key|secretkey)['"]*\s*[:=]\s*['"][a-zA-Z0-9_-]{20,}['"]'''
+tags = ["key", "api"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+id = "certificate"
+description = "Certificate"
+regex = '''-----BEGIN CERTIFICATE-----'''
+tags = ["key", "certificate"]
+
+# Custom rules for ModPorter-AI specific patterns
+[[rules]]
+id = "modporter-api-key"
+description = "ModPorter-AI API Key"
+regex = '''(?i)modporter[_-]?(api[_-]?key|key)['"]*\s*[:=]\s*['"][a-zA-Z0-9_-]{32,}['"]'''
+tags = ["key", "modporter"]
+
+[[rules]]
+id = "minecraft-auth"
+description = "Minecraft Authentication Token"
+regex = '''(?i)(minecraft|mojang)[_-]?(auth|token|key)['"]*\s*[:=]\s*['"][a-zA-Z0-9_-]{20,}['"]'''
+tags = ["key", "minecraft"]
+
+# Allowlist for false positives
+[allowlist]
+description = "Allowlist for false positives"
+paths = [
+    '''\.git/''',
+    '''node_modules/''',
+    '''dist/''',
+    '''coverage/''',
+    '''temp/''',
+    '''logs/''',
+    '''\.gitleaks\.toml''',
+    '''\.github/workflows/''',
+    '''docs/''',
+    '''examples/''',
+    '''tests/''',
+    '''test/''',
+    '''README\.md''',
+    '''CHANGELOG\.md''',
+    '''LICENSE''',
+    '''\.md''',
+    '''\.txt''',
+    '''\.log''',
+]
+
+# Allowlist specific patterns that are known to be safe
+regexes = [
+    '''example[_-]?(key|token|secret)''',
+    '''test[_-]?(key|token|secret)''',
+    '''dummy[_-]?(key|token|secret)''',
+    '''fake[_-]?(key|token|secret)''',
+    '''mock[_-]?(key|token|secret)''',
+    '''placeholder[_-]?(key|token|secret)''',
+    '''your[_-]?(key|token|secret)''',
+    '''insert[_-]?(key|token|secret)''',
+    '''replace[_-]?(key|token|secret)''',
+    '''00000000-0000-0000-0000-000000000000''',
+    '''00000000-0000-0000-0000-000000000001''',
+    '''00000000-0000-0000-0000-000000000002''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+    '''xxxxxxxx''',
+    '''12345''',
+    '''abcdef''',
+    '''sample''',
+    '''demo''',
+]
+
+# Allowlist specific commits (if needed)
+commits = [
+    # Add specific commit hashes here if needed
+]
+
+# Stop words that indicate false positives
+stopwords = [
+    '''example''',
+    '''test''',
+    '''dummy''',
+    '''fake''',
+    '''mock''',
+    '''placeholder''',
+    '''sample''',
+    '''demo''',
+    '''template''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+]

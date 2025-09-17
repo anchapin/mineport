@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MonitoringService } from '../../../src/services/MonitoringService.js';
 import { MonitoringConfig } from '../../../src/types/config.js';
 
@@ -13,7 +13,7 @@ describe('MonitoringService', () => {
       enableTracing: false,
       enableHealthChecks: true,
       healthCheckInterval: 30000,
-      alertingEnabled: false
+      alertingEnabled: false,
     };
 
     monitoringService = new MonitoringService(mockConfig);
@@ -31,16 +31,13 @@ describe('MonitoringService', () => {
         details: {
           threatType: 'malware',
           fileName: 'suspicious.jar',
-          fileSize: 1024
-        }
+          fileSize: 1024,
+        },
       };
 
       monitoringService.recordSecurityMetric(metric);
 
-      const summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      const summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.security.threatsDetected).toBe(1);
       expect(summary.security.threatsByType.malware).toBe(1);
@@ -53,8 +50,8 @@ describe('MonitoringService', () => {
           severity: 'low' as const,
           details: {
             scanDuration: 1500,
-            fileName: 'test.jar'
-          }
+            fileName: 'test.jar',
+          },
         };
 
         monitoringService.on('metric:security', (emittedMetric) => {
@@ -73,25 +70,22 @@ describe('MonitoringService', () => {
       monitoringService.recordSecurityMetric({
         event: 'threat_detected',
         severity: 'high',
-        details: { threatType: 'malware', scanDuration: 1000 }
+        details: { threatType: 'malware', scanDuration: 1000 },
       });
 
       monitoringService.recordSecurityMetric({
         event: 'threat_detected',
         severity: 'medium',
-        details: { threatType: 'zip_bomb', scanDuration: 2000 }
+        details: { threatType: 'zip_bomb', scanDuration: 2000 },
       });
 
       monitoringService.recordSecurityMetric({
         event: 'scan_completed',
         severity: 'low',
-        details: { scanDuration: 1500 }
+        details: { scanDuration: 1500 },
       });
 
-      const summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      const summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.security.threatsDetected).toBe(2);
       expect(summary.security.totalScans).toBe(1);
@@ -109,16 +103,13 @@ describe('MonitoringService', () => {
         success: true,
         details: {
           fileSize: 2048,
-          userId: 'user123'
-        }
+          userId: 'user123',
+        },
       };
 
       monitoringService.recordPerformanceMetric(metric);
 
-      const summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      const summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.performance.totalOperations).toBe(1);
       expect(summary.performance.averageDuration).toBe(5000);
@@ -132,7 +123,7 @@ describe('MonitoringService', () => {
           operation: 'java_analysis' as const,
           duration: 3000,
           success: false,
-          details: { errorCode: 'TIMEOUT' }
+          details: { errorCode: 'TIMEOUT' },
         };
 
         monitoringService.on('metric:performance', (emittedMetric) => {
@@ -152,14 +143,14 @@ describe('MonitoringService', () => {
         operation: 'asset_conversion',
         duration: 2000,
         success: true,
-        details: {}
+        details: {},
       });
 
       monitoringService.recordPerformanceMetric({
         operation: 'validation',
         duration: 1000,
         success: true,
-        details: {}
+        details: {},
       });
 
       // Record failed operation
@@ -167,16 +158,13 @@ describe('MonitoringService', () => {
         operation: 'file_processing',
         duration: 5000,
         success: false,
-        details: {}
+        details: {},
       });
 
-      const summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      const summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.performance.totalOperations).toBe(3);
-      expect(summary.performance.successRate).toBeCloseTo(2/3, 2);
+      expect(summary.performance.successRate).toBeCloseTo(2 / 3, 2);
       expect(summary.performance.averageDuration).toBeCloseTo(2666.67, 0);
     });
   });
@@ -189,16 +177,13 @@ describe('MonitoringService', () => {
         qualityScore: 0.85,
         details: {
           extractedItems: 10,
-          convertedAssets: 8
-        }
+          convertedAssets: 8,
+        },
       };
 
       monitoringService.recordConversionQualityMetric(metric);
 
-      const summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      const summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.conversionQuality.totalConversions).toBe(1);
       expect(summary.conversionQuality.successRate).toBe(1);
@@ -209,25 +194,22 @@ describe('MonitoringService', () => {
       monitoringService.recordConversionQualityMetric({
         stage: 'analysis',
         success: false,
-        details: {}
+        details: {},
       });
 
       monitoringService.recordConversionQualityMetric({
         stage: 'conversion',
         success: false,
-        details: {}
+        details: {},
       });
 
       monitoringService.recordConversionQualityMetric({
         stage: 'analysis',
         success: false,
-        details: {}
+        details: {},
       });
 
-      const summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      const summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.conversionQuality.errorsByStage.analysis).toBe(2);
       expect(summary.conversionQuality.errorsByStage.conversion).toBe(1);
@@ -242,16 +224,13 @@ describe('MonitoringService', () => {
         status: 'healthy' as const,
         details: {
           memoryUsage: 256,
-          cpuUsage: 0.15
-        }
+          cpuUsage: 0.15,
+        },
       };
 
       monitoringService.recordSystemHealthMetric(metric);
 
-      const summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      const summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.systemHealth.componentStatus.file_processor).toBe('healthy');
       expect(summary.systemHealth.averageMemoryUsage).toBe(256);
@@ -264,20 +243,17 @@ describe('MonitoringService', () => {
       monitoringService.recordSystemHealthMetric({
         component: 'file_processor',
         status: 'healthy',
-        details: {}
+        details: {},
       });
 
       // Record degraded component
       monitoringService.recordSystemHealthMetric({
         component: 'java_analyzer',
         status: 'degraded',
-        details: {}
+        details: {},
       });
 
-      let summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      let summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.systemHealth.overallHealth).toBe('degraded');
 
@@ -285,13 +261,10 @@ describe('MonitoringService', () => {
       monitoringService.recordSystemHealthMetric({
         component: 'asset_converter',
         status: 'unhealthy',
-        details: {}
+        details: {},
       });
 
-      summary = monitoringService.getMetricsSummary(
-        new Date(Date.now() - 60000),
-        new Date()
-      );
+      summary = monitoringService.getMetricsSummary(new Date(Date.now() - 60000), new Date());
 
       expect(summary.systemHealth.overallHealth).toBe('unhealthy');
     });
@@ -306,11 +279,11 @@ describe('MonitoringService', () => {
           metric: 'security_threat_count',
           operator: 'gte' as const,
           threshold: 1,
-          timeWindow: 60000
+          timeWindow: 60000,
         },
         severity: 'high' as const,
         enabled: true,
-        cooldown: 60000
+        cooldown: 60000,
       };
 
       monitoringService.setAlertRule(alertRule);
@@ -319,7 +292,7 @@ describe('MonitoringService', () => {
       monitoringService.recordSecurityMetric({
         event: 'threat_detected',
         severity: 'high',
-        details: { threatType: 'malware' }
+        details: { threatType: 'malware' },
       });
 
       const activeAlerts = monitoringService.getActiveAlerts();
@@ -334,11 +307,11 @@ describe('MonitoringService', () => {
           metric: 'security_threat_count',
           operator: 'gte' as const,
           threshold: 1,
-          timeWindow: 60000
+          timeWindow: 60000,
         },
         severity: 'medium' as const,
         enabled: true,
-        cooldown: 60000
+        cooldown: 60000,
       };
 
       monitoringService.setAlertRule(alertRule);
@@ -347,7 +320,7 @@ describe('MonitoringService', () => {
       monitoringService.recordSecurityMetric({
         event: 'threat_detected',
         severity: 'medium',
-        details: { threatType: 'suspicious' }
+        details: { threatType: 'suspicious' },
       });
 
       let activeAlerts = monitoringService.getActiveAlerts();
@@ -359,7 +332,7 @@ describe('MonitoringService', () => {
       expect(resolved).toBe(true);
 
       activeAlerts = monitoringService.getActiveAlerts();
-      const resolvedAlert = activeAlerts.find(a => a.id === alertId);
+      const resolvedAlert = activeAlerts.find((a) => a.id === alertId);
       expect(resolvedAlert).toBeUndefined();
     });
 
@@ -371,11 +344,11 @@ describe('MonitoringService', () => {
           metric: 'security_threat_count',
           operator: 'gte' as const,
           threshold: 1,
-          timeWindow: 60000
+          timeWindow: 60000,
         },
         severity: 'low' as const,
         enabled: true,
-        cooldown: 5000 // 5 seconds
+        cooldown: 5000, // 5 seconds
       };
 
       monitoringService.setAlertRule(alertRule);
@@ -384,7 +357,7 @@ describe('MonitoringService', () => {
       monitoringService.recordSecurityMetric({
         event: 'threat_detected',
         severity: 'low',
-        details: { threatType: 'test1' }
+        details: { threatType: 'test1' },
       });
 
       const alertsAfterFirst = monitoringService.getActiveAlerts();
@@ -394,7 +367,7 @@ describe('MonitoringService', () => {
       monitoringService.recordSecurityMetric({
         event: 'threat_detected',
         severity: 'low',
-        details: { threatType: 'test2' }
+        details: { threatType: 'test2' },
       });
 
       const alertsAfterSecond = monitoringService.getActiveAlerts();
@@ -408,13 +381,13 @@ describe('MonitoringService', () => {
       monitoringService.recordSystemHealthMetric({
         component: 'file_processor',
         status: 'healthy',
-        details: {}
+        details: {},
       });
 
       monitoringService.recordSystemHealthMetric({
         component: 'java_analyzer',
         status: 'degraded',
-        details: {}
+        details: {},
       });
 
       const healthStatus = monitoringService.getHealthStatus();
@@ -432,27 +405,27 @@ describe('MonitoringService', () => {
         operation: 'file_processing',
         duration: 1000,
         success: true,
-        details: {}
+        details: {},
       });
 
       monitoringService.recordPerformanceMetric({
         operation: 'java_analysis',
         duration: 2000,
         success: true,
-        details: {}
+        details: {},
       });
 
       monitoringService.recordPerformanceMetric({
         operation: 'asset_conversion',
         duration: 3000,
         success: true,
-        details: {}
+        details: {},
       });
 
       // Manually set old timestamps to simulate old metrics
       const metrics = (monitoringService as any).metrics;
       const initialCount = metrics.length;
-      
+
       // Make the first two metrics old
       if (metrics.length >= 2) {
         metrics[0].timestamp = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000); // 8 days ago
@@ -460,7 +433,8 @@ describe('MonitoringService', () => {
       }
 
       monitoringService.cleanupOldMetrics();
-      const finalCount = metrics.length;
+      const finalMetrics = (monitoringService as any).metrics;
+      const finalCount = finalMetrics.length;
 
       expect(finalCount).toBeLessThan(initialCount);
       expect(finalCount).toBe(1); // Should keep only the recent metric
@@ -478,7 +452,7 @@ describe('MonitoringService', () => {
         operation: 'file_processing',
         duration: 1000,
         success: true,
-        details: {}
+        details: {},
       });
 
       // Manually adjust timestamp for testing
@@ -516,26 +490,26 @@ describe('MonitoringService', () => {
         monitoringService.recordSecurityMetric({
           event: 'scan_completed',
           severity: 'low',
-          details: {}
+          details: {},
         });
 
         monitoringService.recordPerformanceMetric({
           operation: 'file_processing',
           duration: 1000,
           success: true,
-          details: {}
+          details: {},
         });
 
         monitoringService.recordConversionQualityMetric({
           stage: 'conversion',
           success: true,
-          details: {}
+          details: {},
         });
 
         monitoringService.recordSystemHealthMetric({
           component: 'file_processor',
           status: 'healthy',
-          details: {}
+          details: {},
         });
       });
     });

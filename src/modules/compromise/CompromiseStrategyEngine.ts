@@ -1,5 +1,5 @@
-import { Feature, CompromiseStrategy, FeatureType } from '../../types/compromise';
-import { createLogger } from '../../utils/logger';
+import { Feature, CompromiseStrategy, FeatureType } from '../../types/compromise.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * CompromiseStrategyEngine is responsible for selecting and applying appropriate
@@ -14,9 +14,9 @@ export class CompromiseStrategyEngine {
 
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -38,8 +38,10 @@ export class CompromiseStrategyEngine {
     this.registerStrategy('dimension', {
       id: 'teleportation-simulation',
       name: 'Teleportation-based Dimension Simulation',
-      description: 'Simulates custom dimensions using teleportation to isolated areas and visual effects',
-      applicabilityCheck: (feature) => feature.compatibilityTier === 3 && feature.type === 'dimension',
+      description:
+        'Simulates custom dimensions using teleportation to isolated areas and visual effects',
+      applicabilityCheck: (feature) =>
+        feature.compatibilityTier === 3 && feature.type === 'dimension',
       apply: (feature) => ({
         type: 'simulation',
         name: 'Dimension Simulation',
@@ -48,9 +50,9 @@ export class CompromiseStrategyEngine {
         limitations: [
           'No true separate dimension',
           'Limited sky and environment control',
-          'Shared world space with overworld'
-        ]
-      })
+          'Shared world space with overworld',
+        ],
+      }),
     });
 
     // Register rendering code stubbing strategies
@@ -58,7 +60,8 @@ export class CompromiseStrategyEngine {
       id: 'rendering-stub',
       name: 'Rendering Code Stubbing',
       description: 'Stubs out advanced rendering code with appropriate warnings',
-      applicabilityCheck: (feature) => feature.compatibilityTier === 3 && feature.type === 'rendering',
+      applicabilityCheck: (feature) =>
+        feature.compatibilityTier === 3 && feature.type === 'rendering',
       apply: (feature) => ({
         type: 'stubbing',
         name: 'Rendering Stub',
@@ -67,9 +70,9 @@ export class CompromiseStrategyEngine {
         limitations: [
           'No visual rendering effects',
           'Maintains logical functionality only',
-          'User will need to implement custom visuals'
-        ]
-      })
+          'User will need to implement custom visuals',
+        ],
+      }),
     });
 
     // Register UI/HUD mapping strategies
@@ -86,24 +89,24 @@ export class CompromiseStrategyEngine {
         limitations: [
           'Limited UI customization',
           'Different interaction patterns',
-          'Simplified visual appearance'
-        ]
-      })
+          'Simplified visual appearance',
+        ],
+      }),
     });
   }
 
   /**
    * Registers a new compromise strategy for a specific feature type.
-   * 
+   *
    * @param featureType The type of feature this strategy applies to
    * @param strategy The compromise strategy to register
    */
   public registerStrategy(featureType: FeatureType, strategy: CompromiseStrategy): void {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -111,25 +114,27 @@ export class CompromiseStrategyEngine {
     if (!this.strategies.has(featureType)) {
       this.strategies.set(featureType, []);
     }
-    
+
     this.strategies.get(featureType)!.push(strategy);
-    this.logger.debug(`Registered compromise strategy: ${strategy.name} for feature type: ${featureType}`);
+    this.logger.debug(
+      `Registered compromise strategy: ${strategy.name} for feature type: ${featureType}`
+    );
   }
 
   /**
    * Selects the most appropriate compromise strategy for a given feature.
-   * 
+   *
    * @param feature The feature that needs a compromise strategy
    * @returns The selected compromise strategy or undefined if none is applicable
    */
   public selectStrategy(feature: Feature): CompromiseStrategy | undefined {
     const featureType = feature.type as FeatureType;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -138,16 +143,16 @@ export class CompromiseStrategyEngine {
       this.logger.warn(`No compromise strategies registered for feature type: ${featureType}`);
       return undefined;
     }
-    
-    const applicableStrategies = this.strategies.get(featureType)!.filter(
-      strategy => strategy.applicabilityCheck(feature)
-    );
-    
+
+    const applicableStrategies = this.strategies
+      .get(featureType)!
+      .filter((strategy) => strategy.applicabilityCheck(feature));
+
     if (applicableStrategies.length === 0) {
       this.logger.warn(`No applicable compromise strategies found for feature: ${feature.name}`);
       return undefined;
     }
-    
+
     // For now, simply select the first applicable strategy
     // In the future, this could be enhanced with more sophisticated selection logic
     return applicableStrategies[0];
@@ -155,18 +160,18 @@ export class CompromiseStrategyEngine {
 
   /**
    * Applies a compromise strategy to a feature.
-   * 
+   *
    * @param feature The feature to apply a compromise strategy to
    * @returns The result of applying the strategy, or undefined if no strategy was applicable
    */
   public applyStrategy(feature: Feature): CompromiseStrategyResult | undefined {
     const strategy = this.selectStrategy(feature);
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -174,42 +179,42 @@ export class CompromiseStrategyEngine {
     if (!strategy) {
       return undefined;
     }
-    
+
     const result = strategy.apply(feature);
-    
+
     // Record that this strategy was applied to this feature
     const appliedStrategy: AppliedCompromiseStrategy = {
       featureId: feature.id,
       strategyId: strategy.id,
       strategyName: strategy.name,
       strategyDescription: strategy.description,
-      appliedAt: new Date()
+      appliedAt: new Date(),
     };
-    
+
     this.appliedStrategies.set(feature.id, appliedStrategy);
-    
+
     // Update strategy metrics
     this.updateStrategyMetrics(strategy.id, true);
-    
+
     this.logger.info(`Applied compromise strategy: ${strategy.name} to feature: ${feature.name}`);
-    
+
     return result;
   }
 
   /**
    * Provides feedback on the effectiveness of a compromise strategy.
-   * 
+   *
    * @param feedback The feedback data for strategy refinement
    */
   public provideFeedback(feedback: StrategyFeedback): void {
     const { strategyId, featureId } = feedback;
-    
+
     // Store the feedback
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -218,13 +223,13 @@ export class CompromiseStrategyEngine {
       this.strategyFeedback.set(strategyId, []);
     }
     this.strategyFeedback.get(strategyId)!.push(feedback);
-    
+
     // Update the applied strategy with effectiveness data
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -234,28 +239,30 @@ export class CompromiseStrategyEngine {
       appliedStrategy.effectiveness = feedback.effectiveness;
       this.appliedStrategies.set(featureId, appliedStrategy);
     }
-    
+
     // Update strategy metrics based on feedback
     this.updateStrategyMetricsFromFeedback(feedback);
-    
+
     // Check if strategy refinement is needed
     this.evaluateStrategyForRefinement(strategyId);
-    
-    this.logger.info(`Received feedback for strategy: ${strategyId}, rating: ${feedback.effectiveness.rating}`);
+
+    this.logger.info(
+      `Received feedback for strategy: ${strategyId}, rating: ${feedback.effectiveness.rating}`
+    );
   }
 
   /**
    * Updates strategy metrics based on application results.
-   * 
+   *
    * @param strategyId The ID of the strategy
    * @param successful Whether the application was successful
    */
   private updateStrategyMetrics(strategyId: string, successful: boolean): void {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -268,17 +275,17 @@ export class CompromiseStrategyEngine {
         averageUserSatisfaction: 0,
         commonIssues: new Map(),
         improvementSuggestions: new Map(),
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       });
     }
-    
+
     const metrics = this.strategyMetrics.get(strategyId)!;
     metrics.totalApplications++;
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -287,23 +294,23 @@ export class CompromiseStrategyEngine {
       metrics.successfulApplications++;
     }
     metrics.lastUpdated = new Date();
-    
+
     this.strategyMetrics.set(strategyId, metrics);
   }
 
   /**
    * Updates strategy metrics based on user feedback.
-   * 
+   *
    * @param feedback The feedback data
    */
   private updateStrategyMetricsFromFeedback(feedback: StrategyFeedback): void {
     const { strategyId, effectiveness } = feedback;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -311,21 +318,21 @@ export class CompromiseStrategyEngine {
     if (!this.strategyMetrics.has(strategyId)) {
       this.updateStrategyMetrics(strategyId, true);
     }
-    
+
     const metrics = this.strategyMetrics.get(strategyId)!;
-    
+
     // Update average user satisfaction
     const totalFeedback = this.strategyFeedback.get(strategyId)?.length || 1;
     const currentAverage = metrics.averageUserSatisfaction;
-    metrics.averageUserSatisfaction = 
+    metrics.averageUserSatisfaction =
       (currentAverage * (totalFeedback - 1) + effectiveness.userSatisfaction) / totalFeedback;
-    
+
     // Track common issues
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -334,13 +341,13 @@ export class CompromiseStrategyEngine {
       const currentCount = metrics.commonIssues.get(issue) || 0;
       metrics.commonIssues.set(issue, currentCount + 1);
     }
-    
+
     // Track improvement suggestions
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -349,25 +356,25 @@ export class CompromiseStrategyEngine {
       const currentCount = metrics.improvementSuggestions.get(suggestion) || 0;
       metrics.improvementSuggestions.set(suggestion, currentCount + 1);
     }
-    
+
     metrics.lastUpdated = new Date();
     this.strategyMetrics.set(strategyId, metrics);
   }
 
   /**
    * Evaluates whether a strategy needs refinement based on feedback.
-   * 
+   *
    * @param strategyId The ID of the strategy to evaluate
    */
   private evaluateStrategyForRefinement(strategyId: string): void {
     const feedback = this.strategyFeedback.get(strategyId);
     const metrics = this.strategyMetrics.get(strategyId);
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -376,22 +383,24 @@ export class CompromiseStrategyEngine {
       // Need at least 3 feedback entries to evaluate
       return;
     }
-    
+
     const recentFeedback = feedback.slice(-5); // Last 5 feedback entries
-    const averageRating = recentFeedback.reduce((sum, f) => {
-      const ratingValue = this.getRatingValue(f.effectiveness.rating);
-      return sum + ratingValue;
-    }, 0) / recentFeedback.length;
-    
-    const averageSatisfaction = recentFeedback.reduce((sum, f) => 
-      sum + f.effectiveness.userSatisfaction, 0) / recentFeedback.length;
-    
+    const averageRating =
+      recentFeedback.reduce((sum, f) => {
+        const ratingValue = this.getRatingValue(f.effectiveness.rating);
+        return sum + ratingValue;
+      }, 0) / recentFeedback.length;
+
+    const averageSatisfaction =
+      recentFeedback.reduce((sum, f) => sum + f.effectiveness.userSatisfaction, 0) /
+      recentFeedback.length;
+
     // Strategy needs refinement if average rating is poor or satisfaction is low
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -403,47 +412,52 @@ export class CompromiseStrategyEngine {
 
   /**
    * Converts rating to numeric value for calculations.
-   * 
+   *
    * @param rating The rating string
    * @returns Numeric value (1-4)
    */
   private getRatingValue(rating: 'excellent' | 'good' | 'fair' | 'poor'): number {
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     switch (rating) {
-      case 'excellent': return 4;
-      case 'good': return 3;
-      case 'fair': return 2;
-      case 'poor': return 1;
-      default: return 1;
+      case 'excellent':
+        return 4;
+      case 'good':
+        return 3;
+      case 'fair':
+        return 2;
+      case 'poor':
+        return 1;
+      default:
+        return 1;
     }
   }
 
   /**
    * Refines a strategy based on feedback patterns.
-   * 
+   *
    * @param strategyId The ID of the strategy to refine
    * @param recentFeedback Recent feedback data
    */
   private refineStrategy(strategyId: string, recentFeedback: StrategyFeedback[]): void {
     this.logger.info(`Refining strategy: ${strategyId} based on feedback patterns`);
-    
+
     // Analyze common issues and suggestions
     const issueFrequency = new Map<string, number>();
     const suggestionFrequency = new Map<string, number>();
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -451,9 +465,9 @@ export class CompromiseStrategyEngine {
     for (const feedback of recentFeedback) {
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -463,9 +477,9 @@ export class CompromiseStrategyEngine {
       }
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -474,26 +488,27 @@ export class CompromiseStrategyEngine {
         suggestionFrequency.set(suggestion, (suggestionFrequency.get(suggestion) || 0) + 1);
       }
     }
-    
+
     // Find the most common issues and suggestions
     const topIssues = Array.from(issueFrequency.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([issue]) => issue);
-    
+
     const topSuggestions = Array.from(suggestionFrequency.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([suggestion]) => suggestion);
-    
+
     // Log refinement insights
     this.logger.info(`Strategy ${strategyId} refinement insights:`, {
       topIssues,
       topSuggestions,
-      averageSatisfaction: recentFeedback.reduce((sum, f) => 
-        sum + f.effectiveness.userSatisfaction, 0) / recentFeedback.length
+      averageSatisfaction:
+        recentFeedback.reduce((sum, f) => sum + f.effectiveness.userSatisfaction, 0) /
+        recentFeedback.length,
     });
-    
+
     // In a real implementation, this would update the strategy's logic
     // For now, we log the refinement action
     this.logger.info(`Strategy ${strategyId} has been marked for refinement`);
@@ -501,7 +516,7 @@ export class CompromiseStrategyEngine {
 
   /**
    * Gets metrics for a specific strategy.
-   * 
+   *
    * @param strategyId The ID of the strategy
    * @returns Strategy metrics or undefined if not found
    */
@@ -511,7 +526,7 @@ export class CompromiseStrategyEngine {
 
   /**
    * Gets all feedback for a specific strategy.
-   * 
+   *
    * @param strategyId The ID of the strategy
    * @returns Array of feedback data
    */
@@ -521,17 +536,17 @@ export class CompromiseStrategyEngine {
 
   /**
    * Gets a comprehensive report of all strategies and their performance.
-   * 
+   *
    * @returns A detailed strategy performance report
    */
   public getStrategyPerformanceReport(): StrategyPerformanceReport {
     const strategies: StrategyPerformanceData[] = [];
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -539,40 +554,66 @@ export class CompromiseStrategyEngine {
     for (const [strategyId, metrics] of this.strategyMetrics.entries()) {
       const feedback = this.strategyFeedback.get(strategyId) || [];
       const recentFeedback = feedback.slice(-5);
-      
-      const averageRating = recentFeedback.length > 0 
-        ? recentFeedback.reduce((sum, f) => sum + this.getRatingValue(f.effectiveness.rating), 0) / recentFeedback.length
-        : 0;
-      
+
+      const averageRating =
+        recentFeedback.length > 0
+          ? recentFeedback.reduce(
+              (sum, f) => sum + this.getRatingValue(f.effectiveness.rating),
+              0
+            ) / recentFeedback.length
+          : 0;
+
       strategies.push({
         strategyId,
         metrics,
         recentFeedback,
         averageRating,
-        needsRefinement: averageRating < 2.5 || metrics.averageUserSatisfaction < 6
+        needsRefinement: averageRating < 2.5 || metrics.averageUserSatisfaction < 6,
       });
     }
-    
+
     return {
       totalStrategies: this.strategies.size,
       activeStrategies: strategies.length,
       strategies,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
   }
 
   /**
    * Gets a report of all compromise strategies that have been applied.
-   * 
+   *
    * @returns A report of applied compromise strategies
    */
   public getCompromiseReport(): CompromiseReport {
-    const appliedStrategiesArray: AppliedCompromiseStrategy[] = Array.from(this.appliedStrategies.values());
-    
+    const appliedStrategiesArray: AppliedCompromiseStrategy[] = Array.from(
+      this.appliedStrategies.values()
+    );
+
     return {
       totalCompromisesApplied: appliedStrategiesArray.length,
-      appliedStrategies: appliedStrategiesArray
+      appliedStrategies: appliedStrategiesArray,
     };
+  }
+
+  /**
+   * Applies compromise strategies to multiple features.
+   * This is an alias for applying strategies to a collection of features.
+   *
+   * @param features Array of features to apply strategies to
+   * @returns Array of strategy results
+   */
+  public applyStrategies(features: Feature[]): CompromiseStrategyResult[] {
+    const results: CompromiseStrategyResult[] = [];
+
+    for (const feature of features) {
+      const result = this.applyStrategy(feature);
+      if (result) {
+        results.push(result);
+      }
+    }
+
+    return results;
   }
 }
 
@@ -644,15 +685,15 @@ export interface StrategyMetrics {
   commonIssues: Map<string, number>;
   improvementSuggestions: Map<string, number>;
   lastUpdated: Date;
-}/**
+} /**
  * P
 erformance data for a specific strategy.
  */
 /**
  * StrategyPerformanceData interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface StrategyPerformanceData {

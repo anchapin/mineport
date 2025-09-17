@@ -1,6 +1,5 @@
 import AdmZip from 'adm-zip';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 
 export interface ModTestData {
   name: string;
@@ -90,8 +89,8 @@ export class TestDataGenerator {
           hardness: 2.0,
           hasTexture: true,
           hasModel: true,
-          hasBlockstate: true
-        }
+          hasBlockstate: true,
+        },
       ],
       items: [
         {
@@ -99,37 +98,37 @@ export class TestDataGenerator {
           displayName: 'Test Item',
           type: 'misc',
           hasTexture: true,
-          hasModel: true
-        }
+          hasModel: true,
+        },
       ],
       textures: [
         {
           name: 'test_block',
           type: 'block',
           size: 16,
-          animated: false
+          animated: false,
         },
         {
           name: 'test_item',
           type: 'item',
           size: 16,
-          animated: false
-        }
+          animated: false,
+        },
       ],
       models: [
         {
           name: 'test_block',
           type: 'block',
           parent: 'block/cube_all',
-          textures: [`${modId}:block/test_block`]
+          textures: [`${modId}:block/test_block`],
         },
         {
           name: 'test_item',
           type: 'item',
           parent: 'item/generated',
-          textures: [`${modId}:item/test_item`]
-        }
-      ]
+          textures: [`${modId}:item/test_item`],
+        },
+      ],
     };
   }
 
@@ -147,7 +146,7 @@ export class TestDataGenerator {
     for (let i = 0; i < 10; i++) {
       const material = this.COMMON_MATERIALS[i % this.COMMON_MATERIALS.length];
       const blockName = `${material}_block_${i}`;
-      
+
       blocks.push({
         name: blockName,
         displayName: `${material.charAt(0).toUpperCase() + material.slice(1)} Block ${i}`,
@@ -155,21 +154,21 @@ export class TestDataGenerator {
         hardness: Math.random() * 5 + 0.5,
         hasTexture: true,
         hasModel: true,
-        hasBlockstate: true
+        hasBlockstate: true,
       });
 
       textures.push({
         name: blockName,
         type: 'block',
         size: 16,
-        animated: i % 5 === 0 // Every 5th texture is animated
+        animated: i % 5 === 0, // Every 5th texture is animated
       });
 
       models.push({
         name: blockName,
         type: 'block',
         parent: 'block/cube_all',
-        textures: [`${modId}:block/${blockName}`]
+        textures: [`${modId}:block/${blockName}`],
       });
     }
 
@@ -177,27 +176,27 @@ export class TestDataGenerator {
     for (let i = 0; i < 15; i++) {
       const toolType = this.COMMON_TOOLS[i % this.COMMON_TOOLS.length];
       const itemName = `${toolType}_${i}`;
-      
+
       items.push({
         name: itemName,
         displayName: `${toolType.charAt(0).toUpperCase() + toolType.slice(1)} ${i}`,
         type: 'tool',
         hasTexture: true,
-        hasModel: true
+        hasModel: true,
       });
 
       textures.push({
         name: itemName,
         type: 'item',
         size: 16,
-        animated: false
+        animated: false,
       });
 
       models.push({
         name: itemName,
         type: 'item',
         parent: toolType === 'sword' ? 'item/handheld' : 'item/generated',
-        textures: [`${modId}:item/${itemName}`]
+        textures: [`${modId}:item/${itemName}`],
       });
     }
 
@@ -207,7 +206,7 @@ export class TestDataGenerator {
         name: `recipe_${i}`,
         type: 'crafting_shaped',
         result: items[i].name,
-        ingredients: ['minecraft:stick', 'minecraft:iron_ingot']
+        ingredients: ['minecraft:stick', 'minecraft:iron_ingot'],
       });
     }
 
@@ -221,7 +220,7 @@ export class TestDataGenerator {
       items,
       textures,
       models,
-      recipes
+      recipes,
     };
   }
 
@@ -243,7 +242,7 @@ export class TestDataGenerator {
           hardness: 1.0,
           hasTexture: true,
           hasModel: false, // Missing model
-          hasBlockstate: true
+          hasBlockstate: true,
         },
         {
           name: 'block_with_unicode_名前',
@@ -252,8 +251,8 @@ export class TestDataGenerator {
           hardness: 0.5,
           hasTexture: false, // Missing texture
           hasModel: true,
-          hasBlockstate: true
-        }
+          hasBlockstate: true,
+        },
       ],
       items: [
         {
@@ -261,50 +260,50 @@ export class TestDataGenerator {
           displayName: 'Item With Dots',
           type: 'misc',
           hasTexture: true,
-          hasModel: true
+          hasModel: true,
         },
         {
           name: 'UPPERCASE_ITEM',
           displayName: 'UPPERCASE ITEM',
           type: 'tool',
           hasTexture: true,
-          hasModel: false // Missing model
-        }
+          hasModel: false, // Missing model
+        },
       ],
       textures: [
         {
           name: 'block-with-dashes',
           type: 'block',
           size: 32, // Non-standard size
-          animated: false
+          animated: false,
         },
         {
           name: 'item.with.dots',
           type: 'item',
           size: 16,
-          animated: true // Animated item texture
+          animated: true, // Animated item texture
         },
         {
           name: 'UPPERCASE_ITEM',
           type: 'item',
           size: 8, // Very small texture
-          animated: false
-        }
+          animated: false,
+        },
       ],
       models: [
         {
           name: 'item.with.dots',
           type: 'item',
           parent: 'item/generated',
-          textures: [`${modId}:item/item.with.dots`]
+          textures: [`${modId}:item/item.with.dots`],
         },
         {
           name: 'block_with_unicode_名前',
           type: 'block',
           parent: 'block/cube_all',
-          textures: [`${modId}:block/missing_texture`] // References missing texture
-        }
-      ]
+          textures: [`${modId}:block/missing_texture`], // References missing texture
+        },
+      ],
     };
   }
 
@@ -326,7 +325,7 @@ export class TestDataGenerator {
           hardness: 3.0,
           hasTexture: true,
           hasModel: true,
-          hasBlockstate: true
+          hasBlockstate: true,
         },
         {
           name: 'copper_block',
@@ -335,7 +334,7 @@ export class TestDataGenerator {
           hardness: 5.0,
           hasTexture: true,
           hasModel: true,
-          hasBlockstate: true
+          hasBlockstate: true,
         },
         {
           name: 'machine_frame',
@@ -344,8 +343,8 @@ export class TestDataGenerator {
           hardness: 4.0,
           hasTexture: true,
           hasModel: true,
-          hasBlockstate: true
-        }
+          hasBlockstate: true,
+        },
       ],
       items: [
         {
@@ -353,100 +352,100 @@ export class TestDataGenerator {
           displayName: 'Copper Ingot',
           type: 'material',
           hasTexture: true,
-          hasModel: true
+          hasModel: true,
         },
         {
           name: 'copper_sword',
           displayName: 'Copper Sword',
           type: 'tool',
           hasTexture: true,
-          hasModel: true
+          hasModel: true,
         },
         {
           name: 'energy_crystal',
           displayName: 'Energy Crystal',
           type: 'misc',
           hasTexture: true,
-          hasModel: true
-        }
+          hasModel: true,
+        },
       ],
       textures: [
         {
           name: 'copper_ore',
           type: 'block',
           size: 16,
-          animated: false
+          animated: false,
         },
         {
           name: 'copper_block',
           type: 'block',
           size: 16,
-          animated: false
+          animated: false,
         },
         {
           name: 'machine_frame',
           type: 'block',
           size: 16,
-          animated: false
+          animated: false,
         },
         {
           name: 'copper_ingot',
           type: 'item',
           size: 16,
-          animated: false
+          animated: false,
         },
         {
           name: 'copper_sword',
           type: 'item',
           size: 16,
-          animated: false
+          animated: false,
         },
         {
           name: 'energy_crystal',
           type: 'item',
           size: 16,
-          animated: true
-        }
+          animated: true,
+        },
       ],
       models: [
         {
           name: 'copper_ore',
           type: 'block',
           parent: 'block/cube_all',
-          textures: [`${modId}:block/copper_ore`]
+          textures: [`${modId}:block/copper_ore`],
         },
         {
           name: 'copper_block',
           type: 'block',
           parent: 'block/cube_all',
-          textures: [`${modId}:block/copper_block`]
+          textures: [`${modId}:block/copper_block`],
         },
         {
           name: 'copper_sword',
           type: 'item',
           parent: 'item/handheld',
-          textures: [`${modId}:item/copper_sword`]
-        }
+          textures: [`${modId}:item/copper_sword`],
+        },
       ],
       recipes: [
         {
           name: 'copper_ingot_from_ore',
           type: 'smelting',
           result: 'copper_ingot',
-          ingredients: ['copper_ore']
+          ingredients: ['copper_ore'],
         },
         {
           name: 'copper_block',
           type: 'crafting_shaped',
           result: 'copper_block',
-          ingredients: ['copper_ingot', 'copper_ingot', 'copper_ingot']
+          ingredients: ['copper_ingot', 'copper_ingot', 'copper_ingot'],
         },
         {
           name: 'copper_sword',
           type: 'crafting_shaped',
           result: 'copper_sword',
-          ingredients: ['copper_ingot', 'minecraft:stick']
-        }
+          ingredients: ['copper_ingot', 'minecraft:stick'],
+        },
       ],
       lootTables: [
         {
@@ -458,13 +457,13 @@ export class TestDataGenerator {
               entries: [
                 {
                   item: 'copper_ore',
-                  weight: 1
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                  weight: 1,
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
   }
 
@@ -475,29 +474,34 @@ export class TestDataGenerator {
     const zip = new AdmZip();
 
     // Add manifest (mcmod.info format)
-    const mcmodInfo = [{
-      modid: testData.modId,
-      name: testData.name,
-      description: testData.description,
-      version: testData.version,
-      authorList: [testData.author]
-    }];
+    const mcmodInfo = [
+      {
+        modid: testData.modId,
+        name: testData.name,
+        description: testData.description,
+        version: testData.version,
+        authorList: [testData.author],
+      },
+    ];
     zip.addFile('mcmod.info', Buffer.from(JSON.stringify(mcmodInfo, null, 2)));
 
     // Add lang file
     const langData: Record<string, string> = {};
-    testData.blocks.forEach(block => {
+    testData.blocks.forEach((block) => {
       langData[`block.${testData.modId}.${block.name}`] = block.displayName;
     });
-    testData.items.forEach(item => {
+    testData.items.forEach((item) => {
       langData[`item.${testData.modId}.${item.name}`] = item.displayName;
     });
     langData[`itemGroup.${testData.modId}.general`] = `${testData.name} Items`;
 
-    zip.addFile(`assets/${testData.modId}/lang/en_us.json`, Buffer.from(JSON.stringify(langData, null, 2)));
+    zip.addFile(
+      `assets/${testData.modId}/lang/en_us.json`,
+      Buffer.from(JSON.stringify(langData, null, 2))
+    );
 
     // Add texture files
-    testData.textures.forEach(texture => {
+    testData.textures.forEach((texture) => {
       const texturePath = `assets/${testData.modId}/textures/${texture.type}/${texture.name}.png`;
       // Create fake PNG data
       const pngData = this.createFakePngData(texture.size, texture.animated);
@@ -508,36 +512,40 @@ export class TestDataGenerator {
         const animationData = {
           animation: {
             frametime: 4,
-            frames: [0, 1, 2, 3]
-          }
+            frames: [0, 1, 2, 3],
+          },
         };
         zip.addFile(`${texturePath}.mcmeta`, Buffer.from(JSON.stringify(animationData, null, 2)));
       }
     });
 
     // Add model files
-    testData.models.forEach(model => {
+    testData.models.forEach((model) => {
       const modelPath = `assets/${testData.modId}/models/${model.type}/${model.name}.json`;
       const modelData = {
         parent: model.parent,
-        textures: model.textures.reduce((acc, texture, index) => {
-          acc[index === 0 ? (model.type === 'block' ? 'all' : 'layer0') : `layer${index}`] = texture;
-          return acc;
-        }, {} as Record<string, string>)
+        textures: model.textures.reduce(
+          (acc, texture, index) => {
+            acc[index === 0 ? (model.type === 'block' ? 'all' : 'layer0') : `layer${index}`] =
+              texture;
+            return acc;
+          },
+          {} as Record<string, string>
+        ),
       };
       zip.addFile(modelPath, Buffer.from(JSON.stringify(modelData, null, 2)));
     });
 
     // Add blockstate files for blocks
-    testData.blocks.forEach(block => {
+    testData.blocks.forEach((block) => {
       if (block.hasBlockstate) {
         const blockstatePath = `assets/${testData.modId}/blockstates/${block.name}.json`;
         const blockstateData = {
           variants: {
-            "": {
-              model: `${testData.modId}:block/${block.name}`
-            }
-          }
+            '': {
+              model: `${testData.modId}:block/${block.name}`,
+            },
+          },
         };
         zip.addFile(blockstatePath, Buffer.from(JSON.stringify(blockstateData, null, 2)));
       }
@@ -545,7 +553,7 @@ export class TestDataGenerator {
 
     // Add recipe files
     if (testData.recipes) {
-      testData.recipes.forEach(recipe => {
+      testData.recipes.forEach((recipe) => {
         const recipePath = `data/${testData.modId}/recipes/${recipe.name}.json`;
         const recipeData = this.createRecipeData(recipe, testData.modId);
         zip.addFile(recipePath, Buffer.from(JSON.stringify(recipeData, null, 2)));
@@ -554,18 +562,18 @@ export class TestDataGenerator {
 
     // Add loot table files
     if (testData.lootTables) {
-      testData.lootTables.forEach(lootTable => {
+      testData.lootTables.forEach((lootTable) => {
         const lootTablePath = `data/${testData.modId}/loot_tables/${lootTable.type}s/${lootTable.name}.json`;
         const lootTableData = {
           type: `minecraft:${lootTable.type}`,
-          pools: lootTable.pools.map(pool => ({
+          pools: lootTable.pools.map((pool) => ({
             rolls: pool.rolls,
-            entries: pool.entries.map(entry => ({
+            entries: pool.entries.map((entry) => ({
               type: 'minecraft:item',
               name: entry.item.includes(':') ? entry.item : `${testData.modId}:${entry.item}`,
-              weight: entry.weight
-            }))
-          }))
+              weight: entry.weight,
+            })),
+          })),
         };
         zip.addFile(lootTablePath, Buffer.from(JSON.stringify(lootTableData, null, 2)));
       });
@@ -580,8 +588,8 @@ export class TestDataGenerator {
    */
   private static createFakePngData(size: number, animated: boolean): Buffer {
     // Create a minimal PNG header
-    const pngSignature = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
-    
+    const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
     // Create IHDR chunk
     const ihdrData = Buffer.alloc(13);
     ihdrData.writeUInt32BE(size, 0); // Width
@@ -592,17 +600,11 @@ export class TestDataGenerator {
     ihdrData.writeUInt8(0, 11); // Filter
     ihdrData.writeUInt8(0, 12); // Interlace
 
-    const ihdrChunk = Buffer.concat([
-      Buffer.from('IHDR'),
-      ihdrData
-    ]);
+    const ihdrChunk = Buffer.concat([Buffer.from('IHDR'), ihdrData]);
 
     // Create minimal IDAT chunk (compressed image data)
-    const idatData = Buffer.from([0x78, 0x9C, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01]);
-    const idatChunk = Buffer.concat([
-      Buffer.from('IDAT'),
-      idatData
-    ]);
+    const idatData = Buffer.from([0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01]);
+    const idatChunk = Buffer.concat([Buffer.from('IDAT'), idatData]);
 
     // Create IEND chunk
     const iendChunk = Buffer.from('IEND');
@@ -610,7 +612,7 @@ export class TestDataGenerator {
     // Combine all chunks with length and CRC (simplified)
     return Buffer.concat([
       pngSignature,
-      Buffer.from([0x00, 0x00, 0x00, 0x0D]), // IHDR length
+      Buffer.from([0x00, 0x00, 0x00, 0x0d]), // IHDR length
       ihdrChunk,
       Buffer.from([0x00, 0x00, 0x00, 0x00]), // IHDR CRC (fake)
       Buffer.from([0x00, 0x00, 0x00, 0x08]), // IDAT length
@@ -618,7 +620,7 @@ export class TestDataGenerator {
       Buffer.from([0x00, 0x00, 0x00, 0x00]), // IDAT CRC (fake)
       Buffer.from([0x00, 0x00, 0x00, 0x00]), // IEND length
       iendChunk,
-      Buffer.from([0x00, 0x00, 0x00, 0x00])  // IEND CRC (fake)
+      Buffer.from([0x00, 0x00, 0x00, 0x00]), // IEND CRC (fake)
     ]);
   }
 
@@ -627,7 +629,7 @@ export class TestDataGenerator {
    */
   private static createRecipeData(recipe: RecipeTestData, modId: string): any {
     const result = recipe.result.includes(':') ? recipe.result : `${modId}:${recipe.result}`;
-    
+
     switch (recipe.type) {
       case 'crafting_shaped':
         return {
@@ -635,27 +637,27 @@ export class TestDataGenerator {
           pattern: ['XXX', ' Y ', ' Y '],
           key: {
             X: { item: recipe.ingredients[0] },
-            Y: { item: recipe.ingredients[1] || 'minecraft:stick' }
+            Y: { item: recipe.ingredients[1] || 'minecraft:stick' },
           },
-          result: { item: result }
+          result: { item: result },
         };
-      
+
       case 'crafting_shapeless':
         return {
           type: 'minecraft:crafting_shapeless',
-          ingredients: recipe.ingredients.map(ingredient => ({ item: ingredient })),
-          result: { item: result }
+          ingredients: recipe.ingredients.map((ingredient) => ({ item: ingredient })),
+          result: { item: result },
         };
-      
+
       case 'smelting':
         return {
           type: 'minecraft:smelting',
           ingredient: { item: recipe.ingredients[0] },
           result: result,
           experience: 0.1,
-          cookingtime: 200
+          cookingtime: 200,
         };
-      
+
       default:
         throw new Error(`Unknown recipe type: ${recipe.type}`);
     }
@@ -664,11 +666,14 @@ export class TestDataGenerator {
   /**
    * Generate test data for performance testing
    */
-  static generatePerformanceTestData(modId: string, scale: 'small' | 'medium' | 'large'): ModTestData {
+  static generatePerformanceTestData(
+    modId: string,
+    scale: 'small' | 'medium' | 'large'
+  ): ModTestData {
     const scales = {
       small: { blocks: 10, items: 10, textures: 20 },
       medium: { blocks: 50, items: 50, textures: 100 },
-      large: { blocks: 200, items: 200, textures: 400 }
+      large: { blocks: 200, items: 200, textures: 400 },
     };
 
     const config = scales[scale];
@@ -687,21 +692,21 @@ export class TestDataGenerator {
         hardness: Math.random() * 5,
         hasTexture: true,
         hasModel: true,
-        hasBlockstate: true
+        hasBlockstate: true,
       });
 
       textures.push({
         name: blockName,
         type: 'block',
         size: 16,
-        animated: i % 10 === 0
+        animated: i % 10 === 0,
       });
 
       models.push({
         name: blockName,
         type: 'block',
         parent: 'block/cube_all',
-        textures: [`${modId}:block/${blockName}`]
+        textures: [`${modId}:block/${blockName}`],
       });
     }
 
@@ -713,21 +718,21 @@ export class TestDataGenerator {
         displayName: `Performance Item ${i}`,
         type: 'misc',
         hasTexture: true,
-        hasModel: true
+        hasModel: true,
       });
 
       textures.push({
         name: itemName,
         type: 'item',
         size: 16,
-        animated: false
+        animated: false,
       });
 
       models.push({
         name: itemName,
         type: 'item',
         parent: 'item/generated',
-        textures: [`${modId}:item/${itemName}`]
+        textures: [`${modId}:item/${itemName}`],
       });
     }
 
@@ -740,7 +745,7 @@ export class TestDataGenerator {
       blocks,
       items,
       textures,
-      models
+      models,
     };
   }
 }
@@ -753,5 +758,5 @@ export const TEST_DATA_PRESETS = {
   realistic: () => TestDataGenerator.generateRealisticMod(),
   performanceSmall: () => TestDataGenerator.generatePerformanceTestData('perfmod', 'small'),
   performanceMedium: () => TestDataGenerator.generatePerformanceTestData('perfmod', 'medium'),
-  performanceLarge: () => TestDataGenerator.generatePerformanceTestData('perfmod', 'large')
+  performanceLarge: () => TestDataGenerator.generatePerformanceTestData('perfmod', 'large'),
 };

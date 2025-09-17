@@ -2,7 +2,7 @@
 
 /**
  * Required Documentation Sections Validation Script
- * 
+ *
  * Validates that documentation files contain all required sections according
  * to project standards. Ensures consistency and completeness across all
  * documentation files.
@@ -55,7 +55,7 @@ const CONFIG = {
         acknowledgments: /(?:acknowledgments|credits|thanks)/i
       }
     },
-    
+
     'CHANGELOG.md': {
       requiredSections: [
         'title', // H1 header
@@ -76,7 +76,7 @@ const CONFIG = {
         'types-of-changes': /(?:types.*of.*changes|change.*types)/i
       }
     },
-    
+
     'SECURITY.md': {
       requiredSections: [
         'title', // H1 header
@@ -99,7 +99,7 @@ const CONFIG = {
         'contact-info': /(?:contact|email|security@)/i
       }
     },
-    
+
     'docs/API.md': {
       requiredSections: [
         'title', // H1 header
@@ -126,7 +126,7 @@ const CONFIG = {
         sdk: /(?:sdk|client.*library|libraries)/i
       }
     },
-    
+
     'docs/TROUBLESHOOTING.md': {
       requiredSections: [
         'title', // H1 header
@@ -149,7 +149,7 @@ const CONFIG = {
         performance: /(?:performance|slow|optimization)/i
       }
     },
-    
+
     'docs/EXAMPLES.md': {
       requiredSections: [
         'title', // H1 header
@@ -188,11 +188,11 @@ const results = {
  */
 async function validateRequiredSections() {
   console.log('📋 Starting required documentation sections validation...\n');
-  
+
   try {
     const filesToCheck = Object.keys(CONFIG.documentationRequirements);
     results.totalFiles = filesToCheck.length;
-    
+
     for (const filePath of filesToCheck) {
       if (await fileExists(filePath)) {
         await validateDocumentationFile(filePath);
@@ -204,14 +204,14 @@ async function validateRequiredSections() {
         });
       }
     }
-    
+
     generateReport();
-    
+
     // Exit with error code if validation fails
     if (results.missingSections.length > 0 || results.errors.length > 0) {
       process.exit(1);
     }
-    
+
   } catch (error) {
     console.error('❌ Required sections validation failed:', error.message);
     process.exit(1);
@@ -220,7 +220,7 @@ async function validateRequiredSections() {
 
 /**
  * Check if a file exists
- * 
+ *
  * @param {string} filePath - Path to check
  * @returns {Promise<boolean>} True if file exists
  */
@@ -235,16 +235,16 @@ async function fileExists(filePath) {
 
 /**
  * Validate required sections in a documentation file
- * 
+ *
  * @param {string} filePath - Path to the documentation file
  */
 async function validateDocumentationFile(filePath) {
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');
     const relativePath = path.relative(process.cwd(), filePath);
-    
+
     console.log(`Validating sections in: ${relativePath}`);
-    
+
     const requirements = CONFIG.documentationRequirements[filePath];
     if (!requirements) {
       results.warnings.push({
@@ -253,11 +253,11 @@ async function validateDocumentationFile(filePath) {
       });
       return;
     }
-    
+
     // Check required sections
     for (const section of requirements.requiredSections) {
       const isPresent = checkSectionPresent(content, section, requirements.patterns);
-      
+
       if (isPresent) {
         results.presentSections.push({
           file: relativePath,
@@ -273,12 +273,12 @@ async function validateDocumentationFile(filePath) {
         });
       }
     }
-    
+
     // Check optional sections (for reporting)
     if (requirements.optionalSections) {
       for (const section of requirements.optionalSections) {
         const isPresent = checkSectionPresent(content, section, requirements.patterns);
-        
+
         if (isPresent) {
           results.presentSections.push({
             file: relativePath,
@@ -288,10 +288,10 @@ async function validateDocumentationFile(filePath) {
         }
       }
     }
-    
+
     // Perform file-specific validations
     performSpecificValidations(content, filePath, relativePath);
-    
+
   } catch (error) {
     results.errors.push({
       file: filePath,
@@ -302,7 +302,7 @@ async function validateDocumentationFile(filePath) {
 
 /**
  * Check if a section is present in the content
- * 
+ *
  * @param {string} content - File content
  * @param {string} section - Section name
  * @param {Object} patterns - Pattern definitions
@@ -313,13 +313,13 @@ function checkSectionPresent(content, section, patterns) {
   if (!pattern) {
     return false;
   }
-  
+
   return pattern.test(content);
 }
 
 /**
  * Perform file-specific validations
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - Full file path
  * @param {string} relativePath - Relative file path for reporting
@@ -349,7 +349,7 @@ function performSpecificValidations(content, filePath, relativePath) {
 
 /**
  * Validate README.md specific requirements
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for reporting
  */
@@ -366,7 +366,7 @@ function validateReadmeSpecifics(content, filePath) {
       });
     }
   }
-  
+
   // Check for installation commands
   if (!/npm\s+install/.test(content) && !/yarn\s+add/.test(content)) {
     results.warnings.push({
@@ -375,7 +375,7 @@ function validateReadmeSpecifics(content, filePath) {
       message: 'Installation section should include npm/yarn install commands'
     });
   }
-  
+
   // Check for code examples
   if (!/```/.test(content)) {
     results.warnings.push({
@@ -388,7 +388,7 @@ function validateReadmeSpecifics(content, filePath) {
 
 /**
  * Validate CHANGELOG.md specific requirements
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for reporting
  */
@@ -402,13 +402,13 @@ function validateChangelogSpecifics(content, filePath) {
       message: 'No properly formatted version entries found'
     });
   }
-  
+
   // Check for change categories
   const changeCategories = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'];
-  const hasCategories = changeCategories.some(category => 
+  const hasCategories = changeCategories.some(category =>
     new RegExp(`###\\s+${category}`, 'i').test(content)
   );
-  
+
   if (!hasCategories) {
     results.warnings.push({
       file: filePath,
@@ -420,7 +420,7 @@ function validateChangelogSpecifics(content, filePath) {
 
 /**
  * Validate SECURITY.md specific requirements
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for reporting
  */
@@ -433,7 +433,7 @@ function validateSecuritySpecifics(content, filePath) {
       message: 'Supported versions should be presented in a table format'
     });
   }
-  
+
   // Check for contact information
   if (!/security@|security\s*contact|email/.test(content)) {
     results.warnings.push({
@@ -446,17 +446,17 @@ function validateSecuritySpecifics(content, filePath) {
 
 /**
  * Validate API.md specific requirements
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for reporting
  */
 function validateApiSpecifics(content, filePath) {
   // Check for HTTP methods
   const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
-  const hasHttpMethods = httpMethods.some(method => 
+  const hasHttpMethods = httpMethods.some(method =>
     new RegExp(`\\b${method}\\b`, 'i').test(content)
   );
-  
+
   if (!hasHttpMethods) {
     results.warnings.push({
       file: filePath,
@@ -464,7 +464,7 @@ function validateApiSpecifics(content, filePath) {
       message: 'API documentation should include HTTP methods'
     });
   }
-  
+
   // Check for response examples
   if (!/response|example.*response|returns/i.test(content)) {
     results.warnings.push({
@@ -477,7 +477,7 @@ function validateApiSpecifics(content, filePath) {
 
 /**
  * Validate TROUBLESHOOTING.md specific requirements
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for reporting
  */
@@ -485,7 +485,7 @@ function validateTroubleshootingSpecifics(content, filePath) {
   // Check for Q&A format or problem/solution format
   const hasQAFormat = /(?:Q:|Question:|Problem:|Issue:)/i.test(content);
   const hasSolutionFormat = /(?:A:|Answer:|Solution:|Fix:)/i.test(content);
-  
+
   if (!hasQAFormat && !hasSolutionFormat) {
     results.warnings.push({
       file: filePath,
@@ -497,7 +497,7 @@ function validateTroubleshootingSpecifics(content, filePath) {
 
 /**
  * Validate EXAMPLES.md specific requirements
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for reporting
  */
@@ -511,13 +511,13 @@ function validateExamplesSpecifics(content, filePath) {
       message: 'Should include multiple code examples'
     });
   }
-  
+
   // Check for different example types
   const exampleTypes = ['basic', 'advanced', 'complete', 'simple'];
-  const hasVariedExamples = exampleTypes.some(type => 
+  const hasVariedExamples = exampleTypes.some(type =>
     new RegExp(type, 'i').test(content)
   );
-  
+
   if (!hasVariedExamples) {
     results.warnings.push({
       file: filePath,
@@ -537,7 +537,7 @@ function generateReport() {
   console.log(`Missing required sections: ${results.missingSections.filter(s => s.required).length}`);
   console.log(`Present sections: ${results.presentSections.length}`);
   console.log('');
-  
+
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
@@ -550,12 +550,12 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Missing required sections
   const missingRequired = results.missingSections.filter(s => s.required);
   if (missingRequired.length > 0) {
     console.log(`❌ Missing Required Sections (${missingRequired.length}):`);
-    
+
     // Group by file
     const missingByFile = groupByFile(missingRequired);
     Object.entries(missingByFile).forEach(([file, sections]) => {
@@ -566,21 +566,21 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Present sections summary
   if (results.presentSections.length > 0) {
     console.log('✅ Present Sections Summary:');
-    
+
     const presentByFile = groupByFile(results.presentSections);
     Object.entries(presentByFile).forEach(([file, sections]) => {
       const requiredCount = sections.filter(s => s.required).length;
       const optionalCount = sections.filter(s => !s.required).length;
-      
+
       console.log(`  ${file}: ${requiredCount} required, ${optionalCount} optional`);
     });
     console.log('');
   }
-  
+
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Processing Errors (${results.errors.length}):`);
@@ -589,7 +589,7 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Summary
   if (missingRequired.length === 0 && results.errors.length === 0) {
     console.log('✅ All required documentation sections are present!');
@@ -602,19 +602,19 @@ function generateReport() {
       console.log(`   ${results.errors.length} processing errors occurred`);
     }
   }
-  
+
   // Completion percentage
   const totalRequired = Object.values(CONFIG.documentationRequirements)
     .reduce((sum, req) => sum + req.requiredSections.length, 0);
   const presentRequired = results.presentSections.filter(s => s.required).length;
   const completionPercent = Math.round((presentRequired / totalRequired) * 100);
-  
+
   console.log(`\n📈 Documentation Completion: ${completionPercent}% (${presentRequired}/${totalRequired} required sections)`);
 }
 
 /**
  * Group results by file
- * 
+ *
  * @param {Array} items - Array of items with file property
  * @returns {Object} Grouped items by file
  */

@@ -1,0 +1,1900 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModPorter-AI Test Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }
+        .summary-card h3 { margin: 0 0 10px 0; color: #333; }
+        .summary-card .value { font-size: 2em; font-weight: bold; }
+        .passed { color: #28a745; }
+        .failed { color: #dc3545; }
+        .warning { color: #ffc107; }
+        .suite { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .suite-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .suite-name { font-weight: bold; font-size: 1.1em; }
+        .duration { color: #666; font-size: 0.9em; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; color: white; font-size: 0.8em; }
+        .status-passed { background-color: #28a745; }
+        .status-failed { background-color: #dc3545; }
+        .coverage-bar { width: 100%; height: 20px; background-color: #e9ecef; border-radius: 10px; overflow: hidden; }
+        .coverage-fill { height: 100%; background-color: #28a745; transition: width 0.3s ease; }
+        .error-details { background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 10px; margin-top: 10px; }
+        .error-details pre { margin: 0; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ModPorter-AI Test Report</h1>
+            <p>Generated on 9/17/2025, 11:45:45 AM</p>
+            <p>Total Duration: 1.0m</p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Total Suites</h3>
+                <div class="value">5</div>
+            </div>
+            <div class="summary-card">
+                <h3>Passed</h3>
+                <div class="value passed">1</div>
+            </div>
+            <div class="summary-card">
+                <h3>Failed</h3>
+                <div class="value failed">4</div>
+            </div>
+            <div class="summary-card">
+                <h3>Pass Rate</h3>
+                <div class="value">20.0%</div>
+            </div>
+        </div>
+
+        
+
+        <h2>Test Suites</h2>
+        
+        <div class="suite">
+            <div class="suite-header">
+                <span class="suite-name">Unit Tests</span>
+                <div>
+                    <span class="status-badge status-failed">FAILED</span>
+                    <span class="duration">528ms</span>
+                </div>
+            </div>
+            
+            <div class="error-details">
+                <strong>Error:</strong>
+                <pre>[31m[7m[31m MISSING DEPENDENCY [31m[27m Cannot find dependency '@vitest/coverage-v8'
+
+[39m</pre>
+            </div>
+            
+        </div>
+        
+        <div class="suite">
+            <div class="suite-header">
+                <span class="suite-name">Integration Tests</span>
+                <div>
+                    <span class="status-badge status-failed">FAILED</span>
+                    <span class="duration">34.4s</span>
+                </div>
+            </div>
+            
+            <div class="error-details">
+                <strong>Error:</strong>
+                <pre>[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mInterface Compliance[2m > [22m[2mshould validate that all modules implement required interfaces
+[22m[39mModule interface violations found: [
+  [32m'src\\modules\\assets\\AssetTranslationModule.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\assets\\AssetTranslationModule.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\assets\\ModelConverter.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\assets\\ModelConverter.ts: Missing error handling'[39m,
+  [32m'src\\modules\\assets\\ModelConverter.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\assets\\ParticleMapper.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\assets\\ParticleMapper.ts: Missing error handling'[39m,
+  [32m'src\\modules\\assets\\ParticleMapper.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\assets\\SoundProcessor.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\assets\\SoundProcessor.ts: Missing error handling'[39m,
+  [32m'src\\modules\\assets\\SoundProcessor.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\assets\\TextureConverter.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\assets\\TextureConverter.ts: Missing error handling'[39m,
+  [32m'src\\modules\\assets\\TextureConverter.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\CompromiseEngine.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\CompromiseEngine.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\CompromiseReporter.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\CompromiseReporter.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategy.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategy.ts: Missing error handling'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategyEngine.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategyEngine.ts: Missing error handling'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategyEngine.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategySelector.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategySelector.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\DimensionSimulator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\DimensionSimulator.ts: Missing error handling'[39m,
+  [32m'src\\modules\\compromise\\DimensionSimulator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\RenderingStubGenerator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\RenderingStubGenerator.ts: Missing error handling'[39m,
+  [32m'src\\modules\\compromise\\RenderingStubGenerator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\strategies\\DimensionCompromiseStrategy.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\strategies\\RenderingCompromiseStrategy.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\strategies\\UICompromiseStrategy.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\UIFlowMapper.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\UIFlowMapper.ts: Missing error handling'[39m,
+  [32m'src\\modules\\compromise\\UIFlowMapper.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\compromise\\WarningLogger.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\compromise\\WarningLogger.ts: Missing error handling'[39m,
+  [32m'src\\modules\\compromise\\WarningLogger.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\configuration\\LicenseEmbedder.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\configuration\\LootTableConverter.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\configuration\\ManifestGenerator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\configuration\\RecipeConverter.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\conversion-agents\\AssetConverter.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\conversion-agents\\BedrockArchitect.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\conversion-agents\\BlockItemGenerator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\conversion-agents\\types.ts: Missing exported class declaration'[39m,
+  [32m'src\\modules\\ingestion\\FileProcessor.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\ingestion\\FileProcessor.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\ingestion\\JavaAnalyzer.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\ingestion\\JavaAnalyzer.ts: Missing error handling'[39m,
+  [32m'src\\modules\\ingestion\\JavaAnalyzer.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\ingestion\\LicenseParser.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\ingestion\\LicenseParser.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\ingestion\\ManifestParser.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\ingestion\\ModLoaderDetector.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\ingestion\\ModLoaderDetector.ts: Missing error handling'[39m,
+  [32m'src\\modules\\ingestion\\ModLoaderDetector.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\ingestion\\ModValidator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\ingestion\\SecurityScanner.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\ingestion\\SecurityScanner.ts: Missing error handling'[39m,
+  [32m'src\\modules\\ingestion\\SecurityScanner.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\ingestion\\SourceCodeFetcher.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\APIMapping.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\APIMapping.ts: Missing error handling'[39m,
+  [32m'src\\modules\\logic\\APIMapping.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\ASTTranspiler.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\JavaParser.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\JavaParser.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\JavaScriptGenerator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\JavaScriptGenerator.ts: Missing error handling'[39m,
+  [32m'src\\modules\\logic\\JavaScriptGenerator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\LLMTranslationService.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\LLMTranslationService.ts: Missing error handling'[39m,
+  [32m'src\\modules\\logic\\LLMTranslationService.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\LLMTranslator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\LogicTranslationEngine.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\MMIRGenerator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\MMIRGenerator.ts: Missing error handling'[39m,
+  [32m'src\\modules\\logic\\MMIRGenerator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\MMIRParser.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\MMIRParser.ts: Missing error handling'[39m,
+  [32m'src\\modules\\logic\\MMIRParser.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\ProgramStateAlignmentValidator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\logic\\ProgramStateAlignmentValidator.ts: Missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateAlignmentValidator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\packaging\\AddonPackager.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\packaging\\AddonPackager.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\packaging\\AddonValidator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\packaging\\AddonValidator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\packaging\\ConversionReportGenerator.ts: Missing async processing method'[39m,
+  [32m'src\\modules\\packaging\\ConversionReportGenerator.ts: Missing error handling'[39m,
+  [32m'src\\modules\\packaging\\ConversionReportGenerator.ts: Missing success indicator in return type'[39m,
+  [32m'src\\modules\\packaging\\ManualPostProcessingGuide.ts: Missing async processing method'[39m,
+  ... 12 more items
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mInterface Compliance[2m > [22m[2mshould validate that all modules use consistent type imports
+[22m[39mType import violations found: [
+  [32m'src\\modules\\assets\\AssetTranslationModule.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\assets\\AssetTranslationModule.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\compromise\\CompromiseEngine.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\compromise\\CompromiseReporter.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategySelector.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\compromise\\strategies\\DimensionCompromiseStrategy.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\compromise\\strategies\\RenderingCompromiseStrategy.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\compromise\\strategies\\UICompromiseStrategy.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\configuration\\LicenseEmbedder.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\configuration\\LootTableConverter.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\configuration\\ManifestGenerator.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\configuration\\ManifestGenerator.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\configuration\\RecipeConverter.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\conversion-agents\\AssetConverter.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\conversion-agents\\AssetConverter.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\conversion-agents\\BedrockArchitect.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\conversion-agents\\BedrockArchitect.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\conversion-agents\\BlockItemGenerator.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\conversion-agents\\BlockItemGenerator.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ingestion\\FileProcessor.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ingestion\\JavaAnalyzer.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\ingestion\\LicenseParser.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\ingestion\\LicenseParser.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ingestion\\ManifestParser.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\ingestion\\ManifestParser.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ingestion\\ModLoaderDetector.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\ingestion\\ModValidator.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\ingestion\\ModValidator.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ingestion\\SourceCodeFetcher.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\ingestion\\SourceCodeFetcher.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\logic\\ASTTranspiler.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\logic\\ASTTranspiler.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\logic\\JavaParser.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\logic\\JavaParser.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\logic\\JavaScriptGenerator.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\logic\\LLMTranslationService.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\logic\\LLMTranslator.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\logic\\LLMTranslator.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\logic\\LogicTranslationEngine.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\packaging\\AddonPackager.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\packaging\\AddonValidator.ts: Uses types but missing type imports'[39m,
+  [32m'src\\modules\\packaging\\AddonValidator.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ui\\hooks\\useConversion.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ui\\services\\AdminAPIServiceImpl.ts: Uses errors but missing ConversionError import'[39m,
+  [32m'src\\modules\\ui\\services\\ConversionAPIServiceImpl.ts: Uses errors but missing ConversionError import'[39m
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mInterface Compliance[2m > [22m[2mshould validate that all type definitions are properly structured
+[22m[39mType structure violations found: [
+  [32m'src\\types\\api.ts: Non-camelCase properties: TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document'[39m,
+  [32m'src\\types\\assets.ts: Non-camelCase properties: TODO: Add, TODO: Add, TODO: Add, TODO: Add, TODO: Add, TODO: Add, TODO: Add, TODO: Add'[39m,
+  [32m'src\\types\\compromise.ts: Non-camelCase properties: NONE: 0, LOW: 1, MINOR: 1, MEDIUM: 2, MODERATE: 2, HIGH: 3, MAJOR: 3, CRITICAL: 4, SEVERE: 4'[39m,
+  [32m'src\\types\\config.ts: Some interfaces missing JSDoc comments'[39m,
+  [32m'src\\types\\errors.ts: Non-camelCase properties: Example: ASSET, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, INVALID_MIME_TYPE: createErrorCode, FILE_TOO_LARGE: createErrorCode, ZIP_BOMB_DETECTED: createErrorCode, PATH_TRAVERSAL: createErrorCode, MALWARE_DETECTED: createErrorCode, VALIDATION_FAILED: createErrorCode, REGISTRY_EXTRACTION_FAILED: createErrorCode, MANIFEST_PARSE_ERROR: createErrorCode, TEXTURE_DETECTION_FAILED: createErrorCode, ANALYSIS_TIMEOUT: createErrorCode, BYTECODE_ANALYSIS_FAILED: createErrorCode, TEXTURE_CONVERSION_FAILED: createErrorCode, MODEL_CONVERSION_FAILED: createErrorCode, SOUND_CONVERSION_FAILED: createErrorCode, ASSET_NOT_FOUND: createErrorCode, CONVERSION_TIMEOUT: createErrorCode, STRUCTURE_GENERATION_FAILED: createErrorCode, MANIFEST_GENERATION_FAILED: createErrorCode, ASSET_ORGANIZATION_FAILED: createErrorCode, VALIDATION_FAILED: createErrorCode, STAGE_EXECUTION_FAILED: createErrorCode, PIPELINE_TIMEOUT: createErrorCode, VALIDATION_CONFIG_ERROR: createErrorCode, AGGREGATION_FAILED: createErrorCode'[39m,
+  [32m'src\\types\\index.ts: Missing exported types/interfaces'[39m,
+  [32m'src\\types\\logic-translation.ts: Some interfaces missing JSDoc comments'[39m,
+  [32m'src\\types\\modules.ts: Non-camelCase properties: _state: ModuleState, _config: Record, _dependencies: DependencyContainer, _startTime: number, _lastError: Error, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, _startTime : 0, TODO: Add, TODO: Document, TODO: Document, RUNNING:\n'[39m +
+    [32m'        status, INITIALIZED:\n'[39m +
+    [32m'      case, STOPPED:\n'[39m +
+    [32m'        status, TODO: Add, TODO: Document, TODO: Document, format_version: number, min_engine_version: number'[39m,
+  [32m'src\\types\\services.ts: Non-camelCase properties: TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document, TODO: Add, TODO: Document, TODO: Document'[39m,
+  [32m'src\\types\\unzipper.d.ts: Some interfaces missing JSDoc comments'[39m
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mError Handling Consistency[2m > [22m[2mshould validate that all modules use consistent error format
+[22m[39mError format violations found: [
+  [32m'src\\modules\\assets\\ModelConverter.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\compromise\\CompromiseEngine.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\compromise\\strategies\\DimensionCompromiseStrategy.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\compromise\\strategies\\RenderingCompromiseStrategy.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\compromise\\strategies\\UICompromiseStrategy.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\configuration\\LicenseEmbedder.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\configuration\\LootTableConverter.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\configuration\\ManifestGenerator.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\configuration\\RecipeConverter.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method async analyze(extractedModPath: string) missing error handling'[39m,
+  [32m'src\\modules\\ingestion\\ModValidator.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\ingestion\\ModValidator.ts: Method async validate(jarFile: Buffer, filename?: string) missing error handling'[39m,
+  [32m'src\\modules\\ingestion\\SecurityScanner.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\ingestion\\SourceCodeFetcher.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\ASTTranspiler.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\JavaParser.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\LLMTranslationService.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\LLMTranslator.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\LLMTranslator.ts: Method async translate(\n'[39m +
+    [32m'    unmappableSegments: UnmappableCodeSegment[],\n'[39m +
+    [32m'    context: TranslationContext\n'[39m +
+    [32m'  ) missing error handling'[39m,
+  [32m'src\\modules\\logic\\LLMTranslator.ts: Method process() missing error handling'[39m,
+  [32m'src\\modules\\logic\\LogicTranslationEngine.ts: Method translate(unmappableCode, context) missing error handling'[39m,
+  [32m'src\\modules\\logic\\LogicTranslationEngine.ts: Method validate(originalCode, translatedCode, context) missing error handling'[39m,
+  [32m'src\\modules\\logic\\MMIRParser.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\ProgramStateAlignmentValidator.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Method async validate(\n'[39m +
+    [32m'    originalJavaCode: string,\n'[39m +
+    [32m'    translatedJavaScriptCode: string,\n'[39m +
+    [32m'    context: TranslationContext\n'[39m +
+    [32m'  ) missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Method analyze(originalJavaCode, translatedJavaScriptCode, context) missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Method analyze(originalJavaCode, translatedJavaScriptCode, context) missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Method analyze(originalJavaCode, translatedJavaScriptCode, context) missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Method async analyze(\n'[39m +
+    [32m'    javaCode: string,\n'[39m +
+    [32m'    jsCode: string,\n'[39m +
+    [32m'    _context: TranslationContext\n'[39m +
+    [32m'  ) missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Method async analyze(\n'[39m +
+    [32m'    javaCode: string,\n'[39m +
+    [32m'    jsCode: string,\n'[39m +
+    [32m'    _context: TranslationContext\n'[39m +
+    [32m'  ) missing error handling'[39m,
+  [32m'src\\modules\\logic\\ProgramStateValidator.ts: Method async analyze(\n'[39m +
+    [32m'    javaCode: string,\n'[39m +
+    [32m'    jsCode: string,\n'[39m +
+    [32m'    context: TranslationContext\n'[39m +
+    [32m'  ) missing error handling'[39m,
+  [32m'src\\modules\\packaging\\ManualPostProcessingGuide.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\ui\\hooks\\useConversion.ts: Inconsistent error format'[39m,
+  [32m'src\\modules\\ui\\services\\AdminAPIServiceImpl.ts: Inconsistent error format'[39m
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mError Handling Consistency[2m > [22m[2mshould validate that all modules set moduleOrigin correctly
+[22m[39mModule origin violations found: [
+  [32m"src\\modules\\conversion-agents\\AssetConverter.ts: moduleOrigin should be 'AssetConverter'"[39m,
+  [32m"src\\modules\\conversion-agents\\BedrockArchitect.ts: moduleOrigin should be 'BedrockArchitect'"[39m,
+  [32m"src\\modules\\conversion-agents\\BlockItemGenerator.ts: moduleOrigin should be 'BlockItemGenerator'"[39m,
+  [32m"src\\modules\\ui\\services\\ConversionAPIServiceImpl.ts: moduleOrigin should be 'APIError'"[39m
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mNaming Convention Compliance[2m > [22m[2mshould validate that all files follow naming conventions
+[22m[39mNaming convention violations found: [
+  [32m"src\\modules\\compromise\\CompromiseStrategy.ts: Class name 'CompromiseStrategyRegistry' should match file name 'CompromiseStrategy'"[39m,
+  [32m'src\\modules\\conversion-agents\\types.ts: File name should be PascalCase'[39m,
+  [32m"src\\modules\\logic\\APIMapping.ts: Class name 'APIMappingDatabase' should match file name 'APIMapping'"[39m,
+  [32m"src\\modules\\logic\\MMIRGenerator.ts: Class name 'ForgeModParser' should match file name 'MMIRGenerator'"[39m,
+  [32m'src\\modules\\ui\\hooks\\useConversion.ts: File name should be PascalCase'[39m,
+  [32m"src\\modules\\ui\\services\\ConversionAPIServiceImpl.ts: Class name 'APIError' should match file name 'ConversionAPIServiceImpl'"[39m,
+  [32m'src\\types\\file-processing.ts: Type file name should be camelCase'[39m,
+  [32m'src\\types\\logic-translation.ts: Type file name should be camelCase'[39m,
+  [32m'src\\types\\unzipper.d.ts: Type file name should be camelCase'[39m
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mNaming Convention Compliance[2m > [22m[2mshould validate that method names follow conventions
+[22m[39mMethod naming violations found: [
+  [32m"src\\modules\\assets\\AssetTranslationModule.ts: Method 'AssetTranslationModule' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\AssetTranslationModule.ts: Method 'TextureConverter' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\AssetTranslationModule.ts: Method 'ModelConverter' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\AssetTranslationModule.ts: Method 'SoundProcessor' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\AssetTranslationModule.ts: Method 'ParticleMapper' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\AssetTranslationModule.ts: Method 'String' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\AssetTranslationModule.ts: Method 'String' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\ModelConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'TextureConverter' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'ModelConverter' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'SoundProcessor' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'ParticleMapper' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'TextureConverter' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'ModelConverter' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'SoundProcessor' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'ParticleMapper' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\assets\\StandardizedAssetTranslationModule.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseEngine.ts: Method 'CompromiseStrategyRegistry' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseEngine.ts: Method 'CompromiseStrategySelector' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseEngine.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseEngine.ts: Method 'Promise' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseEngine.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseReporter.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseReporter.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategy.ts: Method 'Map' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Map' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Map' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Map' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Map' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Map' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\CompromiseStrategyEngine.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\DimensionSimulator.ts: Method 'Dimension' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\DimensionSimulator.ts: Method 'Dimension' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\RenderingStubGenerator.ts: Method 'Stub' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\RenderingStubGenerator.ts: Method 'Stub' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\strategies\\DimensionCompromiseStrategy.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\strategies\\RenderingCompromiseStrategy.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\strategies\\UICompromiseStrategy.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'RegExp' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'RegExp' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'UI' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'UIManager' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'ActionFormData' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'Click' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'Form' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'ModalFormData' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'Change' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'Toggle' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'Change' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'Selection' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\UIFlowMapper.ts: Method 'Set' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\WarningLogger.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\WarningLogger.ts: Method 'NotificationManager' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\WarningLogger.ts: Method 'NotificationManager' should be camelCase"[39m,
+  [32m"src\\modules\\compromise\\WarningLogger.ts: Method 'NotificationManager' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Method 'Number' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Method 'Number' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Method 'Number' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\BlockItemDefinitionConverter.ts: Method 'Number' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LicenseEmbedder.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LicenseEmbedder.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LicenseEmbedder.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LicenseEmbedder.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LicenseEmbedder.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LicenseEmbedder.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LicenseEmbedder.ts: Method 'Date' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LootTableConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LootTableConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LootTableConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LootTableConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\LootTableConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\ManifestGenerator.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\configuration\\RecipeConverter.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\conversion-agents\\BedrockArchitect.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\conversion-agents\\BlockItemGenerator.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\conversion-agents\\BlockItemGenerator.ts: Method 'Error' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method 'RegExp' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method 'RegExp' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method 'RegExp' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method '1' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method '2' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method '3' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FeatureCompatibilityAnalyzer.ts: Method '4' should be camelCase"[39m,
+  [32m"src\\modules\\ingestion\\FileProcessor.ts: Method 'SecurityScanner' should be camelCase"[39m,
+  ... 184 more items
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mModule Structure Consistency[2m > [22m[2mshould validate that all modules have consistent export patterns
+[22m[39mExport pattern violations found: [
+  [32m'src\\modules\\assets\\index.ts: Should export StandardizedAssetTranslationModule'[39m,
+  [32m'src\\modules\\compromise\\index.ts: Should export CompromiseStrategyEngine'[39m,
+  [32m'src\\modules\\compromise\\index.ts: Should export DimensionSimulator'[39m,
+  [32m'src\\modules\\compromise\\index.ts: Should export RenderingStubGenerator'[39m,
+  [32m'src\\modules\\compromise\\index.ts: Should export UIFlowMapper'[39m,
+  [32m'src\\modules\\compromise\\index.ts: Should export WarningLogger'[39m,
+  [32m'src\\modules\\conversion-agents\\types.ts: Missing class export'[39m,
+  [32m'src\\modules\\ui\\hooks\\useConversion.ts: Missing class export'[39m,
+  [32m'src\\modules\\ui\\services\\AdminAPIService.ts: Missing class export'[39m,
+  [32m'src\\modules\\ui\\services\\ConversionAPIService.ts: Missing class export'[39m,
+  [32m'src\\modules\\ui\\services\\PipelineStageMapper.ts: Missing class export'[39m
+]
+
+[90mstderr[2m | dist/tests/integration/consistency-validation.test.js[2m > [22m[2mConsistency Validation Tests[2m > [22m[2mModule Structure Consistency[2m > [22m[2mshould validate that all modules have proper dependency imports
+[22m[39mDependency violations found: [
+  [32m'src\\modules\\assets\\AssetTranslationModule.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\assets\\AssetTranslationModule.ts: Uses services but missing service imports'[39m,
+  [32m'src\\modules\\assets\\ModelConverter.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\assets\\SoundProcessor.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\assets\\TextureConverter.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\compromise\\CompromiseEngine.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\compromise\\CompromiseStrategySelector.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\compromise\\strategies\\DimensionCompromiseStrategy.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\compromise\\strategies\\RenderingCompromiseStrategy.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\compromise\\strategies\\UICompromiseStrategy.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\ingestion\\FileProcessor.ts: Too many relative imports, consider using absolute imports'[39m,
+  [32m'src\\modules\\ingestion\\JavaAnalyzer.ts: Too many relative imports, consider using absolute imports'[39m
+]
+
+(node:43636) [DEP0152] DeprecationWarning: Custom PerformanceEntry accessors are deprecated. Please use the detail property.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[90mstderr[2m | tests/integration/infrastructure-integration.test.ts[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration
+[22m[39mServer not running, skipping endpoint tests
+
+[90mstderr[2m | tests/integration/infrastructure-integration.test.ts[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /health endpoint exists and returns expected structure
+[22m[39mSkipping health endpoint test - server not running
+
+[90mstderr[2m | tests/integration/infrastructure-integration.test.ts[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /ready endpoint exists and returns expected structure
+[22m[39mSkipping ready endpoint test - server not running
+
+[90mstderr[2m | tests/integration/infrastructure-integration.test.ts[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /live endpoint exists and returns expected structure
+[22m[39mSkipping live endpoint test - server not running
+
+[90mstderr[2m | tests/integration/infrastructure-integration.test.ts[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /metrics endpoint exists and returns expected structure
+[22m[39mSkipping metrics endpoint test - server not running
+
+[90mstderr[2m | tests/integration/infrastructure-integration.test.ts[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /config/validate endpoint exists and returns expected structure
+[22m[39mSkipping config validate endpoint test - server not running
+
+[90mstderr[2m | dist/tests/integration/infrastructure-integration.test.js[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration
+[22m[39mServer not running, skipping endpoint tests
+
+[90mstderr[2m | dist/tests/integration/infrastructure-integration.test.js[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /health endpoint exists and returns expected structure
+[22m[39mSkipping health endpoint test - server not running
+
+[90mstderr[2m | dist/tests/integration/infrastructure-integration.test.js[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /ready endpoint exists and returns expected structure
+[22m[39mSkipping ready endpoint test - server not running
+
+[90mstderr[2m | dist/tests/integration/infrastructure-integration.test.js[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /live endpoint exists and returns expected structure
+[22m[39mSkipping live endpoint test - server not running
+
+[90mstderr[2m | dist/tests/integration/infrastructure-integration.test.js[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /metrics endpoint exists and returns expected structure
+[22m[39mSkipping metrics endpoint test - server not running
+
+[90mstderr[2m | dist/tests/integration/infrastructure-integration.test.js[2m > [22m[2mInfrastructure Integration Tests[2m > [22m[2mHealth Check Endpoints Integration[2m > [22m[2mshould validate /config/validate endpoint exists and returns expected structure
+[22m[39mSkipping config validate endpoint test - server not running
+
+[90mstderr[2m | dist/tests/integration/module-interactions.test.js[2m > [22m[2mModule Interactions Integration Tests[2m > [22m[2mLogic Translation to Compromise Strategy Flow[2m > [22m[2mshould handle unmappable features through compromise strategies
+[22m[39mInvalid error format in LogicTranslationEngine to CompromiseStrategyEngine interaction
+
+[90mstderr[2m | tests/integration/module-interactions.test.ts[2m > [22m[2mModule Interactions Integration Tests[2m > [22m[2mLogic Translation to Compromise Strategy Flow[2m > [22m[2mshould handle unmappable features through compromise strategies
+[22m[39mInvalid error format in LogicTranslationEngine to CompromiseStrategyEngine interaction
+
+(node:41980) [DEP0152] DeprecationWarning: Custom PerformanceEntry accessors are deprecated. Please use the detail property.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/conversion/conversion-pipeline.test.js[2m > [22mConversion Pipeline Integration
+[31m[1mError[22m: ENOENT: no such file or directory, open 'C:\Users\ancha\Documents\projects\mineport\dist\tests\fixtures\mock-forge-mod.json'[39m
+[36m [2m❯[22m loadMockMod tests/integration/helpers.ts:[2m91:24[22m[39m
+    [90m 89| [39m[35mexport[39m [35mfunction[39m [34mloadMockMod[39m(modName[33m:[39m string)[33m:[39m any {
+    [90m 90| [39m  const fixturePath = path.join(__dirname, '../fixtures', `${modName}.…
+    [90m 91| [39m  [35mreturn[39m [33mJSON[39m[33m.[39m[34mparse[39m(fs[33m.[39m[34mreadFileSync[39m(fixturePath[33m,[39m [32m'utf8'[39m))[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m 92| [39m}
+    [90m 93| [39m
+[90m [2m❯[22m tests/integration/conversion/conversion-pipeline.test.ts:[2m32:26[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/89]⎯[22m[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 88 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/integration/compromise-integration.test.ts[2m > [22mCompromise Strategy Integration[2m > [22mshould create LogicTranslationEngine with integrated CompromiseStrategyEngine
+[41m[1m FAIL [22m[49m dist/tests/integration/compromise-integration.test.js[2m > [22mCompromise Strategy Integration[2m > [22mshould create LogicTranslationEngine with integrated CompromiseStrategyEngine
+[31m[1mAssertionError[22m: expected { …(8) } to be an instance of CompromiseStrategyEngine[39m
+[36m [2m❯[22m tests/integration/compromise-integration.test.ts:[2m91:30[22m[39m
+    [90m 89| [39m    [34mexpect[39m(logicEngine)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m 90| [39m    [34mexpect[39m(compromiseEngine)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m 91| [39m    [34mexpect[39m(compromiseEngine)[33m.[39m[34mtoBeInstanceOf[39m([33mCompromiseStrategyEngine[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m 92| [39m  })[33m;[39m
+    [90m 93| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/compromise-integration.test.ts[2m > [22mCompromise Strategy Integration[2m > [22mshould allow registering custom compromise strategies
+[41m[1m FAIL [22m[49m dist/tests/integration/compromise-integration.test.js[2m > [22mCompromise Strategy Integration[2m > [22mshould allow registering custom compromise strategies
+[31m[1mAssertionError[22m: expected [Function] to not throw an error but 'Error: [vitest] No "logger" export is…' was thrown[39m
+
+[32m- Expected:[39m 
+undefined
+
+[31m+ Received:[39m 
+"Error: [vitest] No \"logger\" export is defined on the \"../../src/utils/logger\" mock. Did you forget to return it from \"vi.mock\"?
+If you need to partially mock a module, you can use \"importOriginal\" helper inside:
+"
+
+[36m [2m❯[22m tests/integration/compromise-integration.test.ts:[2m112:12[22m[39m
+    [90m110| [39m    [34mexpect[39m(() [33m=>[39m {
+    [90m111| [39m      logicEngine.registerCompromiseStrategy('dimension', customStrate…
+    [90m112| [39m    })[33m.[39mnot[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m   | [39m           [31m^[39m
+    [90m113| [39m  })[33m;[39m
+    [90m114| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/compromise-integration.test.ts[2m > [22mCompromise Strategy Integration[2m > [22mshould have default compromise strategies registered
+[41m[1m FAIL [22m[49m dist/tests/integration/compromise-integration.test.js[2m > [22mCompromise Strategy Integration[2m > [22mshould have default compromise strategies registered
+[31m[1mAssertionError[22m: expected undefined to be defined[39m
+[36m [2m❯[22m tests/integration/compromise-integration.test.ts:[2m127:22[22m[39m
+    [90m125| [39m
+    [90m126| [39m    [35mconst[39m strategy [33m=[39m compromiseEngine[33m.[39m[34mselectStrategy[39m(testFeature)[33m;[39m
+    [90m127| [39m    [34mexpect[39m(strategy)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m128| [39m    [34mexpect[39m(strategy[33m?.[39mid)[33m.[39m[34mtoBe[39m([32m'teleportation-simulation'[39m)[33m;[39m
+    [90m129| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/infrastructure-integration.test.ts[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate deploy-modporter-ai.sh script exists and is executable
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m39:47[22m[39m
+    [90m 37| [39m      [90m// Check if script is executable[39m
+    [90m 38| [39m      [35mconst[39m stats [33m=[39m [35mawait[39m fs[33m.[39m[34mstat[39m(scriptPath)[33m;[39m
+    [90m 39| [39m      [34mexpect[39m(stats[33m.[39mmode [33m&[39m [34mparseInt[39m([32m'111'[39m[33m,[39m [34m8[39m))[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                              [31m^[39m
+    [90m 40| [39m    })[33m;[39m
+    [90m 41| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/infrastructure-integration.test.ts[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate canary-deployment.sh script exists and is executable
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m52:47[22m[39m
+    [90m 50| [39m
+    [90m 51| [39m      [35mconst[39m stats [33m=[39m [35mawait[39m fs[33m.[39m[34mstat[39m(scriptPath)[33m;[39m
+    [90m 52| [39m      [34mexpect[39m(stats[33m.[39mmode [33m&[39m [34mparseInt[39m([32m'111'[39m[33m,[39m [34m8[39m))[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                              [31m^[39m
+    [90m 53| [39m    })[33m;[39m
+    [90m 54| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/infrastructure-integration.test.ts[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate rollback-deployment.sh script exists and is executable
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m65:47[22m[39m
+    [90m 63| [39m
+    [90m 64| [39m      [35mconst[39m stats [33m=[39m [35mawait[39m fs[33m.[39m[34mstat[39m(scriptPath)[33m;[39m
+    [90m 65| [39m      [34mexpect[39m(stats[33m.[39mmode [33m&[39m [34mparseInt[39m([32m'111'[39m[33m,[39m [34m8[39m))[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                              [31m^[39m
+    [90m 66| [39m    })[33m;[39m
+    [90m 67| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/infrastructure-integration.test.ts[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate validate-deployment.js script exists and is executable
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m78:47[22m[39m
+    [90m 76| [39m
+    [90m 77| [39m      [35mconst[39m stats [33m=[39m [35mawait[39m fs[33m.[39m[34mstat[39m(scriptPath)[33m;[39m
+    [90m 78| [39m      [34mexpect[39m(stats[33m.[39mmode [33m&[39m [34mparseInt[39m([32m'111'[39m[33m,[39m [34m8[39m))[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                              [31m^[39m
+    [90m 79| [39m    })[33m;[39m
+    [90m 80| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/job-queue-integration.test.ts[2m > [22mJobQueue Integration Tests[2m > [22mResource Management Integration[2m > [22mshould queue jobs when resources are insufficient
+[41m[1m FAIL [22m[49m dist/tests/integration/job-queue-integration.test.js[2m > [22mJobQueue Integration Tests[2m > [22mResource Management Integration[2m > [22mshould queue jobs when resources are insufficient
+[31m[1mAssertionError[22m: expected 'running' to be 'pending' // Object.is equality[39m
+
+Expected: [32m"[7mpend[27ming"[39m
+Received: [31m"[7mrunn[27ming"[39m
+
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m228:30[22m[39m
+    [90m226| [39m      [90m// (unless first job completed very quickly)[39m
+    [90m227| [39m      [35mif[39m (job1[33m?.[39mstatus [33m===[39m [32m'running'[39m) {
+    [90m228| [39m        [34mexpect[39m(job2[33m?.[39mstatus)[33m.[39m[34mtoBe[39m([32m'pending'[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m229| [39m      }
+    [90m230| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/job-queue-integration.test.ts[2m > [22mJobQueue Integration Tests[2m > [22mResource Management Integration[2m > [22mshould process queued jobs when resources become available
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m232:5[22m[39m
+    [90m230| [39m    })[33m;[39m
+    [90m231| [39m
+    [90m232| [39m    it('should process queued jobs when resources become available', a…
+    [90m   | [39m    [31m^[39m
+    [90m233| [39m      // This test verifies that jobs waiting for resources get proces…
+    [90m234| [39m      [90m// when resources are freed up by completing jobs[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/job-queue-integration.test.ts[2m > [22mJobQueue Integration Tests[2m > [22mError Handling and Recovery[2m > [22mshould handle worker failures gracefully
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m290:5[22m[39m
+    [90m288| [39m
+    [90m289| [39m  [34mdescribe[39m([32m'Error Handling and Recovery'[39m[33m,[39m () [33m=>[39m {
+    [90m290| [39m    [34mit[39m([32m'should handle worker failures gracefully'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m    [31m^[39m
+    [90m291| [39m      [35mconst[39m jobData[33m:[39m [33mJobData[39m [33m=[39m {
+    [90m292| [39m        type[33m:[39m [32m'conversion'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/job-queue-integration.test.ts[2m > [22mJobQueue Integration Tests[2m > [22mQueue Management Operations[2m > [22mshould handle queue pause and resume
+[41m[1m FAIL [22m[49m dist/tests/integration/job-queue-integration.test.js[2m > [22mJobQueue Integration Tests[2m > [22mQueue Management Operations[2m > [22mshould handle queue pause and resume
+[31m[1mAssertionError[22m: expected 'running' to be 'pending' // Object.is equality[39m
+
+Expected: [32m"[7mpend[27ming"[39m
+Received: [31m"[7mrunn[27ming"[39m
+
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m389:27[22m[39m
+    [90m387| [39m      [90m// Job should still be pending (queue is paused)[39m
+    [90m388| [39m      [35mlet[39m job [33m=[39m [35mawait[39m jobQueue[33m.[39m[34mgetJobStatus[39m(jobId)[33m;[39m
+    [90m389| [39m      [34mexpect[39m(job[33m?.[39mstatus)[33m.[39m[34mtoBe[39m([32m'pending'[39m)[33m;[39m
+    [90m   | [39m                          [31m^[39m
+    [90m390| [39m
+    [90m391| [39m      [90m// Resume the queue[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/job-queue-integration.test.ts[2m > [22mJobQueue Integration Tests[2m > [22mPerformance and Scalability[2m > [22mshould handle burst of job submissions
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m436:5[22m[39m
+    [90m434| [39m
+    [90m435| [39m  [34mdescribe[39m([32m'Performance and Scalability'[39m[33m,[39m () [33m=>[39m {
+    [90m436| [39m    [34mit[39m([32m'should handle burst of job submissions'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m    [31m^[39m
+    [90m437| [39m      [35mconst[39m jobCount [33m=[39m [34m20[39m[33m;[39m
+    [90m438| [39m      [35mconst[39m startTime [33m=[39m [33mDate[39m[33m.[39m[34mnow[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/module-interactions.test.ts[2m > [22mModule Interactions Integration Tests[2m > [22mIngestion to Asset Translation Flow[2m > [22mshould pass validated mod data correctly to asset translation
+[41m[1m FAIL [22m[49m dist/tests/integration/module-interactions.test.js[2m > [22mModule Interactions Integration Tests[2m > [22mIngestion to Asset Translation Flow[2m > [22mshould pass validated mod data correctly to asset translation
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/integration/module-interactions.test.ts:[2m44:40[22m[39m
+    [90m 42| [39m      const validationResult = await modValidator.validateMod(Buffer.f…
+    [90m 43| [39m
+    [90m 44| [39m      [34mexpect[39m(validationResult[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                       [31m^[39m
+    [90m 45| [39m      [34mexpect[39m(
+    [90m 46| [39m        [34mvalidateModuleInteraction[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/module-interactions.test.ts[2m > [22mModule Interactions Integration Tests[2m > [22mLogic Translation to Compromise Strategy Flow[2m > [22mshould handle unmappable features through compromise strategies
+[41m[1m FAIL [22m[49m dist/tests/integration/module-interactions.test.js[2m > [22mModule Interactions Integration Tests[2m > [22mLogic Translation to Compromise Strategy Flow[2m > [22mshould handle unmappable features through compromise strategies
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/module-interactions.test.ts:[2m140:9[22m[39m
+    [90m138| [39m          translationResult
+    [90m139| [39m        )
+    [90m140| [39m      )[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m        [31m^[39m
+    [90m141| [39m
+    [90m142| [39m      [90m// Step 2: Handle unmappable features with compromise strategies[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/module-interactions.test.ts[2m > [22mModule Interactions Integration Tests[2m > [22mError Handling Across Modules[2m > [22mshould collect and aggregate errors from multiple modules
+[41m[1m FAIL [22m[49m dist/tests/integration/module-interactions.test.js[2m > [22mModule Interactions Integration Tests[2m > [22mError Handling Across Modules[2m > [22mshould collect and aggregate errors from multiple modules
+[31m[1mAssertionError[22m: expected 2 to be 3 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 3[39m
+[31m+ 2[39m
+
+[36m [2m❯[22m tests/integration/module-interactions.test.ts:[2m267:32[22m[39m
+    [90m265| [39m      [90m// Verify error collection and aggregation[39m
+    [90m266| [39m      [35mconst[39m allErrors [33m=[39m errorCollector[33m.[39m[34mgetErrors[39m()[33m;[39m
+    [90m267| [39m      [34mexpect[39m(allErrors[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m3[39m)[33m;[39m
+    [90m   | [39m                               [31m^[39m
+    [90m268| [39m
+    [90m269| [39m      [35mconst[39m errorSummary [33m=[39m errorCollector[33m.[39m[34mgetErrorSummary[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/module-interactions.test.ts[2m > [22mModule Interactions Integration Tests[2m > [22mEnd-to-End Module Pipeline[2m > [22mshould process a complete conversion through all modules
+[41m[1m FAIL [22m[49m dist/tests/integration/module-interactions.test.js[2m > [22mModule Interactions Integration Tests[2m > [22mEnd-to-End Module Pipeline[2m > [22mshould process a complete conversion through all modules
+[31m[1mAssertionError[22m: expected { success: false, …(2) } to match object { success: true, result: { …(7) } }
+(7 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "result": {[39m
+[32m-     "analysisNotes": Any<Array>,[39m
+[32m-     "bedrockAddon": {[39m
+[32m-       "behaviorPack": Any<String>,[39m
+[32m-       "resourcePack": Any<String>,[39m
+[32m-     },[39m
+[32m-     "manifestInfo": {[39m
+[32m-       "author": Any<String>,[39m
+[32m-       "modId": "e2e-pipeline-test",[39m
+[32m-       "modName": Any<String>,[39m
+[32m-       "version": Any<String>,[39m
+[32m-     },[39m
+[32m-     "modId": "e2e-pipeline-test",[39m
+[32m-     "registryNames": Any<Array>,[39m
+[32m-     "report": Any<Object>,[39m
+[32m-     "texturePaths": Any<Array>,[39m
+[32m-   },[39m
+[32m-   "success": true,[39m
+[31m+   "success": false,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/integration/module-interactions.test.ts:[2m351:22[22m[39m
+    [90m349| [39m
+    [90m350| [39m      [90m// Validate result structure[39m
+    [90m351| [39m      [34mexpect[39m(result)[33m.[39m[34mtoMatchObject[39m(scenario[33m.[39mexpectedOutput)[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m352| [39m
+    [90m353| [39m      [90m// Run all validation steps[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/module-interactions.test.ts[2m > [22mModule Interactions Integration Tests[2m > [22mModule Dependency Validation[2m > [22mshould validate that modules follow dependency contracts
+[41m[1m FAIL [22m[49m dist/tests/integration/module-interactions.test.js[2m > [22mModule Interactions Integration Tests[2m > [22mModule Dependency Validation[2m > [22mshould validate that modules follow dependency contracts
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/module-interactions.test.ts:[2m383:40[22m[39m
+    [90m381| [39m      [90m// These should work independently[39m
+    [90m382| [39m      const validationResult = await modValidator.validateMod(Buffer.f…
+    [90m383| [39m      [34mexpect[39m(validationResult[33m.[39misValid)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                       [31m^[39m
+    [90m384| [39m
+    [90m385| [39m      const analysisResult = await featureAnalyzer.analyzeFeatures(moc…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/performance-integration.test.ts[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould handle multiple concurrent conversions efficiently
+[41m[1m FAIL [22m[49m dist/tests/integration/performance-integration.test.js[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould handle multiple concurrent conversions efficiently
+[31m[1mTypeError[22m: actual value must be number or bigint, received "undefined"[39m
+[36m [2m❯[22m tests/integration/performance-integration.test.ts:[2m119:37[22m[39m
+    [90m117| [39m      [90m// Check performance metrics[39m
+    [90m118| [39m      [35mconst[39m metrics [33m=[39m performanceMonitor[33m.[39m[34mgetCurrentMetrics[39m()[33m;[39m
+    [90m119| [39m      expect(metrics?.memory.usage).toBeLessThan(90); // Memory usage …
+    [90m   | [39m                                    [31m^[39m
+    [90m120| [39m    })[33m;[39m
+    [90m121| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/performance-integration.test.ts[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould demonstrate caching benefits
+[41m[1m FAIL [22m[49m dist/tests/integration/performance-integration.test.js[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould demonstrate caching benefits
+[31m[1mAssertionError[22m: expected 0 to be less than 0[39m
+[36m [2m❯[22m tests/integration/performance-integration.test.ts:[2m163:26[22m[39m
+    [90m161| [39m
+    [90m162| [39m      [90m// Second conversion should be faster due to caching[39m
+    [90m163| [39m      [34mexpect[39m(secondTime)[33m.[39m[34mtoBeLessThan[39m(firstTime)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m164| [39m
+    [90m165| [39m      [90m// Check cache metrics[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/performance-integration.test.ts[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould utilize worker pool for parallel processing
+[41m[1m FAIL [22m[49m dist/tests/integration/performance-integration.test.js[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould utilize worker pool for parallel processing
+[31m[1mTypeError[22m: actual value must be number or bigint, received "undefined"[39m
+[36m [2m❯[22m tests/integration/performance-integration.test.ts:[2m240:44[22m[39m
+    [90m238| [39m      [90m// Check worker pool metrics[39m
+    [90m239| [39m      [35mconst[39m workerMetrics [33m=[39m workerPool[33m.[39m[34mgetMetrics[39m()[33m;[39m
+    [90m240| [39m      [34mexpect[39m(workerMetrics[33m.[39mcompletedTasks)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                           [31m^[39m
+    [90m241| [39m      [34mexpect[39m(workerMetrics[33m.[39mthroughput)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m242| [39m      [34mexpect[39m(profile[33m?.[39mduration)[33m.[39m[34mtoBeLessThan[39m([34m20000[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/performance-integration.test.ts[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould maintain performance under memory pressure
+[41m[1m FAIL [22m[49m dist/tests/integration/performance-integration.test.js[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould maintain performance under memory pressure
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/integration/performance-integration.test.ts:[2m305:41[22m[39m
+    [90m303| [39m      [90m// Check that cache is working (should have some hits)[39m
+    [90m304| [39m      [35mconst[39m cacheMetrics [33m=[39m cacheService[33m.[39m[34mgetMetrics[39m()[33m;[39m
+    [90m305| [39m      [34mexpect[39m(cacheMetrics[33m.[39mtotalEntries)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                        [31m^[39m
+    [90m306| [39m    })[33m;[39m
+    [90m307| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/performance-integration.test.ts[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould handle resource allocation efficiently
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/performance-integration.test.ts:[2m345:5[22m[39m
+    [90m343| [39m    })[33m;[39m
+    [90m344| [39m
+    [90m345| [39m    [34mit[39m([32m'should handle resource allocation efficiently'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m    [31m^[39m
+    [90m346| [39m      conversionService[33m.[39m[34mstart[39m()[33m;[39m
+    [90m347| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/performance-integration.test.ts[2m > [22mPerformance Integration Tests[2m > [22mPerformance Benchmarks[2m > [22mshould demonstrate performance improvements over baseline
+[41m[1m FAIL [22m[49m dist/tests/integration/performance-integration.test.js[2m > [22mPerformance Integration Tests[2m > [22mPerformance Benchmarks[2m > [22mshould demonstrate performance improvements over baseline
+[31m[1mAssertionError[22m: expected NaN to be less than 1.5[39m
+[36m [2m❯[22m tests/integration/performance-integration.test.ts:[2m496:32[22m[39m
+    [90m494| [39m      // Optimized version should be faster or at least not significan…
+    [90m495| [39m      [35mconst[39m performanceRatio [33m=[39m optimizedTime [33m/[39m basicTime[33m;[39m
+    [90m496| [39m      expect(performanceRatio).toBeLessThan(1.5); // Should not be mor…
+    [90m   | [39m                               [31m^[39m
+    [90m497| [39m
+    [90m498| [39m      [90m// In many cases, it should be faster[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/ui-backend-integration.test.ts[2m > [22mUI Backend Integration[2m > [22mService Lifecycle[2m > [22mshould start and stop conversion service
+[31m[1mTypeError[22m: You must provide a Promise to expect() when using .resolves, not 'undefined'.[39m
+[36m [2m❯[22m tests/integration/ui-backend-integration.test.ts:[2m144:44[22m[39m
+    [90m142| [39m      [90m// Test service lifecycle[39m
+    [90m143| [39m      [34mexpect[39m(() [33m=>[39m conversionService[33m.[39m[34mstart[39m())[33m.[39mnot[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m144| [39m      [35mawait[39m [34mexpect[39m(conversionService[33m.[39m[34mstop[39m())[33m.[39mresolves[33m.[39mnot[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m   | [39m                                           [31m^[39m
+    [90m145| [39m    })[33m;[39m
+    [90m146| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/consistency-validation.test.js[2m > [22mConsistency Validation Tests[2m > [22mInterface Compliance[2m > [22mshould validate that all modules implement required interfaces
+[31m[1mAssertionError[22m: expected 112 to be less than 29[39m
+[90m [2m❯[22m tests/integration/consistency-validation.test.ts:[2m87:50[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/consistency-validation.test.js[2m > [22mConsistency Validation Tests[2m > [22mInterface Compliance[2m > [22mshould validate that all modules use consistent type imports
+[31m[1mAssertionError[22m: expected 49 to be less than 17.4[39m
+[90m [2m❯[22m tests/integration/consistency-validation.test.ts:[2m118:45[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/consistency-validation.test.js[2m > [22mConsistency Validation Tests[2m > [22mInterface Compliance[2m > [22mshould validate that all type definitions are properly structured
+[31m[1mAssertionError[22m: expected 10 to be less than 2.6[39m
+[90m [2m❯[22m tests/integration/consistency-validation.test.ts:[2m159:48[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/consistency-validation.test.js[2m > [22mConsistency Validation Tests[2m > [22mError Handling Consistency[2m > [22mshould validate that all modules use consistent error format
+[31m[1mAssertionError[22m: expected 38 to be less than 23.200000000000003[39m
+[90m [2m❯[22m tests/integration/consistency-validation.test.ts:[2m215:46[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/consistency-validation.test.js[2m > [22mConsistency Validation Tests[2m > [22mError Handling Consistency[2m > [22mshould validate that error severity levels are used consistently
+[31m[1mAssertionError[22m: expected [ …(4) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "src\\modules\\logic\\LogicTranslationEngine.ts: Invalid severity level 'medium'",[39m
+[31m+   "src\\modules\\logic\\ProgramStateValidator.ts: Invalid severity level 'medium'",[39m
+[31m+   "src\\modules\\logic\\ProgramStateValidator.ts: Invalid severity level 'medium'",[39m
+[31m+   "src\\modules\\logic\\ProgramStateValidator.ts: Invalid severity level 'medium'",[39m
+[31m+ ][39m
+
+[90m [2m❯[22m tests/integration/consistency-validation.test.ts:[2m237:34[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/consistency-validation.test.js[2m > [22mConsistency Validation Tests[2m > [22mNaming Convention Compliance[2m > [22mshould validate that method names follow conventions
+[31m[1mAssertionError[22m: expected 284 to be less than 100[39m
+[90m [2m❯[22m tests/integration/consistency-validation.test.ts:[2m390:47[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate deploy-modporter-ai.sh script exists and is executable
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m35:28[22m[39m
+    [90m 33| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m 34| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m 35| [39m      [34mexpect[39m(scriptExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 36| [39m
+    [90m 37| [39m      [90m// Check if script is executable[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate canary-deployment.sh script exists and is executable
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m49:28[22m[39m
+    [90m 47| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m 48| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m 49| [39m      [34mexpect[39m(scriptExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 50| [39m
+    [90m 51| [39m      [35mconst[39m stats [33m=[39m [35mawait[39m fs[33m.[39m[34mstat[39m(scriptPath)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate rollback-deployment.sh script exists and is executable
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m62:28[22m[39m
+    [90m 60| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m 61| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m 62| [39m      [34mexpect[39m(scriptExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 63| [39m
+    [90m 64| [39m      [35mconst[39m stats [33m=[39m [35mawait[39m fs[33m.[39m[34mstat[39m(scriptPath)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate validate-deployment.js script exists and is executable
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m75:28[22m[39m
+    [90m 73| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m 74| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m 75| [39m      [34mexpect[39m(scriptExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 76| [39m
+    [90m 77| [39m      [35mconst[39m stats [33m=[39m [35mawait[39m fs[33m.[39m[34mstat[39m(scriptPath)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate run-migrations.js script exists
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m88:28[22m[39m
+    [90m 86| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m 87| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m 88| [39m      [34mexpect[39m(scriptExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 89| [39m    })[33m;[39m
+    [90m 90| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mDeployment Scripts Integration[2m > [22mshould validate run-comprehensive-tests.js script exists
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m98:28[22m[39m
+    [90m 96| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m 97| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m 98| [39m      [34mexpect[39m(scriptExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 99| [39m    })[33m;[39m
+    [90m100| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mConfiguration Files Integration[2m > [22mshould validate deployment.json configuration exists and has required structure
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m110:28[22m[39m
+    [90m108| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m109| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m110| [39m      [34mexpect[39m(configExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m111| [39m
+    [90m112| [39m      [35mconst[39m configContent [33m=[39m [35mawait[39m fs[33m.[39m[34mreadFile[39m(configPath[33m,[39m [32m'utf8'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mConfiguration Files Integration[2m > [22mshould validate monitoring.json configuration exists and has required structure
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m144:28[22m[39m
+    [90m142| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m143| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m144| [39m      [34mexpect[39m(configExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m145| [39m
+    [90m146| [39m      [35mconst[39m configContent [33m=[39m [35mawait[39m fs[33m.[39m[34mreadFile[39m(configPath[33m,[39m [32m'utf8'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mConfiguration Files Integration[2m > [22mshould validate feature-flags.json configuration exists
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m171:28[22m[39m
+    [90m169| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m170| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m171| [39m      [34mexpect[39m(configExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m172| [39m
+    [90m173| [39m      [35mconst[39m configContent [33m=[39m [35mawait[39m fs[33m.[39m[34mreadFile[39m(configPath[33m,[39m [32m'utf8'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mDatabase Migration Integration[2m > [22mshould validate migration files exist
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m315:31[22m[39m
+    [90m313| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m314| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m315| [39m      [34mexpect[39m(migrationExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m316| [39m
+    [90m317| [39m      [90m// Check for ModPorter-AI migration[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mPackage.json Scripts Integration[2m > [22mshould validate required npm scripts exist
+[31m[1mError[22m: ENOENT: no such file or directory, open 'C:\Users\ancha\Documents\projects\mineport\dist\package.json'[39m
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m338:30[22m[39m
+    [90m336| [39m    [34mit[39m([32m'should validate required npm scripts exist'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m337| [39m      [35mconst[39m packageJsonPath [33m=[39m path[33m.[39m[34mjoin[39m(projectRoot[33m,[39m [32m'package.json'[39m)[33m;[39m
+    [90m338| [39m      const packageContent = await fs.readFile(packageJsonPath, 'utf8'…
+    [90m   | [39m                             [31m^[39m
+    [90m339| [39m      [35mconst[39m packageJson [33m=[39m [33mJSON[39m[33m.[39m[34mparse[39m(packageContent)[33m;[39m
+    [90m340| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mWorkflow Integration Points[2m > [22mshould validate GitHub Actions workflow files exist
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m393:30[22m[39m
+    [90m391| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m392| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m393| [39m      [34mexpect[39m(workflowExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m394| [39m
+    [90m395| [39m      [35mconst[39m expectedWorkflows [33m=[39m [
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mTest Infrastructure Integration[2m > [22mshould validate test configuration files exist
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m440:34[22m[39m
+    [90m438| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m439| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m440| [39m      [34mexpect[39m(vitestConfigExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m441| [39m
+    [90m442| [39m      [35mconst[39m tsconfigPath [33m=[39m path[33m.[39m[34mjoin[39m(projectRoot[33m,[39m [32m'tsconfig.json'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/infrastructure-integration.test.js[2m > [22mInfrastructure Integration Tests[2m > [22mSecurity Configuration Integration[2m > [22mshould validate security configuration files exist
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/infrastructure-integration.test.ts:[2m477:36[22m[39m
+    [90m475| [39m        [33m.[39m[34mthen[39m(() [33m=>[39m [35mtrue[39m)
+    [90m476| [39m        [33m.[39m[35mcatch[39m(() [33m=>[39m [35mfalse[39m)[33m;[39m
+    [90m477| [39m      [34mexpect[39m(securityConfigExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                   [31m^[39m
+    [90m478| [39m
+    [90m479| [39m      const gitleaksConfigPath = path.join(projectRoot, '.gitleaks.tom…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/job-queue-integration.test.js[2m > [22mJobQueue Integration Tests[2m > [22mEnd-to-End Job Processing[2m > [22mshould handle multiple concurrent jobs
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m128:34[22m[39m
+    [90m126| [39m        (job) [33m=>[39m job [33m&&[39m [[32m'completed'[39m[33m,[39m [32m'failed'[39m][33m.[39m[34mincludes[39m(job[33m.[39mstatus)
+    [90m127| [39m      )[33m;[39m
+    [90m128| [39m      [34mexpect[39m(finalStates[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                 [31m^[39m
+    [90m129| [39m    }[33m,[39m [34m8000[39m)[33m;[39m
+    [90m130| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/job-queue-integration.test.js[2m > [22mJobQueue Integration Tests[2m > [22mResource Management Integration[2m > [22mshould process queued jobs when resources become available
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m232:7[22m[39m
+    [90m230| [39m    })[33m;[39m
+    [90m231| [39m
+    [90m232| [39m    it('should process queued jobs when resources become available', a…
+    [90m   | [39m      [31m^[39m
+    [90m233| [39m      // This test verifies that jobs waiting for resources get proces…
+    [90m234| [39m      [90m// when resources are freed up by completing jobs[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/job-queue-integration.test.js[2m > [22mJobQueue Integration Tests[2m > [22mError Handling and Recovery[2m > [22mshould handle worker failures gracefully
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m290:7[22m[39m
+    [90m288| [39m
+    [90m289| [39m  [34mdescribe[39m([32m'Error Handling and Recovery'[39m[33m,[39m () [33m=>[39m {
+    [90m290| [39m    [34mit[39m([32m'should handle worker failures gracefully'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m      [31m^[39m
+    [90m291| [39m      [35mconst[39m jobData[33m:[39m [33mJobData[39m [33m=[39m {
+    [90m292| [39m        type[33m:[39m [32m'conversion'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/job-queue-integration.test.js[2m > [22mJobQueue Integration Tests[2m > [22mPerformance and Scalability[2m > [22mshould handle burst of job submissions
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/job-queue-integration.test.ts:[2m436:7[22m[39m
+    [90m434| [39m
+    [90m435| [39m  [34mdescribe[39m([32m'Performance and Scalability'[39m[33m,[39m () [33m=>[39m {
+    [90m436| [39m    [34mit[39m([32m'should handle burst of job submissions'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m      [31m^[39m
+    [90m437| [39m      [35mconst[39m jobCount [33m=[39m [34m20[39m[33m;[39m
+    [90m438| [39m      [35mconst[39m startTime [33m=[39m [33mDate[39m[33m.[39m[34mnow[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/modporter-ai-integration.test.js[2m > [22mModPorter-AI Integration Tests[2m > [22mComponent Integration[2m > [22mshould integrate FileProcessor with JavaAnalyzer
+[31m[1mAssertionError[22m: expected 'unknown' to be 'integrationmod' // Object.is equality[39m
+
+Expected: [32m"integrationmod"[39m
+Received: [31m"unknown"[39m
+
+[90m [2m❯[22m tests/integration/modporter-ai-integration.test.ts:[2m207:36[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/modporter-ai-integration.test.js[2m > [22mModPorter-AI Integration Tests[2m > [22mComponent Integration[2m > [22mshould integrate JavaAnalyzer with AssetConverter
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[90m [2m❯[22m tests/integration/modporter-ai-integration.test.ts:[2m238:40[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/modporter-ai-integration.test.js[2m > [22mModPorter-AI Integration Tests[2m > [22mComponent Integration[2m > [22mshould integrate BlockItemGenerator with ValidationPipeline
+[31m[1mAssertionError[22m: expected undefined to be 'test_block' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"test_block"
+
+[31m+ Received:[39m 
+undefined
+
+[90m [2m❯[22m tests/integration/modporter-ai-integration.test.ts:[2m297:9[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/modporter-ai-integration.test.js[2m > [22mModPorter-AI Integration Tests[2m > [22mError Handling Integration[2m > [22mshould propagate critical errors appropriately
+[31m[1mAssertionError[22m: promise resolved "{ jobId: 'job_1758123887443', …(6) }" instead of rejecting[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Error {[39m
+[32m-   "message": "rejected promise",[39m
+[31m+ {[39m
+[31m+   "bedrockAddon": {[39m
+[31m+     "behaviorPack": "behavior_pack",[39m
+[31m+     "resourcePack": "resource_pack",[39m
+[31m+   },[39m
+[31m+   "errors": [],[39m
+[31m+   "jobId": "job_1758123887443",[39m
+[31m+   "result": {[39m
+[31m+     "analysisNotes": [[39m
+[31m+       {[39m
+[31m+         "message": "Successfully processed mod: Invalid",[39m
+[31m+         "type": "info",[39m
+[31m+       },[39m
+[31m+     ],[39m
+[31m+     "bedrockAddon": {[39m
+[31m+       "behaviorPack": "behavior_pack",[39m
+[31m+       "resourcePack": "resource_pack",[39m
+[31m+     },[39m
+[31m+     "convertedFiles": [],[39m
+[31m+     "manifestInfo": {[39m
+[31m+       "author": "Unknown",[39m
+[31m+       "modId": "invalid",[39m
+[31m+       "modName": "Invalid",[39m
+[31m+       "version": "1.0.0",[39m
+[31m+     },[39m
+[31m+     "modId": "invalid",[39m
+[31m+     "registryNames": [[39m
+[31m+       "invalid:example_block",[39m
+[31m+       "invalid:example_item",[39m
+[31m+     ],[39m
+[31m+     "report": {},[39m
+[31m+     "texturePaths": [[39m
+[31m+       "textures/blocks/invalid_block.png",[39m
+[31m+       "textures/items/invalid_item.png",[39m
+[31m+     ],[39m
+[31m+   },[39m
+[31m+   "success": true,[39m
+[31m+   "validation": {[39m
+[31m+     "errors": [],[39m
+[31m+     "isValid": true,[39m
+[31m+     "warnings": [],[39m
+[31m+   },[39m
+[31m+   "warnings": [],[39m
+[2m  }[22m
+
+[90m [2m❯[22m tests/integration/modporter-ai-integration.test.ts:[2m378:8[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/modporter-ai-integration.test.js[2m > [22mModPorter-AI Integration Tests[2m > [22mData Flow Integration[2m > [22mshould maintain data consistency across pipeline
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[90m [2m❯[22m tests/integration/modporter-ai-integration.test.ts:[2m469:40[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/performance-integration.test.js[2m > [22mPerformance Integration Tests[2m > [22mEnd-to-End Performance[2m > [22mshould handle resource allocation efficiently
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/integration/performance-integration.test.ts:[2m345:7[22m[39m
+    [90m343| [39m    })[33m;[39m
+    [90m344| [39m
+    [90m345| [39m    [34mit[39m([32m'should handle resource allocation efficiently'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m      [31m^[39m
+    [90m346| [39m      conversionService[33m.[39m[34mstart[39m()[33m;[39m
+    [90m347| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/integration/ui-backend-integration.test.js[2m > [22mUI Backend Integration[2m > [22mService Lifecycle[2m > [22mshould start and stop conversion service
+[31m[1mTypeError[22m: You must provide a Promise to expect() when using .resolves, not 'undefined'.[39m
+[36m [2m❯[22m tests/integration/ui-backend-integration.test.ts:[2m144:45[22m[39m
+    [90m142| [39m      [90m// Test service lifecycle[39m
+    [90m143| [39m      [34mexpect[39m(() [33m=>[39m conversionService[33m.[39m[34mstart[39m())[33m.[39mnot[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m144| [39m      [35mawait[39m [34mexpect[39m(conversionService[33m.[39m[34mstop[39m())[33m.[39mresolves[33m.[39mnot[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m145| [39m    })[33m;[39m
+    [90m146| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/conversion/conversion-pipeline.test.ts[2m > [22mConversion Pipeline Integration[2m > [22mshould translate Java logic through unified engine
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/conversion/conversion-pipeline.test.ts:[2m223:33[22m[39m
+    [90m221| [39m    })[33m;[39m
+    [90m222| [39m
+    [90m223| [39m    [34mexpect[39m(logicResult[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m224| [39m    [34mexpect[39m(
+    [90m225| [39m      validateModuleInteraction('LogicTranslationEngine', 'Output', ja…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/conversion/conversion-pipeline.test.ts[2m > [22mConversion Pipeline Integration[2m > [22mshould handle complete pipeline with error aggregation
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/conversion/conversion-pipeline.test.ts:[2m266:36[22m[39m
+    [90m264| [39m    const pipelineResult = await conversionPipeline.convert(conversion…
+    [90m265| [39m
+    [90m266| [39m    [34mexpect[39m(pipelineResult[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                   [31m^[39m
+    [90m267| [39m    [34mexpect[39m(pipelineResult[33m.[39moutputPath)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m268| [39m    [34mexpect[39m(pipelineResult[33m.[39maddonPath)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/ingestion/ingestion-pipeline.test.ts[2m > [22mIngestion Pipeline Integration[2m > [22mshould process a mod through the complete ingestion pipeline
+[41m[1m FAIL [22m[49m dist/tests/integration/ingestion/ingestion-pipeline.test.js[2m > [22mIngestion Pipeline Integration[2m > [22mshould process a mod through the complete ingestion pipeline
+[31m[1mAssertionError[22m: expected 'unknown' to be 'forge' // Object.is equality[39m
+
+Expected: [32m"forge"[39m
+Received: [31m"unknown"[39m
+
+[36m [2m❯[22m tests/integration/ingestion/ingestion-pipeline.test.ts:[2m44:40[22m[39m
+    [90m 42| [39m    [34mexpect[39m(validationResult[33m.[39mvalid)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m 43| [39m    [34mexpect[39m(validationResult[33m.[39mmodId)[33m.[39m[34mtoBe[39m([32m'test-mod'[39m)[33m;[39m
+    [90m 44| [39m    [34mexpect[39m(validationResult[33m.[39mmodLoader)[33m.[39m[34mtoBe[39m([32m'forge'[39m)[33m;[39m
+    [90m   | [39m                                       [31m^[39m
+    [90m 45| [39m
+    [90m 46| [39m    [90m// Extract the mod to a directory[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/ingestion/ingestion-pipeline.test.ts[2m > [22mIngestion Pipeline Integration[2m > [22mshould handle source code fetching and analysis
+[41m[1m FAIL [22m[49m dist/tests/integration/ingestion/ingestion-pipeline.test.js[2m > [22mIngestion Pipeline Integration[2m > [22mshould handle source code fetching and analysis
+[31m[1mReferenceError[22m: repoDir is not defined[39m
+[36m [2m❯[22m MockSourceCodeFetcher.fetchSourceCode tests/integration/ingestion/ingestion-pipeline.test.ts:[2m86:23[22m[39m
+    [90m 84| [39m          [35masync[39m [34mfetchSourceCode[39m(repoInfo[33m:[39m any[33m,[39m outputDir[33m:[39m string) {
+    [90m 85| [39m            [90m// Instead of fetching from GitHub, copy our mock repo[39m
+    [90m 86| [39m            fs[33m.[39m[34mcpSync[39m(repoDir[33m,[39m outputDir[33m,[39m { recursive[33m:[39m [35mtrue[39m })[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 87| [39m            [35mreturn[39m {
+    [90m 88| [39m              success[33m:[39m [35mtrue[39m[33m,[39m
+[90m [2m❯[22m tests/integration/ingestion/ingestion-pipeline.test.ts:[2m110:49[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/ingestion/ingestion-pipeline.test.ts[2m > [22mIngestion Pipeline Integration[2m > [22mshould handle mods with different loaders consistently
+[41m[1m FAIL [22m[49m dist/tests/integration/ingestion/ingestion-pipeline.test.js[2m > [22mIngestion Pipeline Integration[2m > [22mshould handle mods with different loaders consistently
+[31m[1mAssertionError[22m: expected 'unknown' to be 'fabric' // Object.is equality[39m
+
+Expected: [32m"fabric"[39m
+Received: [31m"unknown"[39m
+
+[36m [2m❯[22m tests/integration/ingestion/ingestion-pipeline.test.ts:[2m142:40[22m[39m
+    [90m140| [39m    [34mexpect[39m(validationResult[33m.[39mvalid)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m141| [39m    [34mexpect[39m(validationResult[33m.[39mmodId)[33m.[39m[34mtoBe[39m([32m'test-fabric-mod'[39m)[33m;[39m
+    [90m142| [39m    [34mexpect[39m(validationResult[33m.[39mmodLoader)[33m.[39m[34mtoBe[39m([32m'fabric'[39m)[33m;[39m
+    [90m   | [39m                                       [31m^[39m
+    [90m143| [39m
+    [90m144| [39m    [90m// Extract the mod[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/packaging/packaging-pipeline.test.ts[2m > [22mPackaging Pipeline Integration[2m > [22mshould embed license information
+[41m[1m FAIL [22m[49m dist/tests/integration/packaging/packaging-pipeline.test.js[2m > [22mPackaging Pipeline Integration[2m > [22mshould embed license information
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/packaging/packaging-pipeline.test.ts:[2m241:70[22m[39m
+    [90m239| [39m
+    [90m240| [39m    [34mexpect[39m(licenseResult[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m241| [39m    expect(fs.existsSync(path.join(behaviorPackDir, 'LICENSE.txt'))).t…
+    [90m   | [39m                                                                     [31m^[39m
+    [90m242| [39m    expect(fs.existsSync(path.join(resourcePackDir, 'LICENSE.txt'))).t…
+    [90m243| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/packaging/packaging-pipeline.test.ts[2m > [22mPackaging Pipeline Integration[2m > [22mshould validate the addon
+[41m[1m FAIL [22m[49m dist/tests/integration/packaging/packaging-pipeline.test.js[2m > [22mPackaging Pipeline Integration[2m > [22mshould validate the addon
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/integration/packaging/packaging-pipeline.test.ts:[2m254:35[22m[39m
+    [90m252| [39m      resourcePackPath[33m:[39m resourcePackDir[33m,[39m
+    [90m253| [39m    })[33m;[39m
+    [90m254| [39m    [34mexpect[39m(addonValidation[33m.[39mvalid)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                  [31m^[39m
+    [90m255| [39m  })[33m;[39m
+    [90m256| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/packaging/packaging-pipeline.test.ts[2m > [22mPackaging Pipeline Integration[2m > [22mshould generate a conversion report
+[41m[1m FAIL [22m[49m dist/tests/integration/packaging/packaging-pipeline.test.js[2m > [22mPackaging Pipeline Integration[2m > [22mshould generate a conversion report
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'filter')[39m
+[36m [2m❯[22m ConversionReportGenerator.calculateQualityMetrics src/modules/packaging/ConversionReportGenerator.ts:[2m166:46[22m[39m
+    [90m164| [39m    [35mconst[39m totalAssets [33m=[39m
+    [90m165| [39m      input.assets.textures + input.assets.models + input.assets.sound…
+    [90m166| [39m    [35mconst[39m assetNotes [33m=[39m input[33m.[39mconversionNotes[33m.[39m[34mfilter[39m(
+    [90m   | [39m                                             [31m^[39m
+    [90m167| [39m      (note) [33m=>[39m
+    [90m168| [39m        note[33m.[39mtype [33m===[39m [32m'texture'[39m [33m||[39m
+[90m [2m❯[22m ConversionReportGenerator.generateReport src/modules/packaging/ConversionReportGenerator.ts:[2m118:33[22m[39m
+[90m [2m❯[22m tests/integration/packaging/packaging-pipeline.test.ts:[2m262:42[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/packaging/packaging-pipeline.test.ts[2m > [22mPackaging Pipeline Integration[2m > [22mshould generate manual post-processing guide
+[41m[1m FAIL [22m[49m dist/tests/integration/packaging/packaging-pipeline.test.js[2m > [22mPackaging Pipeline Integration[2m > [22mshould generate manual post-processing guide
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'tier3')[39m
+[36m [2m❯[22m ManualPostProcessingGuide.generatePostProcessingSteps src/modules/packaging/ManualPostProcessingGuide.ts:[2m115:46[22m[39m
+    [90m113| [39m
+    [90m114| [39m    [90m// Add steps for tier3 features (Natively Impossible)[39m
+    [90m115| [39m    this.addTier3FeatureSteps(input.features.tier3, input.compromiseRe…
+    [90m   | [39m                                             [31m^[39m
+    [90m116| [39m
+    [90m117| [39m    [90m// Add steps for tier4 features (Unanalyzable)[39m
+[90m [2m❯[22m ManualPostProcessingGuide.generateGuide src/modules/packaging/ManualPostProcessingGuide.ts:[2m80:24[22m[39m
+[90m [2m❯[22m tests/integration/packaging/packaging-pipeline.test.ts:[2m328:40[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/89]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/packaging/packaging-pipeline.test.ts[2m > [22mPackaging Pipeline Integration[2m > [22mshould package the addon
+[41m[1m FAIL [22m[49m dist/tests/integration/packaging/packaging-pipeline.test.js[2m > [22mPackaging Pipeline Integration[2m > [22mshould package the addon
+[31m[1mTypeError[22m: input.bedrockScripts is not iterable[39m
+[36m [2m❯[22m AddonPackager.assembleBehaviorPack src/modules/packaging/AddonPackager.ts:[2m208:32[22m[39m
+    [90m206| [39m     * @since 1.0.0
+    [90m207| [39m     */[39m
+    [90m208| [39m    [35mfor[39m ([35mconst[39m script [35mof[39m input[33m.[39mbedrockScripts) {
+    [90m   | [39m                               [31m^[39m
+    [90m209| [39m      [35mconst[39m scriptPath [33m=[39m path[33m.[39m[34mjoin[39m(scriptsDir[33m,[39m script[33m.[39mpath)[33m;[39m
+    [90m210| [39m      [35mawait[39m [35mthis[39m[33m.[39m[34mensureDirectoryExists[39m(path[33m.[39m[34mdirname[39m(scriptPath))[33m;[39m
+[90m [2m❯[22m AddonPackager.createAddon src/modules/packaging/AddonPackager.ts:[2m138:5[22m[39m
+[90m [2m❯[22m tests/integration/packaging/packaging-pipeline.test.ts:[2m367:27[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/89]⎯[22m[39m
+
+</pre>
+            </div>
+            
+        </div>
+        
+        <div class="suite">
+            <div class="suite-header">
+                <span class="suite-name">Security Tests</span>
+                <div>
+                    <span class="status-badge status-failed">FAILED</span>
+                    <span class="duration">1.7s</span>
+                </div>
+            </div>
+            
+            <div class="error-details">
+                <strong>Error:</strong>
+                <pre>
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 9 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/security/input-validation.test.ts[2m > [22mInput Validation Security Tests[2m > [22mModValidator[2m > [22mshould reject malformed JAR files
+[41m[1m FAIL [22m[49m dist/tests/security/input-validation.test.js[2m > [22mInput Validation Security Tests[2m > [22mModValidator[2m > [22mshould reject malformed JAR files
+[31m[1mAssertionError[22m: expected [ …(2) ] to include 'Invalid JAR file format'[39m
+[36m [2m❯[22m tests/security/input-validation.test.ts:[2m31:29[22m[39m
+    [90m 29| [39m      [90m// Should reject the file[39m
+    [90m 30| [39m      [34mexpect[39m(result[33m.[39misValid)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m 31| [39m      [34mexpect[39m(result[33m.[39merrors)[33m.[39m[34mtoContain[39m([32m'Invalid JAR file format'[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 32| [39m    })[33m;[39m
+    [90m 33| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/security/input-validation.test.ts[2m > [22mInput Validation Security Tests[2m > [22mFile Path Validation[2m > [22mshould sanitize file paths
+[41m[1m FAIL [22m[49m dist/tests/security/input-validation.test.js[2m > [22mInput Validation Security Tests[2m > [22mFile Path Validation[2m > [22mshould sanitize file paths
+[31m[1mAssertionError[22m: expected 'dir\file.txt' to be 'dir/file.txt' // Object.is equality[39m
+
+Expected: [32m"dir[7m/[27mfile.txt"[39m
+Received: [31m"dir[7m\[27mfile.txt"[39m
+
+[36m [2m❯[22m tests/security/input-validation.test.ts:[2m132:44[22m[39m
+    [90m130| [39m      [90m// Valid paths[39m
+    [90m131| [39m      [34mexpect[39m([34msanitizePath[39m([32m'file.txt'[39m))[33m.[39m[34mtoBe[39m([32m'file.txt'[39m)[33m;[39m
+    [90m132| [39m      [34mexpect[39m([34msanitizePath[39m([32m'dir/file.txt'[39m))[33m.[39m[34mtoBe[39m([32m'dir/file.txt'[39m)[33m;[39m
+    [90m   | [39m                                           [31m^[39m
+    [90m133| [39m      [34mexpect[39m([34msanitizePath[39m([32m'./file.txt'[39m))[33m.[39m[34mtoBe[39m([32m'file.txt'[39m)[33m;[39m
+    [90m134| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/security/modporter-ai-security.test.js[2m > [22mModPorter-AI Security Tests[2m > [22mZIP Bomb Detection[2m > [22mshould detect ZIP bomb with high compression ratio
+[31m[1mAssertionError[22m: expected [ { type: 'zip_bomb', …(3) } ] to deep equally contain ObjectContaining{…}[39m
+
+[32m- Expected:[39m 
+ObjectContaining {
+  "severity": "high",
+  "type": "zip_bomb",
+}
+
+[31m+ Received:[39m 
+[
+  {
+    "description": "Potential ZIP bomb detected - compression ratio: 1014.10, uncompressed size: 1048576 bytes",
+    "details": {
+      "compressionRatio": 1014.0967117988395,
+      "extractedSize": 1048576,
+    },
+    "severity": "error",
+    "type": "zip_bomb",
+  },
+]
+
+[90m [2m❯[22m tests/security/modporter-ai-security.test.ts:[2m41:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/security/modporter-ai-security.test.js[2m > [22mModPorter-AI Security Tests[2m > [22mZIP Bomb Detection[2m > [22mshould detect nested ZIP bomb
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[90m [2m❯[22m tests/security/modporter-ai-security.test.ts:[2m64:65[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/security/modporter-ai-security.test.js[2m > [22mModPorter-AI Security Tests[2m > [22mPath Traversal Prevention[2m > [22mshould detect path traversal attempts with ../
+[31m[1mAssertionError[22m: expected [] to deep equally contain ObjectContaining{…}[39m
+
+[32m- Expected:[39m 
+ObjectContaining {
+  "severity": "high",
+  "type": "path_traversal",
+}
+
+[31m+ Received:[39m 
+[]
+
+[90m [2m❯[22m tests/security/modporter-ai-security.test.ts:[2m96:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/security/modporter-ai-security.test.js[2m > [22mModPorter-AI Security Tests[2m > [22mMalware Detection[2m > [22mshould detect suspicious Java code patterns
+[31m[1mAssertionError[22m: expected [ { type: 'malicious_code', …(3) } ] to deep equally contain ObjectContaining{…}[39m
+
+[32m- Expected:[39m 
+ObjectContaining {
+  "severity": StringMatching /medium|high/,
+  "type": "malicious_code",
+}
+
+[31m+ Received:[39m 
+[
+  {
+    "description": "Suspicious code patterns detected in 1 files",
+    "details": {
+      "patterns": [
+        "Runtime.getRuntime().exec",
+      ],
+      "suspiciousFiles": [
+        "MaliciousClass.java",
+      ],
+    },
+    "severity": "warning",
+    "type": "malicious_code",
+  },
+]
+
+[90m [2m❯[22m tests/security/modporter-ai-security.test.ts:[2m157:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/security/modporter-ai-security.test.js[2m > [22mModPorter-AI Security Tests[2m > [22mFile Validation[2m > [22mshould reject files exceeding size limit
+[31m[1mAssertionError[22m: expected [ …(3) ] to deep equally contain ObjectContaining{…}[39m
+
+[32m- Expected:[39m 
+ObjectContaining {
+  "code": StringContaining "SIZE",
+  "severity": "critical",
+}
+
+[31m+ Received:[39m 
+[
+  {
+    "code": "FILE_TOO_LARGE",
+    "details": {
+      "actualSize": 629145600,
+      "maxSize": 524288000,
+    },
+    "message": "File size 629145600 bytes exceeds maximum allowed size of 524288000 bytes",
+    "severity": "critical",
+  },
+  {
+    "code": "INVALID_MAGIC_NUMBER",
+    "details": {
+      "actual": [
+        0,
+        0,
+        0,
+        0,
+      ],
+      "expected": [
+        80,
+        75,
+        3,
+        4,
+      ],
+      "expectedExtension": ".jar",
+    },
+    "message": "Invalid magic number for .jar file",
+    "severity": "error",
+  },
+  {
+    "code": "INVALID_MIME_TYPE",
+    "details": {
+      "detectedType": "application/java-archive",
+      "extension": ".jar",
+    },
+    "message": "File with .jar extension does not have valid ZIP/JAR structure",
+    "severity": "critical",
+  },
+]
+
+[90m [2m❯[22m tests/security/modporter-ai-security.test.ts:[2m229:29[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯[22m[39m
+
+</pre>
+            </div>
+            
+        </div>
+        
+        <div class="suite">
+            <div class="suite-header">
+                <span class="suite-name">Performance Tests</span>
+                <div>
+                    <span class="status-badge status-failed">FAILED</span>
+                    <span class="duration">22.2s</span>
+                </div>
+            </div>
+            
+            <div class="error-details">
+                <strong>Error:</strong>
+                <pre>(node:2452) [DEP0152] DeprecationWarning: Custom PerformanceEntry accessors are deprecated. Please use the detail property.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:59412) [DEP0152] DeprecationWarning: Custom PerformanceEntry accessors are deprecated. Please use the detail property.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 6 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/benchmark/performance-optimization.test.ts[2m > [22mPerformance Optimization Tests[2m > [22mResourceAllocator Performance[2m > [22mshould efficiently manage resource pools
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/benchmark/performance-optimization.test.ts:[2m116:5[22m[39m
+    [90m114| [39m
+    [90m115| [39m  [34mdescribe[39m([32m'ResourceAllocator Performance'[39m[33m,[39m () [33m=>[39m {
+    [90m116| [39m    [34mit[39m([32m'should efficiently manage resource pools'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m    [31m^[39m
+    [90m117| [39m      [35mconst[39m allocator [33m=[39m [35mnew[39m [33mResourceAllocator[39m(tempDir)[33m;[39m
+    [90m118| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/benchmark/performance-optimization.test.ts[2m > [22mPerformance Optimization Tests[2m > [22mCacheService Performance[2m > [22mshould provide fast cache operations
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/benchmark/performance-optimization.test.ts:[2m197:5[22m[39m
+    [90m195| [39m
+    [90m196| [39m  [34mdescribe[39m([32m'CacheService Performance'[39m[33m,[39m () [33m=>[39m {
+    [90m197| [39m    [34mit[39m([32m'should provide fast cache operations'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m    [31m^[39m
+    [90m198| [39m      [35mconst[39m cache [33m=[39m [35mnew[39m [33mCacheService[39m({
+    [90m199| [39m        maxSize[33m:[39m [34m1000[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/benchmark/performance-optimization.test.ts[2m > [22mPerformance Optimization Tests[2m > [22mMemory Management[2m > [22mshould maintain stable memory usage under load
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/benchmark/performance-optimization.test.ts:[2m393:5[22m[39m
+    [90m391| [39m
+    [90m392| [39m  [34mdescribe[39m([32m'Memory Management'[39m[33m,[39m () [33m=>[39m {
+    [90m393| [39m    [34mit[39m([32m'should maintain stable memory usage under load'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m    [31m^[39m
+    [90m394| [39m      [35mconst[39m initialMemory [33m=[39m process[33m.[39m[34mmemoryUsage[39m()[33m.[39mheapUsed[33m;[39m
+    [90m395| [39m      const cache = new CacheService({ maxSize: 100, enablePersistence…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/benchmark/performance-optimization.test.js[2m > [22mPerformance Optimization Tests[2m > [22mResourceAllocator Performance[2m > [22mshould efficiently manage resource pools
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/benchmark/performance-optimization.test.ts:[2m116:7[22m[39m
+    [90m114| [39m
+    [90m115| [39m  [34mdescribe[39m([32m'ResourceAllocator Performance'[39m[33m,[39m () [33m=>[39m {
+    [90m116| [39m    [34mit[39m([32m'should efficiently manage resource pools'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m      [31m^[39m
+    [90m117| [39m      [35mconst[39m allocator [33m=[39m [35mnew[39m [33mResourceAllocator[39m(tempDir)[33m;[39m
+    [90m118| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/benchmark/performance-optimization.test.js[2m > [22mPerformance Optimization Tests[2m > [22mCacheService Performance[2m > [22mshould provide fast cache operations
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/benchmark/performance-optimization.test.ts:[2m197:7[22m[39m
+    [90m195| [39m
+    [90m196| [39m  [34mdescribe[39m([32m'CacheService Performance'[39m[33m,[39m () [33m=>[39m {
+    [90m197| [39m    [34mit[39m([32m'should provide fast cache operations'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m      [31m^[39m
+    [90m198| [39m      [35mconst[39m cache [33m=[39m [35mnew[39m [33mCacheService[39m({
+    [90m199| [39m        maxSize[33m:[39m [34m1000[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m dist/tests/benchmark/performance-optimization.test.js[2m > [22mPerformance Optimization Tests[2m > [22mMemory Management[2m > [22mshould maintain stable memory usage under load
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/benchmark/performance-optimization.test.ts:[2m393:7[22m[39m
+    [90m391| [39m
+    [90m392| [39m  [34mdescribe[39m([32m'Memory Management'[39m[33m,[39m () [33m=>[39m {
+    [90m393| [39m    [34mit[39m([32m'should maintain stable memory usage under load'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   | [39m      [31m^[39m
+    [90m394| [39m      [35mconst[39m initialMemory [33m=[39m process[33m.[39m[34mmemoryUsage[39m()[33m.[39mheapUsed[33m;[39m
+    [90m395| [39m      const cache = new CacheService({ maxSize: 100, enablePersistence…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+</pre>
+            </div>
+            
+        </div>
+        
+        <div class="suite">
+            <div class="suite-header">
+                <span class="suite-name">End-to-End Tests</span>
+                <div>
+                    <span class="status-badge status-passed">PASSED</span>
+                    <span class="duration">1.8s</span>
+                </div>
+            </div>
+            
+        </div>
+        
+
+        
+    </div>
+</body>
+</html>
+    

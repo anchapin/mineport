@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ResourceAllocator, ResourceType, ResourceAllocationStrategy } from '../../../src/services/ResourceAllocator';
+import {
+  ResourceAllocator,
+  ResourceAllocationStrategy,
+} from '../../../src/services/ResourceAllocator.js';
 
 describe('ResourceAllocator', () => {
   let resourceAllocator: ResourceAllocator;
@@ -18,15 +21,13 @@ describe('ResourceAllocator', () => {
       cpu: 1, // 1 core
       storage: 1024, // 1GB
     });
-    
+
     expect(allocation).toBeDefined();
     expect(allocation.id).toBeDefined();
-    expect(allocation.resources).toEqual({
-      memory: 256,
-      cpu: 1,
-      storage: 1024,
-    });
-    expect(allocation.timestamp).toBeInstanceOf(Date);
+    expect(allocation.memory).toBe(256);
+    expect(allocation.cpu).toBe(1);
+    expect(allocation.storage).toBe(1024);
+    expect(allocation.createdAt).toBeInstanceOf(Date);
   });
 
   it('should track resource usage correctly', () => {
@@ -36,13 +37,13 @@ describe('ResourceAllocator', () => {
       cpu: 1,
       storage: 1024,
     });
-    
+
     resourceAllocator.allocate({
       memory: 512,
       cpu: 2,
       storage: 2048,
     });
-    
+
     // Check current usage
     const usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(768); // 256 + 512
@@ -57,14 +58,14 @@ describe('ResourceAllocator', () => {
       cpu: 1,
       storage: 1024,
     });
-    
+
     // Check initial usage
     let usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(256);
-    
+
     // Release resources
     resourceAllocator.release(allocation.id);
-    
+
     // Check usage after release
     usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(0);
@@ -90,29 +91,29 @@ describe('ResourceAllocator', () => {
       cpu: 1,
       storage: 1024,
     });
-    
+
     const allocation2 = resourceAllocator.allocate({
       memory: 512,
       cpu: 2,
       storage: 2048,
     });
-    
+
     // Check usage
     let usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(768);
-    
+
     // Release first allocation
     resourceAllocator.release(allocation1.id);
-    
+
     // Check usage after first release
     usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(512);
     expect(usage.cpu).toBe(2);
     expect(usage.storage).toBe(2048);
-    
+
     // Release second allocation
     resourceAllocator.release(allocation2.id);
-    
+
     // Check usage after second release
     usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(0);
@@ -127,7 +128,7 @@ describe('ResourceAllocator', () => {
       cpu: 1,
       storage: 1024,
     });
-    
+
     // Check availability
     const availability = resourceAllocator.getAvailability();
     expect(availability.memory).toBe(768); // 1024 - 256
@@ -143,17 +144,17 @@ describe('ResourceAllocator', () => {
       maxStorage: 10240,
       strategy: ResourceAllocationStrategy.CONSERVATIVE,
     });
-    
+
     // Allocate with conservative strategy
     const allocation = conservativeAllocator.allocate({
       memory: 256,
       cpu: 1,
       storage: 1024,
     });
-    
+
     // Conservative strategy adds a buffer
-    expect(allocation.resources.memory).toBeGreaterThan(256);
-    
+    expect(allocation.memory).toBeGreaterThan(256);
+
     // Create a resource allocator with an aggressive strategy
     const aggressiveAllocator = new ResourceAllocator({
       maxMemory: 1024,
@@ -161,16 +162,16 @@ describe('ResourceAllocator', () => {
       maxStorage: 10240,
       strategy: ResourceAllocationStrategy.AGGRESSIVE,
     });
-    
+
     // Allocate with aggressive strategy
     const aggressiveAllocation = aggressiveAllocator.allocate({
       memory: 256,
       cpu: 1,
       storage: 1024,
     });
-    
+
     // Aggressive strategy uses exact requested resources
-    expect(aggressiveAllocation.resources.memory).toBe(256);
+    expect(aggressiveAllocation.memory).toBe(256);
   });
 
   it('should handle resource timeouts', () => {
@@ -178,37 +179,38 @@ describe('ResourceAllocator', () => {
     const realDateNow = Date.now;
     const mockNow = vi.fn();
     Date.now = mockNow;
-    
+
     // Initial time
     mockNow.mockReturnValue(1000);
-    
+
     // Allocate resources with timeout
-    const allocation = resourceAllocator.allocate({
+    resourceAllocator.allocate({
       memory: 256,
       cpu: 1,
       storage: 1024,
-    }, 60000); // 60 second timeout
-    
+      timeout: 60000, // 60 second timeout
+    });
+
     // Check initial usage
     let usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(256);
-    
+
     // Move time forward but not past timeout
     mockNow.mockReturnValue(30000);
     resourceAllocator.cleanupExpiredAllocations();
-    
+
     // Resources should still be allocated
     usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(256);
-    
+
     // Move time past timeout
     mockNow.mockReturnValue(70000);
     resourceAllocator.cleanupExpiredAllocations();
-    
+
     // Resources should be released
     usage = resourceAllocator.getCurrentUsage();
     expect(usage.memory).toBe(0);
-    
+
     // Restore Date.now
     Date.now = realDateNow;
   });
@@ -220,14 +222,14 @@ describe('ResourceAllocator', () => {
       maxCpu: 4,
       maxStorage: 10240,
     });
-    
+
     // Allocate most of the resources
     resourceAllocator.allocate({
       memory: 768,
       cpu: 3,
       storage: 8192,
     });
-    
+
     // Try to allocate two more jobs with different priorities
     const lowPriorityRequest = {
       memory: 128,
@@ -235,18 +237,18 @@ describe('ResourceAllocator', () => {
       storage: 1024,
       priority: 1,
     };
-    
+
     const highPriorityRequest = {
       memory: 128,
       cpu: 0.5,
       storage: 1024,
       priority: 10,
     };
-    
+
     // With limited resources, the high priority job should get resources
     const highPriorityAllocation = resourceAllocator.allocate(highPriorityRequest);
     expect(highPriorityAllocation).toBeDefined();
-    
+
     // The low priority job should be rejected
     expect(() => {
       resourceAllocator.allocate(lowPriorityRequest);

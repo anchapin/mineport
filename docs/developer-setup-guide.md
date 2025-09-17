@@ -459,7 +459,7 @@ logger.error('Error occurred', { error });
 2. **Get API credentials** from your provider
 3. **Add to `.env` file**:
    ```env
-   LLM_API_KEY=your_api_key
+   LLM_API_KEY=your-llm-key-placeholder
    LLM_API_URL=https://api.your-provider.com
    ```
 

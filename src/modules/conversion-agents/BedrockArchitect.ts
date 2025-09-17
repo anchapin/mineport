@@ -1,19 +1,26 @@
 /**
  * BedrockArchitect - Addon structure generation agent
- * 
+ *
  * Handles generation of proper Bedrock addon structure with manifests and organization
  */
 
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import { 
-  AddonStructure, 
-  PackStructure, 
+import {
+  AddonStructure,
+  PackStructure,
   OutputFile,
-  ConversionResult,
-  ConversionMetadata
-} from './types';
-import { ConversionError, AssetConversionNote, createConversionError, ErrorType, ErrorSeverity, createErrorCode } from '../../types/errors';
+  ConversionAgentResult,
+  ConversionMetadata,
+} from './types.js';
+import {
+  ConversionError,
+  AssetConversionNote,
+  createConversionError,
+  ErrorType,
+  ErrorSeverity,
+  createErrorCode,
+} from '../../types/errors.js';
 
 /**
  * Information about the mod being converted
@@ -50,7 +57,7 @@ export interface ManifestPair {
  */
 export class BedrockArchitect {
   private static readonly MODULE_NAME = 'BedrockArchitect';
-  
+
   // Bedrock format constants
   private static readonly MANIFEST_FORMAT_VERSION = 2;
   private static readonly DEFAULT_MIN_ENGINE_VERSION = [1, 20, 0];
@@ -63,29 +70,29 @@ export class BedrockArchitect {
   async generateAddonStructure(modInfo: ModInfo): Promise<AddonStructure> {
     const behaviorPackId = uuidv4();
     const resourcePackId = uuidv4();
-    
+
     // Create manifests
     const manifests = await this.createManifests(modInfo, behaviorPackId, resourcePackId);
-    
+
     // Define directory structures
     const behaviorPack: PackStructure = {
       manifest: manifests.behaviorPack,
       directories: {
-        'blocks': [],
-        'items': [],
-        'recipes': [],
-        'loot_tables': [],
-        'functions': [],
-        'structures': [],
-        'feature_rules': [],
-        'features': [],
-        'biomes': [],
-        'entities': [],
-        'spawn_rules': [],
-        'trading': [],
-        'dialogue': []
+        blocks: [],
+        items: [],
+        recipes: [],
+        loot_tables: [],
+        functions: [],
+        structures: [],
+        feature_rules: [],
+        features: [],
+        biomes: [],
+        entities: [],
+        spawn_rules: [],
+        trading: [],
+        dialogue: [],
       },
-      files: {}
+      files: {},
     };
 
     const resourcePack: PackStructure = {
@@ -100,42 +107,43 @@ export class BedrockArchitect {
         'models/blocks': [],
         'models/items': [],
         'models/entity': [],
-        'animations': [],
-        'animation_controllers': [],
-        'attachables': [],
-        'entity': [],
-        'fogs': [],
-        'materials': [],
-        'particles': [],
-        'render_controllers': [],
-        'sounds': [],
-        'ui': []
+        animations: [],
+        animation_controllers: [],
+        attachables: [],
+        entity: [],
+        fogs: [],
+        materials: [],
+        particles: [],
+        render_controllers: [],
+        sounds: [],
+        ui: [],
       },
-      files: {}
+      files: {},
     };
 
-    const sharedFiles = [
-      'pack_icon.png',
-      'README.md',
-      'CHANGELOG.md'
-    ];
+    const sharedFiles = ['pack_icon.png', 'README.md', 'CHANGELOG.md'];
 
     return {
       behaviorPack,
       resourcePack,
-      sharedFiles
+      sharedFiles,
     };
   }
 
   /**
    * Create manifests for both behavior and resource packs
    */
-  async createManifests(modInfo: ModInfo, behaviorPackId?: string, resourcePackId?: string): Promise<ManifestPair> {
+  async createManifests(
+    modInfo: ModInfo,
+    behaviorPackId?: string,
+    resourcePackId?: string
+  ): Promise<ManifestPair> {
     const bpId = behaviorPackId || uuidv4();
     const rpId = resourcePackId || uuidv4();
-    
-    const minEngineVersion = modInfo.minEngineVersion || BedrockArchitect.DEFAULT_MIN_ENGINE_VERSION;
-    
+
+    const minEngineVersion =
+      modInfo.minEngineVersion || BedrockArchitect.DEFAULT_MIN_ENGINE_VERSION;
+
     const behaviorPack = {
       format_version: BedrockArchitect.MANIFEST_FORMAT_VERSION,
       header: {
@@ -143,29 +151,29 @@ export class BedrockArchitect {
         description: modInfo.description || `Behavior pack for ${modInfo.name}`,
         uuid: bpId,
         version: this.parseVersion(modInfo.version),
-        min_engine_version: minEngineVersion
+        min_engine_version: minEngineVersion,
       },
       modules: [
         {
           type: BedrockArchitect.PACK_TYPE_BEHAVIOR,
           uuid: uuidv4(),
-          version: this.parseVersion(modInfo.version)
-        }
+          version: this.parseVersion(modInfo.version),
+        },
       ],
       dependencies: [
         {
           uuid: rpId,
-          version: this.parseVersion(modInfo.version)
-        }
+          version: this.parseVersion(modInfo.version),
+        },
       ],
       metadata: {
         authors: modInfo.author ? [modInfo.author] : [],
         license: 'MIT',
         generated_with: {
           tool: 'minecraft-mod-converter',
-          version: '0.1.0'
-        }
-      }
+          version: '0.1.0',
+        },
+      },
     };
 
     const resourcePack = {
@@ -175,35 +183,38 @@ export class BedrockArchitect {
         description: modInfo.description || `Resource pack for ${modInfo.name}`,
         uuid: rpId,
         version: this.parseVersion(modInfo.version),
-        min_engine_version: minEngineVersion
+        min_engine_version: minEngineVersion,
       },
       modules: [
         {
           type: BedrockArchitect.PACK_TYPE_RESOURCE,
           uuid: uuidv4(),
-          version: this.parseVersion(modInfo.version)
-        }
+          version: this.parseVersion(modInfo.version),
+        },
       ],
       metadata: {
         authors: modInfo.author ? [modInfo.author] : [],
         license: 'MIT',
         generated_with: {
           tool: 'minecraft-mod-converter',
-          version: '0.1.0'
-        }
-      }
+          version: '0.1.0',
+        },
+      },
     };
 
     return {
       behaviorPack,
-      resourcePack
+      resourcePack,
     };
   }
 
   /**
    * Organize assets into the proper addon structure
    */
-  async organizeAssets(assets: AssetInfo[], structure: AddonStructure): Promise<ConversionResult> {
+  async organizeAssets(
+    assets: AssetInfo[],
+    structure: AddonStructure
+  ): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -215,13 +226,13 @@ export class BedrockArchitect {
     outputFiles.push({
       path: 'behavior_pack/manifest.json',
       content: JSON.stringify(structure.behaviorPack.manifest, null, 2),
-      type: 'manifest'
+      type: 'manifest',
     });
 
     outputFiles.push({
       path: 'resource_pack/manifest.json',
       content: JSON.stringify(structure.resourcePack.manifest, null, 2),
-      type: 'manifest'
+      type: 'manifest',
     });
 
     // Organize assets by type and pack
@@ -231,26 +242,26 @@ export class BedrockArchitect {
         if (asset.content === null || asset.content === undefined) {
           throw new Error('Asset content is null or undefined');
         }
-        
+
         const organizedPath = this.getOrganizedPath(asset);
         const packType = this.determinePackType(asset.type);
         const fullPath = `${packType}/${organizedPath}`;
-        
+
         outputFiles.push({
           path: fullPath,
           content: asset.content,
-          type: asset.type,
-          originalPath: asset.path
+          type: asset.type === 'particle' || asset.type === 'animation' ? 'other' : asset.type,
+          originalPath: asset.path,
         });
 
         // Update structure tracking
         this.updateStructureTracking(structure, asset, organizedPath, packType);
-        
+
         successCount++;
-        totalSize += typeof asset.content === 'string' ? 
-          Buffer.byteLength(asset.content, 'utf8') : 
-          asset.content.length;
-          
+        totalSize +=
+          typeof asset.content === 'string'
+            ? Buffer.byteLength(asset.content, 'utf8')
+            : asset.content.length;
       } catch (error) {
         const conversionError = createConversionError({
           code: createErrorCode('ARCH', 'ORG', 1),
@@ -258,7 +269,7 @@ export class BedrockArchitect {
           severity: ErrorSeverity.ERROR,
           message: `Failed to organize asset ${asset.path}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           moduleOrigin: BedrockArchitect.MODULE_NAME,
-          details: { assetPath: asset.path, assetType: asset.type }
+          details: { assetPath: asset.path, assetType: asset.type },
         });
         errors.push(conversionError);
       }
@@ -272,7 +283,7 @@ export class BedrockArchitect {
       successCount,
       failureCount: assets.length - successCount,
       processingTime: Date.now() - startTime,
-      totalSize
+      totalSize,
     };
 
     return {
@@ -280,14 +291,14 @@ export class BedrockArchitect {
       outputFiles,
       errors,
       warnings,
-      metadata
+      metadata,
     };
   }
 
   /**
    * Validate structure compliance with Bedrock standards
    */
-  validateStructureCompliance(structure: AddonStructure): ConversionResult {
+  validateStructureCompliance(structure: AddonStructure): ConversionAgentResult {
     const errors: ConversionError[] = [];
     const warnings: AssetConversionNote[] = [];
 
@@ -316,8 +327,8 @@ export class BedrockArchitect {
         successCount: errors.length === 0 ? 1 : 0,
         failureCount: errors.length > 0 ? 1 : 0,
         processingTime: 0,
-        totalSize: 0
-      }
+        totalSize: 0,
+      },
     };
   }
 
@@ -325,16 +336,12 @@ export class BedrockArchitect {
    * Parse version string to Bedrock format [major, minor, patch]
    */
   private parseVersion(version: string): [number, number, number] {
-    const parts = version.split('.').map(part => {
+    const parts = version.split('.').map((part) => {
       const num = parseInt(part.replace(/[^\d]/g, ''), 10);
       return isNaN(num) ? 0 : num;
     });
-    
-    return [
-      parts[0] || 1,
-      parts[1] || 0,
-      parts[2] || 0
-    ];
+
+    return [parts[0] || 1, parts[1] || 0, parts[2] || 0];
   }
 
   /**
@@ -343,7 +350,7 @@ export class BedrockArchitect {
   private getOrganizedPath(asset: AssetInfo): string {
     const baseName = path.basename(asset.path);
     const category = asset.category || '';
-    
+
     switch (asset.type) {
       case 'texture':
         return category ? `textures/${category}/${baseName}` : `textures/${baseName}`;
@@ -380,14 +387,14 @@ export class BedrockArchitect {
    * Update structure tracking with organized asset
    */
   private updateStructureTracking(
-    structure: AddonStructure, 
-    asset: AssetInfo, 
-    organizedPath: string, 
+    structure: AddonStructure,
+    asset: AssetInfo,
+    organizedPath: string,
     packType: string
   ): void {
     const pack = packType === 'resource_pack' ? structure.resourcePack : structure.behaviorPack;
     const directory = path.dirname(organizedPath);
-    
+
     if (pack.directories[directory]) {
       pack.directories[directory].push(path.basename(organizedPath));
     } else {
@@ -399,18 +406,21 @@ export class BedrockArchitect {
   /**
    * Generate additional structure files
    */
-  private async generateStructureFiles(structure: AddonStructure, outputFiles: OutputFile[]): Promise<void> {
+  private async generateStructureFiles(
+    structure: AddonStructure,
+    outputFiles: OutputFile[]
+  ): Promise<void> {
     // Generate pack icons (placeholder)
     const iconContent = this.generatePackIcon();
     outputFiles.push({
       path: 'behavior_pack/pack_icon.png',
       content: iconContent,
-      type: 'texture'
+      type: 'texture',
     });
     outputFiles.push({
       path: 'resource_pack/pack_icon.png',
       content: iconContent,
-      type: 'texture'
+      type: 'texture',
     });
 
     // Generate README
@@ -418,7 +428,7 @@ export class BedrockArchitect {
     outputFiles.push({
       path: 'README.md',
       content: readmeContent,
-      type: 'other'
+      type: 'other',
     });
 
     // Generate directory structure documentation
@@ -426,65 +436,76 @@ export class BedrockArchitect {
     outputFiles.push({
       path: 'STRUCTURE.md',
       content: structureDoc,
-      type: 'other'
+      type: 'other',
     });
   }
 
   /**
    * Validate manifest structure
    */
-  private validateManifest(manifest: any, packType: string): { errors: ConversionError[], warnings: AssetConversionNote[] } {
+  private validateManifest(
+    manifest: any,
+    packType: string
+  ): { errors: ConversionError[]; warnings: AssetConversionNote[] } {
     const errors: ConversionError[] = [];
     const warnings: AssetConversionNote[] = [];
 
     // Required fields validation
     if (!manifest.header) {
-      errors.push(createConversionError({
-        code: createErrorCode('ARCH', 'MAN', 1),
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.ERROR,
-        message: `Missing header in ${packType} pack manifest`,
-        moduleOrigin: BedrockArchitect.MODULE_NAME
-      }));
+      errors.push(
+        createConversionError({
+          code: createErrorCode('ARCH', 'MAN', 1),
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.ERROR,
+          message: `Missing header in ${packType} pack manifest`,
+          moduleOrigin: BedrockArchitect.MODULE_NAME,
+        })
+      );
     } else {
       if (!manifest.header.uuid) {
-        errors.push(createConversionError({
-          code: createErrorCode('ARCH', 'MAN', 2),
-          type: ErrorType.VALIDATION,
-          severity: ErrorSeverity.ERROR,
-          message: `Missing UUID in ${packType} pack manifest header`,
-          moduleOrigin: BedrockArchitect.MODULE_NAME
-        }));
+        errors.push(
+          createConversionError({
+            code: createErrorCode('ARCH', 'MAN', 2),
+            type: ErrorType.VALIDATION,
+            severity: ErrorSeverity.ERROR,
+            message: `Missing UUID in ${packType} pack manifest header`,
+            moduleOrigin: BedrockArchitect.MODULE_NAME,
+          })
+        );
       }
-      
+
       if (!manifest.header.version) {
-        errors.push(createConversionError({
-          code: createErrorCode('ARCH', 'MAN', 3),
-          type: ErrorType.VALIDATION,
-          severity: ErrorSeverity.ERROR,
-          message: `Missing version in ${packType} pack manifest header`,
-          moduleOrigin: BedrockArchitect.MODULE_NAME
-        }));
+        errors.push(
+          createConversionError({
+            code: createErrorCode('ARCH', 'MAN', 3),
+            type: ErrorType.VALIDATION,
+            severity: ErrorSeverity.ERROR,
+            message: `Missing version in ${packType} pack manifest header`,
+            moduleOrigin: BedrockArchitect.MODULE_NAME,
+          })
+        );
       }
     }
 
     if (!manifest.modules || !Array.isArray(manifest.modules) || manifest.modules.length === 0) {
-      errors.push(createConversionError({
-        code: createErrorCode('ARCH', 'MAN', 4),
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.ERROR,
-        message: `Missing or empty modules array in ${packType} pack manifest`,
-        moduleOrigin: BedrockArchitect.MODULE_NAME
-      }));
+      errors.push(
+        createConversionError({
+          code: createErrorCode('ARCH', 'MAN', 4),
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.ERROR,
+          message: `Missing or empty modules array in ${packType} pack manifest`,
+          moduleOrigin: BedrockArchitect.MODULE_NAME,
+        })
+      );
     }
 
     // Warnings for optional but recommended fields
     if (!manifest.header?.description) {
       warnings.push({
-        type: 'warning',
+        type: ErrorSeverity.WARNING,
         message: `Missing description in ${packType} pack manifest`,
         component: 'model',
-        details: { packType }
+        details: { packType },
       });
     }
 
@@ -494,7 +515,10 @@ export class BedrockArchitect {
   /**
    * Validate directory structure
    */
-  private validateDirectoryStructure(structure: AddonStructure): { errors: ConversionError[], warnings: AssetConversionNote[] } {
+  private validateDirectoryStructure(structure: AddonStructure): {
+    errors: ConversionError[];
+    warnings: AssetConversionNote[];
+  } {
     const errors: ConversionError[] = [];
     const warnings: AssetConversionNote[] = [];
 
@@ -505,10 +529,10 @@ export class BedrockArchitect {
     for (const dir of requiredBehaviorDirs) {
       if (!structure.behaviorPack.directories[dir]) {
         warnings.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `Missing recommended directory: ${dir} in behavior pack`,
           component: 'model',
-          details: { directory: dir, packType: 'behavior' }
+          details: { directory: dir, packType: 'behavior' },
         });
       }
     }
@@ -516,10 +540,10 @@ export class BedrockArchitect {
     for (const dir of requiredResourceDirs) {
       if (!structure.resourcePack.directories[dir]) {
         warnings.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `Missing recommended directory: ${dir} in resource pack`,
           component: 'model',
-          details: { directory: dir, packType: 'resource' }
+          details: { directory: dir, packType: 'resource' },
         });
       }
     }
@@ -534,15 +558,79 @@ export class BedrockArchitect {
     // This would generate a simple PNG icon
     // For now, return a minimal PNG buffer
     return Buffer.from([
-      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
-      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-      0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10, // 16x16 dimensions
-      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x91, 0x68, // Color type, etc.
-      0x36, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, // IDAT chunk start
-      0x54, 0x08, 0x99, 0x01, 0x01, 0x01, 0x00, 0x01, // Minimal image data
-      0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 
-      0x01, 0xE2, 0x21, 0xBC, 0x33, 0x00, 0x00, 0x00,
-      0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a, // PNG signature
+      0x00,
+      0x00,
+      0x00,
+      0x0d,
+      0x49,
+      0x48,
+      0x44,
+      0x52, // IHDR chunk
+      0x00,
+      0x00,
+      0x00,
+      0x10,
+      0x00,
+      0x00,
+      0x00,
+      0x10, // 16x16 dimensions
+      0x08,
+      0x02,
+      0x00,
+      0x00,
+      0x00,
+      0x90,
+      0x91,
+      0x68, // Color type, etc.
+      0x36,
+      0x00,
+      0x00,
+      0x00,
+      0x0c,
+      0x49,
+      0x44,
+      0x41, // IDAT chunk start
+      0x54,
+      0x08,
+      0x99,
+      0x01,
+      0x01,
+      0x01,
+      0x00,
+      0x01, // Minimal image data
+      0x00,
+      0xfe,
+      0xff,
+      0x00,
+      0x00,
+      0x00,
+      0x02,
+      0x00,
+      0x01,
+      0xe2,
+      0x21,
+      0xbc,
+      0x33,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x49,
+      0x45,
+      0x4e,
+      0x44,
+      0xae,
+      0x42,
+      0x60,
+      0x82, // IEND chunk
     ]);
   }
 
@@ -552,7 +640,7 @@ export class BedrockArchitect {
   private generateReadme(structure: AddonStructure): string {
     const bpManifest = structure.behaviorPack.manifest;
     const rpManifest = structure.resourcePack.manifest;
-    
+
     return `# ${bpManifest.header.name}
 
 ${bpManifest.header.description}
@@ -584,33 +672,33 @@ ${bpManifest.metadata?.license || 'MIT'}
    */
   private generateStructureDocumentation(structure: AddonStructure): string {
     let doc = '# Addon Structure\n\n';
-    
+
     doc += '## Behavior Pack\n\n';
     doc += '```\nbehavior_pack/\n';
     doc += '├── manifest.json\n';
     for (const [dir, files] of Object.entries(structure.behaviorPack.directories)) {
       if (files.length > 0) {
         doc += `├── ${dir}/\n`;
-        files.forEach(file => {
+        files.forEach((file) => {
           doc += `│   ├── ${file}\n`;
         });
       }
     }
     doc += '```\n\n';
-    
+
     doc += '## Resource Pack\n\n';
     doc += '```\nresource_pack/\n';
     doc += '├── manifest.json\n';
     for (const [dir, files] of Object.entries(structure.resourcePack.directories)) {
       if (files.length > 0) {
         doc += `├── ${dir}/\n`;
-        files.forEach(file => {
+        files.forEach((file) => {
           doc += `│   ├── ${file}\n`;
         });
       }
     }
     doc += '```\n';
-    
+
     return doc;
   }
 }

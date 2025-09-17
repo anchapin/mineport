@@ -1,14 +1,14 @@
 /**
  * Standardized error and note type definitions
- * 
+ *
  * This file contains interfaces related to error handling, reporting,
  * and conversion notes used throughout the application.
  */
-import { SourceLocation } from './base';
+import { SourceLocation } from './base.js';
 
 /**
  * Enum for error types
- * 
+ *
  * Provides a standardized set of error types across the application
  */
 export enum ErrorType {
@@ -21,19 +21,19 @@ export enum ErrorType {
   RESOURCE = 'resource',
   SECURITY = 'security',
   USER = 'user',
-  COMPROMISE = 'compromise'
+  COMPROMISE = 'compromise',
 }
 
 /**
  * Enum for error severity levels
- * 
+ *
  * Provides a standardized set of severity levels across the application
  */
 export enum ErrorSeverity {
   INFO = 'info',
   WARNING = 'warning',
   ERROR = 'error',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 /**
@@ -44,7 +44,7 @@ export type ErrorCode = string;
 
 /**
  * Represents a conversion error
- * 
+ *
  * This interface aligns with the design document's error model specification.
  */
 export interface ConversionError {
@@ -94,6 +94,20 @@ export interface BaseConversionNote {
 }
 
 /**
+ * Generic conversion note (alias for BaseConversionNote)
+ */
+export interface ConversionNote extends BaseConversionNote {}
+
+/**
+ * License information interface
+ */
+export interface LicenseInfo {
+  type: string;
+  text: string;
+  attributions?: string[];
+}
+
+/**
  * Represents a logic conversion note
  */
 export interface LogicConversionNote extends BaseConversionNote {
@@ -107,7 +121,7 @@ export interface LogicConversionNote extends BaseConversionNote {
 
 /**
  * Represents an asset conversion note
- * 
+ *
  * This interface follows the naming convention guidelines for conversion notes.
  */
 export interface AssetConversionNote extends BaseConversionNote {
@@ -119,7 +133,13 @@ export interface AssetConversionNote extends BaseConversionNote {
  * Represents a configuration conversion note
  */
 export interface ConfigConversionNote extends BaseConversionNote {
-  configType: 'manifest' | 'recipe' | 'loot_table' | 'block_definition' | 'item_definition' | 'license';
+  configType:
+    | 'manifest'
+    | 'recipe'
+    | 'loot_table'
+    | 'block_definition'
+    | 'item_definition'
+    | 'license';
   configPath?: string;
 }
 
@@ -145,15 +165,15 @@ export interface ErrorCollectorOptions {
 
 /**
  * Interface for error collector service
- * 
+ *
  * This interface aligns with the design document's ErrorCollector specification.
  */
 export interface ErrorCollector {
   /**
    * addError method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -161,9 +181,9 @@ export interface ErrorCollector {
   addError(error: ConversionError): void;
   /**
    * addErrors method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -171,9 +191,9 @@ export interface ErrorCollector {
   addErrors(errors: ConversionError[]): void;
   /**
    * getErrors method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -181,9 +201,9 @@ export interface ErrorCollector {
   getErrors(filter?: ErrorFilter): ConversionError[];
   /**
    * getErrorSummary method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -191,9 +211,9 @@ export interface ErrorCollector {
   getErrorSummary(): ErrorSummary;
   /**
    * getErrorsByModule method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -201,9 +221,9 @@ export interface ErrorCollector {
   getErrorsByModule(moduleId: string): ConversionError[];
   /**
    * getErrorsByType method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -211,9 +231,9 @@ export interface ErrorCollector {
   getErrorsByType(type: ErrorType | string): ConversionError[];
   /**
    * getErrorsBySeverity method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -221,9 +241,9 @@ export interface ErrorCollector {
   getErrorsBySeverity(severity: ErrorSeverity | string): ConversionError[];
   /**
    * hasErrors method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -231,9 +251,9 @@ export interface ErrorCollector {
   hasErrors(severity?: ErrorSeverity | string): boolean;
   /**
    * clear method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -243,7 +263,7 @@ export interface ErrorCollector {
 
 /**
  * Helper function to create a standardized error code
- * 
+ *
  * @param module Module identifier (e.g., ASSET, LOGIC)
  * @param type Error type abbreviation (e.g., VAL for validation)
  * @param number Error number within the module-type combination
@@ -255,9 +275,19 @@ export function createErrorCode(module: string, type: string, number: number): E
 
 /**
  * Helper function to create a conversion error
- * 
+ *
  * @param options Error properties
  * @returns Conversion error object
+ * @example
+ * ```typescript
+ * const error = createConversionError({
+ *   code: 'ASSET-TEX-001',
+ *   type: ErrorType.ASSET,
+ *   severity: ErrorSeverity.ERROR,
+ *   message: 'Texture conversion failed',
+ *   moduleOrigin: 'ASSET'
+ * });
+ * ```
  */
 export function createConversionError(options: {
   code: ErrorCode;
@@ -273,7 +303,7 @@ export function createConversionError(options: {
   return {
     id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     timestamp: new Date(),
-    ...options
+    ...options,
   };
 }
 
@@ -284,7 +314,7 @@ export const FILE_PROCESSOR_ERRORS = {
   ZIP_BOMB_DETECTED: createErrorCode('FILE', 'BOMB', 1),
   PATH_TRAVERSAL: createErrorCode('FILE', 'PATH', 1),
   MALWARE_DETECTED: createErrorCode('FILE', 'MAL', 1),
-  VALIDATION_FAILED: createErrorCode('FILE', 'VAL', 1)
+  VALIDATION_FAILED: createErrorCode('FILE', 'VAL', 1),
 };
 
 export const JAVA_ANALYZER_ERRORS = {
@@ -292,7 +322,7 @@ export const JAVA_ANALYZER_ERRORS = {
   MANIFEST_PARSE_ERROR: createErrorCode('JAVA', 'MAN', 1),
   TEXTURE_DETECTION_FAILED: createErrorCode('JAVA', 'TEX', 1),
   ANALYSIS_TIMEOUT: createErrorCode('JAVA', 'TIME', 1),
-  BYTECODE_ANALYSIS_FAILED: createErrorCode('JAVA', 'BYTE', 1)
+  BYTECODE_ANALYSIS_FAILED: createErrorCode('JAVA', 'BYTE', 1),
 };
 
 export const ASSET_CONVERTER_ERRORS = {
@@ -300,21 +330,21 @@ export const ASSET_CONVERTER_ERRORS = {
   MODEL_CONVERSION_FAILED: createErrorCode('ASSET', 'MOD', 1),
   SOUND_CONVERSION_FAILED: createErrorCode('ASSET', 'SND', 1),
   ASSET_NOT_FOUND: createErrorCode('ASSET', 'NF', 1),
-  CONVERSION_TIMEOUT: createErrorCode('ASSET', 'TIME', 1)
+  CONVERSION_TIMEOUT: createErrorCode('ASSET', 'TIME', 1),
 };
 
 export const BEDROCK_ARCHITECT_ERRORS = {
   STRUCTURE_GENERATION_FAILED: createErrorCode('ARCH', 'STRUCT', 1),
   MANIFEST_GENERATION_FAILED: createErrorCode('ARCH', 'MAN', 1),
   ASSET_ORGANIZATION_FAILED: createErrorCode('ARCH', 'ORG', 1),
-  VALIDATION_FAILED: createErrorCode('ARCH', 'VAL', 1)
+  VALIDATION_FAILED: createErrorCode('ARCH', 'VAL', 1),
 };
 
 export const VALIDATION_PIPELINE_ERRORS = {
   STAGE_EXECUTION_FAILED: createErrorCode('VAL', 'STAGE', 1),
   PIPELINE_TIMEOUT: createErrorCode('VAL', 'TIME', 1),
   VALIDATION_CONFIG_ERROR: createErrorCode('VAL', 'CONF', 1),
-  AGGREGATION_FAILED: createErrorCode('VAL', 'AGG', 1)
+  AGGREGATION_FAILED: createErrorCode('VAL', 'AGG', 1),
 };
 
 /**
@@ -326,7 +356,7 @@ export enum RecoveryStrategy {
   SKIP = 'skip',
   COMPROMISE = 'compromise',
   ABORT = 'abort',
-  MANUAL_INTERVENTION = 'manual_intervention'
+  MANUAL_INTERVENTION = 'manual_intervention',
 }
 
 /**
@@ -470,11 +500,19 @@ export interface ComponentHealth {
 
 /**
  * Helper function to create an enhanced conversion error with recovery capabilities
- * 
+ *
  * @param baseError Base conversion error
  * @param recoveryActions Available recovery actions
  * @param context Additional context for recovery
  * @returns Enhanced conversion error
+ * @example
+ * ```typescript
+ * const enhancedError = createEnhancedConversionError(
+ *   baseError,
+ *   [{ strategy: RecoveryStrategy.RETRY, description: 'Retry operation', automated: true }],
+ *   { retryCount: 0 }
+ * );
+ * ```
  */
 export function createEnhancedConversionError(
   baseError: ConversionError,
@@ -487,23 +525,28 @@ export function createEnhancedConversionError(
     isRecoverable: recoveryActions.length > 0,
     hasBeenRecovered: false,
     recoveryAttempts: 0,
-    context
+    context,
   };
 }
 
 /**
  * Helper function to create recovery actions based on error type and context
- * 
+ *
  * @param error Conversion error
  * @param context Error context
  * @returns Array of recovery actions
+ * @example
+ * ```typescript
+ * const recoveryActions = createRecoveryActions(error, { fileSize: 1024 });
+ * recoveryActions.forEach(action => console.log(action.description));
+ * ```
  */
 export function createRecoveryActions(
   error: ConversionError,
-  context?: Record<string, any>
+  _context?: Record<string, any>
 ): RecoveryAction[] {
   const actions: RecoveryAction[] = [];
-  
+
   // File processing errors
   if (error.moduleOrigin === 'FILE') {
     if (error.code === FILE_PROCESSOR_ERRORS.FILE_TOO_LARGE) {
@@ -511,24 +554,24 @@ export function createRecoveryActions(
         strategy: RecoveryStrategy.COMPROMISE,
         description: 'Process file in chunks or reduce quality',
         automated: true,
-        compromiseStrategy: 'chunk_processing'
+        compromiseStrategy: 'chunk_processing',
       });
     } else if (error.code === FILE_PROCESSOR_ERRORS.INVALID_MIME_TYPE) {
       actions.push({
         strategy: RecoveryStrategy.MANUAL_INTERVENTION,
         description: 'User should verify file format and re-upload',
         automated: false,
-        userAction: 'Please verify the file is a valid JAR or ZIP file and try again'
+        userAction: 'Please verify the file is a valid JAR or ZIP file and try again',
       });
     } else if (error.code === FILE_PROCESSOR_ERRORS.ZIP_BOMB_DETECTED) {
       actions.push({
         strategy: RecoveryStrategy.ABORT,
         description: 'Security threat detected - processing aborted',
-        automated: true
+        automated: true,
       });
     }
   }
-  
+
   // Java analysis errors
   if (error.moduleOrigin === 'JAVA') {
     if (error.code === JAVA_ANALYZER_ERRORS.REGISTRY_EXTRACTION_FAILED) {
@@ -536,18 +579,18 @@ export function createRecoveryActions(
         strategy: RecoveryStrategy.FALLBACK,
         description: 'Try alternative extraction methods',
         automated: true,
-        fallbackMethod: 'multi_strategy_extraction'
+        fallbackMethod: 'multi_strategy_extraction',
       });
     } else if (error.code === JAVA_ANALYZER_ERRORS.ANALYSIS_TIMEOUT) {
       actions.push({
         strategy: RecoveryStrategy.RETRY,
         description: 'Retry analysis with extended timeout',
         automated: true,
-        maxRetries: 2
+        maxRetries: 2,
       });
     }
   }
-  
+
   // Asset conversion errors
   if (error.moduleOrigin === 'ASSET') {
     if (error.code === ASSET_CONVERTER_ERRORS.TEXTURE_CONVERSION_FAILED) {
@@ -555,29 +598,29 @@ export function createRecoveryActions(
         strategy: RecoveryStrategy.FALLBACK,
         description: 'Use default texture or skip texture conversion',
         automated: true,
-        fallbackMethod: 'default_texture'
+        fallbackMethod: 'default_texture',
       });
     } else if (error.code === ASSET_CONVERTER_ERRORS.CONVERSION_TIMEOUT) {
       actions.push({
         strategy: RecoveryStrategy.COMPROMISE,
         description: 'Reduce conversion quality for faster processing',
         automated: true,
-        compromiseStrategy: 'reduced_quality'
+        compromiseStrategy: 'reduced_quality',
       });
     }
   }
-  
+
   // Validation pipeline errors
   if (error.moduleOrigin === 'VAL') {
     if (error.code === VALIDATION_PIPELINE_ERRORS.STAGE_EXECUTION_FAILED) {
       actions.push({
         strategy: RecoveryStrategy.SKIP,
         description: 'Skip failed validation stage and continue',
-        automated: true
+        automated: true,
       });
     }
   }
-  
+
   // Generic fallback for any error that doesn't have specific recovery actions
   if (actions.length === 0) {
     // Add a generic retry action for most errors
@@ -586,61 +629,86 @@ export function createRecoveryActions(
         strategy: RecoveryStrategy.RETRY,
         description: 'Retry the failed operation',
         automated: true,
-        maxRetries: 2
+        maxRetries: 2,
       });
     }
-    
+
     // Add a skip action for non-critical errors
     if (error.severity === ErrorSeverity.WARNING || error.severity === ErrorSeverity.INFO) {
       actions.push({
         strategy: RecoveryStrategy.SKIP,
         description: 'Skip this operation and continue',
-        automated: true
+        automated: true,
       });
     }
   }
-  
+
   return actions;
 }
 
 /**
  * Helper function to convert module-specific notes to standardized conversion errors
- * 
+ *
  * @param note Module-specific conversion note
  * @param moduleOrigin Module identifier
  * @param type Error type
  * @returns Standardized conversion error
+ * @example
+ * ```typescript
+ * const error = noteToConversionError(
+ *   { message: 'Asset not found', type: 'warning' },
+ *   'ASSET_MODULE',
+ *   ErrorType.ASSET
+ * );
+ * ```
  */
 export function noteToConversionError(
-  note: BaseConversionNote | LogicConversionNote | AssetConversionNote | ConfigConversionNote | CompromiseNote,
+  note:
+    | BaseConversionNote
+    | LogicConversionNote
+    | AssetConversionNote
+    | ConfigConversionNote
+    | CompromiseNote,
   moduleOrigin: string,
   type: ErrorType | keyof typeof ErrorType
 ): ConversionError {
   const severity = typeof note.type === 'string' ? note.type : ErrorSeverity.INFO;
-  
+
   let sourceLocation: SourceLocation | undefined;
   if ('sourceLocation' in note && note.sourceLocation) {
     sourceLocation = {
       file: note.sourceLocation.file,
       line: note.sourceLocation.line,
-      column: note.sourceLocation.column
+      column: note.sourceLocation.column,
+      startLine: note.sourceLocation.line,
+      startColumn: note.sourceLocation.column,
+      endLine: note.sourceLocation.line,
+      endColumn: note.sourceLocation.column + 1,
     };
   } else if ('assetPath' in note && note.assetPath) {
     sourceLocation = {
       file: note.assetPath,
       line: 0,
-      column: 0
+      column: 0,
+      startLine: 0,
+      startColumn: 0,
+      endLine: 0,
+      endColumn: 0,
     };
   } else if ('configPath' in note && note.configPath) {
     sourceLocation = {
       file: note.configPath,
       line: 0,
-      column: 0
+      column: 0,
+      startLine: 0,
+      startColumn: 0,
+      endLine: 0,
+      endColumn: 0,
     };
   }
-  
-  let details: Record<string, any> = note.details || {};
-  
+
+  const details: Record<string, any> = note.details || {};
+
   // Add component-specific details
   if ('component' in note) {
     details.component = note.component;
@@ -654,7 +722,7 @@ export function noteToConversionError(
     details.compromiseReason = note.compromiseReason;
     details.alternativeSuggestion = note.alternativeSuggestion;
   }
-  
+
   return createConversionError({
     code: note.code || createErrorCode(moduleOrigin, type.toString(), 1),
     type,
@@ -663,6 +731,6 @@ export function noteToConversionError(
     moduleOrigin,
     sourceLocation,
     details,
-    userMessage: note.message // Use the same message for user by default
+    userMessage: note.message, // Use the same message for user by default
   });
 }

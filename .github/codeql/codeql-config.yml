@@ -1,0 +1,32 @@
+name: "ModPorter-AI CodeQL Config"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+paths-ignore:
+  - node_modules
+  - dist
+  - coverage
+  - temp
+  - logs
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+
+paths:
+  - src
+  - scripts
+  - config
+
+# Custom query packs for enhanced security scanning
+packs:
+  - codeql/javascript-queries
+
+# Query filters to exclude specific rules that may not be relevant
+query-filters:
+  - exclude:
+      tags: exclude-from-incremental

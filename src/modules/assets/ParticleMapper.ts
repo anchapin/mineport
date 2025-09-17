@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('ParticleMapper');
 
@@ -38,7 +39,7 @@ export interface ParticleConversionResult {
  * Interface for particle conversion notes/warnings
  */
 export interface ParticleConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   particleName?: string;
   fallbackApplied?: boolean;
@@ -52,7 +53,7 @@ export enum FallbackStrategyType {
   SIMILAR_PARTICLE = 'similar_particle',
   SIMPLIFIED_EFFECT = 'simplified_effect',
   PLACEHOLDER = 'placeholder',
-  OMIT = 'omit'
+  OMIT = 'omit',
 }
 
 /**
@@ -109,7 +110,7 @@ export class ParticleMapper {
     'minecraft:totem_of_undying': 'minecraft:totem',
     'minecraft:underwater': 'minecraft:underwater_particle',
     'minecraft:witch': 'minecraft:witch_spell_emitter',
-    
+
     // Common mod particles with reasonable mappings
     'create:steam': 'minecraft:evaporation',
     'create:smoke': 'minecraft:smoke',
@@ -123,42 +124,50 @@ export class ParticleMapper {
     'twilightforest:firefly': 'minecraft:sparkler',
     'twilightforest:snow': 'minecraft:snowflake',
     'mekanism:laser': 'minecraft:colored_flame',
-    'thermal:steam': 'minecraft:evaporation'
+    'thermal:steam': 'minecraft:evaporation',
   };
-  
+
   // Fallback mappings for categories of particles
-  private readonly FALLBACK_MAPPING: Record<string, { type: FallbackStrategyType; target: string }> = {
+  private readonly FALLBACK_MAPPING: Record<
+    string,
+    { type: FallbackStrategyType; target: string }
+  > = {
     // Fallbacks by category
-    'fire': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:flame' },
-    'water': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:water_splash' },
-    'smoke': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:smoke' },
-    'magic': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:enchanting_table_particle' },
-    'dust': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:redstone_wire_dust' },
-    'spark': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:sparkler' },
-    'explosion': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:explosion' },
-    'portal': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:portal' },
-    'energy': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:colored_flame' },
-    'light': { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:sparkler' },
-    'default': { type: FallbackStrategyType.PLACEHOLDER, target: 'minecraft:basic_smoke_particle' }
+    fire: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:flame' },
+    water: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:water_splash' },
+    smoke: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:smoke' },
+    magic: {
+      type: FallbackStrategyType.SIMILAR_PARTICLE,
+      target: 'minecraft:enchanting_table_particle',
+    },
+    dust: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:redstone_wire_dust' },
+    spark: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:sparkler' },
+    explosion: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:explosion' },
+    portal: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:portal' },
+    energy: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:colored_flame' },
+    light: { type: FallbackStrategyType.SIMILAR_PARTICLE, target: 'minecraft:sparkler' },
+    default: { type: FallbackStrategyType.PLACEHOLDER, target: 'minecraft:basic_smoke_particle' },
   };
-  
+
   /**
    * Converts a collection of Java particle definitions to Bedrock format
-   * 
+   *
    * @param javaParticles - Array of Java particle definitions to convert
    * @returns Conversion result with converted particles and notes
    */
-  public async convertParticles(javaParticles: JavaParticleDefinition[]): Promise<ParticleConversionResult> {
+  public async convertParticles(
+    javaParticles: JavaParticleDefinition[]
+  ): Promise<ParticleConversionResult> {
     logger.info(`Converting ${javaParticles.length} particle definitions`);
-    
+
     const convertedParticles: BedrockParticleDefinition[] = [];
     const conversionNotes: ParticleConversionNote[] = [];
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -167,12 +176,12 @@ export class ParticleMapper {
       try {
         const result = await this.convertSingleParticle(javaParticle);
         convertedParticles.push(result.particle);
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -183,22 +192,22 @@ export class ParticleMapper {
       } catch (error) {
         logger.error(`Failed to convert particle ${javaParticle.name}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert particle: ${error instanceof Error ? error.message : String(error)}`,
-          particleName: javaParticle.name
+          particleName: javaParticle.name,
         });
       }
     }
-    
+
     return {
       convertedParticles,
-      conversionNotes
+      conversionNotes,
     };
   }
-  
+
   /**
    * Converts a single Java particle definition to Bedrock format
-   * 
+   *
    * @param javaParticle - Java particle definition to convert
    * @returns Converted Bedrock particle and any conversion notes
    */
@@ -207,15 +216,15 @@ export class ParticleMapper {
   ): Promise<{ particle: BedrockParticleDefinition; note?: ParticleConversionNote }> {
     // Map the Java particle path to the corresponding Bedrock path
     const bedrockPath = this.mapParticlePath(javaParticle.path);
-    
+
     // Try to map the particle name directly
     const directMapping = this.PARTICLE_MAPPING[javaParticle.name];
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -223,47 +232,47 @@ export class ParticleMapper {
     if (directMapping) {
       // Direct mapping exists
       logger.info(`Direct mapping found for particle ${javaParticle.name} -> ${directMapping}`);
-      
+
       return {
         particle: {
           path: bedrockPath,
           data: this.generateBedrockParticleData(directMapping, javaParticle),
           name: directMapping,
           textures: javaParticle.textures,
-          parameters: javaParticle.parameters
+          parameters: javaParticle.parameters,
         },
         note: {
-          type: 'info',
+          type: ErrorSeverity.INFO,
           message: `Mapped Java particle '${javaParticle.name}' to Bedrock particle '${directMapping}'`,
-          particleName: javaParticle.name
-        }
+          particleName: javaParticle.name,
+        },
       };
     } else {
       // No direct mapping, apply fallback strategy
       const fallbackResult = this.applyFallbackStrategy(javaParticle);
-      
+
       return {
         particle: {
           path: bedrockPath,
           data: this.generateBedrockParticleData(fallbackResult.targetParticle, javaParticle),
           name: fallbackResult.targetParticle,
           textures: javaParticle.textures,
-          parameters: javaParticle.parameters
+          parameters: javaParticle.parameters,
         },
         note: {
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `No direct mapping for '${javaParticle.name}'. Applied ${fallbackResult.strategyType} fallback to '${fallbackResult.targetParticle}'`,
           particleName: javaParticle.name,
           fallbackApplied: true,
-          fallbackType: fallbackResult.strategyType
-        }
+          fallbackType: fallbackResult.strategyType,
+        },
       };
     }
   }
-  
+
   /**
    * Maps a Java particle path to the corresponding Bedrock path
-   * 
+   *
    * @param javaPath - Original Java particle path
    * @returns Mapped Bedrock particle path
    */
@@ -271,43 +280,44 @@ export class ParticleMapper {
     // Example mapping logic:
     // Java: assets/modid/particles/example.json
     // Bedrock: particles/example.json
-    
+
     // Extract the relevant parts from the Java path
     const parts = javaPath.split('/');
     const modId = parts[1]; // Extract mod ID for potential namespacing
-    
+
     // Find the particle file name
     let fileName = '';
-    
+
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === 'particles' && i + 1 < parts.length) {
         fileName = parts[i + 1];
         break;
       }
     }
-    
+
     // Construct the Bedrock path
     return `particles/${modId}_${fileName}`;
   }
-  
+
   /**
    * Applies a fallback strategy for unmappable particles
-   * 
+   *
    * @param javaParticle - Java particle that couldn't be directly mapped
    * @returns Fallback strategy result
    */
-  private applyFallbackStrategy(
-    javaParticle: JavaParticleDefinition
-  ): { strategyType: string; targetParticle: string } {
+  private applyFallbackStrategy(javaParticle: JavaParticleDefinition): {
+    strategyType: string;
+    targetParticle: string;
+  } {
     // Try to determine the particle category from its name
     const particleName = javaParticle.name.toLowerCase();
-    
+
     // Check for category keywords in the particle name
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -315,35 +325,37 @@ export class ParticleMapper {
     for (const [category, fallback] of Object.entries(this.FALLBACK_MAPPING)) {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (particleName.includes(category)) {
-        logger.info(`Applied ${fallback.type} fallback for ${javaParticle.name} using category '${category}'`);
+        logger.info(
+          `Applied ${fallback.type} fallback for ${javaParticle.name} using category '${category}'`
+        );
         return {
           strategyType: fallback.type,
-          targetParticle: fallback.target
+          targetParticle: fallback.target,
         };
       }
     }
-    
+
     // If no category match, use the default fallback
     const defaultFallback = this.FALLBACK_MAPPING.default;
     logger.info(`Applied default ${defaultFallback.type} fallback for ${javaParticle.name}`);
-    
+
     return {
       strategyType: defaultFallback.type,
-      targetParticle: defaultFallback.target
+      targetParticle: defaultFallback.target,
     };
   }
-  
+
   /**
    * Generates Bedrock particle data based on the target particle and Java source
-   * 
+   *
    * @param targetParticle - Target Bedrock particle name
    * @param javaParticle - Source Java particle definition
    * @returns Generated Bedrock particle data
@@ -353,10 +365,11 @@ export class ParticleMapper {
     javaParticle: JavaParticleDefinition
   ): object {
     // Parse the Java particle data if it's a Buffer
-    const javaData = typeof javaParticle.data === 'object' && !(javaParticle.data instanceof Buffer)
-      ? javaParticle.data as Record<string, any>
-      : JSON.parse(javaParticle.data.toString('utf-8'));
-    
+    const javaData =
+      typeof javaParticle.data === 'object' && !(javaParticle.data instanceof Buffer)
+        ? (javaParticle.data as Record<string, any>)
+        : JSON.parse(javaParticle.data.toString('utf-8'));
+
     // Create a basic Bedrock particle definition
     // The structure differs significantly between Java and Bedrock
     const bedrockData: Record<string, any> = {
@@ -366,34 +379,34 @@ export class ParticleMapper {
           identifier: `${javaParticle.name.replace(':', '_')}`,
           basic_render_parameters: {
             material: 'particles_alpha',
-            texture: this.getParticleTexturePath(targetParticle, javaData)
-          }
+            texture: this.getParticleTexturePath(targetParticle, javaData),
+          },
         },
         components: {
           // Map common components from Java to Bedrock where possible
           'minecraft:emitter_rate_instant': {
-            num_particles: javaData.count || 1
+            num_particles: javaData.count || 1,
           },
           'minecraft:emitter_lifetime_once': {
-            active_time: 1
+            active_time: 1,
           },
           'minecraft:emitter_shape_point': {
-            offset: [0, 0, 0]
+            offset: [0, 0, 0],
           },
           'minecraft:particle_lifetime_expression': {
-            max_lifetime: javaData.age || 1
+            max_lifetime: javaData.age || 1,
           },
-          'minecraft:particle_initial_speed': javaData.speed || 0
-        }
-      }
+          'minecraft:particle_initial_speed': javaData.speed || 0,
+        },
+      },
     };
-    
+
     // Add texture-specific components if textures are defined
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -406,17 +419,17 @@ export class ParticleMapper {
           texture_width: 16,
           texture_height: 16,
           uv: [0, 0],
-          uv_size: [16, 16]
-        }
+          uv_size: [16, 16],
+        },
       };
     }
-    
+
     return bedrockData;
   }
-  
+
   /**
    * Gets the appropriate texture path for a Bedrock particle
-   * 
+   *
    * @param targetParticle - Target Bedrock particle name
    * @param javaData - Java particle data
    * @returns Texture path for the Bedrock particle
@@ -425,9 +438,9 @@ export class ParticleMapper {
     // If the Java particle defines textures, use the first one
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -438,13 +451,13 @@ export class ParticleMapper {
       // Bedrock: textures/particle/example
       return javaData.textures[0];
     }
-    
+
     // Otherwise, use a default texture based on the target particle
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -454,14 +467,14 @@ export class ParticleMapper {
       const particleName = targetParticle.replace('minecraft:', '');
       return `textures/particle/${particleName}`;
     }
-    
+
     // Default fallback texture
     return 'textures/particle/generic';
   }
-  
+
   /**
    * Organizes converted particles according to Bedrock's resource pack structure
-   * 
+   *
    * @param convertedParticles - Array of converted Bedrock particles
    * @param outputDir - Output directory for the organized particles
    */
@@ -470,12 +483,12 @@ export class ParticleMapper {
     outputDir: string
   ): Promise<void> {
     logger.info(`Organizing ${convertedParticles.length} particles in ${outputDir}`);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -483,23 +496,23 @@ export class ParticleMapper {
     for (const particle of convertedParticles) {
       const outputPath = path.join(outputDir, particle.path);
       const outputDirPath = path.dirname(outputPath);
-      
+
       // Ensure the directory exists
       await fs.mkdir(outputDirPath, { recursive: true });
-      
+
       // Write the particle file
       if (typeof particle.data === 'object') {
         await fs.writeFile(outputPath, JSON.stringify(particle.data, null, 2));
       } else {
         await fs.writeFile(outputPath, particle.data);
       }
-      
+
       // Copy any associated texture files if needed
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -509,10 +522,10 @@ export class ParticleMapper {
       }
     }
   }
-  
+
   /**
    * Copies particle textures to the appropriate location in the Bedrock resource pack
-   * 
+   *
    * @param particle - Particle with textures to copy
    * @param outputDir - Base output directory
    */
@@ -523,26 +536,30 @@ export class ParticleMapper {
     // This is a placeholder for actual texture copying logic
     // In a real implementation, this would copy the texture files to the correct location
     logger.info(`Would copy textures for particle ${particle.name}`);
-    
+
     // Example implementation (commented out as we don't have actual texture files to copy)
     /*
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (!particle.textures) return;
-    
+
     // Copy particle textures to Bedrock format
     for (const texturePath of particle.textures) {
       const sourceTexturePath = `path/to/source/${texturePath}.png`;
-      const targetTexturePath = path.join(outputDir, 'textures/particle', `${path.basename(texturePath)}.png`);
+      const targetTexturePath = path.join(
+        outputDir,
+        'textures/particle',
+        `${path.basename(texturePath)}.png`
+      );
       const targetDir = path.dirname(targetTexturePath);
-      
+
       await fs.mkdir(targetDir, { recursive: true });
       await fs.copyFile(sourceTexturePath, targetTexturePath);
     }

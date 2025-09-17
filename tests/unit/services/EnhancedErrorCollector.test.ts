@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorCollector';
+import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorCollector.js';
 import {
   ConversionError,
   EnhancedConversionError,
@@ -12,19 +12,41 @@ import {
   RecoveryStrategy,
   createConversionError,
   createEnhancedConversionError,
-  createRecoveryActions,
-  FILE_PROCESSOR_ERRORS
-} from '../../../src/types/errors';
+  FILE_PROCESSOR_ERRORS,
+} from '../../../src/types/errors.js';
 
 // Mock logger
-vi.mock('../../../src/utils/logger', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn()
-  }
-}));
+vi.mock('../../../src/utils/logger', async () => {
+  const actual = (await vi.importActual('../../../src/utils/logger')) as any;
+  return {
+    ...actual,
+    default: {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    },
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    })),
+    logger: {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      logStructuredEvent: vi.fn(),
+      logSecurityEvent: vi.fn(),
+      logPerformanceEvent: vi.fn(),
+      logBusinessEvent: vi.fn(),
+      logSystemEvent: vi.fn(),
+    },
+  };
+});
 
 describe('EnhancedErrorCollector', () => {
   let collector: EnhancedErrorCollector;
@@ -34,7 +56,7 @@ describe('EnhancedErrorCollector', () => {
   beforeEach(() => {
     collector = new EnhancedErrorCollector({
       maxErrors: 100,
-      filterDuplicates: true
+      filterDuplicates: true,
     });
 
     mockError = createConversionError({
@@ -42,26 +64,23 @@ describe('EnhancedErrorCollector', () => {
       type: ErrorType.VALIDATION,
       severity: ErrorSeverity.ERROR,
       message: 'Test error message',
-      moduleOrigin: 'TEST'
+      moduleOrigin: 'TEST',
     });
 
-    mockEnhancedError = createEnhancedConversionError(
-      mockError,
-      [
-        {
-          strategy: RecoveryStrategy.RETRY,
-          description: 'Retry the operation',
-          automated: true,
-          maxRetries: 3
-        },
-        {
-          strategy: RecoveryStrategy.FALLBACK,
-          description: 'Use fallback method',
-          automated: true,
-          fallbackMethod: 'default_method'
-        }
-      ]
-    );
+    mockEnhancedError = createEnhancedConversionError(mockError, [
+      {
+        strategy: RecoveryStrategy.RETRY,
+        description: 'Retry the operation',
+        automated: true,
+        maxRetries: 3,
+      },
+      {
+        strategy: RecoveryStrategy.FALLBACK,
+        description: 'Use fallback method',
+        automated: true,
+        fallbackMethod: 'default_method',
+      },
+    ]);
   });
 
   afterEach(() => {
@@ -118,7 +137,7 @@ describe('EnhancedErrorCollector', () => {
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.ERROR,
         message: 'File too large',
-        moduleOrigin: 'FILE'
+        moduleOrigin: 'FILE',
       });
 
       collector.addError(fileError);
@@ -127,7 +146,7 @@ describe('EnhancedErrorCollector', () => {
       expect(recoverableErrors[0].recoveryActions).toContainEqual(
         expect.objectContaining({
           strategy: RecoveryStrategy.COMPROMISE,
-          compromiseStrategy: 'chunk_processing'
+          compromiseStrategy: 'chunk_processing',
         })
       );
     });
@@ -167,8 +186,8 @@ describe('EnhancedErrorCollector', () => {
           strategy: RecoveryStrategy.RETRY,
           description: 'Retry the operation',
           automated: true,
-          maxRetries: 3
-        }
+          maxRetries: 3,
+        },
       ]);
 
       collector.addEnhancedError(simpleError);
@@ -185,16 +204,19 @@ describe('EnhancedErrorCollector', () => {
   describe('getRecoverableErrors', () => {
     it('should return only recoverable errors', () => {
       const recoverableError = createEnhancedConversionError(mockError, [
-        { strategy: RecoveryStrategy.RETRY, description: 'Retry', automated: true }
+        { strategy: RecoveryStrategy.RETRY, description: 'Retry', automated: true },
       ]);
-      
+
       // Create a truly non-recoverable error by setting isRecoverable to false
-      const nonRecoverableError = createEnhancedConversionError({
-        ...mockError,
-        id: 'non-recoverable-id',
-        severity: ErrorSeverity.CRITICAL,
-        code: 'CRITICAL-ERR-001'
-      }, []);
+      const nonRecoverableError = createEnhancedConversionError(
+        {
+          ...mockError,
+          id: 'non-recoverable-id',
+          severity: ErrorSeverity.CRITICAL,
+          code: 'CRITICAL-ERR-001',
+        },
+        []
+      );
       nonRecoverableError.isRecoverable = false; // Force it to be non-recoverable
 
       collector.addEnhancedError(recoverableError);
@@ -217,11 +239,14 @@ describe('EnhancedErrorCollector', () => {
   describe('getErrorAggregations', () => {
     it('should aggregate similar errors', () => {
       const error1 = createEnhancedConversionError(mockError, []);
-      const error2 = createEnhancedConversionError({
-        ...mockError,
-        id: 'different-id',
-        timestamp: new Date()
-      }, []);
+      const error2 = createEnhancedConversionError(
+        {
+          ...mockError,
+          id: 'different-id',
+          timestamp: new Date(),
+        },
+        []
+      );
 
       collector.addEnhancedError(error1);
       collector.addEnhancedError(error2);
@@ -236,15 +261,21 @@ describe('EnhancedErrorCollector', () => {
       const now = new Date();
       const earlier = new Date(now.getTime() - 60000);
 
-      const error1 = createEnhancedConversionError({
-        ...mockError,
-        timestamp: earlier
-      }, []);
-      const error2 = createEnhancedConversionError({
-        ...mockError,
-        id: 'different-id',
-        timestamp: now
-      }, []);
+      const error1 = createEnhancedConversionError(
+        {
+          ...mockError,
+          timestamp: earlier,
+        },
+        []
+      );
+      const error2 = createEnhancedConversionError(
+        {
+          ...mockError,
+          id: 'different-id',
+          timestamp: now,
+        },
+        []
+      );
 
       collector.addEnhancedError(error1);
       collector.addEnhancedError(error2);
@@ -263,7 +294,7 @@ describe('EnhancedErrorCollector', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.ERROR,
           message: 'File validation error',
-          moduleOrigin: 'FILE'
+          moduleOrigin: 'FILE',
         }),
         []
       );
@@ -274,7 +305,7 @@ describe('EnhancedErrorCollector', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.ERROR,
           message: 'Java analysis error',
-          moduleOrigin: 'JAVA'
+          moduleOrigin: 'JAVA',
         }),
         []
       );
@@ -284,10 +315,10 @@ describe('EnhancedErrorCollector', () => {
 
       const categorizations = collector.getErrorCategorizations();
       expect(categorizations).toHaveLength(2);
-      
-      const fileCategory = categorizations.find(c => c.category === 'file_processing');
-      const analysisCategory = categorizations.find(c => c.category === 'analysis');
-      
+
+      const fileCategory = categorizations.find((c) => c.category === 'file_processing');
+      const analysisCategory = categorizations.find((c) => c.category === 'analysis');
+
       expect(fileCategory).toBeDefined();
       expect(analysisCategory).toBeDefined();
     });
@@ -299,7 +330,7 @@ describe('EnhancedErrorCollector', () => {
           type: ErrorType.SECURITY,
           severity: ErrorSeverity.CRITICAL,
           message: 'Critical error',
-          moduleOrigin: 'TEST'
+          moduleOrigin: 'TEST',
         }),
         []
       );
@@ -321,13 +352,16 @@ describe('EnhancedErrorCollector', () => {
 
       // Add errors within time window - make sure they're all within the window and unique
       for (let i = 0; i < 5; i++) {
-        const error = createEnhancedConversionError({
-          ...mockError,
-          id: `error-${i}`,
-          code: `TEST-ERR-${i.toString().padStart(3, '0')}`, // Make each error unique
-          message: `Test error message ${i}`, // Make each message unique
-          timestamp: new Date(now.getTime() - (i * 5000)) // 5 seconds apart, all within 25 seconds
-        }, []);
+        const error = createEnhancedConversionError(
+          {
+            ...mockError,
+            id: `error-${i}`,
+            code: `TEST-ERR-${i.toString().padStart(3, '0')}`, // Make each error unique
+            message: `Test error message ${i}`, // Make each message unique
+            timestamp: new Date(now.getTime() - i * 5000), // 5 seconds apart, all within 25 seconds
+          },
+          []
+        );
         collector.addEnhancedError(error);
       }
 
@@ -343,7 +377,7 @@ describe('EnhancedErrorCollector', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.ERROR,
           message: 'Validation error',
-          moduleOrigin: 'TEST'
+          moduleOrigin: 'TEST',
         }),
         []
       );
@@ -354,7 +388,7 @@ describe('EnhancedErrorCollector', () => {
           type: ErrorType.SECURITY,
           severity: ErrorSeverity.CRITICAL,
           message: 'Security error',
-          moduleOrigin: 'FILE'
+          moduleOrigin: 'FILE',
         }),
         []
       );
@@ -382,25 +416,31 @@ describe('EnhancedErrorCollector', () => {
 
       // Add fewer errors in first half (before midpoint)
       for (let i = 0; i < 2; i++) {
-        const error = createEnhancedConversionError({
-          ...mockError,
-          id: `early-error-${i}`,
-          code: `EARLY-ERR-${i.toString().padStart(3, '0')}`, // Make unique
-          message: `Early error message ${i}`, // Make unique
-          timestamp: new Date(startTime.getTime() + (i * 10000)) // Early in the window
-        }, []);
+        const error = createEnhancedConversionError(
+          {
+            ...mockError,
+            id: `early-error-${i}`,
+            code: `EARLY-ERR-${i.toString().padStart(3, '0')}`, // Make unique
+            message: `Early error message ${i}`, // Make unique
+            timestamp: new Date(startTime.getTime() + i * 10000), // Early in the window
+          },
+          []
+        );
         collector.addEnhancedError(error);
       }
 
-      // Add more errors in second half (after midpoint)  
+      // Add more errors in second half (after midpoint)
       for (let i = 0; i < 5; i++) {
-        const error = createEnhancedConversionError({
-          ...mockError,
-          id: `late-error-${i}`,
-          code: `LATE-ERR-${i.toString().padStart(3, '0')}`, // Make unique
-          message: `Late error message ${i}`, // Make unique
-          timestamp: new Date(midPoint.getTime() + 10000 + (i * 5000)) // Later in the window
-        }, []);
+        const error = createEnhancedConversionError(
+          {
+            ...mockError,
+            id: `late-error-${i}`,
+            code: `LATE-ERR-${i.toString().padStart(3, '0')}`, // Make unique
+            message: `Late error message ${i}`, // Make unique
+            timestamp: new Date(midPoint.getTime() + 10000 + i * 5000), // Later in the window
+          },
+          []
+        );
         collector.addEnhancedError(error);
       }
 
@@ -413,10 +453,10 @@ describe('EnhancedErrorCollector', () => {
     it('should enable graceful degradation with configuration', () => {
       const config = {
         enableFallbacks: true,
-        fallbackStrategies: { 'method1': 'fallback1' },
+        fallbackStrategies: { method1: 'fallback1' },
         maxDegradationLevel: 3,
         criticalComponents: ['FILE', 'JAVA'],
-        nonEssentialComponents: ['ASSET']
+        nonEssentialComponents: ['ASSET'],
       };
 
       collector.enableGracefulDegradation(config);
@@ -437,11 +477,14 @@ describe('EnhancedErrorCollector', () => {
     it('should return degraded status with moderate error rate', () => {
       // Add errors to trigger warning threshold
       for (let i = 0; i < 15; i++) {
-        const error = createEnhancedConversionError({
-          ...mockError,
-          id: `error-${i}`,
-          timestamp: new Date()
-        }, []);
+        const error = createEnhancedConversionError(
+          {
+            ...mockError,
+            id: `error-${i}`,
+            timestamp: new Date(),
+          },
+          []
+        );
         collector.addEnhancedError(error);
       }
 
@@ -453,16 +496,19 @@ describe('EnhancedErrorCollector', () => {
     it('should return critical status with high error rate', () => {
       // Clear any existing errors first
       collector.clear();
-      
+
       // Add many errors to trigger critical threshold (50+ errors for critical status)
       for (let i = 0; i < 60; i++) {
-        const error = createEnhancedConversionError({
-          ...mockError,
-          id: `error-${i}`,
-          code: `CRIT-ERR-${i.toString().padStart(3, '0')}`, // Make unique
-          message: `Critical error message ${i}`, // Make unique
-          timestamp: new Date()
-        }, []);
+        const error = createEnhancedConversionError(
+          {
+            ...mockError,
+            id: `error-${i}`,
+            code: `CRIT-ERR-${i.toString().padStart(3, '0')}`, // Make unique
+            message: `Critical error message ${i}`, // Make unique
+            timestamp: new Date(),
+          },
+          []
+        );
         collector.addEnhancedError(error);
       }
 
@@ -475,33 +521,38 @@ describe('EnhancedErrorCollector', () => {
     it('should provide recommendations based on status', () => {
       // Clear any existing errors first
       collector.clear();
-      
+
       // Create a new collector with higher max errors to allow more errors to be stored
       const highCapacityCollector = new EnhancedErrorCollector({
         maxErrors: 1000,
-        filterDuplicates: true
+        filterDuplicates: true,
       });
-      
+
       // Add enough errors to trigger the warning threshold (10 errors per minute)
       // For a 1-hour window, we need 600+ errors to get 10+ errors per minute
       for (let i = 0; i < 700; i++) {
-        const error = createEnhancedConversionError({
-          ...mockError,
-          id: `error-${i}`,
-          code: `WARN-ERR-${i.toString().padStart(3, '0')}`, // Make unique
-          message: `Warning error message ${i}`, // Make unique
-          timestamp: new Date() // All within the current minute
-        }, []);
+        const error = createEnhancedConversionError(
+          {
+            ...mockError,
+            id: `error-${i}`,
+            code: `WARN-ERR-${i.toString().padStart(3, '0')}`, // Make unique
+            message: `Warning error message ${i}`, // Make unique
+            timestamp: new Date(), // All within the current minute
+          },
+          []
+        );
         highCapacityCollector.addEnhancedError(error);
       }
 
       const status = highCapacityCollector.getSystemHealthStatus();
       const metrics = highCapacityCollector.getErrorRateMetrics();
-      
+
       // With 700 errors in 1 hour, we should get 700/60 = 11.67 errors per minute
       // This should exceed the warning threshold of 10
       expect(metrics.errorRate).toBeGreaterThan(10);
-      expect(status.recommendations).toContain('High error rate detected - investigate recent changes');
+      expect(status.recommendations).toContain(
+        'High error rate detected - investigate recent changes'
+      );
     });
   });
 
@@ -512,8 +563,8 @@ describe('EnhancedErrorCollector', () => {
           strategy: RecoveryStrategy.RETRY,
           description: 'Retry operation',
           automated: true,
-          maxRetries: 2
-        }
+          maxRetries: 2,
+        },
       ]);
 
       collector.addEnhancedError(retryError);
@@ -529,8 +580,8 @@ describe('EnhancedErrorCollector', () => {
           strategy: RecoveryStrategy.FALLBACK,
           description: 'Use fallback',
           automated: true,
-          fallbackMethod: 'default_method'
-        }
+          fallbackMethod: 'default_method',
+        },
       ]);
 
       collector.addEnhancedError(fallbackError);
@@ -546,8 +597,8 @@ describe('EnhancedErrorCollector', () => {
         {
           strategy: RecoveryStrategy.SKIP,
           description: 'Skip operation',
-          automated: true
-        }
+          automated: true,
+        },
       ]);
 
       collector.addEnhancedError(skipError);
@@ -564,13 +615,11 @@ describe('EnhancedErrorCollector', () => {
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.ERROR,
         message: 'Invalid file format',
-        moduleOrigin: 'FILE'
+        moduleOrigin: 'FILE',
       });
 
       collector.addError(fileError); // This will create recovery actions automatically
-      
 
-      
       const result = await collector.attemptRecovery(fileError.id);
 
       expect(result.success).toBe(false);
@@ -583,8 +632,8 @@ describe('EnhancedErrorCollector', () => {
         {
           strategy: RecoveryStrategy.ABORT,
           description: 'Abort operation',
-          automated: true
-        }
+          automated: true,
+        },
       ]);
 
       collector.addEnhancedError(abortError);

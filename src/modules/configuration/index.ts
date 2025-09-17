@@ -1,47 +1,53 @@
 /**
  * Configuration Mapping Module
- * 
+ *
  * This module is responsible for translating static definition files and metadata
  * from Java mods to Bedrock addon format. It includes components for manifest generation,
  * block/item definition conversion, recipe conversion, loot table conversion, and license embedding.
  */
 
-import { ManifestGenerator, JavaModMetadata, BedrockManifest, ManifestGenerationResult } from './ManifestGenerator';
-import { 
-  BlockItemDefinitionConverter, 
-  JavaRegistrationCode, 
-  BedrockBlockDefinition, 
+import {
+  ManifestGenerator,
+  JavaModMetadata,
+  BedrockManifest,
+  ManifestGenerationResult,
+} from './ManifestGenerator.js';
+import { ErrorSeverity } from '../../types/errors.js';
+import {
+  BlockItemDefinitionConverter,
+  JavaRegistrationCode,
+  BedrockBlockDefinition,
   BedrockItemDefinition,
   BlockItemConversionResult,
-  BlockItemConversionNote
-} from './BlockItemDefinitionConverter';
+  BlockItemConversionNote,
+} from './BlockItemDefinitionConverter.js';
 import {
   LootTableConverter,
   JavaLootTable,
   BedrockLootTable,
   LootTableConversionResult,
-  LootTableConversionNote
-} from './LootTableConverter';
+  LootTableConversionNote,
+} from './LootTableConverter.js';
 import {
   RecipeConverter,
   JavaRecipe,
   BedrockRecipe,
   RecipeConversionResult,
-  RecipeConversionNote
-} from './RecipeConverter';
+  RecipeConversionNote,
+} from './RecipeConverter.js';
 import {
   LicenseEmbedder,
   LicenseInfo,
   AttributionInfo,
   LicenseEmbedResult,
-  LicenseEmbeddingNote
-} from './LicenseEmbedder';
+  LicenseEmbeddingNote,
+} from './LicenseEmbedder.js';
 
 /**
  * ConfigMappingInput interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ConfigMappingInput {
@@ -55,9 +61,9 @@ export interface ConfigMappingInput {
 
 /**
  * ConfigMappingOutput interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ConfigMappingOutput {
@@ -77,23 +83,23 @@ export interface ConfigMappingOutput {
 
 /**
  * ConfigConversionNote interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ConfigConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   component: 'manifest' | 'block' | 'item' | 'recipe' | 'loot_table' | 'license';
   message: string;
   details?: string;
 }
 
 // Export the classes and interfaces
-export { 
-  ManifestGenerator, 
-  JavaModMetadata, 
-  BedrockManifest, 
+export {
+  ManifestGenerator,
+  JavaModMetadata,
+  BedrockManifest,
   ManifestGenerationResult,
   BlockItemDefinitionConverter,
   JavaRegistrationCode,
@@ -115,14 +121,14 @@ export {
   LicenseInfo,
   AttributionInfo,
   LicenseEmbedResult,
-  LicenseEmbeddingNote
+  LicenseEmbeddingNote,
 };
 
 /**
  * ConfigurationModule class.
- * 
+ *
  * TODO: Add detailed description of the class purpose and functionality.
- * 
+ *
  * @since 1.0.0
  */
 export class ConfigurationModule {
@@ -131,12 +137,12 @@ export class ConfigurationModule {
   private recipeConverter: RecipeConverter;
   private lootTableConverter: LootTableConverter;
   private licenseEmbedder: LicenseEmbedder;
-  
+
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -148,88 +154,95 @@ export class ConfigurationModule {
     this.lootTableConverter = new LootTableConverter();
     this.licenseEmbedder = new LicenseEmbedder();
   }
-  
+
   /**
    * processConfigMapping method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
    */
-  async processConfigMapping(input: ConfigMappingInput, outputPath: string): Promise<ConfigMappingOutput> {
+  async processConfigMapping(
+    input: ConfigMappingInput,
+    outputPath: string
+  ): Promise<ConfigMappingOutput> {
     const conversionNotes: ConfigConversionNote[] = [];
-    
+
     // Generate manifests
     const manifestResult = this.manifestGenerator.generateManifests(input.javaManifest);
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
-    if (!manifestResult.success || !manifestResult.behaviorPackManifest || !manifestResult.resourcePackManifest) {
+    if (
+      !manifestResult.success ||
+      !manifestResult.behaviorPackManifest ||
+      !manifestResult.resourcePackManifest
+    ) {
       const errors = manifestResult.errors || ['Unknown error generating manifests'];
-      errors.forEach(error => {
+      errors.forEach((error) => {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'manifest',
-          message: `Failed to generate manifest: ${error}`
+          message: `Failed to generate manifest: ${error}`,
         });
       });
-      
+
       throw new Error(`Manifest generation failed: ${errors.join(', ')}`);
     }
-    
+
     // Write manifests to output directories
     const behaviorPackDir = `${outputPath}/behavior_pack`;
     const resourcePackDir = `${outputPath}/resource_pack`;
-    
+
     const writeResult = await this.manifestGenerator.writeManifests(
       manifestResult,
       behaviorPackDir,
       resourcePackDir
     );
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (!writeResult) {
       conversionNotes.push({
-        type: 'error',
+        type: ErrorSeverity.ERROR,
         component: 'manifest',
-        message: 'Failed to write manifests to output directories'
+        message: 'Failed to write manifests to output directories',
       });
-      
+
       throw new Error('Failed to write manifests to output directories');
     }
-    
+
     conversionNotes.push({
-      type: 'info',
+      type: ErrorSeverity.INFO,
       component: 'manifest',
       message: 'Successfully generated and wrote manifests',
-      details: `Behavior pack UUID: ${manifestResult.behaviorPackManifest.header.uuid}, Resource pack UUID: ${manifestResult.resourcePackManifest.header.uuid}`
+      details: `Behavior pack UUID: ${manifestResult.behaviorPackManifest.header.uuid}, Resource pack UUID: ${manifestResult.resourcePackManifest.header.uuid}`,
     });
-    
+
     // Process block and item definitions if registrations are provided
     let bedrockDefinitions = undefined;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -240,12 +253,12 @@ export class ConfigurationModule {
         const registrationResult = this.blockItemConverter.processRegistrations(
           input.javaRegistrations
         );
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -256,12 +269,12 @@ export class ConfigurationModule {
             registrationResult,
             behaviorPackDir
           );
-          
+
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -269,58 +282,58 @@ export class ConfigurationModule {
           if (writeDefResult) {
             bedrockDefinitions = {
               blocks: registrationResult.blocks,
-              items: registrationResult.items
+              items: registrationResult.items,
             };
-            
+
             // Add conversion notes
-            registrationResult.conversionNotes.forEach(note => {
+            registrationResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
-                details: note.details
+                details: note.details,
               });
             });
-            
+
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'block',
               message: `Successfully converted ${registrationResult.blocks.length} blocks and ${registrationResult.items.length} items`,
-              details: 'Block and item definitions written to behavior pack'
+              details: 'Block and item definitions written to behavior pack',
             });
           } else {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'block',
-              message: 'Failed to write block/item definitions to output directory'
+              message: 'Failed to write block/item definitions to output directory',
             });
           }
         } else if (registrationResult.errors) {
-          registrationResult.errors.forEach(error => {
+          registrationResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'block',
-              message: `Failed to process block/item registrations: ${error}`
+              message: `Failed to process block/item registrations: ${error}`,
             });
           });
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'block',
-          message: `Error processing block/item registrations: ${(error as Error).message}`
+          message: `Error processing block/item registrations: ${(error as Error).message}`,
         });
       }
     }
-    
+
     // Process recipes if provided
     let bedrockRecipes = undefined;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -330,14 +343,14 @@ export class ConfigurationModule {
         // Convert the recipes to Bedrock format
         const recipeResult = this.recipeConverter.convertRecipes(
           input.javaRecipes,
-          input.javaManifest.id
+          input.javaManifest.modId
         );
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -348,68 +361,68 @@ export class ConfigurationModule {
             recipeResult,
             behaviorPackDir
           );
-          
+
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
            */
           if (writeRecipeResult) {
             bedrockRecipes = recipeResult.recipes;
-            
+
             // Add conversion notes
-            recipeResult.conversionNotes.forEach(note => {
+            recipeResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
-                details: note.details
+                details: note.details,
               });
             });
-            
+
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'recipe',
               message: `Successfully converted ${recipeResult.recipes.length} recipes`,
-              details: 'Recipes written to behavior pack'
+              details: 'Recipes written to behavior pack',
             });
           } else {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'recipe',
-              message: 'Failed to write recipes to output directory'
+              message: 'Failed to write recipes to output directory',
             });
           }
         } else if (recipeResult.errors) {
-          recipeResult.errors.forEach(error => {
+          recipeResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'recipe',
-              message: `Failed to process recipes: ${error}`
+              message: `Failed to process recipes: ${error}`,
             });
           });
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'recipe',
-          message: `Error processing recipes: ${(error as Error).message}`
+          message: `Error processing recipes: ${(error as Error).message}`,
         });
       }
     }
-    
+
     // Process loot tables if provided
     let bedrockLootTables = undefined;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -419,14 +432,14 @@ export class ConfigurationModule {
         // Convert the loot tables to Bedrock format
         const lootTableResult = this.lootTableConverter.convertLootTables(
           input.javaLootTables,
-          input.javaManifest.id
+          input.javaManifest.modId
         );
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -437,68 +450,68 @@ export class ConfigurationModule {
             lootTableResult,
             behaviorPackDir
           );
-          
+
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
            */
           if (writeLootTableResult) {
             bedrockLootTables = lootTableResult.lootTables;
-            
+
             // Add conversion notes
-            lootTableResult.conversionNotes.forEach(note => {
+            lootTableResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
-                details: note.details
+                details: note.details,
               });
             });
-            
+
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'loot_table',
               message: `Successfully converted ${Object.keys(lootTableResult.lootTables).length} loot tables`,
-              details: 'Loot tables written to behavior pack'
+              details: 'Loot tables written to behavior pack',
             });
           } else {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'loot_table',
-              message: 'Failed to write loot tables to output directory'
+              message: 'Failed to write loot tables to output directory',
             });
           }
         } else if (lootTableResult.errors) {
-          lootTableResult.errors.forEach(error => {
+          lootTableResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'loot_table',
-              message: `Failed to process loot tables: ${error}`
+              message: `Failed to process loot tables: ${error}`,
             });
           });
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'loot_table',
-          message: `Error processing loot tables: ${(error as Error).message}`
+          message: `Error processing loot tables: ${(error as Error).message}`,
         });
       }
     }
-    
+
     // Embed license information if provided
     let licensedFiles = undefined;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -511,89 +524,89 @@ export class ConfigurationModule {
           input.attributionInfo,
           outputPath
         );
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         if (licenseResult.success) {
           licensedFiles = licenseResult.embeddedFiles;
-          
+
           // Add conversion notes
-          licenseResult.conversionNotes.forEach(note => {
+          licenseResult.conversionNotes.forEach((note) => {
             conversionNotes.push({
-              type: note.type,
+              type: note.type as ErrorSeverity,
               component: note.component,
               message: note.message,
-              details: note.details
+              details: note.details,
             });
           });
-          
+
           // Validate license inclusion
           const validationResult = await this.licenseEmbedder.validateLicenseInclusion(
             outputPath,
             input.licenseInfo
           );
-          
+
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
            */
           if (!validationResult.valid) {
-            validationResult.errors.forEach(error => {
+            validationResult.errors.forEach((error) => {
               conversionNotes.push({
-                type: 'warning',
+                type: ErrorSeverity.WARNING,
                 component: 'license',
-                message: `License validation warning: ${error}`
+                message: `License validation warning: ${error}`,
               });
             });
           } else {
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'license',
               message: 'License validation passed',
-              details: 'All required license information is properly included'
+              details: 'All required license information is properly included',
             });
           }
         } else if (licenseResult.errors) {
-          licenseResult.errors.forEach(error => {
+          licenseResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'license',
-              message: `Failed to embed license information: ${error}`
+              message: `Failed to embed license information: ${error}`,
             });
           });
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'license',
-          message: `Error embedding license information: ${(error as Error).message}`
+          message: `Error embedding license information: ${(error as Error).message}`,
         });
       }
     }
-    
+
     // Return the configuration mapping output
     return {
       bedrockManifests: {
         behaviorPack: manifestResult.behaviorPackManifest,
-        resourcePack: manifestResult.resourcePackManifest
+        resourcePack: manifestResult.resourcePackManifest,
       },
       bedrockDefinitions,
       bedrockRecipes,
       bedrockLootTables,
       licensedFiles,
-      conversionNotes
+      conversionNotes,
     };
   }
 }

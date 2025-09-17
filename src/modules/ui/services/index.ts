@@ -1,8 +1,8 @@
 /**
  * UI Services
- * 
+ *
  * Frontend services for API communication and data management.
- * 
+ *
  * Public API:
  * - ConversionAPIService: Interface for conversion API operations
  * - ConversionAPIServiceImpl: Implementation of conversion API service
@@ -13,9 +13,9 @@
  */
 
 // Export all services
-export * from './ConversionAPIService';
-export * from './ConversionAPIServiceImpl';
-export * from './AdminAPIService';
-export * from './AdminAPIServiceImpl';
-export * from './PipelineStageMapper';
-export * from './CompromisePreferencesService';
+export * from './ConversionAPIService.js';
+export * from './ConversionAPIServiceImpl.js';
+export * from './AdminAPIService.js';
+export * from './AdminAPIServiceImpl.js';
+export * from './PipelineStageMapper.js';
+export * from './CompromisePreferencesService.js';

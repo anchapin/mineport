@@ -13,6 +13,7 @@ const axios = require('axios');
 class DeploymentValidator {
   constructor() {
     this.baseUrl = process.env.TEST_BASE_URL || 'http://localhost:3000';
+    this.startTime = Date.now();
     this.results = {
       passed: 0,
       failed: 0,
@@ -30,18 +31,18 @@ class DeploymentValidator {
       error: '\x1b[31m',
       reset: '\x1b[0m'
     };
-    
+
     console.log(`${colors[level]}[${level.toUpperCase()}]${colors.reset} ${timestamp} - ${message}`);
   }
 
   async runTest(name, testFn) {
     this.log('info', `Running test: ${name}`);
-    
+
     try {
       const startTime = Date.now();
       await testFn();
       const duration = Date.now() - startTime;
-      
+
       this.results.passed++;
       this.results.tests.push({
         name,
@@ -49,7 +50,7 @@ class DeploymentValidator {
         duration,
         message: 'Test passed successfully'
       });
-      
+
       this.log('success', `✓ ${name} (${duration}ms)`);
     } catch (error) {
       this.results.failed++;
@@ -60,7 +61,7 @@ class DeploymentValidator {
         message: error.message,
         error: error.stack
       });
-      
+
       this.log('error', `✗ ${name}: ${error.message}`);
     }
   }
@@ -69,7 +70,7 @@ class DeploymentValidator {
     await this.runTest('Node.js Version Check', async () => {
       const nodeVersion = process.version;
       const requiredVersion = '18.0.0';
-      
+
       if (!this.compareVersions(nodeVersion.slice(1), requiredVersion)) {
         throw new Error(`Node.js version ${nodeVersion} is below required ${requiredVersion}`);
       }
@@ -78,11 +79,11 @@ class DeploymentValidator {
     await this.runTest('Dependencies Check', async () => {
       const packageJsonPath = path.join(__dirname, '..', 'package.json');
       const nodeModulesPath = path.join(__dirname, '..', 'node_modules');
-      
+
       if (!fs.existsSync(packageJsonPath)) {
         throw new Error('package.json not found');
       }
-      
+
       if (!fs.existsSync(nodeModulesPath)) {
         throw new Error('node_modules not found - run npm install');
       }
@@ -91,7 +92,7 @@ class DeploymentValidator {
     await this.runTest('Environment Variables Check', async () => {
       const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER'];
       const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-      
+
       if (missingVars.length > 0) {
         throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
       }
@@ -101,20 +102,20 @@ class DeploymentValidator {
   async validateConfiguration() {
     await this.runTest('Feature Flags Configuration', async () => {
       const flagsPath = path.join(__dirname, '..', 'config', 'feature-flags.json');
-      
+
       if (!fs.existsSync(flagsPath)) {
         throw new Error('Feature flags configuration not found');
       }
-      
+
       const flags = JSON.parse(fs.readFileSync(flagsPath, 'utf8'));
-      
+
       const requiredFlags = [
         'enhanced_file_processing',
         'multi_strategy_analysis',
         'specialized_conversion_agents',
         'comprehensive_validation'
       ];
-      
+
       for (const flag of requiredFlags) {
         if (!(flag in flags)) {
           throw new Error(`Missing feature flag: ${flag}`);
@@ -124,13 +125,13 @@ class DeploymentValidator {
 
     await this.runTest('Deployment Configuration', async () => {
       const deployConfigPath = path.join(__dirname, '..', 'config', 'deployment.json');
-      
+
       if (!fs.existsSync(deployConfigPath)) {
         throw new Error('Deployment configuration not found');
       }
-      
+
       const config = JSON.parse(fs.readFileSync(deployConfigPath, 'utf8'));
-      
+
       if (!config.environments || !config.deployment || !config.rollback) {
         throw new Error('Invalid deployment configuration structure');
       }
@@ -138,13 +139,13 @@ class DeploymentValidator {
 
     await this.runTest('Monitoring Configuration', async () => {
       const monitoringConfigPath = path.join(__dirname, '..', 'config', 'monitoring.json');
-      
+
       if (!fs.existsSync(monitoringConfigPath)) {
         throw new Error('Monitoring configuration not found');
       }
-      
+
       const config = JSON.parse(fs.readFileSync(monitoringConfigPath, 'utf8'));
-      
+
       if (!config.monitoring || !config.metrics || !config.alerts) {
         throw new Error('Invalid monitoring configuration structure');
       }
@@ -163,12 +164,12 @@ class DeploymentValidator {
     await this.runTest('Database Migrations', async () => {
       try {
         const output = execSync('npm run db:status', { encoding: 'utf8' });
-        
+
         if (output.includes('Pending: 0')) {
           // All migrations are up to date
           return;
         }
-        
+
         // Check if ModPorter-AI migration exists
         if (!output.includes('001_modporter_ai_integration.sql')) {
           throw new Error('ModPorter-AI migration not found');
@@ -182,11 +183,11 @@ class DeploymentValidator {
   async validateService() {
     await this.runTest('Service Health Check', async () => {
       const response = await axios.get(`${this.baseUrl}/health`, { timeout: 10000 });
-      
+
       if (response.status !== 200) {
         throw new Error(`Health check failed with status ${response.status}`);
       }
-      
+
       if (!['healthy', 'degraded'].includes(response.data.status)) {
         throw new Error(`Service status is ${response.data.status}`);
       }
@@ -194,11 +195,11 @@ class DeploymentValidator {
 
     await this.runTest('Service Readiness', async () => {
       const response = await axios.get(`${this.baseUrl}/ready`, { timeout: 5000 });
-      
+
       if (response.status !== 200) {
         throw new Error(`Readiness check failed with status ${response.status}`);
       }
-      
+
       if (response.data.status !== 'ready') {
         throw new Error('Service is not ready');
       }
@@ -206,11 +207,11 @@ class DeploymentValidator {
 
     await this.runTest('Service Liveness', async () => {
       const response = await axios.get(`${this.baseUrl}/live`, { timeout: 5000 });
-      
+
       if (response.status !== 200) {
         throw new Error(`Liveness check failed with status ${response.status}`);
       }
-      
+
       if (response.data.status !== 'alive') {
         throw new Error('Service is not alive');
       }
@@ -218,11 +219,11 @@ class DeploymentValidator {
 
     await this.runTest('Metrics Endpoint', async () => {
       const response = await axios.get(`${this.baseUrl}/metrics`, { timeout: 5000 });
-      
+
       if (response.status !== 200) {
         throw new Error(`Metrics endpoint failed with status ${response.status}`);
       }
-      
+
       const requiredMetrics = ['system', 'memory', 'health'];
       for (const metric of requiredMetrics) {
         if (!(metric in response.data)) {
@@ -235,15 +236,15 @@ class DeploymentValidator {
   async validateModPorterAI() {
     await this.runTest('ModPorter-AI Components Health', async () => {
       const response = await axios.get(`${this.baseUrl}/health`);
-      
+
       const modporterCheck = response.data.checks.find(
         check => check.name === 'modporter-ai-components'
       );
-      
+
       if (!modporterCheck) {
         throw new Error('ModPorter-AI components health check not found');
       }
-      
+
       if (modporterCheck.status !== 'healthy') {
         throw new Error(`ModPorter-AI components are ${modporterCheck.status}: ${modporterCheck.message}`);
       }
@@ -252,11 +253,11 @@ class DeploymentValidator {
     await this.runTest('Feature Flag Responsiveness', async () => {
       // This test would verify that feature flags are being read correctly
       const response = await axios.get(`${this.baseUrl}/config/validate`);
-      
+
       if (response.status !== 200) {
         throw new Error('Configuration validation failed');
       }
-      
+
       if (!response.data.valid) {
         throw new Error('Configuration is invalid');
       }
@@ -266,20 +267,20 @@ class DeploymentValidator {
   async validateSecurity() {
     await this.runTest('Security Scanning Components', async () => {
       const response = await axios.get(`${this.baseUrl}/health`);
-      
+
       // Check for security-related health checks
       const securityChecks = response.data.checks.filter(
         check => check.name.includes('security') || check.name === 'filesystem'
       );
-      
+
       if (securityChecks.length === 0) {
         throw new Error('No security health checks found');
       }
-      
+
       const unhealthySecurityChecks = securityChecks.filter(
         check => check.status !== 'healthy'
       );
-      
+
       if (unhealthySecurityChecks.length > 0) {
         throw new Error(`Unhealthy security checks: ${unhealthySecurityChecks.map(c => c.name).join(', ')}`);
       }
@@ -291,7 +292,7 @@ class DeploymentValidator {
       const startTime = Date.now();
       await axios.get(`${this.baseUrl}/health`);
       const responseTime = Date.now() - startTime;
-      
+
       if (responseTime > 5000) {
         throw new Error(`Response time ${responseTime}ms exceeds 5000ms threshold`);
       }
@@ -300,7 +301,7 @@ class DeploymentValidator {
     await this.runTest('Memory Usage Check', async () => {
       const response = await axios.get(`${this.baseUrl}/metrics`);
       const memoryUsage = response.data.memory;
-      
+
       // Check if memory usage is reasonable (less than 1GB heap)
       if (memoryUsage.heapUsed > 1024 * 1024 * 1024) {
         throw new Error(`High memory usage: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`);
@@ -316,13 +317,13 @@ class DeploymentValidator {
         'scripts/canary-deployment.sh',
         'scripts/run-migrations.js'
       ];
-      
+
       for (const script of scripts) {
         const scriptPath = path.join(__dirname, '..', script);
         if (!fs.existsSync(scriptPath)) {
           throw new Error(`Deployment script not found: ${script}`);
         }
-        
+
         // Check if script is executable
         try {
           fs.accessSync(scriptPath, fs.constants.X_OK);
@@ -335,7 +336,7 @@ class DeploymentValidator {
     await this.runTest('Package.json Scripts', async () => {
       const packageJsonPath = path.join(__dirname, '..', 'package.json');
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-      
+
       const requiredScripts = [
         'deploy',
         'deploy:canary',
@@ -344,7 +345,7 @@ class DeploymentValidator {
         'test:smoke',
         'health:check'
       ];
-      
+
       for (const script of requiredScripts) {
         if (!(script in packageJson.scripts)) {
           throw new Error(`Missing npm script: ${script}`);
@@ -356,22 +357,22 @@ class DeploymentValidator {
   compareVersions(version1, version2) {
     const v1parts = version1.split('.').map(Number);
     const v2parts = version2.split('.').map(Number);
-    
+
     for (let i = 0; i < Math.max(v1parts.length, v2parts.length); i++) {
       const v1part = v1parts[i] || 0;
       const v2part = v2parts[i] || 0;
-      
+
       if (v1part > v2part) return true;
       if (v1part < v2part) return false;
     }
-    
+
     return true; // Equal versions
   }
 
   generateReport() {
     const total = this.results.passed + this.results.failed;
     const successRate = total > 0 ? (this.results.passed / total * 100).toFixed(2) : 0;
-    
+
     console.log('\n' + '='.repeat(60));
     console.log('DEPLOYMENT VALIDATION REPORT');
     console.log('='.repeat(60));
@@ -380,7 +381,7 @@ class DeploymentValidator {
     console.log(`Failed: ${this.results.failed}`);
     console.log(`Success Rate: ${successRate}%`);
     console.log('='.repeat(60));
-    
+
     if (this.results.failed > 0) {
       console.log('\nFAILED TESTS:');
       this.results.tests
@@ -389,28 +390,104 @@ class DeploymentValidator {
           console.log(`- ${test.name}: ${test.message}`);
         });
     }
-    
+
     // Write detailed report to file
-    const reportPath = path.join(__dirname, '..', 'deployment-validation-report.json');
-    fs.writeFileSync(reportPath, JSON.stringify({
+    const reportData = {
       timestamp: new Date().toISOString(),
+      environment: process.env.DEPLOYMENT_ENVIRONMENT || 'unknown',
+      commit: process.env.GITHUB_SHA || 'unknown',
+      branch: process.env.GITHUB_REF_NAME || 'unknown',
+      workflow: process.env.GITHUB_WORKFLOW || 'unknown',
+      run_id: process.env.GITHUB_RUN_ID || 'unknown',
       summary: {
         total,
         passed: this.results.passed,
         failed: this.results.failed,
         successRate: parseFloat(successRate)
       },
-      tests: this.results.tests
-    }, null, 2));
-    
+      tests: this.results.tests,
+      deployment_metrics: {
+        validation_duration: Date.now() - this.startTime,
+        critical_failures: this.results.tests.filter(t =>
+          t.status === 'failed' &&
+          ['Service Health Check', 'Service Readiness', 'Database Connectivity'].includes(t.name)
+        ).length,
+        security_failures: this.results.tests.filter(t =>
+          t.status === 'failed' && t.name.toLowerCase().includes('security')
+        ).length,
+        performance_failures: this.results.tests.filter(t =>
+          t.status === 'failed' &&
+          ['Response Time Check', 'Memory Usage Check'].includes(t.name)
+        ).length
+      }
+    };
+
+    const reportPath = path.join(__dirname, '..', 'deployment-validation-report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(reportData, null, 2));
+
     console.log(`\nDetailed report saved to: ${reportPath}`);
-    
+
+    // Send metrics to monitoring system if webhook is configured
+    this.sendValidationMetrics(reportData);
+
     return this.results.failed === 0;
+  }
+
+  async sendValidationMetrics(reportData) {
+    if (!process.env.MONITORING_WEBHOOK_URL) {
+      return;
+    }
+
+    try {
+      const validationMetrics = {
+        type: 'deployment_validation',
+        timestamp: reportData.timestamp,
+        environment: reportData.environment,
+        deployment: {
+          commit: reportData.commit,
+          branch: reportData.branch,
+          workflow: reportData.workflow,
+          run_id: reportData.run_id
+        },
+        validation: {
+          total_tests: reportData.summary.total,
+          passed_tests: reportData.summary.passed,
+          failed_tests: reportData.summary.failed,
+          success_rate: reportData.summary.successRate,
+          duration: reportData.deployment_metrics.validation_duration,
+          critical_failures: reportData.deployment_metrics.critical_failures,
+          security_failures: reportData.deployment_metrics.security_failures,
+          performance_failures: reportData.deployment_metrics.performance_failures
+        },
+        failed_tests: reportData.tests.filter(t => t.status === 'failed').map(t => ({
+          name: t.name,
+          message: t.message,
+          duration: t.duration
+        }))
+      };
+
+      const response = await fetch(process.env.MONITORING_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'DeploymentValidator/1.0'
+        },
+        body: JSON.stringify(validationMetrics)
+      });
+
+      if (response.ok) {
+        console.log('✅ Validation metrics sent to monitoring system');
+      } else {
+        console.warn(`⚠️ Failed to send validation metrics: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to send validation metrics:', error.message);
+    }
   }
 
   async run() {
     this.log('info', 'Starting deployment validation...');
-    
+
     try {
       await this.validatePrerequisites();
       await this.validateConfiguration();
@@ -420,9 +497,9 @@ class DeploymentValidator {
       await this.validateSecurity();
       await this.validatePerformance();
       await this.validateDeploymentScripts();
-      
+
       const success = this.generateReport();
-      
+
       if (success) {
         this.log('success', 'All deployment validations passed!');
         process.exit(0);

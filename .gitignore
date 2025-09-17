@@ -13,11 +13,26 @@ npm-debug.log*
 # Coverage directory
 coverage/
 
+# Cache directories
+.cache/
+*.cache
+.vitest-cache/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Test results
+test-results/
+test-results.xml
+
 # Temporary files and test artifacts
 temp/
-test-results/
+tmp/
 *.tmp
 *.temp
+
+# JAR files (test artifacts)
+*.jar
 
 # API mapping database files (test instances)
 **/test-*.json

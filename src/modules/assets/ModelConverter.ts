@@ -1,37 +1,11 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 const logger = createLogger('ModelConverter');
 
-/**
- * Interface representing a model file in Java format
- */
-export interface JavaModelFile {
-  path: string;
-  data: Buffer | object;
-  type: 'block' | 'item' | 'entity';
-  metadata?: {
-    parent?: string;
-    textures?: Record<string, string>;
-    elements?: any[];
-    display?: Record<string, any>;
-  };
-}
-
-/**
- * Interface representing a model file in Bedrock format
- */
-export interface BedrockModelFile {
-  path: string;
-  data: Buffer | object;
-  type: 'block' | 'item' | 'entity';
-  metadata?: {
-    textures?: Record<string, string>;
-    geometry?: string;
-    materials?: Record<string, any>;
-  };
-}
+import { JavaModelFile, BedrockModelFile } from '../../types/assets.js';
 
 /**
  * Interface for model conversion result
@@ -45,7 +19,7 @@ export interface ModelConversionResult {
  * Interface for model conversion notes/warnings
  */
 export interface ModelConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   message: string;
   modelPath?: string;
 }
@@ -57,21 +31,21 @@ export interface ModelConversionNote {
 export class ModelConverter {
   /**
    * Converts a collection of Java model files to Bedrock format
-   * 
+   *
    * @param javaModels - Array of Java model files to convert
    * @returns Conversion result with converted models and notes
    */
   public async convertModels(javaModels: JavaModelFile[]): Promise<ModelConversionResult> {
     logger.info(`Converting ${javaModels.length} model files`);
-    
+
     const convertedModels: BedrockModelFile[] = [];
     const conversionNotes: ModelConversionNote[] = [];
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -83,73 +57,76 @@ export class ModelConverter {
       } catch (error) {
         logger.error(`Failed to convert model ${javaModel.path}: ${error}`);
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           message: `Failed to convert model: ${error instanceof Error ? error.message : String(error)}`,
-          modelPath: javaModel.path
+          modelPath: javaModel.path,
         });
       }
     }
-    
+
     return {
       convertedModels,
-      conversionNotes
+      conversionNotes,
     };
   }
-  
+
   /**
    * Converts a single Java model file to Bedrock format
-   * 
+   *
    * @param javaModel - Java model file to convert
    * @returns Converted Bedrock model file
    */
   private async convertSingleModel(javaModel: JavaModelFile): Promise<BedrockModelFile> {
     // Map the Java model path to the corresponding Bedrock path
     const bedrockPath = this.mapModelPath(javaModel.path, javaModel.type);
-    
+
     // Convert the model data based on its type
     let modelData: any;
     let metadata: any = {};
-    
+
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     switch (javaModel.type) {
-      case 'block':
+      case 'block': {
         const blockResult = this.convertBlockModel(javaModel);
         modelData = blockResult.data;
         metadata = blockResult.metadata;
         break;
-      case 'item':
+      }
+      case 'item': {
         const itemResult = this.convertItemModel(javaModel);
         modelData = itemResult.data;
         metadata = itemResult.metadata;
         break;
-      case 'entity':
+      }
+      case 'entity': {
         const entityResult = this.convertEntityModel(javaModel);
         modelData = entityResult.data;
         metadata = entityResult.metadata;
         break;
+      }
       default:
         throw new Error(`Unsupported model type: ${javaModel.type}`);
     }
-    
+
     return {
       path: bedrockPath,
       data: modelData,
       type: javaModel.type,
-      metadata
+      metadata,
     };
   }
-  
+
   /**
    * Maps a Java model path to the corresponding Bedrock path
-   * 
+   *
    * @param javaPath - Original Java model path
    * @param modelType - Type of the model (block, item, entity)
    * @returns Mapped Bedrock model path
@@ -158,17 +135,17 @@ export class ModelConverter {
     // Extract the relevant parts from the Java path
     const parts = javaPath.split('/');
     const modId = parts[1]; // Extract mod ID for potential namespacing
-    
+
     // Find the model category and file name
     let fileName = '';
-    
+
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === 'models' && i + 1 < parts.length) {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -179,13 +156,13 @@ export class ModelConverter {
         break;
       }
     }
-    
+
     // Remove .json extension if present
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -193,13 +170,13 @@ export class ModelConverter {
     if (fileName.endsWith('.json')) {
       fileName = fileName.substring(0, fileName.length - 5);
     }
-    
+
     // Map to appropriate Bedrock path based on model type
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -215,19 +192,20 @@ export class ModelConverter {
         return `models/${modId}_${fileName}.geo.json`;
     }
   }
-  
+
   /**
    * Converts a Java block model to Bedrock format
-   * 
+   *
    * @param javaModel - Java block model to convert
    * @returns Converted Bedrock block model data and metadata
    */
   private convertBlockModel(javaModel: JavaModelFile): { data: any; metadata: any } {
     // Parse the model data if it's a Buffer
-    const modelData = typeof javaModel.data === 'object' && !(javaModel.data instanceof Buffer) 
-      ? javaModel.data 
-      : JSON.parse(javaModel.data.toString('utf-8'));
-    
+    const modelData =
+      typeof javaModel.data === 'object' && !(javaModel.data instanceof Buffer)
+        ? javaModel.data
+        : JSON.parse(javaModel.data.toString('utf-8'));
+
     // Create a Bedrock geometry model
     const bedrockModel = {
       format_version: '1.12.0',
@@ -239,82 +217,76 @@ export class ModelConverter {
             texture_height: 16,
             visible_bounds_width: 2,
             visible_bounds_height: 2,
-            visible_bounds_offset: [0, 0, 0]
+            visible_bounds_offset: [0, 0, 0],
           },
           bones: [
             {
               name: 'block',
               pivot: [0, 0, 0],
-              cubes: this.convertBlockElements(modelData.elements || [])
-            }
-          ]
-        }
-      ]
+              cubes: this.convertBlockElements(modelData.elements || []),
+            },
+          ],
+        },
+      ],
     };
-    
+
     // Extract texture mappings
     const textures = modelData.textures || {};
-    
+
     return {
       data: bedrockModel,
       metadata: {
         textures,
-        geometry: `geometry.${this.extractModelIdentifier(javaModel.path)}`
-      }
+        geometry: `geometry.${this.extractModelIdentifier(javaModel.path)}`,
+      },
     };
   }
-  
+
   /**
    * Converts Java block elements to Bedrock cubes
-   * 
+   *
    * @param elements - Java block model elements
    * @returns Bedrock cube definitions
    */
   private convertBlockElements(elements: any[]): any[] {
     if (!elements || elements.length === 0) {
       // Create a default cube if no elements are defined
-      return [{
-        origin: [-8, 0, -8],
-        size: [16, 16, 16],
-        uv: {
-          north: { uv: [0, 0], uv_size: [16, 16] },
-          east: { uv: [0, 0], uv_size: [16, 16] },
-          south: { uv: [0, 0], uv_size: [16, 16] },
-          west: { uv: [0, 0], uv_size: [16, 16] },
-          up: { uv: [0, 0], uv_size: [16, 16] },
-          down: { uv: [0, 0], uv_size: [16, 16] }
-        }
-      }];
+      return [
+        {
+          origin: [-8, 0, -8],
+          size: [16, 16, 16],
+          uv: {
+            north: { uv: [0, 0], uv_size: [16, 16] },
+            east: { uv: [0, 0], uv_size: [16, 16] },
+            south: { uv: [0, 0], uv_size: [16, 16] },
+            west: { uv: [0, 0], uv_size: [16, 16] },
+            up: { uv: [0, 0], uv_size: [16, 16] },
+            down: { uv: [0, 0], uv_size: [16, 16] },
+          },
+        },
+      ];
     }
-    
-    return elements.map(element => {
+
+    return elements.map((element) => {
       // Java models use [from, to] coordinates, Bedrock uses [origin, size]
       const from = element.from || [0, 0, 0];
       const to = element.to || [16, 16, 16];
-      
+
       // Convert Java coordinates to Bedrock
       // Java: [0,0,0] is the bottom-left corner
       // Bedrock: [0,0,0] is the center, so we need to offset
-      const origin = [
-        from[0] - 8,
-        from[1],
-        from[2] - 8
-      ];
-      
-      const size = [
-        to[0] - from[0],
-        to[1] - from[1],
-        to[2] - from[2]
-      ];
-      
+      const origin = [from[0] - 8, from[1], from[2] - 8];
+
+      const size = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
+
       // Convert UV mappings
       const uv: any = {};
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -322,9 +294,9 @@ export class ModelConverter {
       if (element.faces) {
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -332,9 +304,9 @@ export class ModelConverter {
         for (const [face, faceData] of Object.entries(element.faces)) {
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -343,32 +315,33 @@ export class ModelConverter {
             const uvData = (faceData as any).uv || [0, 0, 16, 16];
             uv[face] = {
               uv: [uvData[0], uvData[1]],
-              uv_size: [uvData[2] - uvData[0], uvData[3] - uvData[1]]
+              uv_size: [uvData[2] - uvData[0], uvData[3] - uvData[1]],
             };
           }
         }
       }
-      
+
       return {
         origin,
         size,
-        uv
+        uv,
       };
     });
   }
-  
+
   /**
    * Converts a Java item model to Bedrock format
-   * 
+   *
    * @param javaModel - Java item model to convert
    * @returns Converted Bedrock item model data and metadata
    */
   private convertItemModel(javaModel: JavaModelFile): { data: any; metadata: any } {
     // Parse the model data if it's a Buffer
-    const modelData = typeof javaModel.data === 'object' && !(javaModel.data instanceof Buffer) 
-      ? javaModel.data 
-      : JSON.parse(javaModel.data.toString('utf-8'));
-    
+    const modelData =
+      typeof javaModel.data === 'object' && !(javaModel.data instanceof Buffer)
+        ? javaModel.data
+        : JSON.parse(javaModel.data.toString('utf-8'));
+
     // Create a Bedrock geometry model for the item
     const bedrockModel = {
       format_version: '1.12.0',
@@ -380,7 +353,7 @@ export class ModelConverter {
             texture_height: 16,
             visible_bounds_width: 2,
             visible_bounds_height: 2,
-            visible_bounds_offset: [0, 0, 0]
+            visible_bounds_offset: [0, 0, 0],
           },
           bones: [
             {
@@ -391,31 +364,31 @@ export class ModelConverter {
                   origin: [-8, 0, 0],
                   size: [16, 16, 0.1],
                   uv: {
-                    north: { uv: [0, 0], uv_size: [16, 16] }
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                    north: { uv: [0, 0], uv_size: [16, 16] },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
-    
+
     // Extract texture mappings
     const textures = modelData.textures || {};
-    
+
     return {
       data: bedrockModel,
       metadata: {
         textures,
-        geometry: `geometry.${this.extractModelIdentifier(javaModel.path)}`
-      }
+        geometry: `geometry.${this.extractModelIdentifier(javaModel.path)}`,
+      },
     };
   }
-  
+
   /**
    * Converts a Java entity model to Bedrock format
-   * 
+   *
    * @param javaModel - Java entity model to convert
    * @returns Converted Bedrock entity model data and metadata
    */
@@ -423,12 +396,13 @@ export class ModelConverter {
     // Entity models are more complex and often use custom formats
     // This is a simplified implementation that would need to be expanded
     // based on the specific entity model format used by the mod
-    
+
     // Parse the model data if it's a Buffer
-    const modelData = typeof javaModel.data === 'object' && !(javaModel.data instanceof Buffer) 
-      ? javaModel.data 
-      : JSON.parse(javaModel.data.toString('utf-8'));
-    
+    const modelData =
+      typeof javaModel.data === 'object' && !(javaModel.data instanceof Buffer)
+        ? javaModel.data
+        : JSON.parse(javaModel.data.toString('utf-8'));
+
     // Create a basic Bedrock entity model
     const bedrockModel = {
       format_version: '1.12.0',
@@ -440,59 +414,61 @@ export class ModelConverter {
             texture_height: 64,
             visible_bounds_width: 2,
             visible_bounds_height: 3,
-            visible_bounds_offset: [0, 1, 0]
+            visible_bounds_offset: [0, 1, 0],
           },
-          bones: this.convertEntityBones(modelData)
-        }
-      ]
+          bones: this.convertEntityBones(modelData),
+        },
+      ],
     };
-    
+
     // Extract texture mappings
     const textures = modelData.textures || {};
-    
+
     return {
       data: bedrockModel,
       metadata: {
         textures,
-        geometry: `geometry.${this.extractModelIdentifier(javaModel.path)}`
-      }
+        geometry: `geometry.${this.extractModelIdentifier(javaModel.path)}`,
+      },
     };
   }
-  
+
   /**
    * Converts Java entity model bones/parts to Bedrock format
-   * 
+   *
    * @param modelData - Java entity model data
    * @returns Array of Bedrock bone definitions
    */
   private convertEntityBones(modelData: any): any[] {
     // This is a simplified implementation
     // In a real implementation, this would need to handle different entity model formats
-    
+
     // If the model has a defined structure, try to convert it
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (modelData.elements) {
-      return [{
-        name: 'body',
-        pivot: [0, 0, 0],
-        cubes: this.convertBlockElements(modelData.elements)
-      }];
+      return [
+        {
+          name: 'body',
+          pivot: [0, 0, 0],
+          cubes: this.convertBlockElements(modelData.elements),
+        },
+      ];
     }
-    
+
     // If the model has bones/parts defined in a custom format
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -508,35 +484,39 @@ export class ModelConverter {
             return {
               origin: cube.origin || [0, 0, 0],
               size: cube.size || [1, 1, 1],
-              uv: cube.uv || { north: { uv: [0, 0], uv_size: [16, 16] } }
+              uv: cube.uv || { north: { uv: [0, 0], uv_size: [16, 16] } },
             };
-          })
+          }),
         };
       });
     }
-    
+
     // Default fallback if no recognizable structure
-    return [{
-      name: 'body',
-      pivot: [0, 0, 0],
-      cubes: [{
-        origin: [-4, 0, -2],
-        size: [8, 12, 4],
-        uv: {
-          north: { uv: [0, 0], uv_size: [8, 12] },
-          east: { uv: [8, 0], uv_size: [4, 12] },
-          south: { uv: [12, 0], uv_size: [8, 12] },
-          west: { uv: [20, 0], uv_size: [4, 12] },
-          up: { uv: [8, 0], uv_size: [8, 4] },
-          down: { uv: [16, 4], uv_size: [8, 4] }
-        }
-      }]
-    }];
+    return [
+      {
+        name: 'body',
+        pivot: [0, 0, 0],
+        cubes: [
+          {
+            origin: [-4, 0, -2],
+            size: [8, 12, 4],
+            uv: {
+              north: { uv: [0, 0], uv_size: [8, 12] },
+              east: { uv: [8, 0], uv_size: [4, 12] },
+              south: { uv: [12, 0], uv_size: [8, 12] },
+              west: { uv: [20, 0], uv_size: [4, 12] },
+              up: { uv: [8, 0], uv_size: [8, 4] },
+              down: { uv: [16, 4], uv_size: [8, 4] },
+            },
+          },
+        ],
+      },
+    ];
   }
-  
+
   /**
    * Extracts a model identifier from its path
-   * 
+   *
    * @param modelPath - Path to the model file
    * @returns Model identifier
    */
@@ -544,7 +524,7 @@ export class ModelConverter {
     // Extract mod ID and model name from the path
     const parts = modelPath.split('/');
     const modId = parts[1]; // Extract mod ID
-    
+
     // Find the model name
     let modelName = '';
     for (let i = 0; i < parts.length; i++) {
@@ -553,13 +533,13 @@ export class ModelConverter {
         break;
       }
     }
-    
+
     // Remove .json extension if present
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -567,28 +547,28 @@ export class ModelConverter {
     if (modelName.endsWith('.json')) {
       modelName = modelName.substring(0, modelName.length - 5);
     }
-    
+
     return `${modId}_${modelName}`;
   }
-  
+
   /**
    * Validates a converted Bedrock model
-   * 
+   *
    * @param model - Bedrock model to validate
    * @returns Validation result with any issues found
    */
   public validateModel(model: BedrockModelFile): { valid: boolean; issues: string[] } {
     const issues: string[] = [];
-    
+
     // Check if the model has the required format version
     if (typeof model.data === 'object' && model.data !== null) {
       const modelData = model.data as any;
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -596,29 +576,32 @@ export class ModelConverter {
       if (!modelData.format_version) {
         issues.push('Missing format_version');
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (!modelData['minecraft:geometry']) {
         issues.push('Missing minecraft:geometry section');
-      } else if (!Array.isArray(modelData['minecraft:geometry']) || modelData['minecraft:geometry'].length === 0) {
+      } else if (
+        !Array.isArray(modelData['minecraft:geometry']) ||
+        modelData['minecraft:geometry'].length === 0
+      ) {
         issues.push('minecraft:geometry must be a non-empty array');
       } else {
         const geometry = modelData['minecraft:geometry'][0];
-        
+
         // Check for required geometry properties
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -628,9 +611,9 @@ export class ModelConverter {
         } else {
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -638,12 +621,12 @@ export class ModelConverter {
           if (!geometry.description.identifier) {
             issues.push('Missing geometry identifier');
           }
-          
+
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -652,7 +635,7 @@ export class ModelConverter {
             issues.push('Missing texture dimensions');
           }
         }
-        
+
         // Check bones structure
         if (!geometry.bones || !Array.isArray(geometry.bones) || geometry.bones.length === 0) {
           issues.push('Missing or empty bones array');
@@ -661,9 +644,9 @@ export class ModelConverter {
           geometry.bones.forEach((bone: any, index: number) => {
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
@@ -671,15 +654,23 @@ export class ModelConverter {
             if (!bone.name) {
               issues.push(`Bone at index ${index} is missing a name`);
             }
-            
+
             if (!bone.pivot || !Array.isArray(bone.pivot) || bone.pivot.length !== 3) {
               issues.push(`Bone "${bone.name || index}" has invalid pivot point`);
             }
-            
+
             // Check cubes if present
-            if (bone.cubes && (!Array.isArray(bone.cubes) || bone.cubes.some((cube: any) => 
-              !cube.origin || !cube.size || !Array.isArray(cube.origin) || !Array.isArray(cube.size)
-            ))) {
+            if (
+              bone.cubes &&
+              (!Array.isArray(bone.cubes) ||
+                bone.cubes.some(
+                  (cube: any) =>
+                    !cube.origin ||
+                    !cube.size ||
+                    !Array.isArray(cube.origin) ||
+                    !Array.isArray(cube.size)
+                ))
+            ) {
               issues.push(`Bone "${bone.name || index}" has invalid cubes`);
             }
           });
@@ -688,16 +679,16 @@ export class ModelConverter {
     } else {
       issues.push('Model data is not a valid object');
     }
-    
+
     return {
       valid: issues.length === 0,
-      issues
+      issues,
     };
   }
-  
+
   /**
    * Organizes converted models according to Bedrock's resource pack structure
-   * 
+   *
    * @param convertedModels - Array of converted Bedrock models
    * @param outputDir - Output directory for the organized models
    */
@@ -706,12 +697,12 @@ export class ModelConverter {
     outputDir: string
   ): Promise<void> {
     logger.info(`Organizing ${convertedModels.length} models in ${outputDir}`);
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -719,23 +710,23 @@ export class ModelConverter {
     for (const model of convertedModels) {
       const outputPath = path.join(outputDir, model.path);
       const outputDirPath = path.dirname(outputPath);
-      
+
       // Ensure the directory exists
       await fs.mkdir(outputDirPath, { recursive: true });
-      
+
       // Write the model file
       if (typeof model.data === 'object') {
         await fs.writeFile(outputPath, JSON.stringify(model.data, null, 2));
       } else {
         await fs.writeFile(outputPath, model.data);
       }
-      
+
       // Generate any additional required files (like material definitions)
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -745,10 +736,10 @@ export class ModelConverter {
       }
     }
   }
-  
+
   /**
    * Creates material definition files for models that require them
-   * 
+   *
    * @param model - Model with material definitions
    * @param outputDir - Output directory
    */
@@ -758,27 +749,29 @@ export class ModelConverter {
   ): Promise<void> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (!model.metadata?.materials) return;
-    
+
     // Extract the base name without extension
     // Handle the case where the file might have multiple extensions (e.g., .geo.json)
     const fileName = path.basename(model.path);
     const baseNameMatch = fileName.match(/^(.+?)\.geo\.json$/);
-    const baseName = baseNameMatch ? baseNameMatch[1] : path.basename(fileName, path.extname(fileName));
-    
+    const baseName = baseNameMatch
+      ? baseNameMatch[1]
+      : path.basename(fileName, path.extname(fileName));
+
     const materialDefPath = path.join(outputDir, `${baseName}.material.json`);
-    
+
     const materialDef = {
-      materials: model.metadata.materials
+      materials: model.metadata.materials,
     };
-    
+
     await fs.writeFile(materialDefPath, JSON.stringify(materialDef, null, 2));
   }
 }

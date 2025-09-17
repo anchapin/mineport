@@ -1,0 +1,123 @@
+src/services/CacheService.ts(150,11): error TS2532: Object is possibly 'undefined'.
+tests/benchmark/conversion-benchmark.ts(157,55): error TS2345: Argument of type '{ ast: never[]; dependencies: never[]; complexity: { cyclomatic: number; cognitive: number; halstead: { volume: number; difficulty: number; effort: number; }; }; }' is not assignable to parameter of type 'MMIRRepresentation'.
+  Property 'metadata' is missing in type '{ ast: never[]; dependencies: never[]; complexity: { cyclomatic: number; cognitive: number; halstead: { volume: number; difficulty: number; effort: number; }; }; }' but required in type 'MMIRRepresentation'.
+tests/benchmark/conversion-benchmark.ts(270,13): error TS2353: Object literal may only specify known properties, and 'behaviorPackFiles' does not exist in type 'PackagingInput'.
+tests/benchmark/modporter-ai-performance.test.ts(333,61): error TS2559: Type '{ modId: string; modName: string; modVersion: string; bedrockConfigs: { manifests: { behaviorPack: { format_version: number; header: { name: string; description: string; uuid: string; version: number[]; min_engine_version: number[]; }; modules: never[]; }; resourcePack: { ...; }; }; definitions: { ...; }; recipes: {...' has no properties in common with type 'ValidationInput'.
+tests/benchmark/modporter-ai-performance.test.ts(382,61): error TS2559: Type '{ modId: string; modName: string; modVersion: string; bedrockConfigs: { manifests: { behaviorPack: { format_version: number; header: { name: string; description: string; uuid: string; version: number[]; min_engine_version: number[]; }; modules: never[]; }; resourcePack: { ...; }; }; definitions: { ...; }; recipes: {...' has no properties in common with type 'ValidationInput'.
+tests/integration/compromise-integration.test.ts(111,59): error TS2554: Expected 1 arguments, but got 2.
+tests/integration/conversion/conversion-pipeline.test.ts(39,34): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string | ArrayBufferView<ArrayBufferLike>'.
+tests/integration/conversion/conversion-pipeline.test.ts(50,34): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string | ArrayBufferView<ArrayBufferLike>'.
+tests/integration/conversion/conversion-pipeline.test.ts(56,25): error TS2339: Property 'initialize' does not exist on type 'ConfigurationService'.
+tests/integration/conversion/conversion-pipeline.test.ts(104,77): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/conversion/conversion-pipeline.test.ts(108,24): error TS2339: Property 'success' does not exist on type 'AssetTranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(112,24): error TS2339: Property 'assets' does not exist on type 'AssetTranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(113,24): error TS2339: Property 'modId' does not exist on type 'AssetTranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(212,58): error TS2345: Argument of type '{ id: string; name: string; type: string; compatibilityTier: number; sourceFiles: string[]; javaCode: string; className: string; }[]' is not assignable to parameter of type 'string'.
+tests/integration/conversion/conversion-pipeline.test.ts(222,24): error TS2339: Property 'translatedCode' does not exist on type 'TranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(223,24): error TS2339: Property 'translatedCode' does not exist on type 'TranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(228,51): error TS2339: Property 'moduleOrigin' does not exist on type 'TranslationError'.
+tests/integration/conversion/conversion-pipeline.test.ts(232,21): error TS2339: Property 'unmappableFeatures' does not exist on type 'TranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(233,40): error TS2339: Property 'unmappableFeatures' does not exist on type 'TranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(237,67): error TS2339: Property 'translatedCode' does not exist on type 'TranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(272,61): error TS2345: Argument of type '{ modFile: Buffer<ArrayBuffer>; sourceRepository: { url: string; branch: string; }; preferences: { compromiseStrategies: { allowStubs: boolean; allowWarnings: boolean; allowSimplifications: boolean; }; outputFormat: "addon"; includeSourceCode: boolean; }; metadata: { ...; }; }' is not assignable to parameter of type 'ConversionPipelineInput'.
+  Type '{ modFile: Buffer<ArrayBuffer>; sourceRepository: { url: string; branch: string; }; preferences: { compromiseStrategies: { allowStubs: boolean; allowWarnings: boolean; allowSimplifications: boolean; }; outputFormat: "addon"; includeSourceCode: boolean; }; metadata: { ...; }; }' is missing the following properties from type 'ConversionPipelineInput': inputPath, outputPath, modId, modName, modVersion
+tests/integration/conversion/conversion-pipeline.test.ts(275,27): error TS2339: Property 'modId' does not exist on type 'ConversionPipelineResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(293,26): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'PathLike'.
+  Type 'undefined' is not assignable to type 'PathLike'.
+tests/integration/end-to-end-conversion.test.ts(26,7): error TS2353: Object literal may only specify known properties, and 'assetConverter' does not exist in type 'ConversionServiceOptions'.
+tests/integration/helpers.ts(326,5): error TS2353: Object literal may only specify known properties, and 'sourceRepository' does not exist in type 'ConversionInput'.
+tests/integration/helpers.ts(385,7): error TS2353: Object literal may only specify known properties, and 'permissions' does not exist in type 'LicenseInfo'.
+tests/integration/helpers.ts(397,5): error TS2741: Property 'code' is missing in type '{ id: string; type: "VALIDATION"; severity: "WARNING"; message: string; moduleOrigin: string; timestamp: Date; }' but required in type 'ConversionError'.
+tests/integration/helpers.ts(405,5): error TS2741: Property 'code' is missing in type '{ id: string; type: "LOGIC"; severity: "ERROR"; message: string; sourceLocation: { file: string; line: number; column: number; startLine: number; startColumn: number; endLine: number; endColumn: number; }; recommendedFix: string; moduleOrigin: string; timestamp: Date; }' but required in type 'ConversionError'.
+tests/integration/helpers.ts(497,35): error TS18048: 'result.result.registryNames.length' is possibly 'undefined'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(54,53): error TS2339: Property 'detect' does not exist on type 'ModLoaderDetector'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(112,7): error TS2554: Expected 1 arguments, but got 2.
+tests/integration/ingestion/ingestion-pipeline.test.ts(116,24): error TS2339: Property 'fileCount' does not exist on type 'SourceCodeFetchResult'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(152,53): error TS2339: Property 'detect' does not exist on type 'ModLoaderDetector'.
+tests/integration/modporter-ai-integration.test.ts(39,7): error TS2353: Object literal may only specify known properties, and 'assetConverter' does not exist in type 'ConversionServiceOptions'.
+tests/integration/modporter-ai-integration.test.ts(252,76): error TS2345: Argument of type '{ modId: string; modName: string; version: string; author: string; }' is not assignable to parameter of type 'ModInfo'.
+  Type '{ modId: string; modName: string; version: string; author: string; }' is missing the following properties from type 'ModInfo': id, name
+tests/integration/modporter-ai-integration.test.ts(293,45): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(293,72): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(293,113): error TS2339: Property 'identifier' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(326,52): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(326,79): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(334,71): error TS2559: Type '{ modId: string; modName: string; modVersion: string; bedrockConfigs: { manifests: { behaviorPack: { format_version: number; header: { name: string; description: string; uuid: string; version: number[]; min_engine_version: number[]; }; modules: never[]; }; resourcePack: { ...; }; }; definitions: { ...; }; recipes: {...' has no properties in common with type 'ValidationInput'.
+tests/integration/modporter-ai-integration.test.ts(462,69): error TS2345: Argument of type '{ path: string; name: string; type: "block"; }[]' is not assignable to parameter of type 'TextureInfo[]'.
+  Property 'buffer' is missing in type '{ path: string; name: string; type: "block"; }' but required in type 'TextureInfo'.
+tests/integration/modporter-ai-integration.test.ts(491,45): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(491,72): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(491,113): error TS2339: Property 'identifier' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(524,52): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(524,79): error TS2339: Property 'blocks' does not exist on type 'ConversionAgentResult'.
+tests/integration/modporter-ai-integration.test.ts(532,70): error TS2559: Type '{ modId: string; modName: string; modVersion: string; bedrockConfigs: { manifests: { behaviorPack: { format_version: number; header: { name: string; description: string; uuid: string; version: number[]; min_engine_version: number[]; }; modules: never[]; }; resourcePack: { ...; }; }; definitions: { ...; }; recipes: {...' has no properties in common with type 'ValidationInput'.
+tests/integration/module-interactions.test.ts(42,63): error TS2345: Argument of type 'JavaMod' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
+  Type 'JavaMod' is missing the following properties from type 'Buffer<ArrayBufferLike>': slice, subarray, write, toJSON, and 97 more.
+tests/integration/module-interactions.test.ts(56,52): error TS2554: Expected 2 arguments, but got 1.
+tests/integration/module-interactions.test.ts(72,9): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(76,32): error TS2339: Property 'success' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(87,32): error TS2339: Property 'modId' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(88,32): error TS2339: Property 'assets' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(120,66): error TS2345: Argument of type '{ id: string; name: string; type: string; compatibilityTier: number; sourceFiles: string[]; javaCode: string; }[]' is not assignable to parameter of type 'string'.
+tests/integration/module-interactions.test.ts(137,27): error TS2339: Property 'unmappableFeatures' does not exist on type 'TranslationResult'.
+tests/integration/module-interactions.test.ts(138,9): error TS2554: Expected 1 arguments, but got 2.
+tests/integration/module-interactions.test.ts(145,31): error TS2339: Property 'success' does not exist on type 'CompromiseStrategyResult[]'.
+tests/integration/module-interactions.test.ts(150,29): error TS2339: Property 'unmappableFeatures' does not exist on type 'TranslationResult'.
+tests/integration/module-interactions.test.ts(156,31): error TS2339: Property 'appliedStrategies' does not exist on type 'CompromiseStrategyResult[]'.
+tests/integration/module-interactions.test.ts(157,31): error TS2339: Property 'generatedCode' does not exist on type 'CompromiseStrategyResult[]'.
+tests/integration/module-interactions.test.ts(174,11): error TS2322: Type '{ id: string; type: string; severity: string; message: string; moduleOrigin: string; timestamp: Date; }' is not assignable to type 'string'.
+tests/integration/module-interactions.test.ts(192,13): error TS2820: Type '"asset"' is not assignable to type 'ErrorType | "VALIDATION" | "ASSET" | "CONFIG" | "LOGIC" | "SYSTEM" | "NETWORK" | "RESOURCE" | "SECURITY" | "USER" | "COMPROMISE"'. Did you mean '"ASSET"'?
+tests/integration/module-interactions.test.ts(193,13): error TS2820: Type '"warning"' is not assignable to type 'ErrorSeverity | "INFO" | "WARNING" | "ERROR" | "CRITICAL"'. Did you mean '"WARNING"'?
+tests/integration/module-interactions.test.ts(208,13): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'TranslationError'.
+tests/integration/module-interactions.test.ts(221,63): error TS2345: Argument of type 'JavaMod' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
+  Type 'JavaMod' is missing the following properties from type 'Buffer<ArrayBufferLike>': slice, subarray, write, toJSON, and 97 more.
+tests/integration/module-interactions.test.ts(222,32): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'ConversionError[]'.
+  Type 'string' is not assignable to type 'ConversionError'.
+tests/integration/module-interactions.test.ts(224,69): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(227,60): error TS2345: Argument of type 'never[]' is not assignable to parameter of type 'string'.
+tests/integration/module-interactions.test.ts(231,32): error TS2345: Argument of type 'TranslationError[]' is not assignable to parameter of type 'ConversionError[]'.
+  Type 'TranslationError' is missing the following properties from type 'ConversionError': id, code, severity, moduleOrigin, timestamp
+tests/integration/module-interactions.test.ts(263,49): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(269,50): error TS2554: Expected 1 arguments, but got 2.
+tests/integration/module-interactions.test.ts(306,45): error TS2345: Argument of type 'ConversionInput' is not assignable to parameter of type 'ConversionPipelineInput'.
+  Type 'ConversionInput' is missing the following properties from type 'ConversionPipelineInput': inputPath, modId, modName, modVersion
+tests/integration/module-interactions.test.ts(313,31): error TS2345: Argument of type 'ConversionPipelineResult' is not assignable to parameter of type 'ConversionResult'.
+  Type 'ConversionPipelineResult' is missing the following properties from type 'ConversionResult': jobId, errors, warnings
+tests/integration/module-interactions.test.ts(318,16): error TS2339: Property 'errors' does not exist on type 'ConversionPipelineResult'.
+tests/integration/module-interactions.test.ts(319,12): error TS7006: Parameter 'error' implicitly has an 'any' type.
+tests/integration/module-interactions.test.ts(324,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'PathLike'.
+  Type 'undefined' is not assignable to type 'PathLike'.
+tests/integration/module-interactions.test.ts(340,63): error TS2345: Argument of type 'JavaMod' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
+  Type 'JavaMod' is missing the following properties from type 'Buffer<ArrayBufferLike>': slice, subarray, write, toJSON, and 97 more.
+tests/integration/module-interactions.test.ts(343,52): error TS2554: Expected 2 arguments, but got 1.
+tests/integration/module-interactions.test.ts(353,9): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(356,26): error TS2339: Property 'success' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(358,60): error TS2345: Argument of type 'Feature[]' is not assignable to parameter of type 'string'.
+tests/integration/module-interactions.test.ts(365,26): error TS2339: Property 'modId' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(366,26): error TS2339: Property 'translatedCode' does not exist on type 'TranslationResult'.
+tests/integration/packaging/packaging-pipeline.test.ts(226,9): error TS2353: Object literal may only specify known properties, and 'author' does not exist in type 'LicenseInfo'.
+tests/integration/packaging/packaging-pipeline.test.ts(269,9): error TS2739: Type '{ id: string; name: string; description: string; type: string; compatibilityTier: number; sourceFiles: string[]; }[]' is missing the following properties from type '{ tier1: Feature[]; tier2: Feature[]; tier3: Feature[]; tier4: Feature[]; }': tier1, tier2, tier3, tier4
+tests/integration/packaging/packaging-pipeline.test.ts(287,9): error TS2741: Property 'particles' is missing in type '{ textures: number; models: number; sounds: number; }' but required in type '{ textures: number; models: number; sounds: number; particles: number; }'.
+tests/integration/packaging/packaging-pipeline.test.ts(299,11): error TS2353: Object literal may only specify known properties, and 'generatedFiles' does not exist in type '{ total: number; generated: number; stubbed: number; }'.
+tests/integration/packaging/packaging-pipeline.test.ts(308,19): error TS2339: Property 'html' does not exist on type 'ConversionReportOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(309,19): error TS2339: Property 'json' does not exist on type 'ConversionReportOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(312,77): error TS2339: Property 'html' does not exist on type 'ConversionReportOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(315,29): error TS2339: Property 'json' does not exist on type 'ConversionReportOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(330,9): error TS2353: Object literal may only specify known properties, and 'modId' does not exist in type 'PostProcessingGuideInput'.
+tests/integration/packaging/packaging-pipeline.test.ts(353,18): error TS2339: Property 'markdown' does not exist on type 'PostProcessingGuideOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(356,78): error TS2339: Property 'markdown' does not exist on type 'PostProcessingGuideOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(369,7): error TS2739: Type '{ manifests: { behaviorPack: { format_version: number; header: { name: string; description: string; uuid: string; version: number[]; min_engine_version: number[]; }; modules: never[]; }; resourcePack: { format_version: number; header: { ...; }; modules: never[]; }; }; }' is missing the following properties from type 'BedrockConfigCollection': definitions, recipes, lootTables
+tests/integration/packaging/packaging-pipeline.test.ts(403,26): error TS2339: Property 'success' does not exist on type 'PackagingOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(404,26): error TS2339: Property 'addonPath' does not exist on type 'PackagingOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(405,40): error TS2339: Property 'addonPath' does not exist on type 'PackagingOutput'.
+tests/integration/packaging/packaging-pipeline.test.ts(408,69): error TS2339: Property 'addonPath' does not exist on type 'PackagingOutput'.
+tests/integration/performance-integration.test.ts(59,7): error TS2353: Object literal may only specify known properties, and 'performanceMonitor' does not exist in type 'ConversionServiceOptions'.
+tests/integration/performance-integration.test.ts(240,28): error TS2339: Property 'completedTasks' does not exist on type '{ totalWorkers: number; busyWorkers: number; idleWorkers: number; errorWorkers: number; totalJobsProcessed: number; totalJobsFailed: number; successRate: number; efficiency: number; averageJobsPerWorker: number; queueLength: number; uptime: number; workerDetails: { ...; }[]; }'.
+tests/integration/performance-integration.test.ts(241,28): error TS2339: Property 'throughput' does not exist on type '{ totalWorkers: number; busyWorkers: number; idleWorkers: number; errorWorkers: number; totalJobsProcessed: number; totalJobsFailed: number; successRate: number; efficiency: number; averageJobsPerWorker: number; queueLength: number; uptime: number; workerDetails: { ...; }[]; }'.
+tests/integration/ui-backend-integration.test.ts(34,7): error TS2353: Object literal may only specify known properties, and 'validationPipeline' does not exist in type 'ConversionServiceOptions'.
+tests/unit/modules/assets/AssetTranslationModule.test.ts(189,51): error TS2345: Argument of type '{ textures: { path: string; data: Buffer<ArrayBuffer>; }[]; models: { path: string; data: {}; type: "block"; }[]; sounds: { path: string; data: Buffer<ArrayBuffer>; }[]; particles: { ...; }[]; animations: never[]; soundsJson: { ...; }; }' is not assignable to parameter of type 'BedrockAssetCollection'.
+  Types of property 'particles' are incompatible.
+    Type '{ path: string; data: {}; content: Buffer<ArrayBuffer>; }[]' is not assignable to type 'BedrockParticleFile[]'.
+      Type '{ path: string; data: {}; content: Buffer<ArrayBuffer>; }' is not assignable to type 'BedrockParticleFile'.
+        Types of property 'content' are incompatible.
+          Type 'Buffer<ArrayBuffer>' is not assignable to type 'string'.

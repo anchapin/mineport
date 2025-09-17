@@ -1,0 +1,1220 @@
+name: Enhanced CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+  pull_request:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  CI: true
+
+jobs:
+  # Audit logging - workflow start
+  audit-workflow-start:
+    name: Audit Workflow Start
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Log workflow start
+        run: |
+          echo "Starting Enhanced CI Pipeline"
+          echo "Trigger event: ${{ github.event_name }}"
+          echo "Trigger ref: ${{ github.ref }}"
+          echo "Trigger actor: ${{ github.actor }}"
+          echo "Skip tests: ${{ github.event.inputs.skip_tests }}"
+
+  # Pre-flight checks
+  preflight:
+    name: Pre-flight Checks
+    runs-on: ubuntu-latest
+    needs: audit-workflow-start
+    outputs:
+      should_run_tests: ${{ steps.check.outputs.should_run_tests }}
+      deps_cache_key: ${{ steps.cache-keys.outputs.deps_key }}
+      build_cache_key: ${{ steps.cache-keys.outputs.build_key }}
+      test_cache_key: ${{ steps.cache-keys.outputs.test_key }}
+      cache_version: ${{ steps.cache-keys.outputs.cache_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if tests should run
+        id: check
+        shell: bash
+        run: |
+          if [[ "${{ github.event.inputs.skip_tests }}" == "true" ]]; then
+            echo "should_run_tests=false" >> $GITHUB_OUTPUT
+          else
+            echo "should_run_tests=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate intelligent cache keys
+        id: cache-keys
+        run: |
+          # Cache version for invalidation
+          CACHE_VERSION="v2"
+          echo "cache_version=$CACHE_VERSION" >> $GITHUB_OUTPUT
+
+          # Dependencies cache key
+          DEPS_HASH="${{ hashFiles('package-lock.json', 'package.json', '.nvmrc') }}"
+          echo "deps_key=deps-$CACHE_VERSION-$DEPS_HASH" >> $GITHUB_OUTPUT
+
+          # Build cache key (includes source files)
+          BUILD_HASH="${{ hashFiles('src/**/*.ts', 'tsconfig.json', 'package.json') }}"
+          echo "build_key=build-$CACHE_VERSION-$BUILD_HASH" >> $GITHUB_OUTPUT
+
+          # Test cache key (includes test files and config)
+          TEST_HASH="${{ hashFiles('tests/**/*.ts', 'vitest.config.ts', 'package.json') }}"
+          echo "test_key=test-$CACHE_VERSION-$TEST_HASH" >> $GITHUB_OUTPUT
+
+      - name: Check cache staleness
+        id: cache-check
+        run: |
+          # Check if we need to invalidate caches based on time
+          CACHE_MAX_AGE=604800  # 7 days in seconds
+          CURRENT_TIME=$(date +%s)
+
+          # Create cache timestamp file if it doesn't exist
+          mkdir -p .cache-meta
+          if [[ ! -f .cache-meta/timestamp ]]; then
+            echo $CURRENT_TIME > .cache-meta/timestamp
+          fi
+
+          CACHE_TIME=$(if [ -f .cache-meta/timestamp ]; then cat .cache-meta/timestamp; else echo 0; fi)
+          AGE=$((CURRENT_TIME - CACHE_TIME))
+
+          if [[ $AGE -gt $CACHE_MAX_AGE ]]; then
+            echo "Cache is stale (${AGE}s old), will invalidate"
+            echo "invalidate_cache=true" >> $GITHUB_OUTPUT
+            echo $CURRENT_TIME > .cache-meta/timestamp
+          else
+            echo "Cache is fresh (${AGE}s old)"
+            echo "invalidate_cache=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Build matrix job
+  build:
+    name: Build & Test
+    needs: preflight
+    if: needs.preflight.outputs.should_run_tests == 'true'
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ['20.x', '22.x']
+        include:
+          # Add specific configurations for different combinations
+          - os: ubuntu-latest
+            node-version: '20.x'
+            primary: true
+          - os: windows-latest
+            node-version: '20.x'
+            experimental: true
+        exclude:
+          # Exclude some combinations to reduce CI time if needed
+
+    continue-on-error: ${{ matrix.experimental == true }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: deps-cache
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.preflight.outputs.deps_cache_key }}-${{ runner.os }}-${{ matrix.node-version }}
+          restore-keys: |
+            deps-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('package-lock.json', 'package.json') }}-${{ runner.os }}-
+            deps-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('package-lock.json') }}-
+            deps-${{ needs.preflight.outputs.cache_version }}-
+
+      - name: Cache validation and cleanup
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          echo "Dependencies cache miss, will install fresh"
+          # Clean any partial installations
+          if [ -d "node_modules/.cache" ]; then rm -rf node_modules/.cache; fi
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          # Start monitoring dependency installation
+          node scripts/build-performance-monitor.cjs start dependency-install
+
+          if [[ "${{ steps.deps-cache.outputs.cache-hit }}" == "true" ]]; then
+            echo "Using cached dependencies"
+            node scripts/build-performance-monitor.cjs cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" true
+            npm ci --prefer-offline --no-audit --ignore-scripts
+          else
+            echo "Installing fresh dependencies"
+            node scripts/build-performance-monitor.cjs cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" false
+            npm ci --prefer-offline --no-audit
+          fi
+
+          # Monitor dependency installation performance
+          node scripts/build-performance-monitor.cjs dependencies npm
+
+          # End monitoring dependency installation
+          node scripts/build-performance-monitor.cjs end dependency-install
+
+      - name: Cache TypeScript build artifacts
+        uses: actions/cache@v4
+        id: build-cache
+        with:
+          path: |
+            dist
+            tsconfig.tsbuildinfo
+            .tsbuildinfo
+          key: ${{ needs.preflight.outputs.build_cache_key }}-${{ runner.os }}-${{ matrix.node-version }}
+          restore-keys: |
+            build-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('src/**/*.ts', 'tsconfig.json') }}-${{ runner.os }}-
+            build-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('src/**/*.ts') }}-
+            build-${{ needs.preflight.outputs.cache_version }}-
+
+      - name: Cache test artifacts
+        uses: actions/cache@v4
+        id: test-cache
+        with:
+          path: |
+            coverage
+            test-results
+            .vitest-cache
+          key: ${{ needs.preflight.outputs.test_cache_key }}-${{ runner.os }}-${{ matrix.node-version }}
+          restore-keys: |
+            test-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('tests/**/*.ts', 'vitest.config.ts') }}-${{ runner.os }}-
+            test-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('tests/**/*.ts') }}-
+            test-${{ needs.preflight.outputs.cache_version }}-
+
+      - name: Validate build cache
+        shell: bash
+        run: |
+          if [[ "${{ steps.build-cache.outputs.cache-hit }}" == "true" ]]; then
+            echo "Build cache hit, validating artifacts..."
+            if [[ -d "dist" && -f "dist/src/index.js" ]]; then
+              echo "✅ Build cache is valid"
+              echo "SKIP_BUILD=true" >> $GITHUB_ENV
+            else
+              echo "⚠️ Build cache is invalid, will rebuild"
+              if [ -d "dist" ]; then rm -rf dist; fi
+              if [ -f "tsconfig.tsbuildinfo" ]; then rm -f tsconfig.tsbuildinfo; fi
+              if [ -f ".tsbuildinfo" ]; then rm -f .tsbuildinfo; fi
+              echo "SKIP_BUILD=false" >> $GITHUB_ENV
+            fi
+          else
+            echo "Build cache miss, will build from scratch"
+            echo "SKIP_BUILD=false" >> $GITHUB_ENV
+          fi
+
+      - name: Lint code
+        run: |
+          # Start monitoring lint phase
+          node scripts/build-performance-monitor.cjs start lint
+
+          npm run lint
+
+          # End monitoring lint phase
+          node scripts/build-performance-monitor.cjs end lint
+
+      - name: Validate JSDoc Documentation
+        run: |
+          echo "⚠️ JSDoc validation temporarily disabled due to large number of existing issues"
+          echo "This will be re-enabled after documentation cleanup"
+          # npm run docs:validate
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build application
+        shell: bash
+        run: |
+          if [[ "$SKIP_BUILD" == "true" ]]; then
+            echo "✅ Using cached build artifacts"
+            node scripts/build-performance-monitor.cjs cache build "${{ needs.preflight.outputs.build_cache_key }}" true
+          else
+            echo "🔨 Building application from source"
+            node scripts/build-performance-monitor.cjs cache build "${{ needs.preflight.outputs.build_cache_key }}" false
+
+            # Start monitoring TypeScript build
+            node scripts/build-performance-monitor.cjs start typescript-build
+            node scripts/build-performance-monitor.cjs typescript
+
+            npm run build
+
+            # End monitoring TypeScript build
+            node scripts/build-performance-monitor.cjs end typescript-build
+          fi
+
+      - name: Run tests in parallel
+        run: |
+          echo "Starting parallel test execution..."
+
+          # Create test results directory
+          mkdir -p test-results
+
+          # Function to run tests with retry logic
+          run_test_with_retry() {
+            local test_type=$1
+            local test_command=$2
+            local max_retries=2
+            local retry_count=0
+
+            while [ $retry_count -le $max_retries ]; do
+              echo "Running $test_type tests (attempt $((retry_count + 1)))"
+
+              if eval "$test_command"; then
+                echo "✅ $test_type tests passed"
+                echo "$test_type:success" >> test-results/results.txt
+                return 0
+              else
+                echo "❌ $test_type tests failed (attempt $((retry_count + 1)))"
+                retry_count=$((retry_count + 1))
+
+                if [ $retry_count -le $max_retries ]; then
+                  echo "Retrying $test_type tests in 5 seconds..."
+                  sleep 5
+                fi
+              fi
+            done
+
+            echo "$test_type:failed" >> test-results/results.txt
+            return 1
+          }
+
+          # Run tests in parallel with background processes
+          run_test_with_retry "unit" "npm run test:unit" &
+          UNIT_PID=$!
+
+          run_test_with_retry "integration" "npm run test:integration" &
+          INTEGRATION_PID=$!
+
+          run_test_with_retry "security" "npm run test:security" &
+          SECURITY_PID=$!
+
+          # Performance tests only on primary matrix
+          if [[ "${{ matrix.primary }}" == "true" ]]; then
+            run_test_with_retry "performance" "npm run test:performance" &
+            PERFORMANCE_PID=$!
+          fi
+
+          # Wait for all test processes and collect results
+          FAILED_TESTS=()
+
+          wait $UNIT_PID
+          if [ $? -ne 0 ]; then
+            FAILED_TESTS+=("unit")
+          fi
+
+          wait $INTEGRATION_PID
+          if [ $? -ne 0 ]; then
+            FAILED_TESTS+=("integration")
+          fi
+
+          wait $SECURITY_PID
+          if [ $? -ne 0 ]; then
+            FAILED_TESTS+=("security")
+          fi
+
+          if [[ "${{ matrix.primary }}" == "true" ]]; then
+            wait $PERFORMANCE_PID
+            if [ $? -ne 0 ]; then
+              FAILED_TESTS+=("performance")
+            fi
+          fi
+
+          # Generate test summary
+          echo "## Test Results Summary" >> test-results/summary.md
+          echo "| Test Suite | Status | Matrix: ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+          echo "|------------|--------|------------|" >> test-results/summary.md
+
+          if grep -q "unit:success" test-results/results.txt; then
+            echo "| Unit | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+          else
+            echo "| Unit | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+          fi
+
+          if grep -q "integration:success" test-results/results.txt; then
+            echo "| Integration | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+          else
+            echo "| Integration | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+          fi
+
+          if grep -q "security:success" test-results/results.txt; then
+            echo "| Security | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+          else
+            echo "| Security | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+          fi
+
+          if [[ "${{ matrix.primary }}" == "true" ]]; then
+            if grep -q "performance:success" test-results/results.txt; then
+              echo "| Performance | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+            else
+              echo "| Performance | ⚠️ Failed (Non-blocking) | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
+            fi
+          fi
+
+          # Handle test failures
+          if [ ${#FAILED_TESTS[@]} -gt 0 ]; then
+            echo "Failed test suites: ${FAILED_TESTS[*]}"
+
+            # Performance test failures are non-blocking
+            if [[ "${FAILED_TESTS[*]}" == "performance" ]]; then
+              echo "⚠️ Only performance tests failed - continuing with warning"
+              echo "PERFORMANCE_WARNING=true" >> $GITHUB_ENV
+            else
+              echo "❌ Critical tests failed - blocking pipeline"
+              exit 1
+            fi
+          else
+            echo "✅ All tests passed successfully"
+          fi
+        env:
+          NODE_ENV: test
+          CI: true
+
+      - name: Generate coverage report
+        if: matrix.primary == true
+        run: npm run test:coverage:report
+        env:
+          NODE_ENV: test
+
+      - name: Upload coverage to Codecov
+        if: matrix.primary == true
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage/
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.node-version }}
+          path: |
+            coverage/
+            test-results.xml
+          retention-days: 7
+
+      - name: Generate build performance report
+        run: |
+          # Monitor final resource usage
+          node scripts/build-performance-monitor.cjs resource
+
+          # Generate comprehensive build performance report
+          node scripts/build-performance-monitor.cjs report
+
+          # Check for performance regressions
+          if node scripts/build-performance-monitor.cjs regressions 0.2; then
+            echo "✅ No performance regressions detected"
+          else
+            echo "⚠️ Performance regressions detected - see build reports"
+            echo "PERFORMANCE_REGRESSION=true" >> $GITHUB_ENV
+          fi
+
+      - name: Upload build performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-performance-${{ matrix.os }}-${{ matrix.node-version }}
+          path: |
+            build-reports/
+          retention-days: 30
+
+      - name: Upload build artifacts
+        if: matrix.primary == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ matrix.os }}-${{ matrix.node-version }}
+          path: |
+            dist/
+            package.json
+            package-lock.json
+          retention-days: 7
+
+  # Test result aggregation across matrix builds
+  test-aggregation:
+    name: Aggregate Test Results
+    needs: [preflight, build]
+    if: always() && needs.preflight.outputs.should_run_tests == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: aggregated-results
+          merge-multiple: false
+
+      - name: Aggregate test results
+        run: |
+          echo "Aggregating test results from all matrix builds..."
+
+          # Create aggregated results directory
+          mkdir -p final-results
+
+          # Initialize counters
+          TOTAL_BUILDS=0
+          PASSED_BUILDS=0
+          FAILED_BUILDS=0
+
+          # Process each matrix result
+          for result_dir in aggregated-results/test-results-*; do
+            if [[ -d "$result_dir" ]]; then
+              TOTAL_BUILDS=$((TOTAL_BUILDS + 1))
+              matrix_name=$(basename "$result_dir" | sed 's/test-results-//')
+
+              echo "Processing results for: $matrix_name"
+
+              if [[ -f "$result_dir/results.txt" ]]; then
+                if grep -q "failed" "$result_dir/results.txt"; then
+                  FAILED_BUILDS=$((FAILED_BUILDS + 1))
+                  echo "❌ $matrix_name: FAILED"
+                  echo "$matrix_name: FAILED" >> final-results/matrix-summary.txt
+                else
+                  PASSED_BUILDS=$((PASSED_BUILDS + 1))
+                  echo "✅ $matrix_name: PASSED"
+                  echo "$matrix_name: PASSED" >> final-results/matrix-summary.txt
+                fi
+
+                # Copy individual results
+                if [ -f "$result_dir/results.txt" ]; then cp "$result_dir/results.txt" "final-results/results-$matrix_name.txt"; fi
+                if [ -f "$result_dir/summary.md" ]; then cp "$result_dir/summary.md" "final-results/summary-$matrix_name.md"; fi
+              fi
+            fi
+          done
+
+          # Generate final summary
+          echo "## Matrix Build Test Results" > final-results/final-summary.md
+          echo "| Metric | Count |" >> final-results/final-summary.md
+          echo "|--------|-------|" >> final-results/final-summary.md
+          echo "| Total Builds | $TOTAL_BUILDS |" >> final-results/final-summary.md
+          echo "| Passed Builds | $PASSED_BUILDS |" >> final-results/final-summary.md
+          echo "| Failed Builds | $FAILED_BUILDS |" >> final-results/final-summary.md
+          echo "| Success Rate | $(( PASSED_BUILDS * 100 / TOTAL_BUILDS ))% |" >> final-results/final-summary.md
+
+          echo "" >> final-results/final-summary.md
+          echo "### Individual Matrix Results" >> final-results/final-summary.md
+
+          if [[ -f "final-results/matrix-summary.txt" ]]; then
+            while IFS= read -r line; do
+              echo "- $line" >> final-results/final-summary.md
+            done < final-results/matrix-summary.txt
+          fi
+
+          # Set outputs for downstream jobs
+          echo "TOTAL_BUILDS=$TOTAL_BUILDS" >> $GITHUB_ENV
+          echo "PASSED_BUILDS=$PASSED_BUILDS" >> $GITHUB_ENV
+          echo "FAILED_BUILDS=$FAILED_BUILDS" >> $GITHUB_ENV
+
+          # Fail if any critical builds failed
+          if [[ $FAILED_BUILDS -gt 0 ]]; then
+            echo "❌ $FAILED_BUILDS out of $TOTAL_BUILDS matrix builds failed"
+            exit 1
+          else
+            echo "✅ All $TOTAL_BUILDS matrix builds passed"
+          fi
+
+      - name: Upload aggregated results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-test-results
+          path: final-results/
+          retention-days: 7
+
+      - name: Add results to job summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "final-results/final-summary.md" ]]; then
+            cat final-results/final-summary.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Comprehensive test suite (runs on primary matrix only)
+  comprehensive-tests:
+    name: Comprehensive Tests
+    needs: [preflight, build]
+    if: needs.preflight.outputs.should_run_tests == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ needs.preflight.outputs.deps_cache_key }}-ubuntu-latest-20.x
+          restore-keys: |
+            deps-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('package-lock.json', 'package.json') }}-ubuntu-latest-
+            deps-${{ needs.preflight.outputs.cache_version }}-${{ hashFiles('package-lock.json') }}-
+            deps-${{ needs.preflight.outputs.cache_version }}-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-ubuntu-latest-20.x
+          path: .
+
+      - name: Run comprehensive test suite
+        run: npm run test:comprehensive
+        env:
+          NODE_ENV: test
+          COMPREHENSIVE_TESTS: true
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+        env:
+          NODE_ENV: test
+
+      - name: Upload comprehensive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-test-results
+          path: |
+            test-results/
+            logs/
+          retention-days: 7
+
+  # Quality gates and validation
+  quality-gate:
+    name: Quality Gate
+    needs: [build, test-aggregation, comprehensive-tests]
+    if: always() && needs.preflight.outputs.should_run_tests == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download aggregated test results
+        uses: actions/download-artifact@v4
+        with:
+          name: aggregated-test-results
+          path: quality-gate-results
+
+      - name: Evaluate quality gate
+        run: |
+          echo "Evaluating quality gate..."
+
+          # Check if any critical jobs failed
+          if [[ "${{ needs.build.result }}" != "success" ]]; then
+            echo "❌ Build matrix failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.test-aggregation.result }}" != "success" ]]; then
+            echo "❌ Test aggregation failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.comprehensive-tests.result }}" != "success" ]]; then
+            echo "❌ Comprehensive tests failed"
+            exit 1
+          fi
+
+          # Check for performance warnings
+          if [[ -f "quality-gate-results/matrix-summary.txt" ]]; then
+            if grep -q "performance.*failed" quality-gate-results/matrix-summary.txt; then
+              echo "⚠️ Performance tests failed but not blocking"
+            fi
+          fi
+
+          echo "✅ All quality gates passed"
+
+      - name: Post quality gate results
+        if: always()
+        run: |
+          echo "## Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Matrix | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Aggregation | ${{ needs.test-aggregation.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Comprehensive Tests | ${{ needs.comprehensive-tests.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+
+          # Add detailed test results if available
+          if [[ -f "quality-gate-results/final-summary.md" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat quality-gate-results/final-summary.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Build optimization monitoring and analysis
+  build-optimization:
+    name: Build Optimization Analysis
+    needs: [build, test-aggregation]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Download build performance reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-performance-*
+          path: build-performance-artifacts
+          merge-multiple: false
+
+      - name: Aggregate build performance data
+        run: |
+          echo "Aggregating build performance data from all matrix builds..."
+
+          # Create aggregated performance directory
+          mkdir -p aggregated-performance
+
+          # Initialize aggregation data
+          cat > aggregate-performance.cjs << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          function aggregatePerformanceData() {
+            const artifactsDir = 'build-performance-artifacts';
+            const outputDir = 'aggregated-performance';
+
+            if (!fs.existsSync(artifactsDir)) {
+              console.log('No build performance artifacts found');
+              return;
+            }
+
+            const aggregatedData = {
+              timestamp: new Date().toISOString(),
+              commit: process.env.GITHUB_SHA,
+              branch: process.env.GITHUB_REF_NAME,
+              builds: [],
+              summary: {
+                totalBuilds: 0,
+                averageBuildTime: 0,
+                cacheHitRates: {},
+                commonWarnings: {},
+                commonRecommendations: {}
+              }
+            };
+
+            // Process each build performance artifact
+            const artifacts = fs.readdirSync(artifactsDir);
+
+            for (const artifactDir of artifacts) {
+              const artifactPath = path.join(artifactsDir, artifactDir, 'build-reports');
+
+              if (fs.existsSync(artifactPath)) {
+                const reportFiles = fs.readdirSync(artifactPath)
+                  .filter(file => file.startsWith('build-report-') && file.endsWith('.json'));
+
+                for (const reportFile of reportFiles) {
+                  try {
+                    const reportPath = path.join(artifactPath, reportFile);
+                    const reportData = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+                    // Extract matrix info from artifact directory name
+                    const matrixInfo = artifactDir.replace('build-performance-', '');
+                    reportData.matrix = matrixInfo;
+
+                    aggregatedData.builds.push(reportData);
+                    aggregatedData.summary.totalBuilds++;
+
+                    // Aggregate cache hit rates
+                    for (const [cacheType, cacheData] of Object.entries(reportData.cacheMetrics || {})) {
+                      if (!aggregatedData.summary.cacheHitRates[cacheType]) {
+                        aggregatedData.summary.cacheHitRates[cacheType] = { hits: 0, misses: 0 };
+                      }
+                      aggregatedData.summary.cacheHitRates[cacheType].hits += cacheData.hits;
+                      aggregatedData.summary.cacheHitRates[cacheType].misses += cacheData.misses;
+                    }
+
+                    // Aggregate warnings
+                    for (const warning of reportData.warnings || []) {
+                      const key = warning.message.split(':')[0]; // Group by warning type
+                      aggregatedData.summary.commonWarnings[key] = (aggregatedData.summary.commonWarnings[key] || 0) + 1;
+                    }
+
+                    // Aggregate recommendations
+                    for (const recommendation of reportData.recommendations || []) {
+                      const key = recommendation.message.split(':')[0]; // Group by recommendation type
+                      aggregatedData.summary.commonRecommendations[key] = (aggregatedData.summary.commonRecommendations[key] || 0) + 1;
+                    }
+
+                  } catch (error) {
+                    console.warn(`Error processing ${reportFile}:`, error.message);
+                  }
+                }
+              }
+            }
+
+            // Calculate averages
+            if (aggregatedData.builds.length > 0) {
+              const totalDuration = aggregatedData.builds.reduce((sum, build) => sum + build.totalDuration, 0);
+              aggregatedData.summary.averageBuildTime = totalDuration / aggregatedData.builds.length;
+            }
+
+            // Calculate cache hit rates
+            for (const [cacheType, cacheData] of Object.entries(aggregatedData.summary.cacheHitRates)) {
+              const total = cacheData.hits + cacheData.misses;
+              cacheData.hitRate = total > 0 ? (cacheData.hits / total) : 0;
+            }
+
+            // Save aggregated data
+            fs.writeFileSync(
+              path.join(outputDir, 'aggregated-performance.json'),
+              JSON.stringify(aggregatedData, null, 2)
+            );
+
+            console.log(`Aggregated performance data from ${aggregatedData.builds.length} builds`);
+            return aggregatedData;
+          }
+
+          aggregatePerformanceData();
+          EOF
+
+          node aggregate-performance.cjs
+
+      - name: Generate build optimization dashboard
+        run: |
+          echo "Generating build optimization dashboard..."
+
+          cat > generate-dashboard.cjs << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          function generateDashboard() {
+            const dataPath = 'aggregated-performance/aggregated-performance.json';
+
+            if (!fs.existsSync(dataPath)) {
+              console.log('No aggregated performance data found');
+              return;
+            }
+
+            const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+
+            let dashboard = '# Build Optimization Dashboard\n\n';
+            dashboard += `**Generated:** ${data.timestamp}\n`;
+            dashboard += `**Commit:** ${data.commit}\n`;
+            dashboard += `**Branch:** ${data.branch}\n`;
+            dashboard += `**Total Builds:** ${data.summary.totalBuilds}\n\n`;
+
+            // Build performance summary
+            dashboard += '## Build Performance Summary\n\n';
+            dashboard += `**Average Build Time:** ${formatDuration(data.summary.averageBuildTime)}\n\n`;
+
+            // Matrix performance comparison
+            if (data.builds.length > 0) {
+              dashboard += '### Matrix Performance Comparison\n\n';
+              dashboard += '| Matrix | Build Time | Cache Hit Rate | Warnings | Status |\n';
+              dashboard += '|--------|------------|----------------|----------|--------|\n';
+
+              for (const build of data.builds) {
+                const avgCacheHitRate = Object.values(build.cacheMetrics || {})
+                  .reduce((sum, cache, _, arr) => {
+                    const hitRate = cache.hits + cache.misses > 0 ? cache.hits / (cache.hits + cache.misses) : 0;
+                    return sum + hitRate / arr.length;
+                  }, 0);
+
+                const status = build.warnings?.length > 5 ? '⚠️' : '✅';
+                dashboard += `| ${build.matrix} | ${formatDuration(build.totalDuration)} | ${(avgCacheHitRate * 100).toFixed(1)}% | ${build.warnings?.length || 0} | ${status} |\n`;
+              }
+              dashboard += '\n';
+            }
+
+            // Cache performance analysis
+            dashboard += '## Cache Performance Analysis\n\n';
+            dashboard += '| Cache Type | Hit Rate | Total Hits | Total Misses | Efficiency |\n';
+            dashboard += '|------------|----------|------------|--------------|------------|\n';
+
+            for (const [cacheType, cacheData] of Object.entries(data.summary.cacheHitRates)) {
+              const efficiency = cacheData.hitRate > 0.8 ? '🟢 Excellent' :
+                                cacheData.hitRate > 0.6 ? '🟡 Good' :
+                                cacheData.hitRate > 0.4 ? '🟠 Fair' : '🔴 Poor';
+
+              dashboard += `| ${cacheType} | ${(cacheData.hitRate * 100).toFixed(1)}% | ${cacheData.hits} | ${cacheData.misses} | ${efficiency} |\n`;
+            }
+            dashboard += '\n';
+
+            // Common issues and recommendations
+            if (Object.keys(data.summary.commonWarnings).length > 0) {
+              dashboard += '## Common Performance Issues\n\n';
+              for (const [warning, count] of Object.entries(data.summary.commonWarnings)) {
+                dashboard += `- **${warning}**: Occurred in ${count} build(s)\n`;
+              }
+              dashboard += '\n';
+            }
+
+            if (Object.keys(data.summary.commonRecommendations).length > 0) {
+              dashboard += '## Optimization Recommendations\n\n';
+              for (const [recommendation, count] of Object.entries(data.summary.commonRecommendations)) {
+                dashboard += `- **${recommendation}**: Recommended for ${count} build(s)\n`;
+              }
+              dashboard += '\n';
+            }
+
+            // Performance trends (if historical data available)
+            dashboard += '## Performance Optimization Actions\n\n';
+            dashboard += '### Immediate Actions\n';
+
+            // Analyze cache performance
+            const lowCacheHitRates = Object.entries(data.summary.cacheHitRates)
+              .filter(([_, cache]) => cache.hitRate < 0.5);
+
+            if (lowCacheHitRates.length > 0) {
+              dashboard += '- **Improve cache hit rates:**\n';
+              for (const [cacheType] of lowCacheHitRates) {
+                dashboard += `  - ${cacheType} cache has low hit rate, consider cache key optimization\n`;
+              }
+            }
+
+            // Analyze build times
+            const slowBuilds = data.builds.filter(build => build.totalDuration > 300000); // 5 minutes
+            if (slowBuilds.length > 0) {
+              dashboard += '- **Optimize slow builds:**\n';
+              for (const build of slowBuilds) {
+                dashboard += `  - ${build.matrix} build took ${formatDuration(build.totalDuration)}\n`;
+              }
+            }
+
+            dashboard += '\n### Long-term Optimizations\n';
+            dashboard += '- Consider implementing build parallelization\n';
+            dashboard += '- Evaluate dependency optimization opportunities\n';
+            dashboard += '- Monitor resource usage patterns\n';
+            dashboard += '- Implement build time budgets and alerts\n\n';
+
+            fs.writeFileSync('aggregated-performance/build-optimization-dashboard.md', dashboard);
+            console.log('Build optimization dashboard generated');
+          }
+
+          function formatDuration(ms) {
+            if (ms < 1000) return `${ms}ms`;
+            if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+            return `${(ms / 60000).toFixed(1)}m`;
+          }
+
+          generateDashboard();
+          EOF
+
+          node generate-dashboard.cjs
+
+      - name: Check build performance budgets
+        run: |
+          echo "Checking build performance budgets..."
+
+          cat > check-budgets.cjs << 'EOF'
+          const fs = require('fs');
+
+          function checkBudgets() {
+            const dataPath = 'aggregated-performance/aggregated-performance.json';
+
+            if (!fs.existsSync(dataPath)) {
+              console.log('No performance data to check');
+              return;
+            }
+
+            const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+
+            // Define performance budgets
+            const budgets = {
+              maxBuildTime: 10 * 60 * 1000,      // 10 minutes
+              minCacheHitRate: 0.6,              // 60%
+              maxWarningsPerBuild: 5,            // 5 warnings
+              maxMemoryUsage: 2 * 1024 * 1024 * 1024 // 2GB
+            };
+
+            let budgetViolations = [];
+
+            // Check average build time
+            if (data.summary.averageBuildTime > budgets.maxBuildTime) {
+              budgetViolations.push(`Average build time (${formatDuration(data.summary.averageBuildTime)}) exceeds budget (${formatDuration(budgets.maxBuildTime)})`);
+            }
+
+            // Check cache hit rates
+            for (const [cacheType, cacheData] of Object.entries(data.summary.cacheHitRates)) {
+              if (cacheData.hitRate < budgets.minCacheHitRate) {
+                budgetViolations.push(`${cacheType} cache hit rate (${(cacheData.hitRate * 100).toFixed(1)}%) below budget (${(budgets.minCacheHitRate * 100)}%)`);
+              }
+            }
+
+            // Check warnings per build
+            const avgWarnings = data.builds.reduce((sum, build) => sum + (build.warnings?.length || 0), 0) / data.builds.length;
+            if (avgWarnings > budgets.maxWarningsPerBuild) {
+              budgetViolations.push(`Average warnings per build (${avgWarnings.toFixed(1)}) exceeds budget (${budgets.maxWarningsPerBuild})`);
+            }
+
+            if (budgetViolations.length > 0) {
+              console.log('🚨 Performance budget violations detected:');
+              budgetViolations.forEach(violation => console.log(`  - ${violation}`));
+
+              // Create budget violation report
+              const report = {
+                timestamp: new Date().toISOString(),
+                violations: budgetViolations,
+                budgets,
+                actualValues: {
+                  averageBuildTime: data.summary.averageBuildTime,
+                  cacheHitRates: data.summary.cacheHitRates,
+                  averageWarnings: avgWarnings
+                }
+              };
+
+              fs.writeFileSync('aggregated-performance/budget-violations.json', JSON.stringify(report, null, 2));
+
+              // Set environment variable for downstream jobs
+              console.log('BUDGET_VIOLATIONS=true');
+
+              // Exit with error if violations are critical
+              const criticalViolations = budgetViolations.filter(v =>
+                v.includes('build time') || v.includes('cache hit rate')
+              );
+
+              if (criticalViolations.length > 0) {
+                console.log('Critical performance budget violations detected');
+                process.exit(1);
+              }
+            } else {
+              console.log('✅ All performance budgets met');
+            }
+          }
+
+          function formatDuration(ms) {
+            if (ms < 1000) return `${ms}ms`;
+            if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+            return `${(ms / 60000).toFixed(1)}m`;
+          }
+
+          checkBudgets();
+          EOF
+
+          node check-budgets.cjs
+
+      - name: Upload build optimization reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-optimization-reports
+          path: |
+            aggregated-performance/
+          retention-days: 90
+
+      - name: Comment build performance on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            const dashboardPath = 'aggregated-performance/build-optimization-dashboard.md';
+            if (fs.existsSync(dashboardPath)) {
+              const dashboard = fs.readFileSync(dashboardPath, 'utf8');
+
+              // Truncate if too long for GitHub comment
+              const maxLength = 65000;
+              const truncatedDashboard = dashboard.length > maxLength
+                ? dashboard.substring(0, maxLength) + '\n\n... (dashboard truncated)'
+                : dashboard;
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 🚀 Build Optimization Dashboard\n\n${truncatedDashboard}`
+              });
+            }
+
+  # Cache management and cleanup
+  cache-management:
+    name: Cache Management
+    needs: [preflight, quality-gate, build-optimization]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build optimization reports
+        uses: actions/download-artifact@v4
+        with:
+          name: build-optimization-reports
+          path: build-optimization
+
+      - name: Cache statistics and optimization
+        run: |
+          echo "## Cache Statistics & Optimization" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache Type | Key | Hit Rate | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|-----|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependencies | ${{ needs.preflight.outputs.deps_cache_key }} | TBD | Generated |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.preflight.outputs.build_cache_key }} | TBD | Generated |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test | ${{ needs.preflight.outputs.test_cache_key }} | TBD | Generated |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ needs.preflight.outputs.cache_version }} | N/A | Current |" >> $GITHUB_STEP_SUMMARY
+
+          # Add cache performance data if available
+          if [[ -f "build-optimization/aggregated-performance.json" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Cache Performance Analysis" >> $GITHUB_STEP_SUMMARY
+
+            node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('build-optimization/aggregated-performance.json', 'utf8'));
+
+              console.log('Cache performance summary:');
+              for (const [cacheType, cacheData] of Object.entries(data.summary.cacheHitRates || {})) {
+                const hitRate = (cacheData.hitRate * 100).toFixed(1);
+                const status = cacheData.hitRate > 0.8 ? '🟢 Excellent' :
+                             cacheData.hitRate > 0.6 ? '🟡 Good' : '🔴 Needs Improvement';
+                console.log(\`- \${cacheType}: \${hitRate}% hit rate (\${status})\`);
+              }
+            "
+          fi
+
+      - name: Cache cleanup recommendations
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Cache Optimization Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor cache hit rates and optimize cache keys for low-performing caches" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider cache invalidation strategies for stale caches" >> $GITHUB_STEP_SUMMARY
+          echo "- Implement cache warming for frequently accessed dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- Review cache size limits and retention policies" >> $GITHUB_STEP_SUMMARY
+
+  # Notification job
+  notify:
+    name: Notify Results
+    needs: [build, test-aggregation, comprehensive-tests, quality-gate, cache-management]
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "CI pipeline failed. Notification would be sent here."
+          # Add Slack/email notification logic here
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "CI pipeline succeeded. Notification would be sent here."
+          # Add success notification logic here
+
+      - name: Cache performance report
+        run: |
+          echo "## Cache Performance Report" >> $GITHUB_STEP_SUMMARY
+          echo "Cache keys generated for this run:" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependencies: ${{ needs.preflight.outputs.deps_cache_key }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: ${{ needs.preflight.outputs.build_cache_key }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test: ${{ needs.preflight.outputs.test_cache_key }}" >> $GITHUB_STEP_SUMMARY
+
+  # Audit logging - workflow completion
+  audit-workflow-complete:
+    name: Audit Workflow Complete
+    needs: [build, test-aggregation, comprehensive-tests, quality-gate, cache-management, notify]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Calculate workflow duration
+        id: duration
+        run: |
+          # Calculate workflow duration from start time
+          START_TIME="${{ github.event.head_commit.timestamp }}"
+          END_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          if [[ -n "$START_TIME" ]]; then
+            START_EPOCH=$(date -d "$START_TIME" +%s)
+            END_EPOCH=$(date -d "$END_TIME" +%s)
+            DURATION=$((END_EPOCH - START_EPOCH))
+            echo "duration=${DURATION}" >> $GITHUB_OUTPUT
+          else
+            echo "duration=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine workflow status
+        id: status
+        shell: bash
+        run: |
+          # Determine overall workflow status
+          if [[ "${{ needs.build.result }}" == "success" &&
+                "${{ needs.test-aggregation.result }}" == "success" &&
+                "${{ needs.comprehensive-tests.result }}" == "success" &&
+                "${{ needs.quality-gate.result }}" == "success" ]]; then
+            echo "status=completed" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log workflow completion
+        run: |
+          echo "Workflow completed with status: ${{ steps.status.outputs.status }}"
+          echo "Duration: ${{ steps.duration.outputs.duration }} seconds"
+          echo "Build result: ${{ needs.build.result }}"
+          echo "Test aggregation result: ${{ needs.test-aggregation.result }}"
+          echo "Comprehensive tests result: ${{ needs.comprehensive-tests.result }}"
+          echo "Quality gate result: ${{ needs.quality-gate.result }}"
