@@ -36,7 +36,7 @@ describe('Conversion Pipeline Integration', () => {
     for (const [filePath, content] of Object.entries(mockMod.files)) {
       const fullPath = path.join(extractPath, filePath);
       fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-      fs.writeFileSync(fullPath, content);
+      fs.writeFileSync(fullPath, content as string);
     }
 
     // Create source code directory
@@ -47,13 +47,12 @@ describe('Conversion Pipeline Integration', () => {
     for (const [filePath, content] of Object.entries(mockMod.sourceCode)) {
       const fullPath = path.join(sourceCodePath, filePath);
       fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-      fs.writeFileSync(fullPath, content);
+      fs.writeFileSync(fullPath, content as string);
     }
 
     // Initialize services
     errorCollector = new ErrorCollector();
     configService = new ConfigurationService();
-    await configService.initialize();
 
     conversionPipeline = new ConversionPipeline({
       errorCollector,
@@ -71,53 +70,54 @@ describe('Conversion Pipeline Integration', () => {
     const outputDir = path.join(tempDir, 'output/assets');
     fs.mkdirSync(outputDir, { recursive: true });
 
-    // Create mock features for asset translation
-    const mockFeatures = [
-      {
-        id: 'texture-feature',
-        name: 'Custom Texture',
-        type: 'TEXTURE',
-        compatibilityTier: 1,
-        sourceFiles: ['assets/mock-forge-mod/textures/block/custom_block.png'],
-        assetData: {
-          type: 'texture',
-          format: 'png',
-          size: { width: 16, height: 16 },
+    // Create mock Java assets for translation
+    const mockJavaAssets = {
+      textures: [
+        {
+          path: 'assets/mock-forge-mod/textures/block/custom_block.png',
+          data: Buffer.from([0x89, 0x50, 0x4e, 0x47]), // PNG header
+          metadata: {
+            animated: false,
+          },
         },
-      },
-      {
-        id: 'model-feature',
-        name: 'Custom Model',
-        type: 'MODEL',
-        compatibilityTier: 1,
-        sourceFiles: ['assets/mock-forge-mod/models/block/custom_block.json'],
-        assetData: {
-          type: 'model',
-          format: 'json',
-          parent: 'block/cube_all',
+      ],
+      models: [
+        {
+          path: 'assets/mock-forge-mod/models/block/custom_block.json',
+          data: { parent: 'block/cube_all', textures: { all: 'mock-forge-mod:block/custom_block' } },
+          type: 'block' as const,
+          metadata: {
+            parent: 'block/cube_all',
+            textures: { all: 'mock-forge-mod:block/custom_block' },
+          },
         },
-      },
-    ];
+      ],
+      sounds: [],
+      particles: [],
+      animations: [],
+    };
 
     // Use unified asset translation module
     const assetTranslator = new AssetTranslationModule();
-    const assetResult = await assetTranslator.translateAssets(mockFeatures, outputDir, {
-      modId: 'mock-forge-mod',
-    });
+    const assetResult = await assetTranslator.translateAssets(mockJavaAssets);
 
-    expect(assetResult.success).toBe(true);
+    expect(assetResult.bedrockAssets).toBeDefined();
     expect(
-      validateModuleInteraction('AssetTranslationModule', 'Output', mockFeatures, assetResult)
+      validateModuleInteraction('AssetTranslationModule', 'Output', mockJavaAssets, assetResult)
     ).toBe(true);
-    expect(assetResult.assets.length).toBeGreaterThan(0);
-    expect(assetResult.modId).toBe('mock-forge-mod');
+    expect(assetResult.bedrockAssets.textures.length).toBeGreaterThan(0);
+    expect(assetResult.conversionNotes).toBeDefined();
 
     // Verify error handling consistency
-    if (assetResult.errors) {
+    if (assetResult.errors && assetResult.errors.length > 0) {
       expect(
-        assetResult.errors.every((error) => error.moduleOrigin === 'AssetTranslationModule')
+        assetResult.errors.every((error) => error.moduleOrigin.includes('ASSET'))
       ).toBe(true);
     }
+
+    // Test asset organization
+    await assetTranslator.organizeAssets(assetResult.bedrockAssets, outputDir);
+    expect(fs.existsSync(outputDir)).toBe(true);
   });
 
   it('should process configuration through pipeline stages', async () => {
