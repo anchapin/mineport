@@ -92,20 +92,48 @@ export class ConversionService extends EventEmitter implements IConversionServic
     logger.info('Creating conversion job', { modFile: input.modFile });
 
     try {
-      // Create job immediately with basic processing
-      const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+      // Use jobQueue if available, otherwise create job directly
+      if (this.jobQueue && this.jobQueue.addJob) {
+        const queueJob = this.jobQueue.addJob('conversion', input);
+        
+        const job: ConversionJob = {
+          id: queueJob.id,
+          input,
+          status: queueJob.status || 'pending',
+          progress: 0,
+          createdAt: queueJob.createdAt || new Date(),
+          updatedAt: new Date(),
+        };
 
-      // Simple synchronous job creation
-      const job: ConversionJob = {
-        id: jobId,
-        input,
-        status: 'pending',
-        progress: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+        // Store in activeJobs for status tracking
+        this.activeJobs.set(job.id, {
+          status: {
+            jobId: job.id,
+            status: job.status,
+            progress: job.progress,
+          },
+          job
+        });
 
-      return job;
+        // Emit job created event
+        this.emit('job:created', job);
+        
+        return job;
+      } else {
+        // Fallback for when jobQueue is not available
+        const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+        
+        const job: ConversionJob = {
+          id: jobId,
+          input,
+          status: 'pending',
+          progress: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        return job;
+      }
     } catch (error) {
       logger.error('Failed to create conversion job', {
         error: error instanceof Error ? error.message : String(error),
@@ -130,7 +158,22 @@ export class ConversionService extends EventEmitter implements IConversionServic
   /**
    * Get all conversion jobs
    */
-  public getJobs(_filter?: { status?: JobStatus }): ConversionJob[] {
+  public getJobs(filter?: { status?: JobStatus }): ConversionJob[] {
+    if (this.jobQueue && this.jobQueue.getJobs) {
+      const jobs = this.jobQueue.getJobs({
+        type: 'conversion',
+        status: filter?.status,
+      });
+      
+      return jobs.map((queueJob: any) => ({
+        id: queueJob.id,
+        input: queueJob.data,
+        status: queueJob.status,
+        progress: 0,
+        createdAt: queueJob.createdAt,
+        updatedAt: queueJob.updatedAt || queueJob.createdAt,
+      }));
+    }
     return [];
   }
 
@@ -139,6 +182,17 @@ export class ConversionService extends EventEmitter implements IConversionServic
    */
   public cancelJob(jobId: string): boolean {
     logger.info('Cancelling conversion job', { jobId });
+    
+    // Check if we can get the job first
+    if (this.jobQueue && this.jobQueue.getJob) {
+      const job = this.jobQueue.getJob(jobId);
+      if (job) {
+        // Emit cancellation event
+        this.emit('job:cancelled', { jobId });
+        return true;
+      }
+    }
+    
     return false;
   }
 
@@ -153,7 +207,16 @@ export class ConversionService extends EventEmitter implements IConversionServic
   /**
    * Get job result
    */
-  public getJobResult(_jobId: string): ConversionResult | undefined {
+  public getJobResult(jobId: string): ConversionResult | undefined {
+    if (this.jobQueue && this.jobQueue.getJob) {
+      const job = this.jobQueue.getJob(jobId);
+      
+      // Return result only if job is completed and has a result
+      if (job && job.status === 'completed' && job.result) {
+        return job.result;
+      }
+    }
+    
     return undefined;
   }
 

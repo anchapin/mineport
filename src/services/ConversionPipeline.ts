@@ -798,35 +798,25 @@ export class ConversionPipeline {
    * @returns True if job was cancelled, false otherwise
    */
   public cancelJob(jobId: string): boolean {
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (!this.jobQueue) {
       return false;
     }
 
     const job = this.jobQueue.getJob(jobId);
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (!job) {
       return false;
     }
 
-    // Use the JobQueue's cancelJob method which handles both pending and processing jobs
-    return this.jobQueue.cancelJob(jobId);
+    // Mark the job as failed with a cancellation error
+    if (this.jobQueue.failJob) {
+      this.jobQueue.failJob(jobId, new Error('Job cancelled by user'));
+      return true;
+    } else if (this.jobQueue.cancelJob) {
+      // Fallback to cancelJob method if failJob is not available
+      return this.jobQueue.cancelJob(jobId);
+    }
+
+    return false;
   }
 
   /**
