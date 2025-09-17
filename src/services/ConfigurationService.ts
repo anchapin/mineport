@@ -105,26 +105,33 @@ export class ConfigurationService extends EventEmitter {
   }
 
   /**
-   * Get a configuration value (checks dynamic config first, then static config)
+   * Get a configuration value by key path with optional default value
+   * This method provides compatibility with services expecting a generic get method
+   * Also checks dynamic config first, then static config
    */
-  public get(key: string): any {
-    if (this.dynamicConfig.has(key)) {
-      return this.dynamicConfig.get(key);
-    }
-
-    // Navigate through nested config object
-    const keys = key.split('.');
-    let current: any = this.config;
-
-    for (const k of keys) {
-      if (current && typeof current === 'object' && k in current) {
-        current = current[k];
-      } else {
-        return undefined;
+  public get<T = any>(keyPath: string, defaultValue?: T): T {
+    try {
+      // Check dynamic config first
+      if (this.dynamicConfig.has(keyPath)) {
+        return this.dynamicConfig.get(keyPath) as T;
       }
-    }
 
-    return current;
+      // Navigate through nested config object
+      const keys = keyPath.split('.');
+      let value: any = this.config;
+      
+      for (const key of keys) {
+        if (value && typeof value === 'object' && key in value) {
+          value = value[key];
+        } else {
+          return defaultValue as T;
+        }
+      }
+      
+      return value !== undefined ? value : defaultValue as T;
+    } catch (error) {
+      return defaultValue as T;
+    }
   }
 
   /**

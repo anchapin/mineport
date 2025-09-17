@@ -32,6 +32,11 @@ tmp/
 # JAR files (test artifacts)
 *.jar
 
+# API mapping database files (test instances)
+**/test-*.json
+**/test-api-mappings.json
+**/test-mapping-db.json
+
 # Environment variables
 .env
 .env.local
