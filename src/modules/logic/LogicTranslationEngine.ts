@@ -15,12 +15,12 @@ import {
   TranslationWarning,
   CompromiseResult,
 } from '../../types/logic-translation.js';
-import { ErrorSeverity } from '../../types/errors.js';
 import { ASTTranspiler } from './ASTTranspiler.js';
 import { LLMTranslator } from './LLMTranslator.js';
 import { ProgramStateValidator } from './ProgramStateValidator.js';
 import { MMIRParser } from './MMIRParser.js';
 import { logger } from '../../utils/logger.js';
+import { CompromiseStrategyEngine } from '../compromise/CompromiseStrategyEngine.js';
 
 export interface LogicTranslationEngineOptions {
   maxRefinementIterations: number;
@@ -34,6 +34,7 @@ export class LogicTranslationEngine {
   private llmTranslator: LLMTranslator;
   private programStateValidator: ProgramStateValidator;
   private mmirParser: MMIRParser;
+  private compromiseStrategyEngine: CompromiseStrategyEngine;
   private options: LogicTranslationEngineOptions;
 
   constructor(
@@ -47,6 +48,7 @@ export class LogicTranslationEngine {
     this.llmTranslator = llmTranslator || ({} as LLMTranslator);
     this.programStateValidator = programStateValidator || ({} as ProgramStateValidator);
     this.mmirParser = mmirParser || ({} as MMIRParser);
+    this.compromiseStrategyEngine = new CompromiseStrategyEngine();
     this.options = {
       maxRefinementIterations: 3,
       confidenceThreshold: 0.8,
@@ -460,27 +462,17 @@ export class LogicTranslationEngine {
    * Get the compromise strategy engine for handling unmappable features
    * @returns CompromiseStrategyEngine instance
    */
-  getCompromiseStrategyEngine(): any {
-    // Return a mock compromise strategy engine for now
-    // In a real implementation, this would return the actual engine
-    return {
-      registerStrategy: () => {},
-      selectStrategy: () => undefined,
-      applyStrategy: () => undefined,
-      provideFeedback: () => {},
-      getStrategyMetrics: () => undefined,
-      getStrategyFeedback: () => [],
-      getStrategyPerformanceReport: () => ({}),
-      getCompromiseReport: () => ({}),
-    };
+  getCompromiseStrategyEngine(): CompromiseStrategyEngine {
+    return this.compromiseStrategyEngine;
   }
 
   /**
    * Register a compromise strategy for handling unmappable features
+   * @param featureType The feature type to register the strategy for
    * @param strategy The compromise strategy to register
    */
-  registerCompromiseStrategy(strategy: any): void {
-    // Implementation would register the strategy with the compromise engine
-    logger.debug('Registered compromise strategy', { strategyId: strategy.id });
+  registerCompromiseStrategy(featureType: string, strategy: any): void {
+    this.compromiseStrategyEngine.registerStrategy(featureType as any, strategy);
+    logger.debug('Registered compromise strategy', { featureType, strategyId: strategy.id });
   }
 }

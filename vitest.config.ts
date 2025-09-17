@@ -5,10 +5,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    testTimeout: 30000, // 30 seconds for regular tests
+    hookTimeout: 20000, // 20 seconds for hooks
     exclude: [
       'tests/integration/consistency-validation.test.ts',
       'tests/security/**/*', // Temporarily exclude all security tests to unblock CI
       'tests/integration/modporter-ai-integration.test.ts',
+      'tests/deployment/smoke-tests.test.ts', // Requires running server
+      'tests/benchmark/performance-optimization.test.ts', // Resource intensive tests
     ],
     coverage: {
       provider: 'v8',

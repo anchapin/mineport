@@ -316,11 +316,12 @@ export class JavaScriptGenerator {
         return `{\n${statements}\n${currentIndent}}`;
       }
 
-      case 'ExpressionStatement':
+      case 'ExpressionStatement': {
         const expression = node.expression
           ? this.generateNodeCode(node.expression, 0, indent, options)
           : '/* empty */';
         return `${currentIndent}${expression}${semicolon}`;
+      }
 
       case 'CallExpression': {
         const args = (node.arguments || [])

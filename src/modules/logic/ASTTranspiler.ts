@@ -9,7 +9,6 @@ import {
   ASTTranspilationResult,
   ASTNode,
   UnmappableCodeSegment,
-  APIMapping,
   LogicAPIMapping,
   TranslationWarning,
 } from '../../types/logic-translation.js';

@@ -118,10 +118,9 @@ export class SecurityScanner {
    * Scan a file by path for security threats
    */
   async scanFile(filePath: string): Promise<SecurityScanResult> {
-    const fs = require('fs').promises;
     try {
       const fileBuffer = await fs.readFile(filePath);
-      const filename = require('path').basename(filePath);
+      const filename = path.basename(filePath);
       return await this.scanBuffer(fileBuffer, filename);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown file read error';
