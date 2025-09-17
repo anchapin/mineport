@@ -11,6 +11,7 @@
     "test": "vitest run tests/unit/services/ConversionPipeline.test.ts tests/unit/services/ConversionService.test.ts tests/unit/modules/ingestion/ModLoaderDetector.test.ts tests/unit/modules/ingestion/JavaAnalyzer.test.ts tests/unit/modules/ingestion/FileProcessor.enhanced.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:ci": "vitest run --coverage tests/unit/services/ConversionPipeline.test.ts tests/unit/services/ConversionService.test.ts tests/unit/modules/ingestion/ModLoaderDetector.test.ts tests/unit/modules/ingestion/JavaAnalyzer.test.ts tests/unit/modules/ingestion/FileProcessor.enhanced.test.ts",
     "test:coverage:report": "vitest run --coverage && node scripts/coverage-report.cjs",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run --config vitest.integration.config.ts",

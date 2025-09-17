@@ -35,15 +35,25 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Test
-      run: npm test
+    - name: Test with Coverage
+      run: npm run test:coverage:ci
+
+    - name: Check coverage files
+      run: |
+        ls -la coverage/
+        echo "LCOV info file:"
+        head -20 coverage/lcov.info || echo "lcov.info not found"
+        echo "JSON coverage file:"
+        ls -la coverage/coverage-final.json || echo "coverage-final.json not found"
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage/lcov.info
         directory: ./coverage/
-        fail_ci_if_error: true
+        fail_ci_if_error: false
+        verbose: true
 
   deploy:
     needs: build
