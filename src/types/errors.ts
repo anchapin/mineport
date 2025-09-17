@@ -94,6 +94,20 @@ export interface BaseConversionNote {
 }
 
 /**
+ * Generic conversion note (alias for BaseConversionNote)
+ */
+export interface ConversionNote extends BaseConversionNote {}
+
+/**
+ * License information interface
+ */
+export interface LicenseInfo {
+  type: string;
+  text: string;
+  attributions?: string[];
+}
+
+/**
  * Represents a logic conversion note
  */
 export interface LogicConversionNote extends BaseConversionNote {
@@ -264,6 +278,16 @@ export function createErrorCode(module: string, type: string, number: number): E
  *
  * @param options Error properties
  * @returns Conversion error object
+ * @example
+ * ```typescript
+ * const error = createConversionError({
+ *   code: 'ASSET-TEX-001',
+ *   type: ErrorType.ASSET,
+ *   severity: ErrorSeverity.ERROR,
+ *   message: 'Texture conversion failed',
+ *   moduleOrigin: 'ASSET'
+ * });
+ * ```
  */
 export function createConversionError(options: {
   code: ErrorCode;
@@ -481,6 +505,14 @@ export interface ComponentHealth {
  * @param recoveryActions Available recovery actions
  * @param context Additional context for recovery
  * @returns Enhanced conversion error
+ * @example
+ * ```typescript
+ * const enhancedError = createEnhancedConversionError(
+ *   baseError,
+ *   [{ strategy: RecoveryStrategy.RETRY, description: 'Retry operation', automated: true }],
+ *   { retryCount: 0 }
+ * );
+ * ```
  */
 export function createEnhancedConversionError(
   baseError: ConversionError,
@@ -503,6 +535,11 @@ export function createEnhancedConversionError(
  * @param error Conversion error
  * @param context Error context
  * @returns Array of recovery actions
+ * @example
+ * ```typescript
+ * const recoveryActions = createRecoveryActions(error, { fileSize: 1024 });
+ * recoveryActions.forEach(action => console.log(action.description));
+ * ```
  */
 export function createRecoveryActions(
   error: ConversionError,
@@ -616,6 +653,14 @@ export function createRecoveryActions(
  * @param moduleOrigin Module identifier
  * @param type Error type
  * @returns Standardized conversion error
+ * @example
+ * ```typescript
+ * const error = noteToConversionError(
+ *   { message: 'Asset not found', type: 'warning' },
+ *   'ASSET_MODULE',
+ *   ErrorType.ASSET
+ * );
+ * ```
  */
 export function noteToConversionError(
   note:
@@ -635,18 +680,30 @@ export function noteToConversionError(
       file: note.sourceLocation.file,
       line: note.sourceLocation.line,
       column: note.sourceLocation.column,
+      startLine: note.sourceLocation.line,
+      startColumn: note.sourceLocation.column,
+      endLine: note.sourceLocation.line,
+      endColumn: note.sourceLocation.column + 1,
     };
   } else if ('assetPath' in note && note.assetPath) {
     sourceLocation = {
       file: note.assetPath,
       line: 0,
       column: 0,
+      startLine: 0,
+      startColumn: 0,
+      endLine: 0,
+      endColumn: 0,
     };
   } else if ('configPath' in note && note.configPath) {
     sourceLocation = {
       file: note.configPath,
       line: 0,
       column: 0,
+      startLine: 0,
+      startColumn: 0,
+      endLine: 0,
+      endColumn: 0,
     };
   }
 

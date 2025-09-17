@@ -1022,7 +1022,7 @@ export class JavaParser {
   /**
    * Process a constructor declaration
    */
-  private processConstructorDeclaration(node: any): JavaASTNode {
+  private processConstructorDeclaration(_node: any): JavaASTNode {
     const constructorNode: JavaASTNode = {
       type: 'constructorDeclaration',
       children: [],
@@ -1235,7 +1235,7 @@ export class JavaParser {
   /**
    * Process a method body
    */
-  private processMethodBody(node: any): JavaASTNode {
+  private processMethodBody(_node: any): JavaASTNode {
     const bodyNode: JavaASTNode = {
       type: 'methodBody',
       children: [],

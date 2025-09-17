@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CompromisePreferencesService } from '../../../../../src/modules/ui/services/CompromisePreferencesService.js';
 import { Feature } from '../../../../../src/types/compromise.js';
-import { UserPreferences } from '../../../../../src/modules/ui/types.js';
+import { UserPreferences } from '../../../../../src/modules/ui/types/index.js';
 
 // Mock the logger
 vi.mock('../../../../../src/utils/logger', () => ({

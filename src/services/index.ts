@@ -26,7 +26,7 @@ export * from './WorkerPool.js';
 export * from './ResourceAllocator.js';
 export * from './CacheService.js';
 export * from './UpdateService.js';
-export * from './ErrorCollector.js';
+export * from './EnhancedErrorCollector.js';
 export * from './ConversionPipeline.js';
 export * from './ConversionService.js';
 export * from './ValidationPipeline.js';
@@ -38,6 +38,31 @@ export * from './ModuleBootstrap.js';
 export * from './APIMapperService.js';
 export * from './APIMappingAdminService.js';
 export * from './FeatureFlagService.js';
+export * from './JobQueueService.js';
+export * from './ResourceManager.js';
+export * from './JobStatusStore.js';
+// Export AlertingService with its Alert and AlertRule interfaces
+export {
+  AlertingService,
+  Alert as AlertingAlert,
+  AlertRule as AlertingAlertRule,
+  AlertSeverity,
+  AlertType,
+  AlertCondition,
+  AlertAction,
+} from './AlertingService.js';
+export { ErrorMonitoringService, AlertThresholds, ErrorAlert } from './ErrorMonitoringService.js';
+export * from './ErrorRecoveryService.js';
+export * from './HealthCheckService.js';
+// Export MonitoringService with its Alert and AlertRule interfaces
+export {
+  MonitoringService,
+  Alert as MonitoringAlert,
+  AlertRule as MonitoringAlertRule,
+  Metric,
+} from './MonitoringService.js';
+export * from './PerformanceMonitor.js';
+export * from './StreamingFileProcessor.js';
 
 // Export validation stages
-export * from './validation-stages.js';
+export * from './validation-stages/index.js';

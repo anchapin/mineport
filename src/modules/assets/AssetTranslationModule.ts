@@ -187,12 +187,20 @@ export class AssetTranslationModule {
         );
       });
 
+      // Convert particle definitions to particle files
+      const particleFiles = particleResult.convertedParticles.map((particle) => ({
+        path: particle.path,
+        content: typeof particle.data === 'string' ? particle.data : JSON.stringify(particle.data), // Convert data to string content
+        metadata: { name: particle.name },
+      }));
+
       // Assemble the result
       const bedrockAssets: BedrockAssetCollection = {
         textures: textureResult.convertedTextures,
         models: modelResult.convertedModels,
         sounds: soundResult.convertedSounds,
-        particles: particleResult.convertedParticles,
+        particles: particleFiles,
+        animations: [], // TODO: Add animation conversion
         soundsJson: soundResult.soundsJson,
       };
 
@@ -201,6 +209,7 @@ export class AssetTranslationModule {
       return {
         bedrockAssets,
         conversionNotes,
+        errors: [], // TODO: Collect conversion errors
       };
     } catch (error) {
       // Handle unexpected errors
@@ -240,9 +249,11 @@ export class AssetTranslationModule {
           models: [],
           sounds: [],
           particles: [],
+          animations: [],
           soundsJson: {},
         },
         conversionNotes,
+        errors: [], // TODO: Collect conversion errors
       };
     }
   }
@@ -286,12 +297,19 @@ export class AssetTranslationModule {
       // Organize sounds and write sounds.json
       await this.soundProcessor.organizeSounds(
         bedrockAssets.sounds,
-        bedrockAssets.soundsJson,
+        bedrockAssets.soundsJson || {},
         outputDir
       );
 
+      // Convert particle files back to particle definitions for organization
+      const particleDefinitions = bedrockAssets.particles.map((particle) => ({
+        path: particle.path,
+        data: Buffer.from(particle.content), // Convert string content to Buffer for organization
+        name: particle.metadata?.name || 'unknown',
+      }));
+
       // Organize particles
-      await this.particleMapper.organizeParticles(bedrockAssets.particles, outputDir);
+      await this.particleMapper.organizeParticles(particleDefinitions, outputDir);
 
       logger.info('Asset organization completed successfully');
     } catch (error) {

@@ -2,7 +2,7 @@
 
 /**
  * Migration Orchestrator for Enhanced CI/CD Pipeline
- * 
+ *
  * This script orchestrates the gradual migration from the basic CI workflow
  * to the enhanced CI/CD pipeline, managing rollout phases, monitoring, and
  * rollback procedures.
@@ -26,11 +26,11 @@ class MigrationOrchestrator {
      */
     loadMigrationState() {
         const stateFile = '.github/migration-state.json';
-        
+
         if (fs.existsSync(stateFile)) {
             return JSON.parse(fs.readFileSync(stateFile, 'utf8'));
         }
-        
+
         const defaultState = {
             version: '1.0.0',
             startedAt: null,
@@ -46,7 +46,7 @@ class MigrationOrchestrator {
             rollbackHistory: [],
             lastUpdated: new Date().toISOString()
         };
-        
+
         this.saveMigrationState(defaultState);
         return defaultState;
     }
@@ -66,21 +66,21 @@ class MigrationOrchestrator {
      */
     async startMigration() {
         console.log('🚀 Starting enhanced CI/CD pipeline migration...\n');
-        
+
         // Pre-migration validation
         await this.validatePreMigrationRequirements();
-        
+
         // Initialize migration state
         this.migrationState.startedAt = new Date().toISOString();
         this.migrationState.currentPhase = 0;
         this.saveMigrationState();
-        
+
         // Start monitoring
         this.startMonitoring();
-        
+
         // Execute first phase
         await this.executeCurrentPhase();
-        
+
         console.log('\n✅ Migration started successfully!');
         console.log('📊 Monitor progress with: npm run migration:status');
         console.log('🔄 Advance phases with: npm run migration:advance');
@@ -92,7 +92,7 @@ class MigrationOrchestrator {
      */
     async validatePreMigrationRequirements() {
         console.log('🔍 Validating pre-migration requirements...');
-        
+
         const requirements = [
             {
                 name: 'Repository secrets configured',
@@ -115,7 +115,7 @@ class MigrationOrchestrator {
                 check: () => this.checkSecurityStatus()
             }
         ];
-        
+
         for (const requirement of requirements) {
             try {
                 const result = await requirement.check();
@@ -130,7 +130,7 @@ class MigrationOrchestrator {
                 throw error;
             }
         }
-        
+
         console.log('✅ All pre-migration requirements satisfied\n');
     }
 
@@ -141,7 +141,7 @@ class MigrationOrchestrator {
         try {
             const secrets = execSync('gh secret list', { encoding: 'utf8' });
             const requiredSecrets = ['SNYK_TOKEN', 'SLACK_WEBHOOK_URL'];
-            
+
             for (const secret of requiredSecrets) {
                 if (!secrets.includes(secret)) {
                     return {
@@ -150,7 +150,7 @@ class MigrationOrchestrator {
                     };
                 }
             }
-            
+
             return { passed: true };
         } catch (error) {
             return {
@@ -169,9 +169,9 @@ class MigrationOrchestrator {
             'security.yml',
             'deploy.yml'
         ];
-        
+
         const workflowsDir = '.github/workflows';
-        
+
         for (const workflow of requiredWorkflows) {
             const workflowPath = path.join(workflowsDir, workflow);
             if (!fs.existsSync(workflowPath)) {
@@ -181,7 +181,7 @@ class MigrationOrchestrator {
                 };
             }
         }
-        
+
         return { passed: true };
     }
 
@@ -240,7 +240,7 @@ class MigrationOrchestrator {
      */
     async executeCurrentPhase() {
         const rolloutResult = this.featureFlagManager.executeGradualRollout();
-        
+
         if (rolloutResult.completed) {
             console.log('🎉 All migration phases completed!');
             this.migrationState.currentPhase = 'completed';
@@ -248,10 +248,10 @@ class MigrationOrchestrator {
             this.stopMonitoring();
             return;
         }
-        
+
         const phase = rolloutResult.phase;
         console.log(`\n📋 Executing ${phase.name}...`);
-        
+
         // Record phase start
         const phaseRecord = {
             name: phase.name,
@@ -260,19 +260,19 @@ class MigrationOrchestrator {
             status: 'in_progress',
             results: rolloutResult.results
         };
-        
+
         this.migrationState.phaseHistory.push(phaseRecord);
         this.migrationState.currentPhase = phase.name;
         this.saveMigrationState();
-        
+
         // Set up phase-specific monitoring
         this.setupPhaseMonitoring(phase);
-        
+
         console.log(`✅ Phase started: ${phase.name}`);
         console.log(`🎯 Features enabled: ${phase.features.join(', ')}`);
         console.log(`⏱️  Duration: ${phase.duration}`);
         console.log(`📊 Success criteria: ${phase.successCriteria.join(', ')}`);
-        
+
         return phaseRecord;
     }
 
@@ -281,26 +281,26 @@ class MigrationOrchestrator {
      */
     async advanceToNextPhase() {
         console.log('📈 Advancing to next migration phase...');
-        
+
         // Validate current phase success criteria
         const currentPhaseValid = await this.validateCurrentPhase();
-        
+
         if (!currentPhaseValid.passed) {
             console.log(`❌ Current phase validation failed: ${currentPhaseValid.message}`);
             console.log('🔄 Consider rolling back or fixing issues before advancing');
             return false;
         }
-        
+
         // Mark current phase as completed
         const currentPhaseRecord = this.migrationState.phaseHistory[this.migrationState.phaseHistory.length - 1];
         if (currentPhaseRecord) {
             currentPhaseRecord.status = 'completed';
             currentPhaseRecord.completedAt = new Date().toISOString();
         }
-        
+
         // Advance to next phase
         const advanced = this.featureFlagManager.advanceToNextPhase();
-        
+
         if (advanced) {
             await this.executeCurrentPhase();
             console.log('✅ Successfully advanced to next phase');
@@ -319,7 +319,7 @@ class MigrationOrchestrator {
      */
     async validateCurrentPhase() {
         console.log('🔍 Validating current phase success criteria...');
-        
+
         const validations = [
             {
                 name: 'Build success rate > 95%',
@@ -338,7 +338,7 @@ class MigrationOrchestrator {
                 check: () => this.checkAverageBuildTime(300)
             }
         ];
-        
+
         for (const validation of validations) {
             try {
                 const result = await validation.check();
@@ -356,7 +356,7 @@ class MigrationOrchestrator {
                 // Non-critical validation failure
             }
         }
-        
+
         return { passed: true };
     }
 
@@ -367,10 +367,10 @@ class MigrationOrchestrator {
         try {
             const runs = execSync('gh run list --limit 20 --json conclusion', { encoding: 'utf8' });
             const runData = JSON.parse(runs);
-            
+
             const successfulRuns = runData.filter(run => run.conclusion === 'success').length;
             const successRate = (successfulRuns / runData.length) * 100;
-            
+
             this.migrationState.metrics.buildSuccessRate.push({
                 timestamp: new Date().toISOString(),
                 rate: successRate,
@@ -378,7 +378,7 @@ class MigrationOrchestrator {
                 successfulRuns
             });
             this.saveMigrationState();
-            
+
             return {
                 passed: successRate >= threshold,
                 message: `Build success rate: ${successRate.toFixed(1)}%`
@@ -413,14 +413,14 @@ class MigrationOrchestrator {
         try {
             const runs = execSync('gh run list --workflow=deploy.yml --limit 10 --json conclusion', { encoding: 'utf8' });
             const runData = JSON.parse(runs);
-            
+
             if (runData.length === 0) {
                 return { passed: true, message: 'No deployment runs to check' };
             }
-            
+
             const successfulRuns = runData.filter(run => run.conclusion === 'success').length;
             const successRate = (successfulRuns / runData.length) * 100;
-            
+
             this.migrationState.metrics.deploymentSuccessRate.push({
                 timestamp: new Date().toISOString(),
                 rate: successRate,
@@ -428,7 +428,7 @@ class MigrationOrchestrator {
                 successfulRuns
             });
             this.saveMigrationState();
-            
+
             return {
                 passed: successRate >= threshold,
                 message: `Deployment success rate: ${successRate.toFixed(1)}%`
@@ -449,13 +449,13 @@ class MigrationOrchestrator {
             // This would require parsing workflow run times
             // For now, return a simulated check
             const avgBuildTime = 240; // 4 minutes (simulated)
-            
+
             this.migrationState.metrics.averageBuildTime.push({
                 timestamp: new Date().toISOString(),
                 averageSeconds: avgBuildTime
             });
             this.saveMigrationState();
-            
+
             return {
                 passed: avgBuildTime <= thresholdSeconds,
                 message: `Average build time: ${Math.round(avgBuildTime / 60)} minutes`
@@ -473,10 +473,10 @@ class MigrationOrchestrator {
      */
     async rollbackCurrentPhase() {
         console.log('🔄 Rolling back current migration phase...');
-        
+
         const rollbackReason = await this.identifyRollbackReason();
         console.log(`📋 Rollback reason: ${rollbackReason}`);
-        
+
         // Record rollback
         const rollbackRecord = {
             timestamp: new Date().toISOString(),
@@ -484,12 +484,12 @@ class MigrationOrchestrator {
             reason: rollbackReason,
             triggeredBy: 'manual'
         };
-        
+
         this.migrationState.rollbackHistory.push(rollbackRecord);
-        
+
         // Execute rollback
         const success = this.featureFlagManager.rollbackToPreviousPhase();
-        
+
         if (success) {
             // Update current phase record
             const currentPhaseRecord = this.migrationState.phaseHistory[this.migrationState.phaseHistory.length - 1];
@@ -498,13 +498,13 @@ class MigrationOrchestrator {
                 currentPhaseRecord.rolledBackAt = new Date().toISOString();
                 currentPhaseRecord.rollbackReason = rollbackReason;
             }
-            
+
             this.saveMigrationState();
             console.log('✅ Rollback completed successfully');
-            
+
             // Send notifications
             await this.sendRollbackNotification(rollbackRecord);
-            
+
             return true;
         } else {
             console.log('❌ Rollback failed');
@@ -517,7 +517,7 @@ class MigrationOrchestrator {
      */
     async identifyRollbackReason() {
         const reasons = [];
-        
+
         // Check build failures
         try {
             const buildCheck = await this.checkBuildSuccessRate(90);
@@ -527,7 +527,7 @@ class MigrationOrchestrator {
         } catch (error) {
             // Ignore check errors
         }
-        
+
         // Check security issues
         try {
             const securityCheck = await this.checkCriticalSecurityIssues();
@@ -537,7 +537,7 @@ class MigrationOrchestrator {
         } catch (error) {
             // Ignore check errors
         }
-        
+
         // Check user feedback
         if (this.migrationState.metrics.userFeedback.length > 0) {
             const recentFeedback = this.migrationState.metrics.userFeedback
@@ -546,13 +546,13 @@ class MigrationOrchestrator {
                     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
                     return feedbackTime > oneDayAgo;
                 });
-            
+
             const negativeFeedback = recentFeedback.filter(feedback => feedback.rating < 3);
             if (negativeFeedback.length > recentFeedback.length / 2) {
                 reasons.push('Negative user feedback');
             }
         }
-        
+
         return reasons.length > 0 ? reasons.join(', ') : 'Manual rollback requested';
     }
 
@@ -561,12 +561,12 @@ class MigrationOrchestrator {
      */
     startMonitoring() {
         console.log('📊 Starting pipeline monitoring...');
-        
+
         this.monitoringInterval = setInterval(async () => {
             await this.collectMetrics();
             await this.checkRollbackTriggers();
         }, 5 * 60 * 1000); // Every 5 minutes
-        
+
         console.log('✅ Monitoring started');
     }
 
@@ -587,19 +587,19 @@ class MigrationOrchestrator {
     setupPhaseMonitoring(phase) {
         // Configure monitoring based on phase features
         this.rollbackTriggers.clear();
-        
+
         if (phase.features.includes('enhancedCI')) {
             this.rollbackTriggers.add('build_failure_rate_high');
         }
-        
+
         if (phase.features.includes('securityScanning')) {
             this.rollbackTriggers.add('critical_security_issue');
         }
-        
+
         if (phase.features.includes('automatedDeployment')) {
             this.rollbackTriggers.add('deployment_failure_rate_high');
         }
-        
+
         console.log(`🔍 Monitoring triggers: ${Array.from(this.rollbackTriggers).join(', ')}`);
     }
 
@@ -610,13 +610,13 @@ class MigrationOrchestrator {
         try {
             // Collect build metrics
             await this.checkBuildSuccessRate(95);
-            
+
             // Collect deployment metrics
             await this.checkDeploymentSuccessRate(99);
-            
+
             // Collect build time metrics
             await this.checkAverageBuildTime(300);
-            
+
             console.log('📊 Metrics collected');
         } catch (error) {
             console.error('⚠️  Error collecting metrics:', error.message);
@@ -628,7 +628,7 @@ class MigrationOrchestrator {
      */
     async checkRollbackTriggers() {
         const triggers = [];
-        
+
         // Check build failure rate
         if (this.rollbackTriggers.has('build_failure_rate_high')) {
             const buildCheck = await this.checkBuildSuccessRate(85);
@@ -636,7 +636,7 @@ class MigrationOrchestrator {
                 triggers.push('build_failure_rate_high');
             }
         }
-        
+
         // Check for critical security issues
         if (this.rollbackTriggers.has('critical_security_issue')) {
             const securityCheck = await this.checkCriticalSecurityIssues();
@@ -644,7 +644,7 @@ class MigrationOrchestrator {
                 triggers.push('critical_security_issue');
             }
         }
-        
+
         // Trigger automatic rollback if conditions met
         if (triggers.length > 0) {
             console.log(`🚨 Automatic rollback triggered: ${triggers.join(', ')}`);
@@ -657,7 +657,7 @@ class MigrationOrchestrator {
      */
     async executeAutomaticRollback(triggers) {
         console.log('🔄 Executing automatic rollback...');
-        
+
         const rollbackRecord = {
             timestamp: new Date().toISOString(),
             phase: this.migrationState.currentPhase,
@@ -665,16 +665,16 @@ class MigrationOrchestrator {
             triggeredBy: 'automatic',
             triggers
         };
-        
+
         this.migrationState.rollbackHistory.push(rollbackRecord);
-        
+
         // Execute rollback
         const success = this.featureFlagManager.rollbackToPreviousPhase();
-        
+
         if (success) {
             this.saveMigrationState();
             console.log('✅ Automatic rollback completed');
-            
+
             // Send critical notifications
             await this.sendCriticalRollbackNotification(rollbackRecord);
         } else {
@@ -691,10 +691,10 @@ class MigrationOrchestrator {
                        `Reason: ${rollbackRecord.reason}\n` +
                        `Triggered: ${rollbackRecord.triggeredBy}\n` +
                        `Time: ${rollbackRecord.timestamp}`;
-        
+
         console.log('📢 Sending rollback notification...');
         console.log(message);
-        
+
         // In a real implementation, this would send to Slack, email, etc.
     }
 
@@ -707,10 +707,10 @@ class MigrationOrchestrator {
                        `Triggers: ${rollbackRecord.triggers.join(', ')}\n` +
                        `Time: ${rollbackRecord.timestamp}\n` +
                        `Action Required: Investigate and resolve issues before re-enabling`;
-        
+
         console.log('🚨 Sending critical rollback notification...');
         console.log(message);
-        
+
         // In a real implementation, this would send urgent notifications
     }
 
@@ -719,7 +719,7 @@ class MigrationOrchestrator {
      */
     getMigrationStatus() {
         const rolloutStatus = this.featureFlagManager.getRolloutStatus();
-        
+
         return {
             migrationState: this.migrationState,
             rolloutStatus,
@@ -740,10 +740,10 @@ class MigrationOrchestrator {
             recommendations: this.generateMigrationRecommendations(),
             nextSteps: this.generateNextSteps()
         };
-        
+
         const reportPath = 'migration-status-report.json';
         fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-        
+
         console.log(`📊 Migration report generated: ${reportPath}`);
         return report;
     }
@@ -755,7 +755,7 @@ class MigrationOrchestrator {
         const completedPhases = this.migrationState.phaseHistory.filter(phase => phase.status === 'completed').length;
         const totalPhases = this.featureFlagManager.flags.rolloutStrategy.phases.length;
         const rollbackCount = this.migrationState.rollbackHistory.length;
-        
+
         return {
             completedPhases,
             totalPhases,
@@ -763,7 +763,7 @@ class MigrationOrchestrator {
             rollbackCount,
             currentPhase: this.migrationState.currentPhase,
             startedAt: this.migrationState.startedAt,
-            duration: this.migrationState.startedAt 
+            duration: this.migrationState.startedAt
                 ? this.calculateDuration(this.migrationState.startedAt)
                 : null
         };
@@ -776,11 +776,11 @@ class MigrationOrchestrator {
         const start = new Date(startTime);
         const now = new Date();
         const durationMs = now - start;
-        
+
         const days = Math.floor(durationMs / (24 * 60 * 60 * 1000));
         const hours = Math.floor((durationMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
         const minutes = Math.floor((durationMs % (60 * 60 * 1000)) / (60 * 1000));
-        
+
         return `${days}d ${hours}h ${minutes}m`;
     }
 
@@ -790,7 +790,7 @@ class MigrationOrchestrator {
     generateMigrationRecommendations() {
         const recommendations = [];
         const summary = this.generateMigrationSummary();
-        
+
         if (summary.rollbackCount > 2) {
             recommendations.push({
                 priority: 'HIGH',
@@ -798,7 +798,7 @@ class MigrationOrchestrator {
                 rationale: 'Multiple rollbacks indicate systemic issues'
             });
         }
-        
+
         if (summary.completionPercentage < 50 && summary.duration && summary.duration.includes('d')) {
             const days = parseInt(summary.duration.split('d')[0]);
             if (days > 14) {
@@ -809,7 +809,7 @@ class MigrationOrchestrator {
                 });
             }
         }
-        
+
         return recommendations;
     }
 
@@ -819,7 +819,7 @@ class MigrationOrchestrator {
     generateNextSteps() {
         const status = this.getMigrationStatus();
         const nextSteps = [];
-        
+
         if (status.migrationState.currentPhase === 'completed') {
             nextSteps.push('🎉 Migration completed - monitor system stability');
             nextSteps.push('📊 Generate final migration report');
@@ -833,7 +833,7 @@ class MigrationOrchestrator {
             nextSteps.push('✅ Validate pre-migration requirements');
             nextSteps.push('📋 Execute Phase 1: Enhanced CI');
         }
-        
+
         return nextSteps;
     }
 }
@@ -842,31 +842,31 @@ class MigrationOrchestrator {
 if (require.main === module) {
     const orchestrator = new MigrationOrchestrator();
     const command = process.argv[2];
-    
+
     try {
         switch (command) {
             case 'start':
                 orchestrator.startMigration();
                 break;
-                
+
             case 'advance':
                 orchestrator.advanceToNextPhase();
                 break;
-                
+
             case 'rollback':
                 orchestrator.rollbackCurrentPhase();
                 break;
-                
+
             case 'status':
                 const status = orchestrator.getMigrationStatus();
                 console.log('\n📊 Migration Status:');
                 console.log(JSON.stringify(status, null, 2));
                 break;
-                
+
             case 'report':
                 orchestrator.generateMigrationReport();
                 break;
-                
+
             case 'monitor':
                 orchestrator.startMonitoring();
                 console.log('📊 Monitoring started. Press Ctrl+C to stop.');
@@ -875,7 +875,7 @@ if (require.main === module) {
                     process.exit(0);
                 });
                 break;
-                
+
             default:
                 console.log('Usage: migration-orchestrator.js <command>');
                 console.log('Commands:');

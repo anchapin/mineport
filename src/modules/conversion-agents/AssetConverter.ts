@@ -10,7 +10,7 @@ import {
   TextureInfo,
   SoundInfo,
   ModelInfo,
-  ConversionResult,
+  ConversionAgentResult,
   ConversionMetadata,
   OptimizedTexture,
   BedrockModel,
@@ -50,7 +50,7 @@ export class AssetConverter {
   /**
    * Convert multiple textures from Java to Bedrock format
    */
-  async convertTextures(textures: TextureInfo[]): Promise<ConversionResult> {
+  async convertTextures(textures: TextureInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -76,7 +76,7 @@ export class AssetConverter {
         // Add info note for successful conversion
         if (optimized.compressionRatio > 1.5) {
           warnings.push({
-            type: 'info',
+            type: ErrorSeverity.INFO,
             message: `Texture ${texture.name} compressed by ${optimized.compressionRatio.toFixed(2)}x`,
             component: 'texture',
             assetPath: texture.path,
@@ -116,7 +116,7 @@ export class AssetConverter {
   /**
    * Convert multiple sounds from Java to Bedrock format
    */
-  async convertSounds(sounds: SoundInfo[]): Promise<ConversionResult> {
+  async convertSounds(sounds: SoundInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -171,7 +171,7 @@ export class AssetConverter {
   /**
    * Convert multiple models from Java to Bedrock format
    */
-  async convertModels(models: ModelInfo[]): Promise<ConversionResult> {
+  async convertModels(models: ModelInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -198,7 +198,7 @@ export class AssetConverter {
         // Add warning if model has complex features that might not convert perfectly
         if (this.hasComplexFeatures(model.content)) {
           warnings.push({
-            type: 'warning',
+            type: ErrorSeverity.WARNING,
             message: `Model ${model.name} contains complex features that may not convert perfectly`,
             component: 'model',
             assetPath: model.path,

@@ -40,12 +40,15 @@ export class HealthAPI {
         summary: healthResult.summary,
       });
     } catch (error) {
-      this.logger.error('Health check endpoint failed:', error);
+      this.logger.error(
+        'Health check endpoint failed:',
+        error instanceof Error ? error : String(error)
+      );
       res.status(500).json({
         status: 'unhealthy',
         timestamp: new Date(),
         error: 'Health check failed',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -72,12 +75,12 @@ export class HealthAPI {
         });
       }
     } catch (error) {
-      this.logger.error('Readiness probe failed:', error);
+      this.logger.error('Readiness probe failed:', error instanceof Error ? error : String(error));
       res.status(503).json({
         status: 'not-ready',
         timestamp: new Date(),
         error: 'Readiness check failed',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -97,12 +100,12 @@ export class HealthAPI {
         memory: process.memoryUsage(),
       });
     } catch (error) {
-      this.logger.error('Liveness probe failed:', error);
+      this.logger.error('Liveness probe failed:', error instanceof Error ? error : String(error));
       res.status(500).json({
         status: 'dead',
         timestamp: new Date(),
         error: 'Liveness check failed',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -153,10 +156,10 @@ export class HealthAPI {
 
       res.status(200).json(metrics);
     } catch (error) {
-      this.logger.error('Metrics endpoint failed:', error);
+      this.logger.error('Metrics endpoint failed:', error instanceof Error ? error : String(error));
       res.status(500).json({
         error: 'Metrics collection failed',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
         timestamp: new Date(),
       });
     }
@@ -193,11 +196,14 @@ export class HealthAPI {
 
       res.status(200).json(validationResults);
     } catch (error) {
-      this.logger.error('Configuration validation failed:', error);
+      this.logger.error(
+        'Configuration validation failed:',
+        error instanceof Error ? error : String(error)
+      );
       res.status(500).json({
         valid: false,
         error: 'Configuration validation failed',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
         timestamp: new Date(),
       });
     }

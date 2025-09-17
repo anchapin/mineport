@@ -37,7 +37,7 @@ async function runConversionBenchmark() {
     for (const [filePath, content] of Object.entries(mockMod.files)) {
       const fullPath = path.join(extractPath, filePath);
       fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-      fs.writeFileSync(fullPath, content);
+      fs.writeFileSync(fullPath, typeof content === 'string' ? content : String(content));
     }
 
     // Create source code directory
@@ -48,7 +48,7 @@ async function runConversionBenchmark() {
     for (const [filePath, content] of Object.entries(mockMod.sourceCode)) {
       const fullPath = path.join(sourceCodePath, filePath);
       fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-      fs.writeFileSync(fullPath, content);
+      fs.writeFileSync(fullPath, typeof content === 'string' ? content : String(content));
     }
 
     // Create output directories
@@ -74,7 +74,7 @@ async function runConversionBenchmark() {
           const modBuffer = fs.readFileSync(
             path.join(__dirname, '../fixtures/mock-forge-mod.json')
           );
-          await modValidator.validate(modBuffer);
+          await modValidator.validateMod(modBuffer);
         },
       },
       {
@@ -88,30 +88,34 @@ async function runConversionBenchmark() {
         name: 'TextureConverter',
         fn: async () => {
           const textureConverter = new TextureConverter();
-          await textureConverter.convert(extractPath, assetsOutputDir, { modId: 'mock-forge-mod' });
+          // Create mock texture files for testing
+          const mockTextures = [
+            { path: 'test.png', data: Buffer.from('mock'), type: 'block' as const },
+          ];
+          await textureConverter.convertTextures(mockTextures);
         },
       },
       {
         name: 'ModelConverter',
         fn: async () => {
           const modelConverter = new ModelConverter();
-          await modelConverter.convert(extractPath, assetsOutputDir, { modId: 'mock-forge-mod' });
+          // Create mock model files for testing
+          const mockModels = [{ path: 'test.json', data: {}, type: 'block' as const }];
+          await modelConverter.convertModels(mockModels);
         },
       },
       {
         name: 'BlockItemDefinitionConverter',
         fn: async () => {
           const definitionConverter = new BlockItemDefinitionConverter();
-          await definitionConverter.convert(extractPath, behaviorPackDir, {
-            modId: 'mock-forge-mod',
-          });
+          await definitionConverter.analyzeJavaRegistrations(extractPath, 'mock-forge-mod');
         },
       },
       {
         name: 'RecipeConverter',
         fn: async () => {
           const recipeConverter = new RecipeConverter();
-          await recipeConverter.convert(extractPath, behaviorPackDir, { modId: 'mock-forge-mod' });
+          await recipeConverter.parseJavaRecipes(extractPath, 'mock-forge-mod');
         },
       },
       {
@@ -128,26 +132,55 @@ async function runConversionBenchmark() {
           // Parse Java code
           const javaParser = new JavaParser();
           const parseResults = await Promise.all(
-            javaFiles.map((file) => javaParser.parse(file.content, file.path))
+            javaFiles.map((file) => javaParser.parseFile(file.path))
           );
 
           // Generate MMIR
           const mmirGenerator = new MMIRGenerator();
-          const mmirContext = await mmirGenerator.generate(
-            parseResults.map((result) => result.ast),
-            { modId: 'mock-forge-mod', modLoader: 'forge' }
+          const mmirContext = mmirGenerator.generateMMIR(
+            parseResults.map((result) => ({ ast: result.ast, sourceFile: result.sourceFile })),
+            'forge',
+            {
+              modId: 'mock-forge-mod',
+              modName: 'Mock Forge Mod',
+              modVersion: '1.0.0',
+            }
           );
+
+          // Convert MMIRContext to MMIRRepresentation
+          const mmirRepresentation = {
+            ast: [],
+            metadata: {
+              originalLinesOfCode: 0,
+              complexity: {
+                cyclomaticComplexity: 0,
+                cognitiveComplexity: 0,
+                linesOfCode: 0,
+                nestingDepth: 0,
+              },
+              imports: [],
+              classes: [],
+              methods: [],
+            },
+            dependencies: [],
+            complexity: {
+              cyclomaticComplexity: 0,
+              cognitiveComplexity: 0,
+              linesOfCode: 0,
+              nestingDepth: 0,
+            },
+          };
 
           // Transpile to JavaScript AST
           const astTranspiler = new ASTTranspiler();
-          const jsAst = await astTranspiler.transpile(mmirContext, {
+          const jsAst = await astTranspiler.transpile(mmirRepresentation, {
             modId: 'mock-forge-mod',
             apiMappings: [],
           });
 
           // Generate JavaScript code
           const jsGenerator = new JavaScriptGenerator();
-          const jsCode = jsGenerator.generate(jsAst);
+          const jsCode = jsGenerator.generateFromAST([]);
 
           // Write JavaScript code to output directory
           fs.writeFileSync(path.join(scriptsOutputDir, 'main.js'), jsCode);
@@ -219,13 +252,46 @@ async function runConversionBenchmark() {
 
           // Package the addon
           const addonPackager = new AddonPackager();
-          await addonPackager.package({
-            behaviorPackDir,
-            resourcePackDir,
-            outputDir,
-            modId: 'mock-forge-mod',
-            modName: 'Mock Forge Mod',
-            includeSource: true,
+          await addonPackager.createAddon({
+            outputPath: outputDir,
+            bedrockConfigs: {
+              manifests: {
+                behaviorPack: {
+                  format_version: 2,
+                  header: {
+                    name: 'Mock Forge Mod',
+                    description: 'A mock Forge mod for testing',
+                    uuid: '00000000-0000-0000-0000-000000000001',
+                    version: [1, 0, 0],
+                    min_engine_version: [1, 19, 0],
+                  },
+                  modules: [],
+                },
+                resourcePack: {
+                  format_version: 2,
+                  header: {
+                    name: 'Mock Forge Mod Resources',
+                    description: 'Resources for Mock Forge Mod',
+                    uuid: '00000000-0000-0000-0000-000000000004',
+                    version: [1, 0, 0],
+                    min_engine_version: [1, 19, 0],
+                  },
+                  modules: [],
+                },
+              },
+              definitions: {
+                blocks: [],
+                items: [],
+              },
+              recipes: [],
+              lootTables: [],
+            },
+            behaviorPackFiles: [],
+            resourcePackFiles: [],
+            documentation: {
+              conversionReport: { html: '', json: '', markdown: '' },
+              postProcessingGuide: { html: '', markdown: '' },
+            },
           });
         },
       },

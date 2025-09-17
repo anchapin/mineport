@@ -6,8 +6,9 @@
  * both languages to capture program state and provides feedback for translation refinement.
  */
 
-import { MMIRNode, MMIRContext } from './MMIRGenerator.js';
+// import type { MMIRNode, MMIRContext } from './MMIRGenerator.js';
 import { LLMTranslationResult } from './LLMTranslationService.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 /**
  * Represents a program state snapshot at a specific point in execution
@@ -53,7 +54,7 @@ export interface DivergencePoint {
   javascriptSnapshot: ProgramStateSnapshot;
   divergenceType: 'variable_value' | 'control_flow' | 'return_value' | 'missing_state';
   description: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: ErrorSeverity;
 }
 
 /**
@@ -111,19 +112,19 @@ import org.json.JSONArray;
 class StateTracker {
     private static final List<JSONObject> snapshots = new ArrayList<>();
     private static final long startTime = System.currentTimeMillis();
-    
+
     public static void captureState(String functionName, int lineNumber, Map<String, Object> variables) {
         JSONObject snapshot = new JSONObject();
         snapshot.put("timestamp", System.currentTimeMillis() - startTime);
         snapshot.put("functionName", functionName);
         snapshot.put("lineNumber", lineNumber);
-        
+
         JSONObject vars = new JSONObject();
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -132,7 +133,7 @@ class StateTracker {
             vars.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         snapshot.put("variables", vars);
-        
+
         // Capture call stack
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         JSONArray callStack = new JSONArray();
@@ -140,16 +141,16 @@ class StateTracker {
             callStack.put(stackTrace[i].toString());
         }
         snapshot.put("callStack", callStack);
-        
+
         snapshots.add(snapshot);
     }
-    
+
     public static void captureReturnValue(String functionName, Object returnValue) {
         JSONObject snapshot = new JSONObject();
         snapshot.put("timestamp", System.currentTimeMillis() - startTime);
         snapshot.put("functionName", functionName);
         snapshot.put("returnValue", String.valueOf(returnValue));
-        
+
         // Capture call stack
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         JSONArray callStack = new JSONArray();
@@ -157,22 +158,22 @@ class StateTracker {
             callStack.put(stackTrace[i].toString());
         }
         snapshot.put("callStack", callStack);
-        
+
         snapshots.add(snapshot);
     }
-    
+
     public static void writeSnapshots(String filename) {
         try (FileWriter file = new FileWriter(filename)) {
             JSONObject trace = new JSONObject();
             trace.put("language", "java");
             trace.put("snapshots", new JSONArray(snapshots));
-            
+
             JSONObject metadata = new JSONObject();
             metadata.put("sourceFile", filename.replace(".trace.json", ".java"));
             metadata.put("executionTime", System.currentTimeMillis() - startTime);
             metadata.put("snapshotCount", snapshots.size());
             trace.put("metadata", metadata);
-            
+
             file.write(trace.toString(2));
         } catch (IOException e) {
             e.printStackTrace();
@@ -269,7 +270,7 @@ ${space}    StateTracker.captureState("${methodName}", ${this.getLineNumber(matc
 const StateTracker = {
   snapshots: [],
   startTime: Date.now(),
-  
+
   captureState: function(functionName, lineNumber, variables) {
     const snapshot = {
       timestamp: Date.now() - this.startTime,
@@ -278,10 +279,10 @@ const StateTracker = {
       variables: { ...variables },
       callStack: new Error().stack.split('\\n').slice(2).map(line => line.trim())
     };
-    
+
     this.snapshots.push(snapshot);
   },
-  
+
   captureReturnValue: function(functionName, returnValue) {
     const snapshot = {
       timestamp: Date.now() - this.startTime,
@@ -289,13 +290,13 @@ const StateTracker = {
       returnValue: typeof returnValue === 'object' ? JSON.stringify(returnValue) : returnValue,
       callStack: new Error().stack.split('\\n').slice(2).map(line => line.trim())
     };
-    
+
     this.snapshots.push(snapshot);
   },
-  
+
   writeSnapshots: function() {
     const fs = require('fs');
-    
+
     const trace = {
       language: 'javascript',
       snapshots: this.snapshots,
@@ -305,7 +306,7 @@ const StateTracker = {
         snapshotCount: this.snapshots.length
       }
     };
-    
+
     fs.writeFileSync('javascript_execution.trace.json', JSON.stringify(trace, null, 2));
   }
 };
@@ -321,7 +322,7 @@ ${jsCode}
     // Instrument function declarations
     instrumentedCode = instrumentedCode.replace(
       /(function\s+)(\w+)(\s*\()(.*?)(\)\s*\{)/g,
-      (match, funcKeyword, funcName, openParen, params, closeParen) => {
+      (match, funcKeyword, funcName, openParen, params, _closeParen) => {
         // Skip excluded functions
         /**
          * if method.
@@ -348,7 +349,7 @@ ${jsCode}
     // Instrument arrow functions
     instrumentedCode = instrumentedCode.replace(
       /(\s*const\s+)(\w+)(\s*=\s*\()(.*?)(\)\s*=>\s*\{)/g,
-      (match, constKeyword, funcName, openParen, params, closeParen) => {
+      (match, constKeyword, funcName, openParen, params, _closeParen) => {
         // Skip excluded functions
         /**
          * if method.
@@ -623,7 +624,7 @@ ${jsCode}
             },
             divergenceType: 'missing_state',
             description: 'One or both execution traces have no snapshots',
-            severity: 'high',
+            severity: ErrorSeverity.ERROR,
           },
         ],
         alignmentScore: 0,
@@ -677,7 +678,7 @@ ${jsCode}
           },
           divergenceType: 'missing_state',
           description: `Function ${javaFunc} exists in Java but not in JavaScript`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
         });
         alignmentScore -= 0.2;
       }
@@ -716,7 +717,7 @@ ${jsCode}
           },
           divergenceType: 'missing_state',
           description: `Function ${javaFunc} -> ${jsFunc} is missing in one of the traces`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
         });
 
         alignmentScore -= 0.2; // Significant penalty for missing function
@@ -1005,7 +1006,7 @@ ${jsCode}
           javascriptSnapshot: jsEntrySnapshot,
           divergenceType: 'variable_value',
           description: `Variable ${javaVarName} exists in Java but not in JavaScript`,
-          severity: 'medium',
+          severity: ErrorSeverity.WARNING,
         });
         continue;
       }
@@ -1027,7 +1028,7 @@ ${jsCode}
           javascriptSnapshot: jsEntrySnapshot,
           divergenceType: 'variable_value',
           description: `Variable ${javaVarName} has different values: Java=${javaVarValue}, JS=${jsVarValue}`,
-          severity: 'medium',
+          severity: ErrorSeverity.WARNING,
         });
       }
     }
@@ -1059,7 +1060,7 @@ ${jsCode}
         javascriptSnapshot: jsReturnSnapshots[0] || jsSnapshots[0],
         divergenceType: 'return_value',
         description: 'Return value missing in one language',
-        severity: 'high',
+        severity: ErrorSeverity.ERROR,
       });
       return;
     }
@@ -1083,7 +1084,7 @@ ${jsCode}
         javascriptSnapshot: jsLastReturn,
         divergenceType: 'return_value',
         description: `Return values differ: Java=${javaLastReturn.returnValue}, JS=${jsLastReturn.returnValue}`,
-        severity: 'high',
+        severity: ErrorSeverity.ERROR,
       });
     }
   }
@@ -1122,7 +1123,7 @@ ${jsCode}
         javascriptSnapshot: jsSnapshots[0],
         divergenceType: 'control_flow',
         description: `Control flow differs significantly: Java has ${javaCalls} snapshots, JS has ${jsCalls} snapshots`,
-        severity: 'medium',
+        severity: ErrorSeverity.WARNING,
       });
     }
 
@@ -1156,7 +1157,7 @@ ${jsCode}
           javascriptSnapshot: jsSnapshots[0],
           divergenceType: 'control_flow',
           description: `Call stack depths differ: Java=${javaCallStack.length}, JS=${jsCallStack.length}`,
-          severity: 'low',
+          severity: ErrorSeverity.INFO,
         });
       }
     }
@@ -1308,11 +1309,11 @@ ${jsCode}
    * @param jsCode The translated JavaScript code
    * @returns A promise that resolves to the validation result
    */
-  public async validateTranslation(javaCode: string, jsCode: string): Promise<ValidationResult> {
+  public async validateTranslation(_javaCode: string, _jsCode: string): Promise<ValidationResult> {
     try {
       // Instrument the code
-      const instrumentedJavaCode = this.instrumentJavaCode(javaCode);
-      const instrumentedJsCode = this.instrumentJavaScriptCode(jsCode);
+      // const _instrumentedJavaCode = this.instrumentJavaCode(javaCode);
+      // const _instrumentedJsCode = this.instrumentJavaScriptCode(jsCode);
 
       // In a real implementation, we would:
       // 1. Compile and run the instrumented Java code
@@ -1338,6 +1339,7 @@ ${jsCode}
             timestamp: 5,
             functionName: 'exampleMethod',
             lineNumber: 15,
+            variables: new Map([['returnValue', 'result']]),
             returnValue: 'result',
             callStack: ['exampleMethod', 'main'],
           },
@@ -1357,7 +1359,7 @@ ${jsCode}
             functionName: 'exampleMethod',
             lineNumber: 5,
             variables: new Map([
-              ['param1', 42],
+              ['param1', '42'],
               ['param2', 'test'],
             ]),
             callStack: ['exampleMethod', 'global'],
@@ -1366,6 +1368,7 @@ ${jsCode}
             timestamp: 3,
             functionName: 'exampleMethod',
             lineNumber: 8,
+            variables: new Map([['returnValue', 'result']]),
             returnValue: 'result',
             callStack: ['exampleMethod', 'global'],
           },
@@ -1428,7 +1431,7 @@ ${jsCode}
 // REFINED TRANSLATION
 // The following issues were detected and addressed:
 ${validationResult.divergencePoints.map((dp) => `// - ${dp.description}`).join('\n')}
-// 
+//
 // Recommendations:
 ${validationResult.recommendations.map((rec) => `// - ${rec}`).join('\n')}
 
@@ -1444,7 +1447,6 @@ ${refinedCode}
       ],
       metadata: {
         ...originalTranslation.metadata,
-        refinementApplied: true,
       },
     };
   }

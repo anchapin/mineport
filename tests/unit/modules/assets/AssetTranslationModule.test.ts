@@ -87,6 +87,7 @@ describe('AssetTranslationModule', () => {
         models: [{ path: 'java_model.json', data: {}, type: 'block' as const }],
         sounds: [{ path: 'java_sound.ogg', data: Buffer.from([]) }],
         particles: [{ path: 'java_particle.json', data: {}, name: 'test_particle' }],
+        animations: [],
       };
 
       // Call the method
@@ -126,6 +127,7 @@ describe('AssetTranslationModule', () => {
         models: [],
         sounds: [],
         particles: [],
+        animations: [],
       };
 
       // Update mock return values for empty inputs
@@ -174,9 +176,10 @@ describe('AssetTranslationModule', () => {
       // Prepare test data
       const bedrockAssets = {
         textures: [{ path: 'texture1.png', data: Buffer.from([]) }],
-        models: [{ path: 'model1.json', data: {} }],
+        models: [{ path: 'model1.json', data: {}, type: 'block' as const }],
         sounds: [{ path: 'sound1.ogg', data: Buffer.from([]) }],
-        particles: [{ path: 'particle1.json', data: {} }],
+        particles: [{ path: 'particle1.json', data: {}, content: Buffer.from('{}') }],
+        animations: [],
         soundsJson: { sounds: {} },
       };
 

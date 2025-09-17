@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript', 'typescript' ]
+        language: [ 'typescript' ]
 
     steps:
     - name: Checkout repository
@@ -84,23 +84,23 @@ jobs:
     - name: Run npm audit with severity thresholds
       run: |
         echo "Running npm audit with different severity levels..."
-        
+
         # Run audit for all levels and save results
         npm audit --audit-level=low --json > npm-audit-all.json || true
         npm audit --audit-level=moderate --json > npm-audit-results.json || true
         npm audit --audit-level=high --json > npm-audit-high.json || true
-        
+
         # Display summary
         echo "=== NPM Audit Summary ==="
         npm audit --audit-level=moderate || true
-        
+
         # Check for high/critical vulnerabilities
         HIGH_VULNS=$(npm audit --audit-level=high --json 2>/dev/null | jq -r '.metadata.vulnerabilities.high // 0')
         CRITICAL_VULNS=$(npm audit --audit-level=high --json 2>/dev/null | jq -r '.metadata.vulnerabilities.critical // 0')
-        
+
         echo "High vulnerabilities: $HIGH_VULNS"
         echo "Critical vulnerabilities: $CRITICAL_VULNS"
-        
+
         # Set outputs for later steps
         echo "high_vulns=$HIGH_VULNS" >> $GITHUB_OUTPUT
         echo "critical_vulns=$CRITICAL_VULNS" >> $GITHUB_OUTPUT
@@ -123,7 +123,7 @@ jobs:
 
     - name: Upload Snyk results to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v3
-      if: always()
+      if: always() && hashFiles('snyk.sarif') != ''
       with:
         sarif_file: snyk.sarif
 
@@ -135,7 +135,7 @@ jobs:
       run: |
         # Make the script executable
         chmod +x scripts/create-security-advisory.js
-        
+
         # Run the security advisory creation script
         node scripts/create-security-advisory.js
 
@@ -199,22 +199,22 @@ jobs:
         # Check if results file exists and process it
         if [ -f "results.sarif" ]; then
           echo "GitLeaks scan completed. Processing results..."
-          
+
           # Count the number of secrets found
           SECRETS_COUNT=$(jq '.runs[0].results | length' results.sarif 2>/dev/null || echo "0")
           echo "Secrets found: $SECRETS_COUNT"
-          
+
           # Set output for later steps
           echo "secrets_found=$SECRETS_COUNT" >> $GITHUB_OUTPUT
-          
+
           # If secrets found, create detailed report
           if [ "$SECRETS_COUNT" -gt "0" ]; then
             echo "⚠️ Secrets detected in repository!"
             echo "Creating detailed report..."
-            
+
             # Extract secret details
             jq -r '.runs[0].results[] | "- **" + .ruleId + "**: " + .message.text + " (File: " + .locations[0].physicalLocation.artifactLocation.uri + ", Line: " + (.locations[0].physicalLocation.region.startLine | tostring) + ")"' results.sarif > secrets-summary.txt
-            
+
             echo "## 🚨 Secrets Detected" > secrets-report.md
             echo "" >> secrets-report.md
             echo "The following secrets were detected in the repository:" >> secrets-report.md
@@ -222,7 +222,7 @@ jobs:
             cat secrets-summary.txt >> secrets-report.md
             echo "" >> secrets-report.md
             echo "**Action Required:** Please remove these secrets from the repository and rotate any exposed credentials." >> secrets-report.md
-            
+
             # Display the report
             cat secrets-report.md
           else
@@ -257,15 +257,15 @@ jobs:
         script: |
           const fs = require('fs');
           const secretsFound = '${{ steps.process-gitleaks-results.outputs.secrets_found }}';
-          
+
           let comment = '## 🔐 Secret Detection Results\n\n';
-          
+
           if (secretsFound === '0') {
             comment += '✅ **No secrets detected** in this pull request.\n\n';
             comment += 'The code has been scanned for potential secrets, API keys, and sensitive information.';
           } else {
             comment += `❌ **${secretsFound} potential secret(s) detected** in this pull request.\n\n`;
-            
+
             // Try to read the detailed report
             try {
               if (fs.existsSync('secrets-report.md')) {
@@ -275,10 +275,10 @@ jobs:
             } catch (error) {
               comment += 'Please check the security tab for detailed information about the detected secrets.';
             }
-            
+
             comment += '\n\n**This pull request cannot be merged until all secrets are removed.**';
           }
-          
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -372,16 +372,16 @@ jobs:
     - name: Prepare security scan results
       run: |
         echo "📋 Preparing security scan results for analysis..."
-        
+
         # Create a consolidated directory for all results
         mkdir -p consolidated-results
-        
+
         # Copy all result files to the current directory for easier processing
         find security-results -name "*.json" -exec cp {} . \;
         find security-results -name "*.sarif" -exec cp {} . \;
         find security-results -name "*.md" -exec cp {} . \;
         find security-results -name "*.txt" -exec cp {} . \;
-        
+
         # List all available files for debugging
         echo "Available result files:"
         ls -la *.json *.sarif *.md *.txt 2>/dev/null || echo "No result files found"
@@ -390,10 +390,10 @@ jobs:
       id: security-report
       run: |
         echo "🔍 Generating comprehensive security report..."
-        
+
         # Make the script executable
         chmod +x scripts/generate-security-report.js
-        
+
         # Run the security report generator
         node scripts/generate-security-report.js
 
@@ -414,34 +414,34 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          
+
           try {
             // Read the generated report
             const report = JSON.parse(fs.readFileSync('security-report.json', 'utf8'));
             const markdownReport = fs.readFileSync('security-report.md', 'utf8');
-            
+
             // Create or update security dashboard issue
             const title = `🔒 Security Dashboard - ${new Date().toISOString().split('T')[0]}`;
-            
+
             const body = `# Security Dashboard Report
-            
+
             **Status:** ${report.summary.overall_status.toUpperCase()}
             **Generated:** ${report.metadata.timestamp}
             **Commit:** ${report.metadata.commit}
             **Workflow:** [${report.metadata.workflow_run}](${context.payload.repository.html_url}/actions/runs/${report.metadata.workflow_run})
-            
+
             ## Quick Summary
             - **Total Issues:** ${report.summary.total_issues}
             - **Critical Issues:** ${report.summary.critical_issues}
             - **High Severity:** ${report.summary.high_issues}
             - **Secrets Found:** ${report.summary.secrets_found}
-            
+
             ${markdownReport}
-            
+
             ---
             *This issue is automatically updated by the security scanning pipeline.*
             *Last updated: ${new Date().toISOString()}*`;
-            
+
             // Look for existing security dashboard issue
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -449,7 +449,7 @@ jobs:
               labels: 'security-dashboard',
               state: 'open'
             });
-            
+
             if (issues.data.length > 0) {
               // Update existing issue
               await github.rest.issues.update({
@@ -481,10 +481,10 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          
+
           try {
             const report = JSON.parse(fs.readFileSync('security-report.json', 'utf8'));
-            
+
             const statusEmoji = {
               'passed': '✅',
               'passed_with_issues': '⚠️',
@@ -492,21 +492,21 @@ jobs:
               'failed': '❌',
               'critical': '🚨'
             };
-            
+
             const emoji = statusEmoji[report.summary.overall_status] || '❓';
-            
+
             let comment = `## 🔒 Security Scan Results ${emoji}
-            
+
             **Overall Status:** ${emoji} ${report.summary.overall_status.toUpperCase().replace('_', ' ')}
             **Scan Timestamp:** ${report.metadata.timestamp}
             **Security Score:** ${report.trends?.security_score || 'N/A'}/100
-            
+
             ### Summary
             - **Total Issues:** ${report.summary.total_issues}
             - **Critical Issues:** ${report.summary.critical_issues}
             - **High Severity:** ${report.summary.high_issues}
             - **Secrets Found:** ${report.summary.secrets_found}
-            
+
             ### Scan Details
             | Scan Type | Status | Issues Found |
             |-----------|--------|--------------|
@@ -514,25 +514,25 @@ jobs:
             | Dependencies | ${report.scans.dependencies.status} | ${report.scans.dependencies.vulnerabilities} |
             | Secret Detection | ${report.scans.secrets.status} | ${report.scans.secrets.secrets} |
             | Container Security | ${report.scans.containers.status} | ${report.scans.containers.vulnerabilities} |`;
-            
+
             // Add recommendations if any
             if (report.recommendations && report.recommendations.length > 0) {
               comment += '\n\n### 🎯 Recommendations\n';
               report.recommendations.forEach(rec => {
-                const priorityEmoji = rec.priority === 'critical' ? '🚨' : 
+                const priorityEmoji = rec.priority === 'critical' ? '🚨' :
                                     rec.priority === 'high' ? '⚠️' : 'ℹ️';
                 comment += `\n${priorityEmoji} **${rec.title}**\n${rec.description}\n`;
               });
             }
-            
+
             comment += `\n\n---
             View detailed results in the [Security tab](${context.payload.repository.html_url}/security).
-            
-            ${report.summary.overall_status === 'failed' || report.summary.overall_status === 'critical' ? 
-              '⚠️ **This pull request cannot be merged until security issues are resolved.**' : 
+
+            ${report.summary.overall_status === 'failed' || report.summary.overall_status === 'critical' ?
+              '⚠️ **This pull request cannot be merged until security issues are resolved.**' :
               '✅ **Security checks passed. Safe to merge.**'
             }`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -550,42 +550,42 @@ jobs:
         script: |
           // This would integrate with external alerting systems
           // For now, we'll create a high-priority issue
-          
+
           const report = JSON.parse(require('fs').readFileSync('security-report.json', 'utf8'));
-          
+
           const issue = await github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
             title: `🚨 CRITICAL SECURITY ALERT - Immediate Action Required`,
             body: `# 🚨 Critical Security Issues Detected
-            
+
             **Repository:** ${context.repo.owner}/${context.repo.repo}
             **Branch:** ${context.ref}
             **Commit:** ${context.sha}
             **Detected:** ${new Date().toISOString()}
-            
+
             ## Critical Issues Summary
             - **Critical Issues:** ${report.summary.critical_issues}
             - **Secrets Found:** ${report.summary.secrets_found}
             - **Total Issues:** ${report.summary.total_issues}
-            
+
             ## Immediate Actions Required
-            ${report.recommendations.filter(r => r.priority === 'critical').map(r => 
+            ${report.recommendations.filter(r => r.priority === 'critical').map(r =>
               `- **${r.title}**: ${r.description}`
             ).join('\n')}
-            
+
             ## Next Steps
             1. **Immediate:** Address all critical security issues
             2. **Rotate:** Any exposed credentials or secrets
             3. **Review:** Security scan results in detail
             4. **Validate:** Run security scans after fixes
-            
+
             **This is an automated alert from the security scanning pipeline.**
             **Workflow Run:** [${context.runId}](${context.payload.repository.html_url}/actions/runs/${context.runId})`,
             labels: ['security', 'critical', 'P0', 'automated'],
             assignees: [] // Add security team members here
           });
-          
+
           console.log(`Created critical security alert issue #${issue.data.number}`);
 
     - name: Fail workflow on critical security issues

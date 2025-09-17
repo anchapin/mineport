@@ -473,15 +473,56 @@ export class AlertingService extends EventEmitter {
   ): Promise<void> {
     const { level = 'warn' } = action.config;
 
-    logger[level as keyof typeof logger]('Alert triggered', {
-      alertId: alert.id,
-      type: alert.type,
-      severity: alert.severity,
-      title: alert.title,
-      message: alert.message,
-      metadata: alert.metadata,
-      ruleId: rule.id,
-    });
+    const validLevels = ['error', 'warn', 'info', 'debug'] as const;
+    const logLevel = validLevels.includes(level as any) ? level : 'warn';
+
+    // Use proper logger method calls based on level
+    switch (logLevel) {
+      case 'error':
+        logger.error('Alert triggered', {
+          alertId: alert.id,
+          type: alert.type,
+          severity: alert.severity,
+          title: alert.title,
+          message: alert.message,
+          metadata: alert.metadata,
+          ruleId: rule.id,
+        });
+        break;
+      case 'warn':
+        logger.warn('Alert triggered', {
+          alertId: alert.id,
+          type: alert.type,
+          severity: alert.severity,
+          title: alert.title,
+          message: alert.message,
+          metadata: alert.metadata,
+          ruleId: rule.id,
+        });
+        break;
+      case 'info':
+        logger.info('Alert triggered', {
+          alertId: alert.id,
+          type: alert.type,
+          severity: alert.severity,
+          title: alert.title,
+          message: alert.message,
+          metadata: alert.metadata,
+          ruleId: rule.id,
+        });
+        break;
+      case 'debug':
+        logger.debug('Alert triggered', {
+          alertId: alert.id,
+          type: alert.type,
+          severity: alert.severity,
+          title: alert.title,
+          message: alert.message,
+          metadata: alert.metadata,
+          ruleId: rule.id,
+        });
+        break;
+    }
   }
 
   /**

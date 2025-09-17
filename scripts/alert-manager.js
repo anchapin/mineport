@@ -15,7 +15,7 @@ class AlertManager {
     this.notificationChannels = new Map();
     this.alertHistory = [];
     this.cooldowns = new Map();
-    
+
     this.loadConfiguration();
     this.setupDefaultRules();
     this.setupNotificationChannels();
@@ -201,20 +201,20 @@ class AlertManager {
 
   async processMetrics(metrics) {
     console.log('Processing metrics for alert evaluation...');
-    
+
     const alerts = [];
-    
+
     for (const [ruleId, rule] of this.alertRules) {
       try {
         const shouldAlert = await this.evaluateRule(rule, metrics);
-        
+
         if (shouldAlert && !this.isInCooldown(ruleId)) {
           const alert = this.createAlert(rule, metrics);
           alerts.push(alert);
-          
+
           // Update cooldown
           this.updateCooldown(ruleId, rule.cooldown);
-          
+
           // Schedule escalation if enabled
           if (rule.escalation?.enabled) {
             setTimeout(() => {
@@ -226,27 +226,27 @@ class AlertManager {
         console.error(`Error evaluating rule ${ruleId}:`, error.message);
       }
     }
-    
+
     // Send alerts
     for (const alert of alerts) {
       await this.sendAlert(alert);
     }
-    
+
     // Update alert history
     this.alertHistory.push(...alerts);
     this.cleanupAlertHistory();
-    
+
     return alerts;
   }
 
   async evaluateRule(rule, metrics) {
     const { condition } = rule;
     const metricValue = this.extractMetricValue(condition.metric, metrics);
-    
+
     if (metricValue === null || metricValue === undefined) {
       return false;
     }
-    
+
     // Evaluate condition
     switch (condition.operator) {
       case 'gt':
@@ -295,11 +295,11 @@ class AlertManager {
   findNestedMetric(metricName, obj, path = '') {
     for (const [key, value] of Object.entries(obj)) {
       const currentPath = path ? `${path}.${key}` : key;
-      
+
       if (key === metricName || currentPath === metricName) {
         return value;
       }
-      
+
       if (typeof value === 'object' && value !== null) {
         const result = this.findNestedMetric(metricName, value, currentPath);
         if (result !== null) {
@@ -307,13 +307,13 @@ class AlertManager {
         }
       }
     }
-    
+
     return null;
   }
 
   createAlert(rule, metrics) {
     const metricValue = this.extractMetricValue(rule.condition.metric, metrics);
-    
+
     return {
       id: `${rule.id}-${Date.now()}`,
       rule_id: rule.id,
@@ -346,7 +346,7 @@ class AlertManager {
       'eq': 'equal to',
       'ne': 'not equal to'
     }[condition.operator] || condition.operator;
-    
+
     return `${rule.name}: ${condition.metric} is ${metricValue} (${operatorText} threshold of ${condition.threshold})`;
   }
 
@@ -363,11 +363,11 @@ class AlertManager {
 
   async sendAlert(alert) {
     console.log(`Sending alert: ${alert.title}`);
-    
+
     const results = await Promise.allSettled(
       alert.channels.map(channelId => this.sendToChannel(channelId, alert))
     );
-    
+
     // Log results
     results.forEach((result, index) => {
       const channelId = alert.channels[index];
@@ -381,11 +381,11 @@ class AlertManager {
 
   async sendToChannel(channelId, alert) {
     const channel = this.notificationChannels.get(channelId);
-    
+
     if (!channel || !channel.enabled) {
       throw new Error(`Channel ${channelId} is not configured or disabled`);
     }
-    
+
     switch (channelId) {
       case 'slack':
         return this.sendSlackAlert(alert, channel);
@@ -404,13 +404,13 @@ class AlertManager {
     if (!channel.webhook_url) {
       throw new Error('Slack webhook URL not configured');
     }
-    
+
     const color = {
       'critical': '#ff0000',
       'warning': '#ffaa00',
       'info': '#0099ff'
     }[alert.severity] || '#cccccc';
-    
+
     const payload = {
       username: channel.username,
       channel: channel.channel,
@@ -455,13 +455,13 @@ class AlertManager {
         ts: Math.floor(new Date(alert.timestamp).getTime() / 1000)
       }]
     };
-    
+
     const response = await fetch(channel.webhook_url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
+
     if (!response.ok) {
       throw new Error(`Slack webhook failed: ${response.status} ${response.statusText}`);
     }
@@ -473,7 +473,7 @@ class AlertManager {
     console.log(`📧 Email alert would be sent to: ${channel.to.join(', ')}`);
     console.log(`Subject: [${alert.severity.toUpperCase()}] ${alert.title}`);
     console.log(`Body: ${alert.message}`);
-    
+
     // For now, just log the email content
     return Promise.resolve();
   }
@@ -482,7 +482,7 @@ class AlertManager {
     if (!channel.integration_key) {
       throw new Error('PagerDuty integration key not configured');
     }
-    
+
     const payload = {
       routing_key: channel.integration_key,
       event_action: 'trigger',
@@ -503,13 +503,13 @@ class AlertManager {
         }
       }
     };
-    
+
     const response = await fetch('https://events.pagerduty.com/v2/enqueue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
+
     if (!response.ok) {
       throw new Error(`PagerDuty API failed: ${response.status} ${response.statusText}`);
     }
@@ -519,20 +519,20 @@ class AlertManager {
     if (!channel.url) {
       throw new Error('Webhook URL not configured');
     }
-    
+
     const payload = {
       type: 'alert',
       alert: alert,
       timestamp: new Date().toISOString(),
       source: 'Alert Manager'
     };
-    
+
     const response = await fetch(channel.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
+
     if (!response.ok) {
       throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
     }
@@ -540,7 +540,7 @@ class AlertManager {
 
   async handleEscalation(alert, escalationConfig) {
     console.log(`🚨 Escalating alert: ${alert.title}`);
-    
+
     const escalatedAlert = {
       ...alert,
       id: `${alert.id}-escalated`,
@@ -549,7 +549,7 @@ class AlertManager {
       channels: escalationConfig.channels,
       severity: 'critical'
     };
-    
+
     await this.sendAlert(escalatedAlert);
   }
 
@@ -558,7 +558,7 @@ class AlertManager {
     if (this.alertHistory.length > 1000) {
       this.alertHistory = this.alertHistory.slice(-1000);
     }
-    
+
     // Clean up old cooldowns
     const now = Date.now();
     for (const [ruleId, cooldownEnd] of this.cooldowns.entries()) {
@@ -575,7 +575,7 @@ class AlertManager {
   getActiveAlerts() {
     const now = Date.now();
     const activeWindow = 24 * 60 * 60 * 1000; // 24 hours
-    
+
     return this.alertHistory.filter(alert => {
       const alertTime = new Date(alert.timestamp).getTime();
       return (now - alertTime) < activeWindow;
@@ -614,12 +614,12 @@ class AlertManager {
     const activeAlerts = this.getActiveAlerts();
     const alertsByRule = {};
     const alertsBySeverity = { critical: 0, warning: 0, info: 0 };
-    
+
     for (const alert of activeAlerts) {
       alertsByRule[alert.rule_id] = (alertsByRule[alert.rule_id] || 0) + 1;
       alertsBySeverity[alert.severity] = (alertsBySeverity[alert.severity] || 0) + 1;
     }
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       summary: {
@@ -634,7 +634,7 @@ class AlertManager {
         .filter(channel => channel.enabled)
         .map(channel => channel.name)
     };
-    
+
     return report;
   }
 }
@@ -642,9 +642,9 @@ class AlertManager {
 // CLI interface
 if (require.main === module) {
   const alertManager = new AlertManager();
-  
+
   const command = process.argv[2];
-  
+
   switch (command) {
     case 'test':
       // Test alert functionality
@@ -653,7 +653,7 @@ if (require.main === module) {
         system: { memory_usage_percent: 90 },
         security: { threats_detected: 1 }
       };
-      
+
       alertManager.processMetrics(testMetrics)
         .then(alerts => {
           console.log(`Generated ${alerts.length} test alerts`);
@@ -664,12 +664,12 @@ if (require.main === module) {
           process.exit(1);
         });
       break;
-      
+
     case 'report':
       const report = alertManager.generateReport();
       console.log(JSON.stringify(report, null, 2));
       break;
-      
+
     case 'rules':
       const rules = alertManager.getAlertRules();
       console.log('Alert Rules:');
@@ -677,7 +677,7 @@ if (require.main === module) {
         console.log(`- ${rule.id}: ${rule.name} (${rule.severity})`);
       });
       break;
-      
+
     case 'history':
       const limit = parseInt(process.argv[3]) || 10;
       const history = alertManager.getAlertHistory(limit);
@@ -686,7 +686,7 @@ if (require.main === module) {
         console.log(`- ${alert.timestamp}: ${alert.title} (${alert.severity})`);
       });
       break;
-      
+
     default:
       console.log('Usage: alert-manager.js <command>');
       console.log('Commands:');

@@ -24,10 +24,10 @@ describe('Input Validation Security Tests', () => {
       const malformedJar = Buffer.from('This is not a valid JAR file', 'utf-8');
 
       // Validate the file
-      const result = await modValidator.validate(malformedJar);
+      const result = await modValidator.validateMod(malformedJar);
 
       // Should reject the file
-      expect(result.valid).toBe(false);
+      expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Invalid JAR file format');
     });
 
@@ -38,11 +38,11 @@ describe('Input Validation Security Tests', () => {
       const emptyFile = Buffer.alloc(0);
 
       // Validate the file
-      const result = await modValidator.validate(emptyFile);
+      const result = await modValidator.validateMod(emptyFile);
 
       // Should reject the file
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.isValid).toBe(false);
+      expect(result.errors?.length).toBeGreaterThan(0);
     });
 
     it('should reject oversized files', async () => {
@@ -52,11 +52,11 @@ describe('Input Validation Security Tests', () => {
       const largeFile = Buffer.alloc(100 * 1024 * 1024, 'X');
 
       // Validate the file
-      const result = await modValidator.validate(largeFile);
+      const result = await modValidator.validateMod(largeFile);
 
       // Should reject the file
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.isValid).toBe(false);
+      expect(result.errors?.length).toBeGreaterThan(0);
     });
 
     it('should handle path traversal attempts', async () => {
@@ -72,7 +72,7 @@ describe('Input Validation Security Tests', () => {
 
   describe('SourceCodeFetcher', () => {
     it('should validate GitHub repository URLs', () => {
-      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'test-token' });
+      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'fake-test-token-12345' });
 
       // Valid URLs
       expect(() =>
@@ -91,26 +91,24 @@ describe('Input Validation Security Tests', () => {
     });
 
     it('should prevent path traversal in output paths', async () => {
-      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'test-token' });
+      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'fake-test-token-67890' });
 
       // Mock the fetchSourceCode method to avoid actual GitHub API calls
-      sourceCodeFetcher.fetchSourceCode = vi
-        .fn()
-        .mockImplementation(async (repoInfo, outputDir) => {
-          // Attempt to write to a file outside the output directory
-          const traversalPath = path.join(outputDir, '../../../etc/passwd');
+      sourceCodeFetcher.fetchSourceCode = vi.fn().mockImplementation(async (options) => {
+        // Attempt to write to a file outside the output directory
+        const traversalPath = path.join(tempDir, '../../../etc/passwd');
 
-          // This should throw an error or fail safely
-          await expect(fs.promises.writeFile(traversalPath, 'test')).rejects.toThrow();
+        // This should throw an error or fail safely
+        await expect(fs.promises.writeFile(traversalPath, 'test')).rejects.toThrow();
 
-          return { success: true, fileCount: 0, outputPath: outputDir };
-        });
+        return { success: true, extractedPath: tempDir };
+      });
 
-      // Call fetchSourceCode with a valid repository info
-      await sourceCodeFetcher.fetchSourceCode(
-        { owner: 'test-owner', repo: 'test-repo', branch: 'main' },
-        path.join(tempDir, 'output')
-      );
+      // Call fetchSourceCode with a valid repository options
+      await sourceCodeFetcher.fetchSourceCode({
+        repoUrl: 'https://github.com/test-owner/test-repo',
+        ref: 'main',
+      });
     });
   });
 

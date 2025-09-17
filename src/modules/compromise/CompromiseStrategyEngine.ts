@@ -595,6 +595,26 @@ export class CompromiseStrategyEngine {
       appliedStrategies: appliedStrategiesArray,
     };
   }
+
+  /**
+   * Applies compromise strategies to multiple features.
+   * This is an alias for applying strategies to a collection of features.
+   *
+   * @param features Array of features to apply strategies to
+   * @returns Array of strategy results
+   */
+  public applyStrategies(features: Feature[]): CompromiseStrategyResult[] {
+    const results: CompromiseStrategyResult[] = [];
+
+    for (const feature of features) {
+      const result = this.applyStrategy(feature);
+      if (result) {
+        results.push(result);
+      }
+    }
+
+    return results;
+  }
 }
 
 /**

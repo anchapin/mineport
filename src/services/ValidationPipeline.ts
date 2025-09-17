@@ -191,8 +191,9 @@ export class ValidationPipeline {
 
   /**
    * Add a validation stage to the pipeline
-   *
-   * @param stage Validation stage to add
+   * @param stage - Validation stage to add
+   * @returns void
+   * @throws Error if a stage with the same name already exists
    */
   public addStage(stage: ValidationStage): void {
     // Check for duplicate stage names
@@ -220,8 +221,7 @@ export class ValidationPipeline {
 
   /**
    * Remove a validation stage from the pipeline
-   *
-   * @param stageName Name of the stage to remove
+   * @param stageName - Name of the stage to remove
    * @returns True if stage was removed, false if not found
    */
   public removeStage(stageName: string): boolean {
@@ -247,7 +247,6 @@ export class ValidationPipeline {
 
   /**
    * Get all configured validation stages
-   *
    * @returns Array of validation stages
    */
   public getStages(): ValidationStage[] {
@@ -256,9 +255,8 @@ export class ValidationPipeline {
 
   /**
    * Run the complete validation pipeline
-   *
-   * @param input Validation input data
-   * @returns Validation summary
+   * @param input - Validation input data
+   * @returns Promise resolving to validation summary with results from all stages
    */
   public async runValidation(input: ValidationInput): Promise<ValidationSummary> {
     const startTime = Date.now();
@@ -440,10 +438,10 @@ export class ValidationPipeline {
 
   /**
    * Execute a validation stage with timeout protection
-   *
-   * @param stage Validation stage to execute
-   * @param input Validation input data
-   * @returns Stage result
+   * @param stage - Validation stage to execute
+   * @param input - Validation input data
+   * @returns Promise resolving to stage result
+   * @throws Error if stage times out
    */
   private async executeStageWithTimeout(
     stage: ValidationStage,
@@ -470,9 +468,8 @@ export class ValidationPipeline {
   }
 
   /**
-   * Initialize metrics structure
-   *
-   * @returns Initial metrics object
+   * Initialize metrics structure with default values
+   * @returns Initial metrics object with zero values
    */
   private initializeMetrics(): ValidationMetrics {
     return {
@@ -486,11 +483,11 @@ export class ValidationPipeline {
   }
 
   /**
-   * Update stage-specific metrics
-   *
-   * @param stageName Name of the stage
-   * @param executionTime Execution time in milliseconds
-   * @param passed Whether the stage passed
+   * Update stage-specific metrics with execution results
+   * @param stageName - Name of the stage
+   * @param executionTime - Execution time in milliseconds
+   * @param passed - Whether the stage passed validation
+   * @returns void
    */
   private updateStageMetrics(stageName: string, executionTime: number, passed: boolean): void {
     const stageMetric = this.metrics.stageMetrics[stageName];
@@ -510,11 +507,11 @@ export class ValidationPipeline {
   }
 
   /**
-   * Update overall pipeline metrics
-   *
-   * @param executionTime Total execution time
-   * @param passed Whether validation passed
-   * @param errors All errors encountered
+   * Update overall pipeline metrics with execution results
+   * @param executionTime - Total execution time in milliseconds
+   * @param passed - Whether validation passed overall
+   * @param errors - All errors encountered during validation
+   * @returns void
    */
   private updateOverallMetrics(
     executionTime: number,
@@ -544,15 +541,15 @@ export class ValidationPipeline {
 
   /**
    * Get current validation metrics
-   *
-   * @returns Current metrics
+   * @returns Current metrics including success rate and timing information
    */
   public getMetrics(): ValidationMetrics {
     return { ...this.metrics };
   }
 
   /**
-   * Reset all metrics
+   * Reset all metrics to initial values
+   * @returns void
    */
   public resetMetrics(): void {
     this.metrics = this.initializeMetrics();
@@ -571,8 +568,12 @@ export class ValidationPipeline {
 
   /**
    * Get error collector instance
-   *
-   * @returns Error collector
+   * @returns Error collector for accessing collected errors and warnings
+   * @example
+   * ```typescript
+   * const errorCollector = pipeline.getErrorCollector();
+   * const allErrors = errorCollector.getAllErrors();
+   * ```
    */
   public getErrorCollector(): ErrorCollector {
     return this.errorCollector;

@@ -1,4 +1,5 @@
-import { Feature, FeatureType, CompromiseLevel } from '../../types/compromise.js';
+import { CompromiseLevel } from '../../types/compromise.js';
+import { Feature } from '../ingestion/index.js';
 import { ConversionContext } from '../../types/modules.js';
 import { CompromiseStrategy, CompromiseOptions, CompromiseResult } from './CompromiseStrategy.js';
 import { CompromiseStrategyRegistry } from './CompromiseStrategy.js';
@@ -300,16 +301,18 @@ export class CompromiseEngine {
    * Check if a feature needs compromise
    */
   private needsCompromise(feature: Feature, context: ConversionContext): boolean {
-    // Check if feature has properties indicating it needs compromise
-    const properties = feature.properties || {};
+    // Features with compatibility tier 3 or 4 typically need compromise
+    if (feature.compatibilityTier >= 3) {
+      return true;
+    }
 
-    // Features marked as incompatible
-    if (properties.incompatible || properties.needsCompromise) {
+    // Features that already have a compromise strategy assigned
+    if (feature.compromiseStrategy) {
       return true;
     }
 
     // Features with custom implementations
-    if (properties.customImplementation || properties.javaSpecific) {
+    if (feature.properties?.customImplementation || feature.properties?.javaSpecific) {
       return true;
     }
 
@@ -391,9 +394,13 @@ export class CompromiseEngine {
     const impactDistribution: Record<CompromiseLevel, number> = {
       [CompromiseLevel.NONE]: 0,
       [CompromiseLevel.LOW]: 0,
+      [CompromiseLevel.MINOR]: 0,
       [CompromiseLevel.MEDIUM]: 0,
+      [CompromiseLevel.MODERATE]: 0,
       [CompromiseLevel.HIGH]: 0,
+      [CompromiseLevel.MAJOR]: 0,
       [CompromiseLevel.CRITICAL]: 0,
+      [CompromiseLevel.SEVERE]: 0,
     };
 
     results

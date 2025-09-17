@@ -5,10 +5,11 @@
 
 import {
   TranslationContext,
-  ValidationResult,
+  LogicValidationResult,
   FunctionalDifference,
   SourcePosition,
 } from '../../types/logic-translation.js';
+import { ErrorSeverity } from '../../types/errors.js';
 import { logger } from '../../utils/logger.js';
 
 export interface ValidationOptions {
@@ -61,7 +62,7 @@ export class ProgramStateValidator {
     originalJavaCode: string,
     translatedJavaScriptCode: string,
     context: TranslationContext
-  ): Promise<ValidationResult> {
+  ): Promise<LogicValidationResult> {
     logger.debug('Starting program state validation');
 
     try {
@@ -160,7 +161,7 @@ export class ProgramStateValidator {
     semanticResult: SemanticAnalysisResult | undefined,
     behaviorResult: BehaviorAnalysisResult | undefined,
     context: TranslationContext
-  ): ValidationResult {
+  ): LogicValidationResult {
     const allDifferences: FunctionalDifference[] = [];
     const allRecommendations: string[] = [];
 
@@ -261,7 +262,7 @@ export class ProgramStateValidator {
     }
 
     // Check for too many high-severity differences
-    const highSeverityDifferences = differences.filter((diff) => diff.severity === 'high');
+    const highSeverityDifferences = differences.filter((diff) => diff.severity === 'critical');
     if (highSeverityDifferences.length > 3) {
       return false;
     }
@@ -374,7 +375,7 @@ class StaticAnalyzer {
   async analyze(
     javaCode: string,
     jsCode: string,
-    context: TranslationContext
+    _context: TranslationContext
   ): Promise<StaticAnalysisResult> {
     logger.debug('Starting static analysis');
 
@@ -396,7 +397,7 @@ class StaticAnalyzer {
       differences.push({
         type: 'logic',
         description: `Method '${method.name}' not found in translated code`,
-        severity: 'high',
+        severity: 'critical',
         location: { line: method.line, column: 0, offset: 0 },
         suggestion: `Implement equivalent method in JavaScript`,
       });
@@ -606,7 +607,7 @@ class SemanticAnalyzer {
   async analyze(
     javaCode: string,
     jsCode: string,
-    context: TranslationContext
+    _context: TranslationContext
   ): Promise<SemanticAnalysisResult> {
     logger.debug('Starting semantic analysis');
 
@@ -626,7 +627,7 @@ class SemanticAnalyzer {
       differences.push({
         type: 'logic',
         description: mismatch.description,
-        severity: mismatch.severity,
+        severity: mismatch.severity as 'low' | 'medium' | 'high' | 'critical',
         location: mismatch.location,
         suggestion: mismatch.suggestion,
       });
@@ -754,7 +755,7 @@ class SemanticAnalyzer {
       if (difference > Math.max(javaCount, jsCount) * 0.3) {
         mismatches.push({
           description: `Significant difference in ${patternType} patterns (Java: ${javaCount}, JS: ${jsCount})`,
-          severity: 'medium',
+          severity: ErrorSeverity.WARNING,
           location: { line: 0, column: 0, offset: 0 },
           suggestion: `Review ${patternType} logic for semantic equivalence`,
         });
@@ -777,7 +778,7 @@ class SemanticAnalyzer {
         if (methodSimilarity < 0.8 && !hasEquivalentMethods) {
           mismatches.push({
             description: `Method calls differ between Java and JavaScript versions (Java: ${[...javaMethods].join(', ')}, JS: ${[...jsMethods].join(', ')})`,
-            severity: 'medium',
+            severity: ErrorSeverity.WARNING,
             location: { line: 0, column: 0, offset: 0 },
             suggestion: 'Review method calls and functionality for semantic equivalence',
           });
@@ -859,7 +860,7 @@ class BehaviorAnalyzer {
   private generateTestCases(
     javaCode: string,
     jsCode: string,
-    context: TranslationContext
+    _context: TranslationContext
   ): TestCase[] {
     // Generate test cases based on code analysis
     const testCases: TestCase[] = [];
@@ -974,7 +975,7 @@ interface SemanticPattern {
 
 interface SemanticMismatch {
   description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: ErrorSeverity;
   location: SourcePosition;
   suggestion: string;
 }

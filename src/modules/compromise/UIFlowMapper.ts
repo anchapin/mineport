@@ -1,12 +1,12 @@
 import { Feature } from '../../types/compromise.js';
-// import { createLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * UIFlowMapper provides functionality to analyze Java UI components and map them
  * to Bedrock form types while preserving logical flow.
  */
 export class UIFlowMapper {
-  private logger: Logger;
+  private logger: ReturnType<typeof createLogger>;
   private uiComponentPatterns: UIComponentPattern[];
   private formTypeMapping: Map<string, BedrockFormType>;
 
@@ -19,8 +19,8 @@ export class UIFlowMapper {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor(logger?: ReturnType<typeof createLogger>) {
+    this.logger = logger || createLogger('UIFlowMapper');
     this.uiComponentPatterns = this.initializeUIComponentPatterns();
     this.formTypeMapping = this.initializeFormTypeMapping();
   }
@@ -553,14 +553,14 @@ export class ${className}UIManager {
   constructor() {
     this.initializeUI();
   }
-  
+
   /**
    * Initialize the UI system
    */
   initializeUI() {
     console.log("Initializing ${className} UI system");
   }
-  
+
 ${formCode}
 
 ${this.createHelperMethods(className, uiFlow)}
@@ -569,9 +569,9 @@ ${this.createHelperMethods(className, uiFlow)}
 // Export a factory function to create the UI manager
 /**
  * create function.
- * 
+ *
  * TODO: Add detailed description of the function's purpose and behavior.
- * 
+ *
  * @param param - TODO: Document parameters
  * @returns result - TODO: Document return value
  * @since 1.0.0
@@ -597,14 +597,14 @@ export function create${className}UI() {
   ): string {
     return `  /**
    * Shows the main modal form to the player
-   * 
+   *
    * @param player The player to show the form to
    */
   /**
    * showMainForm method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -613,20 +613,20 @@ export function create${className}UI() {
     const form = new ActionFormData()
       .setTitle("${className}")
       .setBody("Select an option:");
-    
+
     // Add buttons based on the original UI
 ${formMappings
   .filter((mapping) => mapping.bedrockForm.formType === 'button')
   .map((mapping, _index) => `    form.addButton("${mapping.originalComponent.componentName}");`)
   .join('\n')}
-    
+
     const response = await form.show(player);
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -634,13 +634,13 @@ ${formMappings
     if (response.canceled) {
       return;
     }
-    
+
     // Handle button selection
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -658,19 +658,19 @@ ${formMappings
         break;
     }
   }
-  
+
   /**
    * Shows a sub-form based on the selected option
-   * 
+   *
    * @param player The player to show the form to
    * @param formType The type of form to show
    */
   async showSubForm(player, formType) {
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -709,14 +709,14 @@ ${formMappings
   ): string {
     return `  /**
    * Opens a chest UI for inventory interaction
-   * 
+   *
    * @param player The player to show the UI to
    */
   /**
    * openChestUI method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -724,28 +724,28 @@ ${formMappings
   openChestUI(player) {
     // In Bedrock, we use the built-in chest UI system
     // This is a placeholder for where you would implement the chest UI logic
-    
+
     // Example of opening a chest UI:
     // const inventory = player.getComponent("inventory");
     // const container = inventory.container;
     // player.openInventory(container);
-    
+
     console.log("Opening chest UI for ${className}");
-    
+
     // Register event handlers for inventory interactions
     const inventorySubscription = world.afterEvents.playerInventoryChange.subscribe((event) => {
       if (event.player.id === player.id) {
         this.handleInventoryChange(player, event);
       }
     });
-    
+
     // Store the subscription for later cleanup
     player.setDynamicProperty("${className.toLowerCase()}_inventory_subscription", inventorySubscription);
   }
-  
+
   /**
    * Handles inventory change events
-   * 
+   *
    * @param player The player
    * @param event The inventory change event
    */
@@ -753,20 +753,20 @@ ${formMappings
     // Handle inventory interactions here
     console.log("Inventory changed in ${className} UI");
   }
-  
+
   /**
    * Closes the chest UI and cleans up event handlers
-   * 
+   *
    * @param player The player
    */
   closeChestUI(player) {
     const subscriptionId = player.getDynamicProperty("${className.toLowerCase()}_inventory_subscription");
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -775,7 +775,7 @@ ${formMappings
       world.afterEvents.playerInventoryChange.unsubscribe(subscriptionId);
       player.setDynamicProperty("${className.toLowerCase()}_inventory_subscription", undefined);
     }
-    
+
     console.log("Closed chest UI for ${className}");
   }`;
   }
@@ -802,14 +802,14 @@ ${formMappings
 
     return `  /**
    * Shows the custom form to the player
-   * 
+   *
    * @param player The player to show the form to
    */
   /**
    * showCustomForm method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns Promise - TODO: Document return value
    * @since 1.0.0
@@ -817,21 +817,21 @@ ${formMappings
   async showCustomForm(player) {
     const form = new ModalFormData()
       .setTitle("${className}");
-    
+
     // Add form components based on the original UI
 ${labels.map((mapping, _index) => `    form.addLabel("${mapping.originalComponent.componentName}");`).join('\n')}
 ${textFields.map((mapping, _index) => `    form.addInput("${mapping.originalComponent.componentName}", "Enter text here...", "");`).join('\n')}
 ${toggles.map((mapping, _index) => `    form.addToggle("${mapping.originalComponent.componentName}", false);`).join('\n')}
 ${sliders.map((mapping, _index) => `    form.addSlider("${mapping.originalComponent.componentName}", 0, 100, 1, 50);`).join('\n')}
 ${dropdowns.map((mapping, _index) => `    form.addDropdown("${mapping.originalComponent.componentName}", ["Option 1", "Option 2", "Option 3"], 0);`).join('\n')}
-    
+
     const response = await form.show(player);
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -839,14 +839,14 @@ ${dropdowns.map((mapping, _index) => `    form.addDropdown("${mapping.originalCo
     if (response.canceled) {
       return;
     }
-    
+
     // Process form responses
     this.processFormResponse(player, response);
   }
-  
+
   /**
    * Process the form response
-   * 
+   *
    * @param player The player
    * @param response The form response
    */
@@ -856,7 +856,7 @@ ${dropdowns.map((mapping, _index) => `    form.addDropdown("${mapping.originalCo
     let toggleIndex = 0;
     let sliderIndex = 0;
     let dropdownIndex = 0;
-    
+
     // Process each component's response
 ${textFields
   .map(
@@ -868,7 +868,7 @@ ${textFields
     inputIndex++;`
   )
   .join('\n')}
-    
+
 ${toggles
   .map(
     (
@@ -879,7 +879,7 @@ ${toggles
     toggleIndex++;`
   )
   .join('\n')}
-    
+
 ${sliders
   .map(
     (
@@ -890,7 +890,7 @@ ${sliders
     sliderIndex++;`
   )
   .join('\n')}
-    
+
 ${dropdowns
   .map(
     (
@@ -912,7 +912,7 @@ ${dropdowns
    * @returns Generated event handler code
    */
   private createEventHandlerCode(feature: Feature, uiFlow: UIFlow): string {
-    const _className = this.extractClassName(feature);
+    // const _className = this.extractClassName(feature);
 
     // Extract button names from the Java code
     const buttonNames = this.extractButtonNames(uiFlow);
@@ -937,7 +937,7 @@ ${dropdowns
         case 'button':
           eventHandlers.push(`  /**
    * Handles click event for ${component.componentName}
-   * 
+   *
    * @param player The player who clicked
    */
   ${handlerName}Click(player) {
@@ -949,7 +949,7 @@ ${dropdowns
         case 'textfield':
           eventHandlers.push(`  /**
    * Handles text change event for ${component.componentName}
-   * 
+   *
    * @param player The player
    * @param value The new text value
    */
@@ -962,7 +962,7 @@ ${dropdowns
         case 'checkbox':
           eventHandlers.push(`  /**
    * Handles toggle event for ${component.componentName}
-   * 
+   *
    * @param player The player
    * @param value The new toggle state
    */
@@ -975,7 +975,7 @@ ${dropdowns
         case 'slider':
           eventHandlers.push(`  /**
    * Handles slider change event for ${component.componentName}
-   * 
+   *
    * @param player The player
    * @param value The new slider value
    */
@@ -988,7 +988,7 @@ ${dropdowns
         case 'list':
           eventHandlers.push(`  /**
    * Handles selection event for ${component.componentName}
-   * 
+   *
    * @param player The player
    * @param selectedIndex The selected index
    */
@@ -1005,7 +1005,7 @@ ${dropdowns
       if (!eventHandlers.some((handler) => handler.includes(`handle${buttonName}Click`))) {
         eventHandlers.push(`  /**
    * Handles click event for ${buttonName} Button
-   * 
+   *
    * @param player The player who clicked
    */
   handle${buttonName}Click(player) {
@@ -1110,27 +1110,27 @@ ${dropdowns
 
     return `  /**
    * Handles UI state transitions
-   * 
+   *
    * @param player The player
    * @param newState The new UI state
    */
   /**
    * transitionToState method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
   transitionToState(player, newState) {
     console.log("Transitioning ${className} UI to state: " + newState);
-    
+
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0

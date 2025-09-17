@@ -20,7 +20,7 @@ import {
 
 // Mock logger
 vi.mock('../../../src/utils/logger', async () => {
-  const actual = await vi.importActual('../../../src/utils/logger');
+  const actual = (await vi.importActual('../../../src/utils/logger')) as any;
   return {
     ...actual,
     default: {
@@ -372,7 +372,8 @@ describe('ErrorMonitoringService', () => {
       expect(typeof stats.averageResolutionTime).toBe('number');
     });
 
-    it('should track alert resolution times', () => {
+    it('should track alert resolution times', async () => {
+      vi.useFakeTimers();
       const alerts = monitoringService.getActiveAlerts();
       if (alerts.length > 0) {
         const alertId = alerts[0].id;
@@ -382,11 +383,12 @@ describe('ErrorMonitoringService', () => {
           monitoringService.resolveAlert(alertId);
         }, 10);
 
-        setTimeout(() => {
-          const stats = monitoringService.getMonitoringStatistics();
-          expect(stats.averageResolutionTime).toBeGreaterThan(0);
-        }, 20);
+        await vi.advanceTimersByTimeAsync(20);
+
+        const stats = monitoringService.getMonitoringStatistics();
+        expect(stats.averageResolutionTime).toBeGreaterThan(0);
       }
+      vi.useRealTimers();
     });
   });
 

@@ -1,11 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import {
-  ModelConverter,
-  JavaModelFile,
-  BedrockModelFile,
-} from '../../../../src/modules/assets/ModelConverter.js';
+import { ModelConverter } from '../../../../src/modules/assets/ModelConverter.js';
+import { JavaModelFile, BedrockModelFile } from '../../../../src/types/assets.js';
 
 // Mock the logger
 vi.mock('../../../../src/utils/logger', () => ({
@@ -456,8 +453,10 @@ describe('ModelConverter', () => {
       expect(fs.writeFile).toHaveBeenCalledTimes(2); // One for the model, one for the material def
 
       // Check that writeFile was called with the correct arguments for the material file
-      const writeFileCalls = (fs.writeFile as jest.Mock).mock.calls;
-      const materialFileCall = writeFileCalls.find((call) => call[0].includes('material.json'));
+      const writeFileCalls = (fs.writeFile as any).mock.calls;
+      const materialFileCall = writeFileCalls.find((call: any[]) =>
+        call[0].includes('material.json')
+      );
 
       expect(materialFileCall).toBeDefined();
       expect(materialFileCall[0]).toContain('examplemod_material_block.material.json');

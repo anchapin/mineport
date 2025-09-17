@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import { JavaMod, ConversionInput, ConversionResult } from '../../src/types/base.js';
+import JSZip from 'jszip';
+import { JavaMod } from '../../src/types/base.js';
+import { ConversionInput, ConversionResult } from '../../src/types/index.js';
 import { ConversionError } from '../../src/types/errors.js';
 
 /**
@@ -26,7 +28,7 @@ export function cleanupTempDirectory(directory: string): void {
 /**
  * Creates a mock mod file for testing
  */
-export function createMockModFile(
+export async function createMockModFile(
   directory: string,
   modId: string,
   modLoader: 'forge' | 'fabric'
@@ -34,8 +36,7 @@ export function createMockModFile(
   const modFile = path.join(directory, `${modId}.jar`);
 
   // Create a simple ZIP file structure
-  const JSZip = await import('jszip');
-  const zip = new JSZip.default();
+  const zip = new JSZip();
 
   // Add manifest
   zip.file('META-INF/MANIFEST.MF', `Manifest-Version: 1.0\nModId: ${modId}\nVersion: 1.0.0`);
@@ -280,9 +281,8 @@ export async function verifyAddonStructure(addonPath: string): Promise<boolean> 
     fs.mkdirSync(extractDir, { recursive: true });
 
     // Use JSZip to extract the addon
-    const JSZip = await import('jszip');
     const addonData = fs.readFileSync(addonPath);
-    const zip = await JSZip.default.loadAsync(addonData);
+    const zip = await JSZip.loadAsync(addonData);
 
     // Extract all files
     for (const [filename, file] of Object.entries(zip.files)) {
@@ -314,7 +314,7 @@ export async function verifyAddonStructure(addonPath: string): Promise<boolean> 
   }
 }
 /**
- 
+
 * Creates a complete mock conversion input for testing
  */
 export function createMockConversionInput(
@@ -362,7 +362,7 @@ export function createMockJavaMod(
       {
         path: `src/main/java/com/example/${modId}/TestMod.java`,
         content: `package com.example.${modId};\n\npublic class TestMod {\n    public static final String MOD_ID = "${modId}";\n}`,
-        type: 'java',
+        modLoader,
       },
     ],
     assetFiles: [
@@ -376,15 +376,15 @@ export function createMockJavaMod(
       {
         path: `data/${modId}/recipes/test_recipe.json`,
         content: '{"type": "minecraft:crafting_shaped"}',
-        type: 'recipe',
+        format: 'json',
       },
     ],
     license: {
       type: 'MIT',
-      author: 'Test Author',
-      year: '2023',
       text: 'MIT License\n\nCopyright (c) 2023 Test Author\n',
-      compatible: true,
+      permissions: ['commercial-use', 'modification', 'distribution'],
+      limitations: ['liability', 'warranty'],
+      conditions: ['include-copyright'],
     },
   };
 }
@@ -396,21 +396,25 @@ export function createMockConversionErrors(): ConversionError[] {
   return [
     {
       id: 'error-1',
-      type: 'validation',
-      severity: 'warning',
+      type: 'VALIDATION',
+      severity: 'WARNING',
       message: 'Mock validation warning',
       moduleOrigin: 'ModValidator',
       timestamp: new Date(),
     },
     {
       id: 'error-2',
-      type: 'logic',
-      severity: 'error',
+      type: 'LOGIC',
+      severity: 'ERROR',
       message: 'Mock logic error',
       sourceLocation: {
         file: 'TestMod.java',
         line: 10,
         column: 5,
+        startLine: 10,
+        startColumn: 5,
+        endLine: 10,
+        endColumn: 15,
       },
       recommendedFix: 'Update the code to use Bedrock API',
       moduleOrigin: 'LogicTranslationEngine',
@@ -467,23 +471,30 @@ export function createEndToEndScenario(modId: string = 'e2e-test-mod'): {
 
   const expectedOutput: Partial<ConversionResult> = {
     success: true,
-    modId,
-    addonPath: expect.stringContaining('.mcaddon'),
-    report: {
-      summary: {
-        totalFeatures: expect.any(Number),
-        convertedFeatures: expect.any(Number),
-        compromisedFeatures: expect.any(Number),
-        failedFeatures: expect.any(Number),
+    result: {
+      modId: modId,
+      manifestInfo: {
+        modId: modId,
+        modName: expect.any(String),
+        version: expect.any(String),
+        author: expect.any(String),
       },
+      registryNames: expect.any(Array),
+      texturePaths: expect.any(Array),
+      analysisNotes: expect.any(Array),
+      bedrockAddon: {
+        resourcePack: expect.any(String),
+        behaviorPack: expect.any(String),
+      },
+      report: expect.any(Object),
     },
   };
 
   const validationSteps = [
     (result: ConversionResult) => result.success === true,
-    (result: ConversionResult) => result.modId === modId,
-    (result: ConversionResult) => fs.existsSync(result.addonPath),
-    (result: ConversionResult) => result.report?.summary?.totalFeatures > 0,
+    (result: ConversionResult) => result.result?.modId === modId,
+    (result: ConversionResult) => result.result?.bedrockAddon !== undefined,
+    (result: ConversionResult) => result.result?.registryNames?.length > 0,
     (result: ConversionResult) => result.errors.length >= 0, // Errors are allowed but should be array
   ];
 

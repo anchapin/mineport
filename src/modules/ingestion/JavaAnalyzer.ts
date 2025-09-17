@@ -87,7 +87,7 @@ export class JavaAnalyzer {
   ];
 
   private static readonly TEXTURE_PATTERNS = [
-    /assets\/[^\/]+\/textures\/(.+\.png)/g,
+    /assets\/[^/]+\/textures\/(.+\.png)/g,
     /textures\/(.+\.png)/g,
     /\.png$/,
   ];
@@ -110,7 +110,9 @@ export class JavaAnalyzer {
         const cachedResult = await this.cache.get<AnalysisResult>(cacheKey);
 
         if (cachedResult) {
-          this.performanceMonitor?.endProfile(profileId);
+          if (profileId) {
+            this.performanceMonitor?.endProfile(profileId);
+          }
           return cachedResult;
         }
       }
@@ -151,7 +153,9 @@ export class JavaAnalyzer {
         await this.cache.set(cacheKey, result, 7200000); // Cache for 2 hours
       }
 
-      this.performanceMonitor?.endProfile(profileId);
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       return result;
     } catch (error) {
       logger.error('Error analyzing JAR file', { error, jarPath });
@@ -171,7 +175,9 @@ export class JavaAnalyzer {
         suggestion: 'Verify the JAR file is valid and accessible',
       });
 
-      this.performanceMonitor?.endProfile(profileId);
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       // Return minimal result on error
       return {
         modId: 'unknown',
@@ -274,7 +280,7 @@ export class JavaAnalyzer {
                     /new\s+Identifier\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)/
                   );
                   if (identifierMatch) {
-                    const [, modId, registryName] = identifierMatch;
+                    const [, , registryName] = identifierMatch;
                     registryNames.push(registryName);
                   }
                 }
@@ -475,7 +481,7 @@ export class JavaAnalyzer {
               for (const textureKey of Object.keys(data.textures)) {
                 const texturePath = data.textures[textureKey];
                 if (typeof texturePath === 'string') {
-                  const textureMatch = texturePath.match(/([^\/]+)$/);
+                  const textureMatch = texturePath.match(/([^/]+)$/);
                   if (textureMatch) {
                     const textureName = textureMatch[1].replace('.png', '');
                     registryNames.push(textureName);
@@ -509,7 +515,7 @@ export class JavaAnalyzer {
       return { registryNames: [], notes };
     }
   } /**
-  
+
  * Detects texture paths from the JAR file
    * @param zip AdmZip instance of the JAR file
    * @returns Promise<string[]> containing texture file paths

@@ -132,35 +132,32 @@ describe('JavaScriptGenerator', () => {
               name: 'initializeMod',
             },
             params: [],
-            body: {
-              type: 'BlockStatement',
-              body: [
-                {
-                  type: 'ExpressionStatement',
-                  expression: {
-                    type: 'CallExpression',
-                    callee: {
-                      type: 'MemberExpression',
-                      object: {
-                        type: 'Identifier',
-                        name: 'console',
-                      },
-                      property: {
-                        type: 'Identifier',
-                        name: 'log',
-                      },
-                      computed: false,
+            body: [
+              {
+                type: 'ExpressionStatement',
+                expression: {
+                  type: 'CallExpression',
+                  callee: {
+                    type: 'MemberExpression',
+                    object: {
+                      type: 'Identifier',
+                      name: 'console',
                     },
-                    arguments: [
-                      {
-                        type: 'Literal',
-                        value: 'Initializing mod',
-                      },
-                    ],
+                    property: {
+                      type: 'Identifier',
+                      name: 'log',
+                    },
+                    computed: false,
                   },
+                  arguments: [
+                    {
+                      type: 'Literal',
+                      value: 'Initializing mod',
+                    },
+                  ],
                 },
-              ],
-            },
+              },
+            ],
           },
         ],
         metadata: {

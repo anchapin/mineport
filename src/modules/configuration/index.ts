@@ -12,6 +12,7 @@ import {
   BedrockManifest,
   ManifestGenerationResult,
 } from './ManifestGenerator.js';
+import { ErrorSeverity } from '../../types/errors.js';
 import {
   BlockItemDefinitionConverter,
   JavaRegistrationCode,
@@ -88,7 +89,7 @@ export interface ConfigMappingOutput {
  * @since 1.0.0
  */
 export interface ConfigConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   component: 'manifest' | 'block' | 'item' | 'recipe' | 'loot_table' | 'license';
   message: string;
   details?: string;
@@ -189,7 +190,7 @@ export class ConfigurationModule {
       const errors = manifestResult.errors || ['Unknown error generating manifests'];
       errors.forEach((error) => {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'manifest',
           message: `Failed to generate manifest: ${error}`,
         });
@@ -219,7 +220,7 @@ export class ConfigurationModule {
      */
     if (!writeResult) {
       conversionNotes.push({
-        type: 'error',
+        type: ErrorSeverity.ERROR,
         component: 'manifest',
         message: 'Failed to write manifests to output directories',
       });
@@ -228,7 +229,7 @@ export class ConfigurationModule {
     }
 
     conversionNotes.push({
-      type: 'info',
+      type: ErrorSeverity.INFO,
       component: 'manifest',
       message: 'Successfully generated and wrote manifests',
       details: `Behavior pack UUID: ${manifestResult.behaviorPackManifest.header.uuid}, Resource pack UUID: ${manifestResult.resourcePackManifest.header.uuid}`,
@@ -287,7 +288,7 @@ export class ConfigurationModule {
             // Add conversion notes
             registrationResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
                 details: note.details,
@@ -295,14 +296,14 @@ export class ConfigurationModule {
             });
 
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'block',
               message: `Successfully converted ${registrationResult.blocks.length} blocks and ${registrationResult.items.length} items`,
               details: 'Block and item definitions written to behavior pack',
             });
           } else {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'block',
               message: 'Failed to write block/item definitions to output directory',
             });
@@ -310,7 +311,7 @@ export class ConfigurationModule {
         } else if (registrationResult.errors) {
           registrationResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'block',
               message: `Failed to process block/item registrations: ${error}`,
             });
@@ -318,7 +319,7 @@ export class ConfigurationModule {
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'block',
           message: `Error processing block/item registrations: ${(error as Error).message}`,
         });
@@ -342,7 +343,7 @@ export class ConfigurationModule {
         // Convert the recipes to Bedrock format
         const recipeResult = this.recipeConverter.convertRecipes(
           input.javaRecipes,
-          input.javaManifest.id
+          input.javaManifest.modId
         );
 
         /**
@@ -376,7 +377,7 @@ export class ConfigurationModule {
             // Add conversion notes
             recipeResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
                 details: note.details,
@@ -384,14 +385,14 @@ export class ConfigurationModule {
             });
 
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'recipe',
               message: `Successfully converted ${recipeResult.recipes.length} recipes`,
               details: 'Recipes written to behavior pack',
             });
           } else {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'recipe',
               message: 'Failed to write recipes to output directory',
             });
@@ -399,7 +400,7 @@ export class ConfigurationModule {
         } else if (recipeResult.errors) {
           recipeResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'recipe',
               message: `Failed to process recipes: ${error}`,
             });
@@ -407,7 +408,7 @@ export class ConfigurationModule {
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'recipe',
           message: `Error processing recipes: ${(error as Error).message}`,
         });
@@ -431,7 +432,7 @@ export class ConfigurationModule {
         // Convert the loot tables to Bedrock format
         const lootTableResult = this.lootTableConverter.convertLootTables(
           input.javaLootTables,
-          input.javaManifest.id
+          input.javaManifest.modId
         );
 
         /**
@@ -465,7 +466,7 @@ export class ConfigurationModule {
             // Add conversion notes
             lootTableResult.conversionNotes.forEach((note) => {
               conversionNotes.push({
-                type: note.type,
+                type: note.type as ErrorSeverity,
                 component: note.component,
                 message: note.message,
                 details: note.details,
@@ -473,14 +474,14 @@ export class ConfigurationModule {
             });
 
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'loot_table',
               message: `Successfully converted ${Object.keys(lootTableResult.lootTables).length} loot tables`,
               details: 'Loot tables written to behavior pack',
             });
           } else {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'loot_table',
               message: 'Failed to write loot tables to output directory',
             });
@@ -488,7 +489,7 @@ export class ConfigurationModule {
         } else if (lootTableResult.errors) {
           lootTableResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'loot_table',
               message: `Failed to process loot tables: ${error}`,
             });
@@ -496,7 +497,7 @@ export class ConfigurationModule {
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'loot_table',
           message: `Error processing loot tables: ${(error as Error).message}`,
         });
@@ -539,7 +540,7 @@ export class ConfigurationModule {
           // Add conversion notes
           licenseResult.conversionNotes.forEach((note) => {
             conversionNotes.push({
-              type: note.type,
+              type: note.type as ErrorSeverity,
               component: note.component,
               message: note.message,
               details: note.details,
@@ -564,14 +565,14 @@ export class ConfigurationModule {
           if (!validationResult.valid) {
             validationResult.errors.forEach((error) => {
               conversionNotes.push({
-                type: 'warning',
+                type: ErrorSeverity.WARNING,
                 component: 'license',
                 message: `License validation warning: ${error}`,
               });
             });
           } else {
             conversionNotes.push({
-              type: 'info',
+              type: ErrorSeverity.INFO,
               component: 'license',
               message: 'License validation passed',
               details: 'All required license information is properly included',
@@ -580,7 +581,7 @@ export class ConfigurationModule {
         } else if (licenseResult.errors) {
           licenseResult.errors.forEach((error) => {
             conversionNotes.push({
-              type: 'error',
+              type: ErrorSeverity.ERROR,
               component: 'license',
               message: `Failed to embed license information: ${error}`,
             });
@@ -588,7 +589,7 @@ export class ConfigurationModule {
         }
       } catch (error) {
         conversionNotes.push({
-          type: 'error',
+          type: ErrorSeverity.ERROR,
           component: 'license',
           message: `Error embedding license information: ${(error as Error).message}`,
         });

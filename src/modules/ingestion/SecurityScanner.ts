@@ -12,6 +12,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import AdmZip from 'adm-zip';
+import { ErrorSeverity } from '../../types/errors.js';
 import {
   SecurityScanResult,
   ThreatInfo,
@@ -96,11 +97,12 @@ export class SecurityScanner {
       };
     } catch (error) {
       // If scanning fails, treat as potentially unsafe
+      const errorMessage = error instanceof Error ? error.message : 'Unknown security scan error';
       threats.push({
         type: 'suspicious_pattern',
-        description: `Security scan failed: ${error.message}`,
-        severity: 'medium',
-        details: { suspiciousFiles: [error.message] },
+        description: `Security scan failed: ${errorMessage}`,
+        severity: ErrorSeverity.WARNING,
+        details: { suspiciousFiles: [errorMessage] },
       });
 
       return {
@@ -108,6 +110,32 @@ export class SecurityScanner {
         threats,
         scanTime: Date.now() - startTime,
         scanId,
+      };
+    }
+  }
+
+  /**
+   * Scan a file by path for security threats
+   */
+  async scanFile(filePath: string): Promise<SecurityScanResult> {
+    try {
+      const fileBuffer = await fs.readFile(filePath);
+      const filename = path.basename(filePath);
+      return await this.scanBuffer(fileBuffer, filename);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown file read error';
+      return {
+        isSafe: false,
+        threats: [
+          {
+            type: 'suspicious_pattern',
+            description: `Failed to read file: ${errorMessage}`,
+            severity: ErrorSeverity.ERROR,
+            details: { suspiciousFiles: [filePath] },
+          },
+        ],
+        scanTime: 0,
+        scanId: crypto.randomUUID(),
       };
     }
   }
@@ -166,7 +194,7 @@ export class SecurityScanner {
         return {
           type: 'zip_bomb',
           description: `Potential ZIP bomb detected - compression ratio: ${compressionRatio.toFixed(2)}, uncompressed size: ${totalUncompressedSize} bytes`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
           details: {
             compressionRatio,
             extractedSize: totalUncompressedSize,
@@ -177,10 +205,11 @@ export class SecurityScanner {
       return null;
     } catch (error) {
       // If we can't read the ZIP, it might be corrupted or malicious
+      const errorMessage = error instanceof Error ? error.message : 'Unknown ZIP analysis error';
       return {
         type: 'zip_bomb',
-        description: `Unable to analyze ZIP file structure: ${error.message}`,
-        severity: 'medium',
+        description: `Unable to analyze ZIP file structure: ${errorMessage}`,
+        severity: ErrorSeverity.WARNING,
       };
     }
   }
@@ -223,17 +252,19 @@ export class SecurityScanner {
         threats.push({
           type: 'path_traversal',
           description: `Path traversal attempt detected in ${suspiciousPaths.length} entries`,
-          severity: 'high',
+          severity: ErrorSeverity.ERROR,
           details: {
             paths: suspiciousPaths.slice(0, 10), // Limit to first 10 for readability
           },
         });
       }
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown archive analysis error';
       threats.push({
         type: 'path_traversal',
-        description: `Unable to analyze archive paths: ${error.message}`,
-        severity: 'medium',
+        description: `Unable to analyze archive paths: ${errorMessage}`,
+        severity: ErrorSeverity.WARNING,
       });
     }
 
@@ -272,7 +303,7 @@ export class SecurityScanner {
           threats.push({
             type: 'malicious_code',
             description: `Suspicious code patterns detected in ${suspiciousFiles.length} files`,
-            severity: 'medium',
+            severity: ErrorSeverity.WARNING,
             details: {
               suspiciousFiles: suspiciousFiles.slice(0, 5),
               patterns: Array.from(new Set(foundPatterns)).slice(0, 5),
@@ -294,7 +325,7 @@ export class SecurityScanner {
           threats.push({
             type: 'malicious_code',
             description: `Suspicious code patterns detected`,
-            severity: 'medium',
+            severity: ErrorSeverity.WARNING,
             details: {
               patterns: Array.from(new Set(foundPatterns)),
             },
@@ -302,10 +333,12 @@ export class SecurityScanner {
         }
       }
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown malicious pattern scan error';
       threats.push({
         type: 'suspicious_pattern',
-        description: `Unable to scan for malicious patterns: ${error.message}`,
-        severity: 'low',
+        description: `Unable to scan for malicious patterns: ${errorMessage}`,
+        severity: ErrorSeverity.INFO,
       });
     }
 
@@ -323,7 +356,8 @@ export class SecurityScanner {
     try {
       await fs.writeFile(tempPath, buffer);
     } catch (error) {
-      throw new Error(`Failed to create temporary file: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown temporary file error';
+      throw new Error(`Failed to create temporary file: ${errorMessage}`);
     }
 
     return {

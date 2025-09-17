@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { JavaAnalyzer } from '@modules/ingestion/JavaAnalyzer';
+import { JavaAnalyzer } from '../../../../src/modules/ingestion/JavaAnalyzer.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import AdmZip from 'adm-zip';
@@ -30,8 +30,8 @@ describe('JavaAnalyzer - Enhanced Tests', () => {
       const classContent = `
         public class TestBlock extends Block {
           public static final Block TEST_BLOCK = Registry.register(
-            Registry.BLOCK, 
-            new Identifier("testmod", "test_block"), 
+            Registry.BLOCK,
+            new Identifier("testmod", "test_block"),
             new TestBlock()
           );
         }
@@ -253,7 +253,7 @@ describe('JavaAnalyzer - Enhanced Tests', () => {
         modLoader="javafml"
         loaderVersion="[36,)"
         license="MIT"
-        
+
         [[mods]]
         modId="testmod"
         version="2.0.0"

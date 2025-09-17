@@ -10,13 +10,24 @@ import path from 'path';
 import logger from '../../utils/logger.js';
 
 /**
- * ModLoaderType type definition.
+ * ModLoaderType enum definition.
  *
- * TODO: Add detailed description of what this type represents.
+ * TODO: Add detailed description of what this enum represents.
  *
  * @since 1.0.0
  */
-export type ModLoaderType = 'forge' | 'fabric' | 'unknown';
+export enum ModLoaderType {
+  FORGE = 'forge',
+  FABRIC = 'fabric',
+  UNKNOWN = 'unknown',
+}
+
+/**
+ * ModLoaderType type definition for backward compatibility.
+ *
+ * @since 1.0.0
+ */
+export type ModLoaderTypeString = 'forge' | 'fabric' | 'unknown';
 
 /**
  * ModLoaderDetectionResult interface.
@@ -26,7 +37,7 @@ export type ModLoaderType = 'forge' | 'fabric' | 'unknown';
  * @since 1.0.0
  */
 export interface ModLoaderDetectionResult {
-  modLoader: ModLoaderType;
+  modLoader: ModLoaderTypeString;
   confidence: number; // 0-100 confidence level
   detectionMethod: 'file_structure' | 'imports' | 'combined';
   evidenceFound: string[];
@@ -84,7 +95,7 @@ export class ModLoaderDetector {
 
       // If no evidence found, return unknown
       return {
-        modLoader: 'unknown',
+        modLoader: ModLoaderType.UNKNOWN,
         confidence: 0,
         detectionMethod: 'combined',
         evidenceFound: [],
@@ -94,7 +105,7 @@ export class ModLoaderDetector {
       // Ensure we have a proper error message for the test
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
-        modLoader: 'unknown',
+        modLoader: ModLoaderType.UNKNOWN,
         confidence: 0,
         detectionMethod: 'combined',
         evidenceFound: [`Error during detection: ${errorMessage}`],
@@ -109,7 +120,7 @@ export class ModLoaderDetector {
    */
   private async detectByFileStructure(extractedModPath: string): Promise<ModLoaderDetectionResult> {
     const result: ModLoaderDetectionResult = {
-      modLoader: 'unknown',
+      modLoader: ModLoaderType.UNKNOWN,
       confidence: 0,
       detectionMethod: 'file_structure',
       evidenceFound: [],
@@ -140,7 +151,7 @@ export class ModLoaderDetector {
        * @since 1.0.0
        */
       if (hasFabricModJson) {
-        result.modLoader = 'fabric';
+        result.modLoader = ModLoaderType.FABRIC;
         result.confidence += 80;
         result.evidenceFound.push('Found fabric.mod.json file');
       }
@@ -155,7 +166,7 @@ export class ModLoaderDetector {
        * @since 1.0.0
        */
       if (hasFabricApiDependency) {
-        if (result.modLoader === 'unknown') result.modLoader = 'fabric';
+        if (result.modLoader === ModLoaderType.UNKNOWN) result.modLoader = ModLoaderType.FABRIC;
         result.confidence += 15;
         result.evidenceFound.push('Found Fabric API dependency');
       }
@@ -172,10 +183,10 @@ export class ModLoaderDetector {
        */
       if (hasModsToml) {
         // If we already have strong evidence for Fabric, this might be a dual-loader mod
-        if (result.modLoader === 'fabric' && result.confidence > 50) {
+        if (result.modLoader === ModLoaderType.FABRIC && result.confidence > 50) {
           result.evidenceFound.push('Found mods.toml file (possible dual-loader mod)');
         } else {
-          result.modLoader = 'forge';
+          result.modLoader = ModLoaderType.FORGE;
           result.confidence += 70;
           result.evidenceFound.push('Found META-INF/mods.toml file');
         }
@@ -193,10 +204,10 @@ export class ModLoaderDetector {
       if (hasMcmodInfo) {
         // Legacy Forge mods use mcmod.info
         if (
-          result.modLoader === 'unknown' ||
-          (result.modLoader === 'forge' && result.confidence < 80)
+          result.modLoader === ModLoaderType.UNKNOWN ||
+          (result.modLoader === ModLoaderType.FORGE && result.confidence < 80)
         ) {
-          result.modLoader = 'forge';
+          result.modLoader = ModLoaderType.FORGE;
           result.confidence += 60;
           result.evidenceFound.push('Found mcmod.info file (legacy Forge)');
         }
@@ -212,7 +223,7 @@ export class ModLoaderDetector {
        * @since 1.0.0
        */
       if (hasForgeCapabilities) {
-        if (result.modLoader === 'unknown') result.modLoader = 'forge';
+        if (result.modLoader === ModLoaderType.UNKNOWN) result.modLoader = ModLoaderType.FORGE;
         result.confidence += 15;
         result.evidenceFound.push('Found Forge capability annotations');
       }
@@ -234,7 +245,7 @@ export class ModLoaderDetector {
    */
   private async detectByImports(extractedModPath: string): Promise<ModLoaderDetectionResult> {
     const result: ModLoaderDetectionResult = {
-      modLoader: 'unknown',
+      modLoader: ModLoaderType.UNKNOWN,
       confidence: 0,
       detectionMethod: 'imports',
       evidenceFound: [],
@@ -421,10 +432,10 @@ export class ModLoaderDetector {
          * @since 1.0.0
          */
         if (forgeImportsCount > fabricImportsCount) {
-          result.modLoader = 'forge';
+          result.modLoader = ModLoaderType.FORGE;
           result.confidence = Math.min(50 + forgeImportsCount * 5, 90); // Max 90% confidence from imports alone
         } else {
-          result.modLoader = 'fabric';
+          result.modLoader = ModLoaderType.FABRIC;
           result.confidence = Math.min(50 + fabricImportsCount * 5, 90); // Max 90% confidence from imports alone
         }
       }
@@ -465,7 +476,7 @@ export class ModLoaderDetector {
     // If both methods agree on the mod loader type
     if (
       fileStructureResult.modLoader === importsResult.modLoader &&
-      fileStructureResult.modLoader !== 'unknown'
+      fileStructureResult.modLoader !== ModLoaderType.UNKNOWN
     ) {
       // Boost confidence when both methods agree, but cap at 100%
       return {
@@ -477,7 +488,10 @@ export class ModLoaderDetector {
     }
 
     // If file structure gave a result but imports didn't
-    if (fileStructureResult.modLoader !== 'unknown' && importsResult.modLoader === 'unknown') {
+    if (
+      fileStructureResult.modLoader !== ModLoaderType.UNKNOWN &&
+      importsResult.modLoader === ModLoaderType.UNKNOWN
+    ) {
       return {
         modLoader: fileStructureResult.modLoader,
         confidence: fileStructureResult.confidence,
@@ -487,7 +501,10 @@ export class ModLoaderDetector {
     }
 
     // If imports gave a result but file structure didn't
-    if (fileStructureResult.modLoader === 'unknown' && importsResult.modLoader !== 'unknown') {
+    if (
+      fileStructureResult.modLoader === ModLoaderType.UNKNOWN &&
+      importsResult.modLoader !== ModLoaderType.UNKNOWN
+    ) {
       return {
         modLoader: importsResult.modLoader,
         confidence: importsResult.confidence,

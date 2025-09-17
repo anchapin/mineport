@@ -34,7 +34,7 @@ describe('LLMTranslationService', () => {
 
     // Mock the private callLLMApi method
     vi.spyOn<any, any>(translationService, 'callLLMApi').mockImplementation(
-      async (_prompt: string) => {
+      async (..._args: any[]) => {
         return {
           choices: [
             {
@@ -186,8 +186,8 @@ system.events.playerJoin.subscribe(event => {
   describe('translateUnmappableNodes', () => {
     it('should translate multiple unmappable nodes', async () => {
       const mmirContext: MMIRContext = {
-        nodes: [],
-        relationships: [],
+        _nodes: [],
+        _relationships: [],
         metadata: {
           modId: 'testmod',
           modName: 'Test Mod',
@@ -255,8 +255,8 @@ system.events.playerJoin.subscribe(event => {
 
     it('should handle nodes without source location', async () => {
       const mmirContext: MMIRContext = {
-        nodes: [],
-        relationships: [],
+        _nodes: [],
+        _relationships: [],
         metadata: {
           modId: 'testmod',
           modName: 'Test Mod',

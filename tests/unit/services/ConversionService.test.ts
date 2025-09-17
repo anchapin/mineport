@@ -33,7 +33,7 @@ vi.mock('../../../src/services/ConversionPipeline', () => {
 });
 
 vi.mock('../../../src/utils/logger', async () => {
-  const actual = await vi.importActual('../../../src/utils/logger');
+  const actual = (await vi.importActual('../../../src/utils/logger')) as any;
   return {
     ...actual,
     default: {
@@ -87,14 +87,19 @@ describe('ConversionService', () => {
     });
 
     jobQueue.getJob = vi.fn().mockImplementation((id) => {
-      return {
-        id,
-        type: 'conversion',
-        data: { modFile: 'test.jar', outputPath: '/output', options: {} },
-        priority: 1,
-        createdAt: new Date(),
-        status: 'pending',
-      };
+      // Only return job data for known job IDs
+      if (id === 'mock_job_id' || id === 'completed_job' || id === 'pending_job') {
+        return {
+          id,
+          type: 'conversion',
+          data: { modFile: 'test.jar', outputPath: '/output', options: {} },
+          priority: 1,
+          createdAt: new Date(),
+          status: id === 'completed_job' ? 'completed' : 'pending',
+        };
+      }
+      // Return undefined for non-existent jobs
+      return undefined;
     });
 
     jobQueue.getJobs = vi.fn().mockReturnValue([
@@ -118,7 +123,6 @@ describe('ConversionService', () => {
     // Create the service
     conversionService = new ConversionService({
       jobQueue,
-      errorCollector,
     });
 
     // Mock event emitter methods
@@ -199,8 +203,7 @@ describe('ConversionService', () => {
     const jobId = 'non_existent_job';
 
     // Mock pipeline cancelJob to return false for non-existent job
-    const mockPipeline = conversionService['pipeline'];
-    mockPipeline.cancelJob.mockReturnValue(false);
+    // Note: Testing private property access is not recommended, using public interface instead
 
     const result = conversionService.cancelJob(jobId);
 

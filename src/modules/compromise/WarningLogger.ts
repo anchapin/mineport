@@ -1,12 +1,12 @@
 import { Feature } from '../../types/compromise.js';
-// import { createLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * WarningLogger provides functionality to create console warnings and detailed comments
  * for stubbed features, as well as user notifications for limitations.
  */
 export class WarningLogger {
-  private logger: Logger;
+  private logger: ReturnType<typeof createLogger>;
   private warnings: Map<string, FeatureWarning>;
 
   /**
@@ -18,8 +18,8 @@ export class WarningLogger {
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor(logger?: ReturnType<typeof createLogger>) {
+    this.logger = logger || createLogger('WarningLogger');
     this.warnings = new Map<string, FeatureWarning>();
   }
 
@@ -91,9 +91,9 @@ export class WarningLogger {
 
     let comment = `/**
  * ${warningPrefix}: ${feature.name}
- * 
+ *
  * ${details}
- * 
+ *
  * Original feature compatibility tier: ${feature.compatibilityTier}
  * Source files: ${feature.sourceFiles.join(', ')}
  *`;
@@ -141,12 +141,12 @@ ${recommendations.map((rec) => ` * - ${rec}`).join('\n')}
 export class ${sanitizedModName}NotificationManager {
   private notifiedFeatures: Set<string>;
   private notificationCooldowns: Map<string, number>;
-  
+
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -155,20 +155,20 @@ export class ${sanitizedModName}NotificationManager {
     this.notifiedFeatures = new Set<string>();
     this.notificationCooldowns = new Map<string, number>();
   }
-  
+
   /**
    * Initializes the notification system
    */
   initialize() {
     console.log("Initializing ${modName} notification system");
-    
+
     // Display initial notification about limitations
     this.showInitialNotification();
-    
+
     // Set up periodic reminder for critical limitations
     this.setupPeriodicReminders();
   }
-  
+
   /**
    * Shows the initial notification to the user
    */
@@ -177,9 +177,9 @@ export class ${sanitizedModName}NotificationManager {
     system.runTimeout(() => {
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -195,7 +195,7 @@ export class ${sanitizedModName}NotificationManager {
       }
     }, 100);
   }
-  
+
   /**
    * Sets up periodic reminders for critical limitations
    */
@@ -205,17 +205,17 @@ export class ${sanitizedModName}NotificationManager {
       this.checkForCriticalFeatures();
     }, 6000); // 5 minutes = 6000 ticks
   }
-  
+
   /**
    * Checks for critical features that need reminders
    */
   checkForCriticalFeatures() {
     // This would be implemented based on actual feature usage
   }
-  
+
   /**
    * Notifies the user about a stubbed feature
-   * 
+   *
    * @param player The player to notify
    * @param featureId The ID of the stubbed feature
    * @param featureName The name of the stubbed feature
@@ -225,9 +225,9 @@ export class ${sanitizedModName}NotificationManager {
     // Check if we've already notified about this feature
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -235,17 +235,17 @@ export class ${sanitizedModName}NotificationManager {
     if (this.notifiedFeatures.has(featureId + player.id)) {
       return;
     }
-    
+
     // Check cooldown
     const now = Date.now();
     const cooldownKey = featureId + player.id;
     const lastNotification = this.notificationCooldowns.get(cooldownKey) || 0;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -253,11 +253,11 @@ export class ${sanitizedModName}NotificationManager {
     if (now - lastNotification < 300000) { // 5 minutes cooldown
       return;
     }
-    
+
     // Update cooldown
     this.notificationCooldowns.set(cooldownKey, now);
     this.notifiedFeatures.add(featureId + player.id);
-    
+
     // Show notification
     player.sendMessage({
       rawtext: [
@@ -267,10 +267,10 @@ export class ${sanitizedModName}NotificationManager {
       ]
     });
   }
-  
+
   /**
    * Shows help information to the player
-   * 
+   *
    * @param player The player to show help to
    */
   showHelp(player) {
@@ -288,9 +288,9 @@ ${this.generateLimitationsList(modName)}
 // Export a factory function to create the notification manager
 /**
  * create function.
- * 
+ *
  * TODO: Add detailed description of the function's purpose and behavior.
- * 
+ *
  * @param param - TODO: Document parameters
  * @returns result - TODO: Document return value
  * @since 1.0.0
@@ -302,7 +302,7 @@ export function create${sanitizedModName}NotificationManager() {
 // Register command to show help
 world.beforeEvents.chatSend.subscribe((event) => {
   const message = event.message.toLowerCase();
-  
+
   if (message === "/${sanitizedModName.toLowerCase()} help") {
     event.cancel = true;
     const notificationManager = create${sanitizedModName}NotificationManager();
@@ -332,7 +332,7 @@ world.beforeEvents.chatSend.subscribe((event) => {
       if (index <= 7) {
         // Limit to a reasonable number of items
         limitations.push({
-          text: `        { text: \"§c${index}.§r ${warning.featureName}: ${warning.details}\\n\" },\n`,
+          text: `        { text: "§c${index}.§r ${warning.featureName}: ${warning.details}\\n" },\n`,
         });
         index++;
       }

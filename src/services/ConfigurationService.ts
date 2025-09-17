@@ -186,64 +186,6 @@ export class ConfigurationService extends EventEmitter {
   }
 
   /**
-   * Export current configuration (including dynamic config)
-   */
-  public exportConfig(): Record<string, any> {
-    const exported = JSON.parse(JSON.stringify(this.config));
-
-    // Apply dynamic config overrides
-    for (const [key, value] of this.dynamicConfig.entries()) {
-      this.setNestedValue(exported, key, value);
-    }
-
-    return exported;
-  }
-
-  /**
-   * Import configuration from an object
-   */
-  public async importConfig(config: Record<string, any>): Promise<void> {
-    // Clear dynamic config
-    this.dynamicConfig.clear();
-
-    // Set all values from imported config
-    this.setConfigFromObject(config);
-  }
-
-  /**
-   * Set nested value in object using dot notation
-   */
-  private setNestedValue(obj: any, key: string, value: any): void {
-    const keys = key.split('.');
-    let current = obj;
-
-    for (let i = 0; i < keys.length - 1; i++) {
-      const k = keys[i];
-      if (!(k in current) || typeof current[k] !== 'object') {
-        current[k] = {};
-      }
-      current = current[k];
-    }
-
-    current[keys[keys.length - 1]] = value;
-  }
-
-  /**
-   * Set configuration from object recursively
-   */
-  private setConfigFromObject(obj: Record<string, any>, prefix: string = ''): void {
-    for (const [key, value] of Object.entries(obj)) {
-      const fullKey = prefix ? `${prefix}.${key}` : key;
-
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        this.setConfigFromObject(value, fullKey);
-      } else {
-        this.dynamicConfig.set(fullKey, value);
-      }
-    }
-  }
-
-  /**
    * Dispose of the configuration service
    */
   public dispose(): void {
@@ -328,18 +270,18 @@ export class ConfigurationService extends EventEmitter {
         enablePathTraversalCheck: this.getEnvBoolean('MODPORTER_PATH_TRAVERSAL_CHECK', true),
         enableMalwarePatternScanning: this.getEnvBoolean('MODPORTER_MALWARE_PATTERN_SCAN', true),
         maxScanTime: this.getEnvNumber('MODPORTER_MAX_SCAN_TIME', 30000),
-        threatDatabasePath: this.getEnvString('MODPORTER_THREAT_DB_PATH'),
+        threatDatabasePath: this.getEnvString('MODPORTER_THREAT_DB_PATH', ''),
         quarantineDirectory: this.getEnvString('MODPORTER_QUARANTINE_DIR', './quarantine'),
       },
       monitoring: {
         enableMetrics: this.getEnvBoolean('MODPORTER_ENABLE_METRICS', true),
         metricsPort: this.getEnvNumber('MODPORTER_METRICS_PORT', 9090),
         enableTracing: this.getEnvBoolean('MODPORTER_ENABLE_TRACING', false),
-        tracingEndpoint: this.getEnvString('MODPORTER_TRACING_ENDPOINT'),
+        tracingEndpoint: this.getEnvString('MODPORTER_TRACING_ENDPOINT', ''),
         enableHealthChecks: this.getEnvBoolean('MODPORTER_ENABLE_HEALTH_CHECKS', true),
         healthCheckInterval: this.getEnvNumber('MODPORTER_HEALTH_CHECK_INTERVAL', 30000),
         alertingEnabled: this.getEnvBoolean('MODPORTER_ALERTING_ENABLED', false),
-        alertingWebhookUrl: this.getEnvString('MODPORTER_ALERTING_WEBHOOK_URL'),
+        alertingWebhookUrl: this.getEnvString('MODPORTER_ALERTING_WEBHOOK_URL', ''),
       },
       logging: {
         level: this.getEnvString('MODPORTER_LOG_LEVEL', 'info') as
@@ -497,9 +439,9 @@ export class ConfigurationService extends EventEmitter {
   }
 
   // Helper methods for environment variable parsing
-  private getEnvString(key: string, defaultValue?: string): string | undefined {
+  private getEnvString(key: string, defaultValue?: string): string {
     const value = process.env[key];
-    return value !== undefined ? value : defaultValue;
+    return value !== undefined ? value : defaultValue || '';
   }
 
   private getEnvNumber(key: string, defaultValue: number): number {

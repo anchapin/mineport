@@ -50,17 +50,12 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Register a module
+   * @param moduleClass - The module constructor class
+   * @param config - Module configuration including ID, name, and dependencies
+   * @returns void
+   * @throws {Error} When module is already registered
    */
   public register(moduleClass: ModuleConstructor, config: ModuleConfig): void {
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.modules.has(config.id)) {
       throw new Error(`Module already registered: ${config.id}`);
     }
@@ -75,6 +70,8 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Get a module by its identifier
+   * @param id - Module identifier
+   * @returns The module instance if found, undefined otherwise
    */
   public get(id: string): Module | undefined {
     const entry = this.modules.get(id);
@@ -83,6 +80,7 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Get all registered modules
+   * @returns Array of all initialized module instances
    */
   public getAll(): Module[] {
     return Array.from(this.modules.values())
@@ -92,6 +90,7 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Initialize all modules in dependency order
+   * @returns Promise that resolves when all modules are initialized
    */
   public async initializeAll(): Promise<void> {
     logger.info('Initializing all modules...');
@@ -100,15 +99,6 @@ export class ModuleRegistryImpl implements ModuleRegistry {
     this.calculateInitializationOrder();
 
     // Initialize modules in order
-    /**
-     * for method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     for (const moduleId of this.initializationOrder) {
       await this.initializeModule(moduleId);
     }
@@ -118,21 +108,13 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Start all modules
+   * @returns Promise that resolves when all modules are started
    */
   public async startAll(): Promise<void> {
     logger.info('Starting all modules...');
 
     const modules = this.getAll();
 
-    /**
-     * for method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     for (const module of modules) {
       if (module.state === ModuleState.INITIALIZED) {
         try {
@@ -150,21 +132,13 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Stop all modules in reverse order
+   * @returns Promise that resolves when all modules are stopped
    */
   public async stopAll(): Promise<void> {
     logger.info('Stopping all modules...');
 
     const reverseOrder = [...this.initializationOrder].reverse();
 
-    /**
-     * for method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     for (const moduleId of reverseOrder) {
       const module = this.get(moduleId);
       if (module && module.state === ModuleState.RUNNING) {
@@ -183,32 +157,15 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Destroy all modules
+   * @returns Promise that resolves when all modules are destroyed
    */
   public async destroyAll(): Promise<void> {
     logger.info('Destroying all modules...');
 
     const reverseOrder = [...this.initializationOrder].reverse();
 
-    /**
-     * for method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     for (const moduleId of reverseOrder) {
       const module = this.get(moduleId);
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (module) {
         try {
           await module.destroy();
@@ -229,20 +186,12 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Get module health status for all modules
+   * @returns Object containing health status for each module
    */
   public getHealthStatus(): Record<string, any> {
     const modules = this.getAll();
     const status: Record<string, any> = {};
 
-    /**
-     * for method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     for (const module of modules) {
       status[module.id] = module.getHealth();
     }
@@ -252,6 +201,7 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Get dependency container
+   * @returns The dependency container instance
    */
   public getDependencyContainer(): DependencyContainer {
     return this.dependencyContainer;
@@ -259,31 +209,16 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Initialize a specific module
+   * @param moduleId - ID of the module to initialize
+   * @returns Promise that resolves when module is initialized
+   * @throws {Error} When module is not found
    */
   private async initializeModule(moduleId: string): Promise<void> {
     const entry = this.modules.get(moduleId);
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (!entry) {
       throw new Error(`Module not found: ${moduleId}`);
     }
 
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (entry.instance) {
       return; // Already initialized
     }
@@ -307,6 +242,8 @@ export class ModuleRegistryImpl implements ModuleRegistry {
 
   /**
    * Calculate the order in which modules should be initialized based on dependencies
+   * @returns void
+   * @throws {Error} When circular dependencies are detected
    */
   private calculateInitializationOrder(): void {
     const visited = new Set<string>();
@@ -314,42 +251,15 @@ export class ModuleRegistryImpl implements ModuleRegistry {
     const order: string[] = [];
 
     const visit = (moduleId: string) => {
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (visited.has(moduleId)) {
         return;
       }
 
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (visiting.has(moduleId)) {
         throw new Error(`Circular dependency detected involving module: ${moduleId}`);
       }
 
       const entry = this.modules.get(moduleId);
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (!entry) {
         throw new Error(`Module not found: ${moduleId}`);
       }
@@ -357,36 +267,9 @@ export class ModuleRegistryImpl implements ModuleRegistry {
       visiting.add(moduleId);
 
       // Visit dependencies first
-      /**
-       * for method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       for (const depId of entry.config.dependencies || []) {
         // Check if dependency is a module (not a service dependency)
-        /**
-         * if method.
-         *
-         * TODO: Add detailed description of the method's purpose and behavior.
-         *
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
         if (this.modules.has(depId)) {
-          /**
-           * visit method.
-           *
-           * TODO: Add detailed description of the method's purpose and behavior.
-           *
-           * @param param - TODO: Document parameters
-           * @returns result - TODO: Document return value
-           * @since 1.0.0
-           */
           visit(depId);
         }
       }
@@ -397,25 +280,7 @@ export class ModuleRegistryImpl implements ModuleRegistry {
     };
 
     // Visit all modules
-    /**
-     * for method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     for (const moduleId of this.modules.keys()) {
-      /**
-       * visit method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       visit(moduleId);
     }
 

@@ -2,7 +2,7 @@
 
 /**
  * Comprehensive CI/CD Pipeline Validation Script
- * 
+ *
  * This script performs end-to-end validation of the enhanced GitHub Actions
  * CI/CD pipeline, testing all components and integration points.
  */
@@ -36,7 +36,7 @@ class PipelineValidator {
             await this.validatePerformanceMetrics();
             await this.testFailureScenarios();
             await this.generateValidationReport();
-            
+
             console.log('\n✅ Pipeline validation completed successfully!');
             return this.results;
         } catch (error) {
@@ -50,7 +50,7 @@ class PipelineValidator {
      */
     async validateWorkflowFiles() {
         console.log('📋 Validating workflow files...');
-        
+
         const workflowDir = '.github/workflows';
         const expectedWorkflows = [
             'ci-enhanced.yml',
@@ -64,7 +64,7 @@ class PipelineValidator {
 
         for (const workflow of expectedWorkflows) {
             const workflowPath = path.join(workflowDir, workflow);
-            
+
             try {
                 if (!fs.existsSync(workflowPath)) {
                     throw new Error(`Workflow file ${workflow} not found`);
@@ -72,16 +72,16 @@ class PipelineValidator {
 
                 const content = fs.readFileSync(workflowPath, 'utf8');
                 const parsed = yaml.load(content);
-                
+
                 // Validate workflow structure
                 this.validateWorkflowStructure(workflow, parsed);
-                
+
                 this.results.workflowValidation[workflow] = {
                     status: 'valid',
                     jobs: Object.keys(parsed.jobs || {}),
                     triggers: parsed.on ? Object.keys(parsed.on) : []
                 };
-                
+
                 console.log(`  ✅ ${workflow} - Valid`);
             } catch (error) {
                 this.results.workflowValidation[workflow] = {
@@ -101,11 +101,11 @@ class PipelineValidator {
         if (!workflow.name) {
             throw new Error('Missing workflow name');
         }
-        
+
         if (!workflow.on) {
             throw new Error('Missing workflow triggers');
         }
-        
+
         if (!workflow.jobs || Object.keys(workflow.jobs).length === 0) {
             throw new Error('No jobs defined');
         }
@@ -129,21 +129,21 @@ class PipelineValidator {
      */
     validateCIWorkflow(workflow) {
         const jobs = workflow.jobs;
-        
+
         // Check for matrix builds
-        const hasMatrixBuild = Object.values(jobs).some(job => 
+        const hasMatrixBuild = Object.values(jobs).some(job =>
             job.strategy && job.strategy.matrix
         );
-        
+
         if (!hasMatrixBuild) {
             throw new Error('CI workflow missing matrix build strategy');
         }
 
         // Check for test jobs
-        const hasTestJob = Object.keys(jobs).some(jobName => 
+        const hasTestJob = Object.keys(jobs).some(jobName =>
             jobName.includes('test') || jobName.includes('Test')
         );
-        
+
         if (!hasTestJob) {
             throw new Error('CI workflow missing test jobs');
         }
@@ -154,15 +154,15 @@ class PipelineValidator {
      */
     validateSecurityWorkflow(workflow) {
         const jobs = workflow.jobs;
-        
+
         // Check for security scanning jobs
         const securityJobs = ['codeql', 'dependency-scan', 'secret-scan'];
         const hasSecurityJobs = securityJobs.some(jobType =>
-            Object.keys(jobs).some(jobName => 
+            Object.keys(jobs).some(jobName =>
                 jobName.toLowerCase().includes(jobType.replace('-', ''))
             )
         );
-        
+
         if (!hasSecurityJobs) {
             throw new Error('Security workflow missing required security scanning jobs');
         }
@@ -173,14 +173,14 @@ class PipelineValidator {
      */
     validateDeploymentWorkflow(workflow) {
         const jobs = workflow.jobs;
-        
+
         // Check for deployment environments
         const hasEnvironments = Object.values(jobs).some(job =>
             job.environment || (job.steps && job.steps.some(step =>
                 step.name && (step.name.includes('staging') || step.name.includes('production'))
             ))
         );
-        
+
         if (!hasEnvironments) {
             throw new Error('Deployment workflow missing environment configurations');
         }
@@ -191,7 +191,7 @@ class PipelineValidator {
      */
     async validateIntegrationPoints() {
         console.log('\n🔗 Validating integration points...');
-        
+
         const integrationTests = [
             {
                 name: 'Deployment Scripts',
@@ -280,7 +280,7 @@ class PipelineValidator {
         }
 
         const healthContent = fs.readFileSync(healthServicePath, 'utf8');
-        
+
         // Check for required endpoints
         for (const endpoint of healthEndpoints) {
             if (!healthContent.includes(endpoint)) {
@@ -369,7 +369,7 @@ class PipelineValidator {
      */
     async validatePerformanceMetrics() {
         console.log('\n📊 Validating performance metrics...');
-        
+
         const performanceTests = [
             {
                 name: 'Build Performance',
@@ -412,12 +412,12 @@ class PipelineValidator {
      */
     async measureBuildPerformance() {
         const startTime = Date.now();
-        
+
         try {
             // Simulate build process
             execSync('npm run build', { stdio: 'pipe', timeout: 300000 });
             const buildTime = Date.now() - startTime;
-            
+
             return {
                 buildTime: `${buildTime}ms`,
                 status: buildTime < 120000 ? 'optimal' : 'needs-optimization'
@@ -432,15 +432,15 @@ class PipelineValidator {
      */
     async measureTestPerformance() {
         const startTime = Date.now();
-        
+
         try {
             // Run a subset of tests for performance measurement
-            execSync('npm run test:unit -- --run --reporter=json', { 
-                stdio: 'pipe', 
-                timeout: 180000 
+            execSync('npm run test:unit -- --run --reporter=json', {
+                stdio: 'pipe',
+                timeout: 180000
             });
             const testTime = Date.now() - startTime;
-            
+
             return {
                 testTime: `${testTime}ms`,
                 status: testTime < 60000 ? 'optimal' : 'needs-optimization'
@@ -467,7 +467,7 @@ class PipelineValidator {
 
         const content = fs.readFileSync(ciWorkflow, 'utf8');
         const hasCaching = content.includes('actions/cache') || content.includes('cache:');
-        
+
         return {
             cachingEnabled: hasCaching,
             status: hasCaching ? 'configured' : 'not-configured'
@@ -481,7 +481,7 @@ class PipelineValidator {
         const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
         const dependencyCount = Object.keys(packageJson.dependencies || {}).length +
                                Object.keys(packageJson.devDependencies || {}).length;
-        
+
         return {
             dependencies: dependencyCount,
             status: dependencyCount < 200 ? 'optimal' : 'high'
@@ -493,7 +493,7 @@ class PipelineValidator {
      */
     async testFailureScenarios() {
         console.log('\n🔥 Testing failure scenarios...');
-        
+
         const failureTests = [
             {
                 name: 'Test Failure Handling',
@@ -535,11 +535,11 @@ class PipelineValidator {
         // Check for test failure handling in CI workflow
         const ciWorkflow = '.github/workflows/ci-enhanced.yml';
         const content = fs.readFileSync(ciWorkflow, 'utf8');
-        
+
         const hasFailureHandling = content.includes('continue-on-error') ||
                                   content.includes('if: failure()') ||
                                   content.includes('always()');
-        
+
         if (!hasFailureHandling) {
             throw new Error('No test failure handling mechanisms found in CI workflow');
         }
@@ -551,12 +551,12 @@ class PipelineValidator {
     async testBuildFailureRecovery() {
         // Check for retry mechanisms and cache invalidation
         const workflows = ['.github/workflows/ci-enhanced.yml'];
-        
+
         for (const workflow of workflows) {
             const content = fs.readFileSync(workflow, 'utf8');
-            const hasRetryLogic = content.includes('retry') || 
+            const hasRetryLogic = content.includes('retry') ||
                                  content.includes('continue-on-error');
-            
+
             if (!hasRetryLogic) {
                 console.warn(`  ⚠️  No retry logic found in ${workflow}`);
             }
@@ -578,7 +578,7 @@ class PipelineValidator {
             const content = fs.readFileSync(deployWorkflow, 'utf8');
             const hasRollbackIntegration = content.includes('rollback') ||
                                           content.includes('failure()');
-            
+
             if (!hasRollbackIntegration) {
                 console.warn('  ⚠️  No rollback integration found in deployment workflow');
             }
@@ -598,7 +598,7 @@ class PipelineValidator {
         const hasSecurityFailureHandling = content.includes('security') &&
                                           (content.includes('if: failure()') ||
                                            content.includes('always()'));
-        
+
         if (!hasSecurityFailureHandling) {
             console.warn('  ⚠️  Limited security failure handling found');
         }
@@ -609,9 +609,9 @@ class PipelineValidator {
      */
     async generateValidationReport() {
         console.log('\n📄 Generating validation report...');
-        
+
         const totalTime = Date.now() - this.startTime;
-        
+
         this.results.summary = {
             totalValidationTime: `${totalTime}ms`,
             timestamp: new Date().toISOString(),
@@ -627,9 +627,9 @@ class PipelineValidator {
         // Write detailed report to file
         const reportPath = 'validation-report.json';
         fs.writeFileSync(reportPath, JSON.stringify(this.results, null, 2));
-        
+
         console.log(`  ✅ Validation report generated: ${reportPath}`);
-        
+
         // Print summary
         this.printValidationSummary();
     }
@@ -640,12 +640,12 @@ class PipelineValidator {
     calculateOverallStatus() {
         const workflowFailures = Object.values(this.results.workflowValidation)
             .filter(result => result.status === 'invalid').length;
-        
+
         const integrationFailures = Object.values(this.results.integrationTests)
             .filter(result => result.status === 'failed').length;
-        
+
         const criticalFailures = workflowFailures + integrationFailures;
-        
+
         if (criticalFailures === 0) {
             return 'PASSED';
         } else if (criticalFailures <= 2) {
@@ -662,7 +662,7 @@ class PipelineValidator {
         console.log('\n' + '='.repeat(60));
         console.log('📊 VALIDATION SUMMARY');
         console.log('='.repeat(60));
-        
+
         const summary = this.results.summary;
         console.log(`Overall Status: ${summary.overallStatus}`);
         console.log(`Total Time: ${summary.totalValidationTime}`);
@@ -670,7 +670,7 @@ class PipelineValidator {
         console.log(`Integration Tests Passed: ${summary.integrationTestsPassed}`);
         console.log(`Performance Metrics: ${summary.performanceMetricsCollected}`);
         console.log(`Failure Scenarios Validated: ${summary.failureScenariosValidated}`);
-        
+
         if (summary.overallStatus === 'FAILED') {
             console.log('\n❌ CRITICAL ISSUES FOUND - Review validation report for details');
         } else if (summary.overallStatus === 'PASSED_WITH_WARNINGS') {
@@ -678,7 +678,7 @@ class PipelineValidator {
         } else {
             console.log('\n✅ ALL VALIDATIONS PASSED - Pipeline ready for deployment');
         }
-        
+
         console.log('='.repeat(60));
     }
 }
@@ -686,7 +686,7 @@ class PipelineValidator {
 // Main execution
 if (require.main === module) {
     const validator = new PipelineValidator();
-    
+
     validator.validate()
         .then(() => {
             process.exit(0);

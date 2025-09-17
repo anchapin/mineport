@@ -34,7 +34,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
       release_notes: ${{ steps.notes.outputs.release_notes }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -56,17 +56,17 @@ jobs:
               IS_PRERELEASE=false
             fi
           fi
-          
+
           # Validate version format (vX.Y.Z or vX.Y.Z-suffix)
           if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
             echo "❌ Invalid version format: $VERSION"
             echo "Expected format: vX.Y.Z or vX.Y.Z-suffix"
             exit 1
           fi
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-          
+
           echo "✅ Version validated: $VERSION"
           echo "Pre-release: $IS_PRERELEASE"
 
@@ -85,13 +85,13 @@ jobs:
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           RELEASE_VERSION="${{ steps.version.outputs.version }}"
           EXPECTED_VERSION="${RELEASE_VERSION#v}"  # Remove 'v' prefix
-          
+
           if [[ "$PACKAGE_VERSION" != "$EXPECTED_VERSION" ]]; then
             echo "❌ Package.json version ($PACKAGE_VERSION) doesn't match release version ($EXPECTED_VERSION)"
             echo "Please update package.json version before creating release"
             exit 1
           fi
-          
+
           echo "✅ Package.json version matches release version"
 
       - name: Run pre-release tests
@@ -107,67 +107,67 @@ jobs:
         id: notes
         run: |
           echo "Generating release notes..."
-          
+
           # Get the previous tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           CURRENT_TAG="${{ steps.version.outputs.version }}"
-          
+
           # Create release notes file
           cat > release-notes.md << 'EOF'
           # Release ${{ steps.version.outputs.version }}
-          
+
           ## What's Changed
-          
+
           EOF
-          
+
           if [[ -n "$PREVIOUS_TAG" ]]; then
             echo "Generating changes since $PREVIOUS_TAG..."
-            
+
             # Get commits since last tag
             git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..HEAD" >> release-notes.md
-            
+
             echo "" >> release-notes.md
             echo "" >> release-notes.md
             echo "## Pull Requests" >> release-notes.md
-            
+
             # Get merged PRs since last tag
             git log --pretty=format:"%s" --grep="Merge pull request" "$PREVIOUS_TAG..HEAD" | \
               sed 's/Merge pull request #\([0-9]*\) from .*/- #\1/' >> release-notes.md || true
-            
+
           else
             echo "- Initial release" >> release-notes.md
           fi
-          
+
           # Add contributors
           echo "" >> release-notes.md
           echo "## Contributors" >> release-notes.md
           git log --pretty=format:"- @%an" "$PREVIOUS_TAG..HEAD" 2>/dev/null | sort -u >> release-notes.md || echo "- @${{ github.actor }}" >> release-notes.md
-          
+
           # Add installation instructions
           cat >> release-notes.md << 'EOF'
-          
+
           ## Installation
-          
+
           ### NPM Package
           ```bash
           npm install @${{ github.repository_owner }}/${{ github.event.repository.name }}@${{ steps.version.outputs.version }}
           ```
-          
+
           ### Container Image
           ```bash
           docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
           ```
-          
+
           ## Verification
-          
+
           All release artifacts are signed and can be verified using the provided checksums.
-          
+
           EOF
-          
+
           # Output release notes for next job
           RELEASE_NOTES_B64=$(base64 -w 0 release-notes.md)
           echo "release_notes=$RELEASE_NOTES_B64" >> $GITHUB_OUTPUT
-          
+
           echo "Generated release notes:"
           cat release-notes.md
 
@@ -183,7 +183,7 @@ jobs:
     name: Build Release Artifacts
     needs: validate-release
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -228,7 +228,7 @@ jobs:
     name: Build Container Images
     needs: [validate-release, build-release-artifacts]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -270,46 +270,46 @@ jobs:
         run: |
           cat > Dockerfile << 'EOF'
           FROM node:20-alpine AS builder
-          
+
           WORKDIR /app
           COPY artifacts/package/package*.json ./
           RUN npm ci --only=production --no-audit --no-fund
-          
+
           FROM node:20-alpine AS runtime
-          
+
           # Install system dependencies
           RUN apk add --no-cache \
               dumb-init \
               curl \
               ca-certificates \
               && rm -rf /var/cache/apk/*
-          
+
           # Create non-root user
           RUN addgroup -g 1001 -S nodejs && \
               adduser -S nodejs -u 1001
-          
+
           WORKDIR /app
-          
+
           # Copy dependencies from builder
           COPY --from=builder /app/node_modules ./node_modules
-          
+
           # Copy application
           COPY artifacts/package/dist ./dist
           COPY artifacts/package/package.json ./
           COPY artifacts/package/README.md ./
           COPY artifacts/package/LICENSE ./
-          
+
           # Change ownership
           RUN chown -R nodejs:nodejs /app
           USER nodejs
-          
+
           # Health check
           HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
             CMD curl -f http://localhost:3000/health || exit 1
-          
+
           # Expose port
           EXPOSE 3000
-          
+
           # Start application
           ENTRYPOINT ["dumb-init", "--"]
           CMD ["node", "dist/src/index.js"]
@@ -331,7 +331,7 @@ jobs:
     name: Create GitHub Release
     needs: [validate-release, build-release-artifacts, build-container-images]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -369,18 +369,18 @@ jobs:
       - name: Upload release assets
         run: |
           echo "Uploading release assets..."
-          
+
           # Upload all artifact files
           for file in artifacts/*; do
             if [[ -f "$file" ]]; then
               filename=$(basename "$file")
               echo "Uploading $filename..."
-              
+
               gh release upload "${{ needs.validate-release.outputs.version }}" "$file" \
                 --clobber
             fi
           done
-          
+
           echo "✅ All release assets uploaded"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -389,38 +389,38 @@ jobs:
         run: |
           cat > release-summary.md << EOF
           # Release ${{ needs.validate-release.outputs.version }} Created Successfully! 🎉
-          
+
           ## Release Information
           - **Version**: ${{ needs.validate-release.outputs.version }}
           - **Pre-release**: ${{ needs.validate-release.outputs.is_prerelease }}
           - **Release URL**: ${{ steps.create_release.outputs.html_url }}
-          
+
           ## Artifacts Created
           - NPM Package: \`@${{ github.repository_owner }}/${{ github.event.repository.name }}@${{ needs.validate-release.outputs.version }}\`
           - Container Image: \`ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}\`
           - Source Archives: tar.gz, zip formats
           - Checksums: SHA256 and MD5 verification files
-          
+
           ## Installation
-          
+
           ### NPM
           \`\`\`bash
           npm install @${{ github.repository_owner }}/${{ github.event.repository.name }}@${{ needs.validate-release.outputs.version }}
           \`\`\`
-          
+
           ### Docker
           \`\`\`bash
           docker pull ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}
           \`\`\`
-          
+
           ## Next Steps
           - [ ] Update documentation if needed
           - [ ] Announce release to users
           - [ ] Monitor deployment metrics
           - [ ] Prepare for next development cycle
-          
+
           EOF
-          
+
           cat release-summary.md >> $GITHUB_STEP_SUMMARY
 
   # Post-release tasks
@@ -429,7 +429,7 @@ jobs:
     needs: [validate-release, create-github-release]
     if: always() && needs.create-github-release.result == 'success'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -447,28 +447,28 @@ jobs:
         if: needs.validate-release.outputs.is_prerelease == 'false'
         run: |
           echo "Preparing for next development cycle..."
-          
+
           # Get current version and increment patch version
           CURRENT_VERSION="${{ needs.validate-release.outputs.version }}"
           VERSION_WITHOUT_V="${CURRENT_VERSION#v}"
-          
+
           # Parse version components
           IFS='.' read -ra VERSION_PARTS <<< "$VERSION_WITHOUT_V"
           MAJOR=${VERSION_PARTS[0]}
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
-          
+
           # Increment patch version
           NEXT_PATCH=$((PATCH + 1))
           NEXT_VERSION="$MAJOR.$MINOR.$NEXT_PATCH"
-          
+
           echo "Updating package.json to version $NEXT_VERSION"
           npm version $NEXT_VERSION --no-git-tag-version
-          
+
           # Create development branch if needed
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           git add package.json package-lock.json
           git commit -m "chore: bump version to $NEXT_VERSION for next development cycle"
           git push origin HEAD:main
@@ -477,34 +477,34 @@ jobs:
         run: |
           cat > announcement.md << 'EOF'
           # 🎉 Release ${{ needs.validate-release.outputs.version }} is now available!
-          
+
           We're excited to announce the release of version ${{ needs.validate-release.outputs.version }}!
-          
+
           ## Installation
-          
+
           ### NPM Package
           ```bash
           npm install @${{ github.repository_owner }}/${{ github.event.repository.name }}@${{ needs.validate-release.outputs.version }}
           ```
-          
+
           ### Container Image
           ```bash
           docker pull ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}
           ```
-          
+
           ## What's New
-          
+
           See the [full release notes](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.validate-release.outputs.version }}) for detailed information about changes and improvements.
-          
+
           ## Feedback
-          
+
           If you encounter any issues or have feedback, please:
           - [Open an issue](${{ github.server_url }}/${{ github.repository }}/issues/new)
           - [Start a discussion](${{ github.server_url }}/${{ github.repository }}/discussions)
-          
+
           Thank you for using Minecraft Mod Converter! 🚀
           EOF
-          
+
           gh issue create \
             --title "📢 Release ${{ needs.validate-release.outputs.version }} Announcement" \
             --body-file announcement.md \
@@ -527,7 +527,7 @@ jobs:
         run: |
           echo "Release ${{ needs.validate-release.outputs.version }} completed successfully!"
           echo "Release URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.validate-release.outputs.version }}"
-          
+
           # Add to job summary
           echo "## Release Completed Successfully! 🎉" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

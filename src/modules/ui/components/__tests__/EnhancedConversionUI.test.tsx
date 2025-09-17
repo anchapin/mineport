@@ -5,6 +5,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EnhancedConversionUI } from '../EnhancedConversionUI.js';
 import { ConversionService } from '../../../../services/ConversionService.js';
 import { ValidationPipeline } from '../../../../services/ValidationPipeline.js';
@@ -12,37 +13,37 @@ import { EnhancedErrorCollector } from '../../../../services/EnhancedErrorCollec
 import { FeatureFlagService } from '../../../../services/FeatureFlagService.js';
 
 // Mock services
-jest.mock('../../../../services/ConversionService');
-jest.mock('../../../../services/ValidationPipeline');
-jest.mock('../../../../services/EnhancedErrorCollector');
-jest.mock('../../../../services/FeatureFlagService');
+vi.mock('../../../../services/ConversionService');
+vi.mock('../../../../services/ValidationPipeline');
+vi.mock('../../../../services/EnhancedErrorCollector');
+vi.mock('../../../../services/FeatureFlagService');
 
 // Mock WebSocket
 const mockWebSocket = {
-  send: jest.fn(),
-  close: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
+  send: vi.fn(),
+  close: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
   readyState: WebSocket.OPEN,
 };
 
-(global as any).WebSocket = jest.fn(() => mockWebSocket);
+(global as any).WebSocket = vi.fn(() => mockWebSocket);
 
 describe('EnhancedConversionUI', () => {
-  let mockConversionService: jest.Mocked<ConversionService>;
-  let mockValidationPipeline: jest.Mocked<ValidationPipeline>;
-  let mockErrorCollector: jest.Mocked<EnhancedErrorCollector>;
-  let mockFeatureFlagService: jest.Mocked<FeatureFlagService>;
+  let mockConversionService: any;
+  let mockValidationPipeline: any;
+  let mockErrorCollector: any;
+  let mockFeatureFlagService: any;
 
   beforeEach(() => {
     // Create mock instances
-    mockConversionService = new ConversionService({} as any) as jest.Mocked<ConversionService>;
-    mockValidationPipeline = new ValidationPipeline() as jest.Mocked<ValidationPipeline>;
-    mockErrorCollector = new EnhancedErrorCollector() as jest.Mocked<EnhancedErrorCollector>;
-    mockFeatureFlagService = new FeatureFlagService() as jest.Mocked<FeatureFlagService>;
+    mockConversionService = new ConversionService({} as any) as any;
+    mockValidationPipeline = new ValidationPipeline() as any;
+    mockErrorCollector = new EnhancedErrorCollector() as any;
+    mockFeatureFlagService = new FeatureFlagService() as any;
 
     // Setup default mock implementations
-    mockConversionService.createConversionJob = jest.fn().mockResolvedValue({
+    mockConversionService.createConversionJob = vi.fn().mockResolvedValue({
       id: 'test-job-123',
       status: 'queued',
       progress: 0,
@@ -50,18 +51,18 @@ describe('EnhancedConversionUI', () => {
       updatedAt: new Date(),
     });
 
-    mockConversionService.getJobStatus = jest.fn().mockReturnValue({
+    mockConversionService.getJobStatus = vi.fn().mockReturnValue({
       jobId: 'test-job-123',
       status: 'processing',
       progress: 50,
       currentStage: 'analyzing',
     });
 
-    mockConversionService.cancelJob = jest.fn().mockReturnValue(true);
+    mockConversionService.cancelJob = vi.fn().mockReturnValue(true);
 
-    mockFeatureFlagService.isEnabled = jest.fn().mockResolvedValue(true);
+    mockFeatureFlagService.isEnabled = vi.fn().mockResolvedValue(true);
 
-    mockErrorCollector.getErrorRateMetrics = jest.fn().mockReturnValue({
+    mockErrorCollector.getErrorRateMetrics = vi.fn().mockReturnValue({
       totalErrors: 0,
       errorRate: 0,
       errorsByType: {},
@@ -80,7 +81,7 @@ describe('EnhancedConversionUI', () => {
     });
 
     // Clear all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const renderComponent = (props = {}) => {
@@ -209,7 +210,7 @@ describe('EnhancedConversionUI', () => {
       renderComponent();
 
       // Simulate WebSocket connection
-      const wsInstance = (WebSocket as jest.Mock).mock.instances[0];
+      const wsInstance = (WebSocket as any).mock.instances[0];
       if (wsInstance.onopen) {
         wsInstance.onopen();
       }

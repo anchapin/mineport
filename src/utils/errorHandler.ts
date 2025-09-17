@@ -18,18 +18,12 @@ export const globalErrorCollector = new ErrorCollector();
 export class ErrorHandler {
   /**
    * Handle an error with appropriate logging and response
+   * @param error - The error to handle (Error or ConversionError)
+   * @param moduleId - Optional module identifier for context
+   * @returns Standardized ConversionError object
    */
   static handleError(error: Error | ConversionError, moduleId?: string): ConversionError {
     // If it's already a ConversionError, just log it
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.isConversionError(error)) {
       logger.error(error.message, { error, moduleId: moduleId || error.moduleOrigin });
       globalErrorCollector.addError(error);
@@ -56,6 +50,11 @@ export class ErrorHandler {
 
   /**
    * Create a validation error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param code - Optional custom error code
+   * @returns ConversionError of validation type
    */
   static validationError(
     message: string,
@@ -78,6 +77,12 @@ export class ErrorHandler {
 
   /**
    * Create an asset error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param severity - Error severity level (defaults to ERROR)
+   * @param code - Optional custom error code
+   * @returns ConversionError of asset type
    */
   static assetError(
     message: string,
@@ -101,6 +106,12 @@ export class ErrorHandler {
 
   /**
    * Create a config error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param severity - Error severity level (defaults to ERROR)
+   * @param code - Optional custom error code
+   * @returns ConversionError of config type
    */
   static configError(
     message: string,
@@ -124,6 +135,12 @@ export class ErrorHandler {
 
   /**
    * Create a logic error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param severity - Error severity level (defaults to ERROR)
+   * @param code - Optional custom error code
+   * @returns ConversionError of logic type
    */
   static logicError(
     message: string,
@@ -147,6 +164,12 @@ export class ErrorHandler {
 
   /**
    * Create a system error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param severity - Error severity level (defaults to ERROR)
+   * @param code - Optional custom error code
+   * @returns ConversionError of system type
    */
   static systemError(
     message: string,
@@ -170,6 +193,12 @@ export class ErrorHandler {
 
   /**
    * Create a network error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param severity - Error severity level (defaults to ERROR)
+   * @param code - Optional custom error code
+   * @returns ConversionError of network type
    */
   static networkError(
     message: string,
@@ -193,6 +222,12 @@ export class ErrorHandler {
 
   /**
    * Create a resource error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param severity - Error severity level (defaults to WARNING)
+   * @param code - Optional custom error code
+   * @returns ConversionError of resource type
    */
   static resourceError(
     message: string,
@@ -216,6 +251,11 @@ export class ErrorHandler {
 
   /**
    * Create a security error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param code - Optional custom error code
+   * @returns ConversionError of security type with critical severity
    */
   static securityError(
     message: string,
@@ -238,6 +278,11 @@ export class ErrorHandler {
 
   /**
    * Create a user error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param code - Optional custom error code
+   * @returns ConversionError of user type
    */
   static userError(
     message: string,
@@ -261,6 +306,12 @@ export class ErrorHandler {
 
   /**
    * Create a compromise error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param severity - Error severity level (defaults to WARNING)
+   * @param code - Optional custom error code
+   * @returns ConversionError of compromise type
    */
   static compromiseError(
     message: string,
@@ -284,6 +335,11 @@ export class ErrorHandler {
 
   /**
    * Create a critical error
+   * @param message - Error message
+   * @param moduleId - Module identifier where the error occurred
+   * @param details - Optional additional error details
+   * @param code - Optional custom error code
+   * @returns ConversionError of system type with critical severity
    */
   static criticalError(
     message: string,
@@ -325,17 +381,15 @@ export class ErrorHandler {
 
   /**
    * Create a user-friendly error response for API endpoints
+   * @param error - Error object to convert to response format
+   * @returns Standardized error response object
+   * @example
+   * ```typescript
+   * const errorResponse = ErrorHandler.createErrorResponse(conversionError);
+   * res.status(400).json(errorResponse);
+   * ```
    */
   static createErrorResponse(error: Error | ConversionError): ErrorResponse {
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     if (this.isConversionError(error)) {
       return {
         success: false,
@@ -360,17 +414,16 @@ export class ErrorHandler {
 
   /**
    * Type guard to check if an error is a ConversionError
+   * @param error - Object to check
+   * @returns True if the object is a ConversionError
+   * @example
+   * ```typescript
+   * if (ErrorHandler.isConversionError(error)) {
+   *   console.log(`Error code: ${error.code}`);
+   * }
+   * ```
    */
   static isConversionError(error: any): error is ConversionError {
-    /**
-     * return method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
     return (
       error &&
       typeof error === 'object' &&
@@ -399,6 +452,16 @@ export interface ErrorResponse {
 
 /**
  * Higher-order function to wrap route handlers with error handling
+ * @param handler - Route handler function to wrap
+ * @param moduleId - Optional module identifier for error context
+ * @returns Wrapped handler function with error handling
+ * @example
+ * ```typescript
+ * const wrappedHandler = withErrorHandling(async (req) => {
+ *   // Your route logic here
+ *   return result;
+ * }, 'USER_MODULE');
+ * ```
  */
 export function withErrorHandling<T, U>(
   handler: (req: T) => Promise<U>,

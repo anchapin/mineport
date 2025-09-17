@@ -10,7 +10,7 @@ import {
   AddonStructure,
   PackStructure,
   OutputFile,
-  ConversionResult,
+  ConversionAgentResult,
   ConversionMetadata,
 } from './types.js';
 import {
@@ -211,7 +211,10 @@ export class BedrockArchitect {
   /**
    * Organize assets into the proper addon structure
    */
-  async organizeAssets(assets: AssetInfo[], structure: AddonStructure): Promise<ConversionResult> {
+  async organizeAssets(
+    assets: AssetInfo[],
+    structure: AddonStructure
+  ): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -247,7 +250,7 @@ export class BedrockArchitect {
         outputFiles.push({
           path: fullPath,
           content: asset.content,
-          type: asset.type,
+          type: asset.type === 'particle' || asset.type === 'animation' ? 'other' : asset.type,
           originalPath: asset.path,
         });
 
@@ -295,7 +298,7 @@ export class BedrockArchitect {
   /**
    * Validate structure compliance with Bedrock standards
    */
-  validateStructureCompliance(structure: AddonStructure): ConversionResult {
+  validateStructureCompliance(structure: AddonStructure): ConversionAgentResult {
     const errors: ConversionError[] = [];
     const warnings: AssetConversionNote[] = [];
 
@@ -499,7 +502,7 @@ export class BedrockArchitect {
     // Warnings for optional but recommended fields
     if (!manifest.header?.description) {
       warnings.push({
-        type: 'warning',
+        type: ErrorSeverity.WARNING,
         message: `Missing description in ${packType} pack manifest`,
         component: 'model',
         details: { packType },
@@ -526,7 +529,7 @@ export class BedrockArchitect {
     for (const dir of requiredBehaviorDirs) {
       if (!structure.behaviorPack.directories[dir]) {
         warnings.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `Missing recommended directory: ${dir} in behavior pack`,
           component: 'model',
           details: { directory: dir, packType: 'behavior' },
@@ -537,7 +540,7 @@ export class BedrockArchitect {
     for (const dir of requiredResourceDirs) {
       if (!structure.resourcePack.directories[dir]) {
         warnings.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           message: `Missing recommended directory: ${dir} in resource pack`,
           component: 'model',
           details: { directory: dir, packType: 'resource' },

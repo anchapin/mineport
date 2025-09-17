@@ -110,8 +110,10 @@ export interface RecipeConversionResult {
  *
  * @since 1.0.0
  */
+import { ErrorSeverity } from '../../types/errors.js';
+
 export interface RecipeConversionNote {
-  type: 'info' | 'warning' | 'error';
+  type: ErrorSeverity;
   component: 'recipe';
   message: string;
   details?: string;
@@ -249,7 +251,7 @@ export class RecipeConverter {
           }
 
           conversionNotes.push({
-            type: 'info',
+            type: ErrorSeverity.INFO,
             component: 'recipe',
             message: `Successfully converted ${recipe.type} recipe to Bedrock format`,
             sourceFile: recipe.sourceFile,
@@ -259,7 +261,7 @@ export class RecipeConverter {
           errors.push(errorMessage);
 
           conversionNotes.push({
-            type: 'error',
+            type: ErrorSeverity.ERROR,
             component: 'recipe',
             message: errorMessage,
             sourceFile: recipe.sourceFile,
@@ -285,7 +287,7 @@ export class RecipeConverter {
         errors: [`Failed to convert recipes: ${(error as Error).message}`],
         conversionNotes: [
           {
-            type: 'error',
+            type: ErrorSeverity.ERROR,
             component: 'recipe',
             message: `Failed to convert recipes: ${(error as Error).message}`,
           },
@@ -851,51 +853,7 @@ export class RecipeConverter {
      * @since 1.0.0
      */
     for (const ingredient of recipe.ingredients) {
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (Array.isArray(ingredient)) {
-        // For ingredient groups (alternatives), we'll use the first one
-        // In a real implementation, we would need to handle this more robustly
-        /**
-         * if method.
-         *
-         * TODO: Add detailed description of the method's purpose and behavior.
-         *
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (ingredient.length > 0) {
-          const firstIngredient = ingredient[0];
-          /**
-           * if method.
-           *
-           * TODO: Add detailed description of the method's purpose and behavior.
-           *
-           * @param param - TODO: Document parameters
-           * @returns result - TODO: Document return value
-           * @since 1.0.0
-           */
-          if ('item' in firstIngredient) {
-            bedrockIngredients.push({ item: this.convertItemId(firstIngredient.item) });
-          } else if ('tag' in firstIngredient) {
-            bedrockIngredients.push({
-              item: `minecraft:placeholder_for_tag_${firstIngredient.tag}`,
-            });
-          }
-        }
-      } else if ('item' in ingredient) {
-        bedrockIngredients.push({ item: this.convertItemId(ingredient.item) });
-      } else if ('tag' in ingredient) {
-        bedrockIngredients.push({ item: `minecraft:placeholder_for_tag_${ingredient.tag}` });
-      }
+      bedrockIngredients.push({ item: this.getIngredientItem(ingredient) });
     }
 
     return {
@@ -912,6 +870,32 @@ export class RecipeConverter {
         },
       },
     };
+  }
+
+  /**
+   * Gets the item identifier from a Java recipe ingredient
+   * @param ingredient The ingredient to process
+   * @returns The item identifier string
+   */
+  private getIngredientItem(
+    ingredient: { item: string } | { tag: string } | Array<{ item: string } | { tag: string }>
+  ): string {
+    if (Array.isArray(ingredient)) {
+      if (ingredient.length > 0) {
+        const itemOrTag = ingredient[0];
+        if ('item' in itemOrTag) {
+          return this.convertItemId(itemOrTag.item);
+        } else if ('tag' in itemOrTag) {
+          return `minecraft:placeholder_for_tag_${itemOrTag.tag}`;
+        }
+      }
+      throw new Error('Invalid ingredient');
+    } else if ('item' in ingredient) {
+      return this.convertItemId(ingredient.item);
+    } else if ('tag' in ingredient) {
+      return `minecraft:placeholder_for_tag_${ingredient.tag}`;
+    }
+    throw new Error('Invalid ingredient');
   }
 
   /**
@@ -935,58 +919,7 @@ export class RecipeConverter {
     }
 
     // Determine the input item
-    let inputItem: string;
-
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (recipe.ingredients) {
-      // For smelting recipes, the ingredient is usually a single item or an array
-      const ingredient = Array.isArray(recipe.ingredients)
-        ? recipe.ingredients[0]
-        : recipe.ingredients;
-
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (Array.isArray(ingredient)) {
-        // Use the first alternative
-        /**
-         * if method.
-         *
-         * TODO: Add detailed description of the method's purpose and behavior.
-         *
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (ingredient.length > 0 && 'item' in ingredient[0]) {
-          inputItem = this.convertItemId(ingredient[0].item);
-        } else {
-          throw new Error('Invalid furnace recipe ingredient');
-        }
-      } else if ('item' in ingredient) {
-        inputItem = this.convertItemId(ingredient.item);
-      } else if ('tag' in ingredient) {
-        inputItem = `minecraft:placeholder_for_tag_${ingredient.tag}`;
-      } else {
-        throw new Error('Invalid furnace recipe ingredient');
-      }
-    } else {
-      throw new Error('Furnace recipe missing ingredient');
-    }
+    const inputItem = this.getIngredientItem(recipe.ingredients[0]);
 
     // Determine the tag based on the recipe type
     const tag = RECIPE_TYPE_MAPPINGS[recipe.type] || 'furnace';
@@ -1028,59 +961,7 @@ export class RecipeConverter {
     }
 
     // Determine the input item
-    let inputItem: string;
-
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (Array.isArray(recipe.ingredients)) {
-      const ingredient = recipe.ingredients[0];
-
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (Array.isArray(ingredient)) {
-        // Use the first alternative
-        /**
-         * if method.
-         *
-         * TODO: Add detailed description of the method's purpose and behavior.
-         *
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (ingredient.length > 0 && 'item' in ingredient[0]) {
-          inputItem = this.convertItemId(ingredient[0].item);
-        } else {
-          throw new Error('Invalid stonecutting recipe ingredient');
-        }
-      } else if ('item' in ingredient) {
-        inputItem = this.convertItemId(ingredient.item);
-      } else if ('tag' in ingredient) {
-        inputItem = `minecraft:placeholder_for_tag_${ingredient.tag}`;
-      } else {
-        throw new Error('Invalid stonecutting recipe ingredient');
-      }
-    } else if ('item' in recipe.ingredients) {
-      inputItem = this.convertItemId(recipe.ingredients.item);
-    } else if ('tag' in recipe.ingredients) {
-      inputItem = `minecraft:placeholder_for_tag_${recipe.ingredients.tag}`;
-    } else {
-      throw new Error('Invalid stonecutting recipe ingredient');
-    }
+    const inputItem = this.getIngredientItem(recipe.ingredients[0]);
 
     return {
       format_version: '1.19.0',
@@ -1119,42 +1000,10 @@ export class RecipeConverter {
     }
 
     // Determine the base item
-    let baseItem: string;
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if ('item' in recipe.base) {
-      baseItem = this.convertItemId(recipe.base.item);
-    } else if ('tag' in recipe.base) {
-      baseItem = `minecraft:placeholder_for_tag_${recipe.base.tag}`;
-    } else {
-      throw new Error('Invalid smithing recipe base');
-    }
+    const baseItem = this.getIngredientItem(recipe.base);
 
     // Determine the addition item
-    let additionItem: string;
-    /**
-     * if method.
-     *
-     * TODO: Add detailed description of the method's purpose and behavior.
-     *
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if ('item' in recipe.addition) {
-      additionItem = this.convertItemId(recipe.addition.item);
-    } else if ('tag' in recipe.addition) {
-      additionItem = `minecraft:placeholder_for_tag_${recipe.addition.tag}`;
-    } else {
-      throw new Error('Invalid smithing recipe addition');
-    }
+    const additionItem = this.getIngredientItem(recipe.addition);
 
     // Bedrock doesn't have a direct equivalent for smithing recipes,
     // so we'll use a brewing recipe as the closest approximation
@@ -1222,7 +1071,7 @@ export class RecipeConverter {
            */
           if ('tag' in keyValue) {
             notes.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               component: 'recipe',
               message: `Recipe uses tag '${keyValue.tag}' which is not directly supported in Bedrock`,
               details: `Tag used in key '${keyChar}' of shaped recipe. A placeholder was used, but manual adjustment may be needed.`,
@@ -1243,9 +1092,7 @@ export class RecipeConverter {
        * @since 1.0.0
        */
       if (recipe.ingredients) {
-        const ingredients = Array.isArray(recipe.ingredients)
-          ? recipe.ingredients
-          : [recipe.ingredients];
+        const ingredients = recipe.ingredients;
 
         /**
          * for method.
@@ -1288,7 +1135,7 @@ export class RecipeConverter {
                */
               if ('tag' in option) {
                 notes.push({
-                  type: 'warning',
+                  type: ErrorSeverity.WARNING,
                   component: 'recipe',
                   message: `Recipe uses tag '${option.tag}' which is not directly supported in Bedrock`,
                   details: `Tag used in ingredient alternatives. A placeholder was used, but manual adjustment may be needed.`,
@@ -1298,7 +1145,7 @@ export class RecipeConverter {
             }
           } else if ('tag' in ingredient) {
             notes.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               component: 'recipe',
               message: `Recipe uses tag '${ingredient.tag}' which is not directly supported in Bedrock`,
               details: `Tag used in ingredient. A placeholder was used, but manual adjustment may be needed.`,
@@ -1320,7 +1167,7 @@ export class RecipeConverter {
        */
       if (recipe.base && 'tag' in recipe.base) {
         notes.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           component: 'recipe',
           message: `Recipe uses tag '${recipe.base.tag}' which is not directly supported in Bedrock`,
           details: `Tag used in smithing recipe base. A placeholder was used, but manual adjustment may be needed.`,
@@ -1339,7 +1186,7 @@ export class RecipeConverter {
        */
       if (recipe.addition && 'tag' in recipe.addition) {
         notes.push({
-          type: 'warning',
+          type: ErrorSeverity.WARNING,
           component: 'recipe',
           message: `Recipe uses tag '${recipe.addition.tag}' which is not directly supported in Bedrock`,
           details: `Tag used in smithing recipe addition. A placeholder was used, but manual adjustment may be needed.`,

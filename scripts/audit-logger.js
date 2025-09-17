@@ -277,15 +277,15 @@ class AuditLogger {
   async writeAuditEntry(entry) {
     const date = new Date().toISOString().split('T')[0];
     const logFile = path.join(this.logDir, `audit-${date}.jsonl`);
-    
+
     let logData = JSON.stringify(entry) + '\n';
-    
+
     if (this.enableEncryption && this.encryptionKey) {
       logData = this.encrypt(logData);
     }
-    
+
     await fs.appendFile(logFile, logData);
-    
+
     // Check file size and rotate if necessary
     const stats = await fs.stat(logFile);
     if (stats.size > this.maxLogSize) {
@@ -299,7 +299,7 @@ class AuditLogger {
   async updateIndex(entry) {
     const indexFile = path.join(this.logDir, 'audit-index.json');
     let index = {};
-    
+
     try {
       const indexData = await fs.readFile(indexFile, 'utf8');
       index = JSON.parse(indexData);
@@ -307,7 +307,7 @@ class AuditLogger {
       // Index file doesn't exist or is corrupted, create new one
       index = { entries: [], operations: {}, actors: {}, repositories: {} };
     }
-    
+
     // Add entry to index
     index.entries.push({
       id: entry.id,
@@ -316,21 +316,21 @@ class AuditLogger {
       actor: entry.actor.username,
       status: entry.status
     });
-    
+
     // Update operation counts
     index.operations[entry.operation] = (index.operations[entry.operation] || 0) + 1;
-    
+
     // Update actor counts
     index.actors[entry.actor.username] = (index.actors[entry.actor.username] || 0) + 1;
-    
+
     // Update repository counts
     index.repositories[entry.repository.name] = (index.repositories[entry.repository.name] || 0) + 1;
-    
+
     // Keep only last 10000 entries in index for performance
     if (index.entries.length > 10000) {
       index.entries = index.entries.slice(-10000);
     }
-    
+
     await fs.writeFile(indexFile, JSON.stringify(index, null, 2));
   }
 
@@ -371,12 +371,12 @@ class AuditLogger {
       const files = await fs.readdir(this.logDir);
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - this.retentionDays);
-      
+
       for (const file of files) {
         if (file.startsWith('audit-') && file.endsWith('.jsonl')) {
           const filePath = path.join(this.logDir, file);
           const stats = await fs.stat(filePath);
-          
+
           if (stats.mtime < cutoffDate) {
             await fs.unlink(filePath);
             console.log(`Deleted old audit log: ${file}`);
@@ -393,7 +393,7 @@ class AuditLogger {
    */
   encrypt(data) {
     if (!this.encryptionKey) return data;
-    
+
     const cipher = crypto.createCipher('aes-256-cbc', this.encryptionKey);
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -408,29 +408,29 @@ class AuditLogger {
     try {
       const indexData = await fs.readFile(indexFile, 'utf8');
       const index = JSON.parse(indexData);
-      
+
       let results = index.entries;
-      
+
       if (criteria.operation) {
         results = results.filter(entry => entry.operation === criteria.operation);
       }
-      
+
       if (criteria.actor) {
         results = results.filter(entry => entry.actor === criteria.actor);
       }
-      
+
       if (criteria.status) {
         results = results.filter(entry => entry.status === criteria.status);
       }
-      
+
       if (criteria.startDate) {
         results = results.filter(entry => entry.timestamp >= criteria.startDate);
       }
-      
+
       if (criteria.endDate) {
         results = results.filter(entry => entry.timestamp <= criteria.endDate);
       }
-      
+
       return results.slice(0, criteria.limit || 100);
     } catch (error) {
       console.error('Error searching audit logs:', error);
@@ -444,7 +444,7 @@ class AuditLogger {
   async generateReport(startDate, endDate) {
     const criteria = { startDate, endDate, limit: 10000 };
     const entries = await this.searchLogs(criteria);
-    
+
     const report = {
       period: { start: startDate, end: endDate },
       total_operations: entries.length,
@@ -456,27 +456,27 @@ class AuditLogger {
       deployment_events: 0,
       failed_operations: 0
     };
-    
+
     entries.forEach(entry => {
       // Count by operation type
-      report.operations_by_type[entry.operation] = 
+      report.operations_by_type[entry.operation] =
         (report.operations_by_type[entry.operation] || 0) + 1;
-      
+
       // Count by actor
-      report.operations_by_actor[entry.actor] = 
+      report.operations_by_actor[entry.actor] =
         (report.operations_by_actor[entry.actor] || 0) + 1;
-      
+
       // Count by status
-      report.operations_by_status[entry.status] = 
+      report.operations_by_status[entry.status] =
         (report.operations_by_status[entry.status] || 0) + 1;
-      
+
       // Count specific event types
       if (entry.operation.includes('security')) report.security_events++;
       if (entry.operation.includes('compliance')) report.compliance_events++;
       if (entry.operation.includes('deployment')) report.deployment_events++;
       if (entry.status === 'failed' || entry.status === 'error') report.failed_operations++;
     });
-    
+
     return report;
   }
 }
@@ -485,7 +485,7 @@ class AuditLogger {
 if (require.main === module) {
   const command = process.argv[2];
   const logger = new AuditLogger();
-  
+
   switch (command) {
     case 'init':
       logger.initialize();

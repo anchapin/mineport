@@ -7,7 +7,7 @@
  */
 
 import { v5 as uuidv5 } from 'uuid';
-import fs from 'fs/promises';
+import * as fs from 'fs';
 import path from 'path';
 import logger from '../../utils/logger.js';
 
@@ -372,17 +372,17 @@ export class ManifestGenerator {
       }
 
       // Ensure directories exist
-      await fs.mkdir(behaviorPackDir, { recursive: true });
-      await fs.mkdir(resourcePackDir, { recursive: true });
+      await fs.promises.mkdir(behaviorPackDir, { recursive: true });
+      await fs.promises.mkdir(resourcePackDir, { recursive: true });
 
       // Write behavior pack manifest
-      await fs.writeFile(
+      await fs.promises.writeFile(
         path.join(behaviorPackDir, 'manifest.json'),
         JSON.stringify(result.behaviorPackManifest, null, 2)
       );
 
       // Write resource pack manifest
-      await fs.writeFile(
+      await fs.promises.writeFile(
         path.join(resourcePackDir, 'manifest.json'),
         JSON.stringify(result.resourcePackManifest, null, 2)
       );
@@ -402,7 +402,7 @@ export class ManifestGenerator {
    */
   private async extractModTomlMetadata(filePath: string): Promise<Partial<JavaModMetadata>> {
     try {
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await fs.promises.readFile(filePath, 'utf-8');
 
       // Simple TOML parsing for the specific fields we need
       const modIdMatch = content.match(/modId\s*=\s*["']([^"']+)["']/);
@@ -435,7 +435,7 @@ export class ManifestGenerator {
    */
   private async extractFabricModMetadata(filePath: string): Promise<Partial<JavaModMetadata>> {
     try {
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await fs.promises.readFile(filePath, 'utf-8');
       const fabricMod = JSON.parse(content);
 
       return {
@@ -464,7 +464,7 @@ export class ManifestGenerator {
    */
   private async extractModInfoMetadata(filePath: string): Promise<Partial<JavaModMetadata>> {
     try {
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await fs.promises.readFile(filePath, 'utf-8');
       const modInfo = JSON.parse(content);
 
       // mcmod.info can be an array or a direct object
@@ -789,7 +789,7 @@ export class ManifestGenerator {
    */
   private async fileExists(filePath: string): Promise<boolean> {
     try {
-      await fs.access(filePath);
+      await fs.promises.access(filePath);
       return true;
     } catch {
       return false;

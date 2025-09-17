@@ -37,7 +37,7 @@ describe('Ingestion Pipeline Integration', () => {
   it('should process a mod through the complete ingestion pipeline', async () => {
     // Step 1: Validate the mod
     const modValidator = new ModValidator();
-    const validationResult = await modValidator.validate(fs.readFileSync(modFile));
+    const validationResult = await modValidator.validateMod(fs.readFileSync(modFile));
 
     expect(validationResult.valid).toBe(true);
     expect(validationResult.modId).toBe('test-mod');
@@ -135,7 +135,7 @@ describe('Ingestion Pipeline Integration', () => {
 
     // Validate the mod
     const modValidator = new ModValidator();
-    const validationResult = await modValidator.validate(fs.readFileSync(fabricModFile));
+    const validationResult = await modValidator.validateMod(fs.readFileSync(fabricModFile));
 
     expect(validationResult.valid).toBe(true);
     expect(validationResult.modId).toBe('test-fabric-mod');

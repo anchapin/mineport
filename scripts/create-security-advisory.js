@@ -53,7 +53,7 @@ class SecurityAdvisoryCreator {
    */
   parseNpmAudit(auditResults) {
     const vulnerabilities = [];
-    
+
     if (auditResults.vulnerabilities) {
       Object.entries(auditResults.vulnerabilities).forEach(([packageName, vulnData]) => {
         vulnData.via.forEach(via => {
@@ -176,13 +176,13 @@ Workflow run: ${process.env.GITHUB_RUN_ID || 'Unknown'}
     try {
       // Create the issue using GitHub CLI if available
       const command = `gh issue create --title "Security: ${vulnerability.severity} vulnerability in ${vulnerability.package}" --body "${issueBody.replace(/"/g, '\\"')}" --label "security,vulnerability,${vulnerability.severity}"`;
-      
+
       console.log('Creating security issue...');
       execSync(command, { stdio: 'inherit' });
       return true;
     } catch (error) {
       console.error('Failed to create security issue:', error.message);
-      
+
       // Fallback: write to file for manual processing
       const issueFile = `security-issue-${vulnerability.package}-${Date.now()}.md`;
       fs.writeFileSync(issueFile, `# Security Issue\n\n${issueBody}`);
@@ -196,16 +196,16 @@ Workflow run: ${process.env.GITHUB_RUN_ID || 'Unknown'}
    */
   async processVulnerabilities() {
     console.log('🔍 Processing security vulnerabilities...');
-    
+
     const vulnerabilities = this.parseVulnerabilities();
-    
+
     if (vulnerabilities.length === 0) {
       console.log('✅ No high-severity vulnerabilities found');
       return { created: 0, total: 0 };
     }
 
     console.log(`⚠️  Found ${vulnerabilities.length} high-severity vulnerabilities`);
-    
+
     let created = 0;
     for (const vulnerability of vulnerabilities) {
       try {
@@ -226,17 +226,17 @@ async function main() {
   try {
     const creator = new SecurityAdvisoryCreator();
     const result = await creator.processVulnerabilities();
-    
+
     // Set GitHub Actions outputs
     console.log(`::set-output name=advisories_created::${result.created}`);
     console.log(`::set-output name=vulnerabilities_total::${result.total}`);
-    
+
     // Exit with error code if vulnerabilities were found but not all advisories were created
     if (result.total > 0 && result.created < result.total) {
       console.error('❌ Some security advisories could not be created');
       process.exit(1);
     }
-    
+
     console.log('✅ Security advisory processing completed');
   } catch (error) {
     console.error('❌ Security advisory processing failed:', error.message);

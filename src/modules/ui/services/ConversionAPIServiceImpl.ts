@@ -10,7 +10,7 @@ import {
   ConversionInput,
   ConversionJob,
   ConversionStatus,
-  ConversionResult,
+  ConversionAPIResult,
 } from './ConversionAPIService.js';
 import { ErrorType, ErrorSeverity } from '../../../types/errors.js';
 import {
@@ -334,7 +334,7 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @param jobId Job ID
    * @returns Promise resolving to conversion result
    */
-  public async getConversionResult(jobId: string): Promise<ConversionResult> {
+  public async getConversionResult(jobId: string): Promise<ConversionAPIResult> {
     /**
      * if method.
      *
@@ -544,7 +544,7 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
    * @param jobId Job ID
    * @returns Promise resolving to mock conversion result
    */
-  private async mockGetConversionResult(jobId: string): Promise<ConversionResult> {
+  private async mockGetConversionResult(jobId: string): Promise<ConversionAPIResult> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -573,6 +573,10 @@ export class ConversionAPIServiceImpl implements ConversionAPIService {
             file: 'src/main/java/com/example/mod/CustomRenderer.java',
             line: 42,
             column: 10,
+            startLine: 42,
+            startColumn: 10,
+            endLine: 42,
+            endColumn: 20,
           },
           recommendedFix: 'Use the RenderingStubGenerator to create a stub implementation',
         },

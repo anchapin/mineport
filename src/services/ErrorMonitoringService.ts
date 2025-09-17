@@ -185,11 +185,13 @@ export class ErrorMonitoringService {
       this.cleanupHistoricalData();
 
       // Update monitoring metrics
-      this.monitoringService.recordMetric('error_monitoring.checks_performed', 1);
-      this.monitoringService.recordMetric(
-        'error_monitoring.active_alerts',
-        this.getActiveAlerts().length
-      );
+      this.monitoringService.recordSystemHealthMetric({
+        component: 'file_processor',
+        status: 'healthy',
+        details: {
+          errorRate: this.getActiveAlerts().length,
+        },
+      });
     } catch (error) {
       logger.error('Error monitoring check failed', { error });
     }
@@ -395,7 +397,7 @@ export class ErrorMonitoringService {
     alertData: Omit<ErrorAlert, 'id' | 'timestamp' | 'acknowledged' | 'resolved'>
   ): Promise<void> {
     const alert: ErrorAlert = {
-      id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `alert-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       timestamp: new Date(),
       acknowledged: false,
       resolved: false,
@@ -411,13 +413,43 @@ export class ErrorMonitoringService {
 
     this.alerts.set(alert.id, alert);
 
+    // Map internal alert types to AlertingService types
+    const alertTypeMapping: Record<
+      string,
+      | 'security_threat'
+      | 'performance_degradation'
+      | 'system_health'
+      | 'resource_usage'
+      | 'error_rate'
+      | 'conversion_failure'
+    > = {
+      trend: 'performance_degradation',
+      error_rate: 'error_rate',
+      component_failure: 'system_health',
+      recovery_failure: 'system_health',
+      anomaly: 'performance_degradation',
+    };
+
+    // Map internal severity to AlertingService severity
+    const severityMapping: Record<string, 'low' | 'medium' | 'high' | 'critical'> = {
+      warning: 'medium',
+      critical: 'critical',
+      error: 'high',
+      info: 'low',
+    };
+
+    const mappedType = alertTypeMapping[alert.type] || 'system_health';
+    const mappedSeverity = severityMapping[alert.severity] || 'medium';
+
     // Send alert through alerting service
-    await this.alertingService.sendAlert({
-      title: alert.title,
-      message: alert.message,
-      severity: alert.severity,
-      data: alert.data,
-    });
+    await this.alertingService.createAlert(
+      mappedType,
+      mappedSeverity,
+      alert.title,
+      alert.message,
+      alert.data || {},
+      'error_monitoring'
+    );
 
     logger.warn('Error alert created', {
       alertId: alert.id,

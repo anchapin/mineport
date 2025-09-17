@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { FileUploader, ProgressTracker, StatusDisplay, SettingsPanel } from '../components.js';
+import {
+  FileUploader,
+  ProgressTracker,
+  StatusDisplay,
+  SettingsPanel,
+} from '../components/index.js';
 import { useConversion } from '../hooks/useConversion.js';
 import { ConversionProvider } from '../context/ConversionContext.js';
 
@@ -87,7 +92,7 @@ const ConversionPageContent: React.FC = () => {
         <div className="settings-overlay">
           <SettingsPanel
             preferences={useConversion().state.userPreferences}
-            onSave={(newPreferences) => {
+            onSave={(newPreferences: any) => {
               handlePreferencesChange(newPreferences);
               setShowSettings(false);
 

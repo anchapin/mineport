@@ -37,6 +37,6 @@ DROP TYPE IF EXISTS deployment_status;
 -- DELETE FROM configuration WHERE key LIKE 'modporter_ai_%';
 
 -- Log the rollback
-INSERT INTO system_logs (level, message, timestamp) 
+INSERT INTO system_logs (level, message, timestamp)
 VALUES ('INFO', 'ModPorter-AI integration rollback completed', NOW())
 ON CONFLICT DO NOTHING;

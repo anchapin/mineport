@@ -57,7 +57,7 @@ export function createMockGitHubResponse(repoName: string, files: string[]): any
 export function createMockFileSystem(files: Record<string, string>): void {
   // Mock the fs module
   vi.mock('fs', async () => {
-    const actualFs = await vi.importActual('fs') as any;
+    const actualFs = (await vi.importActual('fs')) as any;
     return {
       ...actualFs,
       promises: {
@@ -95,6 +95,40 @@ export function createMockFileSystem(files: Record<string, string>): void {
           }
           return Promise.reject(
             new Error(`ENOENT: no such file or directory, access '${filePath}'`)
+          );
+        }),
+        readdir: vi.fn((dirPath: string, options?: any) => {
+          const normalizedPath = dirPath.replace(/\\/g, '/');
+          const entries = [];
+          const withFileTypes = options?.withFileTypes;
+
+          // Find all files that start with this directory path
+          for (const filePath of Object.keys(files)) {
+            if (filePath.startsWith(normalizedPath + '/')) {
+              const relativePath = filePath.substring(normalizedPath.length + 1);
+              const firstSlashIndex = relativePath.indexOf('/');
+              const entryName =
+                firstSlashIndex === -1 ? relativePath : relativePath.substring(0, firstSlashIndex);
+
+              if (!entries.find((e) => (withFileTypes ? e.name : e) === entryName)) {
+                if (withFileTypes) {
+                  entries.push({
+                    name: entryName,
+                    isFile: () => firstSlashIndex === -1,
+                    isDirectory: () => firstSlashIndex !== -1,
+                  });
+                } else {
+                  entries.push(entryName);
+                }
+              }
+            }
+          }
+
+          if (entries.length > 0 || files[normalizedPath]) {
+            return Promise.resolve(entries);
+          }
+          return Promise.reject(
+            new Error(`ENOENT: no such file or directory, scandir '${dirPath}'`)
           );
         }),
       },
@@ -146,54 +180,6 @@ export function mockUnzipper(fileStructure: Record<string, string>): void {
 }
 
 /**
- * Creates a mock for the Octokit GitHub API client
- */
-export function mockOctokit(responses: Record<string, any>): void {
-  vi.mock('octokit', () => {
-    return {
-      Octokit: vi.fn().mockImplementation(() => {
-        return {
-          rest: {
-            repos: {
-              getContent: vi.fn(({ owner, repo, path }) => {
-                const key = `${owner}/${repo}/${path}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-              getCommit: vi.fn(({ owner, repo, ref }) => {
-                const key = `${owner}/${repo}/commit/${ref}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-            },
-            git: {
-              getTree: vi.fn(({ owner, repo, tree_sha }) => {
-                const key = `${owner}/${repo}/tree/${tree_sha}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-              getBlob: vi.fn(({ owner, repo, file_sha }) => {
-                const key = `${owner}/${repo}/blob/${file_sha}`;
-                if (responses[key]) {
-                  return Promise.resolve(responses[key]);
-                }
-                return Promise.reject(new Error(`Not found: ${key}`));
-              }),
-            },
-          },
-        };
-      }),
-    };
-  });
-}
-
-/**
  * Creates a mock for the LLM API client
  */
 export function mockLLMClient(responses: Record<string, any>): void {
@@ -212,6 +198,150 @@ export function mockLLMClient(responses: Record<string, any>): void {
       }),
     };
   });
+}
+
+/**
+ * Creates a mock JobData object for testing
+ */
+export function createMockJobData(
+  type: 'conversion' | 'validation' | 'analysis' | 'packaging' = 'conversion',
+  priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal'
+): any {
+  return {
+    type,
+    priority,
+    payload: {
+      modFile: 'test-mod.jar',
+      options: { preserveAssets: true },
+    },
+    options: {
+      timeout: 30000,
+      maxRetries: 3,
+      retryCount: 0,
+      priority,
+      resourceRequirements: {
+        memory: 1024,
+        cpu: 1,
+        disk: 512,
+      },
+    },
+  };
+}
+
+/**
+ * Creates a mock Job object for testing
+ */
+export function createMockJob(
+  id: string = 'test-job-1',
+  type: 'conversion' | 'validation' | 'analysis' | 'packaging' = 'conversion',
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' = 'pending'
+): any {
+  return {
+    id,
+    type,
+    priority: 'normal',
+    status,
+    payload: {
+      type,
+      data: { test: 'data' },
+      options: {
+        timeout: 30000,
+        retryCount: 0,
+        maxRetries: 3,
+        priority: 'normal',
+        resourceRequirements: {
+          memory: 1024,
+          cpu: 1,
+          disk: 512,
+        },
+      },
+    },
+    progress: {
+      stage: 'Queued',
+      percentage: 0,
+      details: {
+        currentStep: 'Waiting',
+        totalSteps: 1,
+        completedSteps: 0,
+      },
+    },
+    createdAt: new Date(),
+    retryCount: 0,
+    maxRetries: 3,
+  };
+}
+
+/**
+ * Creates a mock WorkerTask for testing
+ */
+export function createMockWorkerTask<TInput, TOutput>(
+  input: TInput,
+  execute?: (input: TInput) => Promise<TOutput> | TOutput
+): any {
+  return {
+    id: `task-${Math.random().toString(36).substr(2, 9)}`,
+    execute: execute || (async (input: TInput) => input as unknown as TOutput),
+    input,
+    priority: 1,
+  };
+}
+
+/**
+ * Creates a mock ConversionResult for testing
+ */
+export function createMockConversionResult(
+  modId: string = 'test-mod',
+  success: boolean = true
+): any {
+  return {
+    jobId: `job-${Math.random().toString(36).substr(2, 9)}`,
+    success,
+    result: success
+      ? {
+          modId,
+          manifestInfo: {
+            modId,
+            modName: `Test Mod ${modId}`,
+            version: '1.0.0',
+            author: 'Test Author',
+          },
+          registryNames: ['test_block', 'test_item'],
+          texturePaths: [`assets/${modId}/textures/block/test_block.png`],
+          analysisNotes: [
+            {
+              type: 'info' as const,
+              message: 'Successfully processed test mod',
+            },
+          ],
+          bedrockAddon: {
+            resourcePack: 'resource-pack-data',
+            behaviorPack: 'behavior-pack-data',
+          },
+          report: {
+            summary: {
+              totalFeatures: 10,
+              convertedFeatures: 8,
+              compromisedFeatures: 1,
+              failedFeatures: 1,
+            },
+          },
+          convertedFiles: [],
+        }
+      : undefined,
+    bedrockAddon: success
+      ? {
+          resourcePack: 'resource-pack-data',
+          behaviorPack: 'behavior-pack-data',
+        }
+      : undefined,
+    validation: {
+      isValid: success,
+      errors: success ? [] : [{ message: 'Test error', code: 'TEST_ERROR', severity: 'error' }],
+      warnings: [],
+    },
+    errors: success ? [] : [{ message: 'Test error', code: 'TEST_ERROR', severity: 'error' }],
+    warnings: [],
+  };
 }
 
 /**

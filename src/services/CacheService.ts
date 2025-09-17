@@ -57,7 +57,7 @@ export interface CacheKey {
 export class CacheService {
   private memoryCache: LRUCache<string, CacheEntry<any>>;
   private options: CacheOptions;
-  private metrics: CacheMetrics;
+  private metrics!: CacheMetrics; // Initialized in constructor
   private persistenceEnabled: boolean;
   private persistenceDir: string;
   private enabled: boolean;
@@ -129,6 +129,19 @@ export class CacheService {
     this.persistenceEnabled = this.options.enablePersistence!;
     this.persistenceDir = this.options.persistenceDir!;
 
+    // Initialize metrics first
+    this.metrics = {
+      hits: 0,
+      misses: 0,
+      hitRate: 0,
+      totalEntries: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
+      evictions: 0,
+      sets: 0,
+      invalidations: 0,
+    };
+
     this.memoryCache = new LRUCache({
       max: this.options.maxSize || 1000,
       ttl: this.options.defaultTTL || 3600000,
@@ -141,18 +154,6 @@ export class CacheService {
         }
       },
     });
-
-    this.metrics = {
-      hits: 0,
-      misses: 0,
-      hitRate: 0,
-      totalEntries: 0,
-      memoryUsage: 0,
-      diskUsage: 0,
-      evictions: 0,
-      sets: 0,
-      invalidations: 0,
-    };
 
     this.initializePersistence();
   }
@@ -518,23 +519,6 @@ export class CacheService {
    */
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
-  }
-
-  /**
-   * Reset metrics
-   */
-  resetMetrics(): void {
-    this.metrics = {
-      hits: 0,
-      misses: 0,
-      hitRate: 0,
-      totalEntries: 0,
-      memoryUsage: 0,
-      diskUsage: 0,
-      evictions: 0,
-      sets: 0,
-      invalidations: 0,
-    };
   }
 
   /**

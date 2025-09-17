@@ -10,7 +10,7 @@ import {
   TranslationMetadata,
   ASTTranspilationResult,
   LLMTranslationResult,
-  ValidationResult,
+  LogicValidationResult,
   RefinementIteration,
   TranslationWarning,
   CompromiseResult,
@@ -20,6 +20,7 @@ import { LLMTranslator } from './LLMTranslator.js';
 import { ProgramStateValidator } from './ProgramStateValidator.js';
 import { MMIRParser } from './MMIRParser.js';
 import { logger } from '../../utils/logger.js';
+import { CompromiseStrategyEngine } from '../compromise/CompromiseStrategyEngine.js';
 
 export interface LogicTranslationEngineOptions {
   maxRefinementIterations: number;
@@ -33,19 +34,21 @@ export class LogicTranslationEngine {
   private llmTranslator: LLMTranslator;
   private programStateValidator: ProgramStateValidator;
   private mmirParser: MMIRParser;
+  private compromiseStrategyEngine: CompromiseStrategyEngine;
   private options: LogicTranslationEngineOptions;
 
   constructor(
-    astTranspiler: ASTTranspiler,
-    llmTranslator: LLMTranslator,
-    programStateValidator: ProgramStateValidator,
-    mmirParser: MMIRParser,
+    astTranspiler?: ASTTranspiler,
+    llmTranslator?: LLMTranslator,
+    programStateValidator?: ProgramStateValidator,
+    mmirParser?: MMIRParser,
     options: Partial<LogicTranslationEngineOptions> = {}
   ) {
-    this.astTranspiler = astTranspiler;
-    this.llmTranslator = llmTranslator;
-    this.programStateValidator = programStateValidator;
-    this.mmirParser = mmirParser;
+    this.astTranspiler = astTranspiler || ({} as ASTTranspiler);
+    this.llmTranslator = llmTranslator || ({} as LLMTranslator);
+    this.programStateValidator = programStateValidator || ({} as ProgramStateValidator);
+    this.mmirParser = mmirParser || ({} as MMIRParser);
+    this.compromiseStrategyEngine = new CompromiseStrategyEngine();
     this.options = {
       maxRefinementIterations: 3,
       confidenceThreshold: 0.8,
@@ -88,8 +91,6 @@ export class LogicTranslationEngine {
       // Step 6: Iteratively refine if needed
       let finalCode = integratedCode;
       let finalValidation = validation;
-      let refinementIterations: RefinementIteration[] = [];
-
       if (!validation.isEquivalent && validation.confidence < this.options.confidenceThreshold) {
         const refinementResult = await this.refineTranslation(
           javaCode,
@@ -99,7 +100,6 @@ export class LogicTranslationEngine {
         );
         finalCode = refinementResult.code;
         finalValidation = refinementResult.validation;
-        refinementIterations = refinementResult.iterations;
       }
 
       // Step 7: Generate metadata and results
@@ -200,7 +200,7 @@ export class LogicTranslationEngine {
     originalCode: string,
     translatedCode: string,
     context: TranslationContext
-  ): Promise<ValidationResult> {
+  ): Promise<LogicValidationResult> {
     logger.debug('Validating translation functional equivalence');
     return await this.programStateValidator.validate(originalCode, translatedCode, context);
   }
@@ -211,11 +211,11 @@ export class LogicTranslationEngine {
   private async refineTranslation(
     originalCode: string,
     translatedCode: string,
-    validation: ValidationResult,
+    validation: LogicValidationResult,
     context: TranslationContext
   ): Promise<{
     code: string;
-    validation: ValidationResult;
+    validation: LogicValidationResult;
     iterations: RefinementIteration[];
   }> {
     logger.debug('Starting iterative refinement process');
@@ -312,7 +312,7 @@ export class LogicTranslationEngine {
     mmir: MMIRRepresentation,
     astResult: ASTTranspilationResult,
     llmResult: LLMTranslationResult,
-    validation: ValidationResult,
+    validation: LogicValidationResult,
     processingTime: number
   ): TranslationMetadata {
     const totalTranslatedLines = this.countLines(astResult.code) + this.countLines(llmResult.code);
@@ -393,7 +393,7 @@ export class LogicTranslationEngine {
   private consolidateWarnings(
     astResult: ASTTranspilationResult,
     llmResult: LLMTranslationResult,
-    validation: ValidationResult
+    validation: LogicValidationResult
   ): TranslationWarning[] {
     const warnings: TranslationWarning[] = [];
 
@@ -418,8 +418,8 @@ export class LogicTranslationEngine {
    * Generate refinement suggestions based on validation results
    */
   private generateRefinementSuggestions(
-    validation: ValidationResult,
-    context: TranslationContext
+    _validation: LogicValidationResult,
+    _context: TranslationContext
   ): any[] {
     // This would generate specific code changes based on validation differences
     // For now, return empty array as this is a complex implementation
@@ -431,8 +431,8 @@ export class LogicTranslationEngine {
    */
   private async applyRefinements(
     code: string,
-    suggestions: any[],
-    context: TranslationContext
+    _suggestions: any[],
+    _context: TranslationContext
   ): Promise<string> {
     // This would apply the refinement suggestions to the code
     // For now, return the original code
@@ -444,5 +444,35 @@ export class LogicTranslationEngine {
    */
   private countLines(code: string): number {
     return code.split('\n').length;
+  }
+
+  /**
+   * Translate logic code from Java to JavaScript
+   * This is an alias for translateJavaCode for backward compatibility
+   *
+   * @param javaCode The Java code to translate
+   * @param context Translation context
+   * @returns Translation result
+   */
+  async translateLogic(javaCode: string, context: TranslationContext): Promise<TranslationResult> {
+    return this.translateJavaCode(javaCode, context);
+  }
+
+  /**
+   * Get the compromise strategy engine for handling unmappable features
+   * @returns CompromiseStrategyEngine instance
+   */
+  getCompromiseStrategyEngine(): CompromiseStrategyEngine {
+    return this.compromiseStrategyEngine;
+  }
+
+  /**
+   * Register a compromise strategy for handling unmappable features
+   * @param featureType The feature type to register the strategy for
+   * @param strategy The compromise strategy to register
+   */
+  registerCompromiseStrategy(featureType: string, strategy: any): void {
+    this.compromiseStrategyEngine.registerStrategy(featureType as any, strategy);
+    logger.debug('Registered compromise strategy', { featureType, strategyId: strategy.id });
   }
 }

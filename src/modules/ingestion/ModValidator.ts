@@ -9,9 +9,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { createReadStream } from 'fs';
-import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
-import { createUnzip } from 'zlib';
 import { Extract } from 'unzipper';
 import logger from '../../utils/logger.js';
 import { randomUUID } from 'crypto';
@@ -30,6 +28,16 @@ const execAsync = promisify(exec);
  */
 export interface ModValidationResult {
   isValid: boolean;
+  /** Alias for isValid for backward compatibility */
+  valid?: boolean;
+  /** Success flag for backward compatibility */
+  success?: boolean;
+  /** Mod ID for direct access */
+  modId?: string;
+  /** Mod loader type for direct access */
+  modLoader?: 'forge' | 'fabric' | 'unknown';
+  /** Extracted mod for backward compatibility */
+  extractedMod?: any;
   modInfo?: {
     modId?: string;
     modName?: string;
@@ -136,8 +144,9 @@ export class ModValidator {
       // Step 3: Enhanced Java analysis
       const analysisResult = await this.javaAnalyzer.analyzeJarForMVP(jarPath);
 
-      if (!analysisResult.success) {
-        result.errors?.push(`Java analysis failed: ${analysisResult.error}`);
+      // Check if analysis was successful by verifying we got a valid modId
+      if (!analysisResult.modId || analysisResult.modId === 'unknown') {
+        result.errors?.push('Java analysis failed: Could not extract mod information');
         return result;
       }
 
@@ -151,13 +160,24 @@ export class ModValidator {
 
       // Combine results from enhanced analysis and legacy validation
       result.isValid = true;
+      result.valid = true; // Backward compatibility
+      result.success = true; // Backward compatibility
       result.extractedPath = extractPath;
+
+      const modId = analysisResult.modId || modStructureResult.modInfo?.modId;
+      const modLoader = (analysisResult as any).modLoader || 'unknown';
+
+      // Set direct access properties for backward compatibility
+      result.modId = modId;
+      result.modLoader = modLoader;
+      result.extractedMod = analysisResult; // For backward compatibility
+
       result.modInfo = {
-        modId: analysisResult.modId || modStructureResult.modInfo?.modId,
-        modName: analysisResult.modName || modStructureResult.modInfo?.modName,
-        modVersion: analysisResult.modVersion || modStructureResult.modInfo?.modVersion,
-        modDescription: analysisResult.modDescription,
-        modAuthor: analysisResult.modAuthor,
+        modId,
+        modName: analysisResult.manifestInfo?.modName || modStructureResult.modInfo?.modName,
+        modVersion: analysisResult.manifestInfo?.version || modStructureResult.modInfo?.modVersion,
+        modDescription: analysisResult.manifestInfo?.description,
+        modAuthor: analysisResult.manifestInfo?.author,
         registryNames: analysisResult.registryNames,
         texturePaths: analysisResult.texturePaths,
       };
@@ -177,6 +197,30 @@ export class ModValidator {
       result.errors?.push(`Enhanced validation error: ${(error as Error).message}`);
       return result;
     }
+  }
+
+  /**
+   * Alias for validateMod for test compatibility
+   * @param jarFile Buffer containing the .jar file
+   * @param filename Original filename for context
+   * @returns Enhanced ModValidationResult with security and analysis information
+   */
+  async validate(jarFile: Buffer, filename?: string): Promise<ModValidationResult> {
+    return this.validateMod(jarFile, filename);
+  }
+
+  /**
+   * Extract and validate a mod file
+   * @param jarFile Buffer containing the .jar file
+   * @param modName Optional mod name for context
+   * @returns Promise resolving to extracted mod path
+   */
+  async extractMod(jarFile: Buffer, modName?: string): Promise<string> {
+    const result = await this.validateMod(jarFile, modName);
+    if (!result.isValid || !result.extractedPath) {
+      throw new Error(`Mod extraction failed: ${result.errors?.join(', ')}`);
+    }
+    return result.extractedPath;
   }
 
   /**

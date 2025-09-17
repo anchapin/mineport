@@ -5,6 +5,16 @@
  * including initialization, lifecycle management, and dependency injection.
  */
 
+import { SourceLocation } from './base.js';
+import {
+  BedrockTextureFile,
+  BedrockModelFile,
+  BedrockSoundFile,
+  BedrockParticleFile,
+  BedrockAnimationFile,
+} from './assets.js';
+import { ConversionError, AssetConversionNote } from './errors.js';
+
 /**
  * Base interface for all modules
  */
@@ -406,7 +416,7 @@ export interface LogicTranslationOutput {
   stubFunctions: StubFunction[];
 
   /** Notes and warnings from the conversion process */
-  conversionNotes: LogicConversionNote[];
+  conversionNotes: ModuleLogicConversionNote[];
 }
 
 /**
@@ -526,30 +536,12 @@ export interface MMIRMetadata {
   properties?: Record<string, any>;
 }
 
-/**
- * Source location information
- */
-export interface SourceLocation {
-  /** File path */
-  file: string;
-
-  /** Starting line number */
-  startLine: number;
-
-  /** Ending line number */
-  endLine: number;
-
-  /** Starting column number */
-  startColumn?: number;
-
-  /** Ending column number */
-  endColumn?: number;
-}
+// SourceLocation already imported at the top of the file
 
 /**
  * Logic conversion note
  */
-export interface LogicConversionNote {
+export interface ModuleLogicConversionNote {
   /** Type/severity of the note */
   type: 'info' | 'warning' | 'error' | 'critical';
 
@@ -590,4 +582,169 @@ export interface LogicFeature {
 
   /** Line numbers where feature is used */
   sourceLineNumbers: number[][];
+}
+
+// Import asset interfaces from centralized location
+import { JavaTextureFile, JavaModelFile, JavaSoundFile } from './assets.js';
+
+/**
+ * Java asset collection interface
+ */
+export interface JavaAssetCollection {
+  textures: JavaTextureFile[];
+  models: JavaModelFile[];
+  sounds: JavaSoundFile[];
+  particles: JavaParticleFile[];
+  animations: JavaAnimationFile[];
+}
+
+/**
+ * Bedrock asset collection interface
+ */
+export interface BedrockAssetCollection {
+  textures: BedrockTextureFile[];
+  models: BedrockModelFile[];
+  sounds: BedrockSoundFile[];
+  particles: BedrockParticleFile[];
+  animations: BedrockAnimationFile[];
+  soundsJson?: object; // Optional sounds.json configuration
+}
+
+/**
+ * Asset translation result interface
+ */
+export interface AssetTranslationResult {
+  bedrockAssets: BedrockAssetCollection;
+  conversionNotes: AssetConversionNote[];
+  errors: ConversionError[];
+}
+
+// Asset interfaces already imported above
+
+/**
+ * Java particle file interface
+ */
+export interface JavaParticleFile {
+  path: string;
+  data: Buffer | object;
+  name: string;
+  textures?: string[];
+  parameters?: Record<string, any>;
+}
+
+/**
+ * Java animation file interface
+ */
+export interface JavaAnimationFile {
+  path: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+// Import Bedrock asset interfaces from centralized location
+export {
+  BedrockTextureFile,
+  BedrockModelFile,
+  BedrockSoundFile,
+  BedrockParticleFile,
+  BedrockAnimationFile,
+} from './assets.js';
+
+// Import AssetConversionNote and ConversionError from centralized error types
+export { AssetConversionNote, ConversionError } from './errors.js';
+
+/**
+ * Conversion context interface
+ */
+export interface ConversionContext {
+  modId: string;
+  modName: string;
+  modVersion: string;
+  modLoader: 'forge' | 'fabric' | 'unknown';
+  minecraftVersion: string;
+  targetBedrockVersion: string;
+  conversionOptions: ModuleConversionOptions;
+}
+
+/**
+ * Module conversion options interface
+ */
+export interface ModuleConversionOptions {
+  preserveComments: boolean;
+  generateDocumentation: boolean;
+  optimizeOutput: boolean;
+  enableExperimentalFeatures: boolean;
+}
+
+/**
+ * Bedrock configuration collection interface
+ */
+export interface BedrockConfigCollection {
+  manifests: {
+    behaviorPack: BedrockManifest;
+    resourcePack: BedrockManifest;
+  };
+  definitions: {
+    blocks: BedrockDefinitionFile[];
+    items: BedrockDefinitionFile[];
+  };
+  recipes: BedrockRecipeFile[];
+  lootTables: BedrockLootTableFile[];
+}
+
+/**
+ * Bedrock manifest interface
+ */
+export interface BedrockManifest {
+  format_version: number;
+  header: {
+    name: string;
+    description: string;
+    uuid: string;
+    version: number[];
+    min_engine_version: number[];
+  };
+  modules: BedrockModule[];
+  dependencies?: BedrockDependency[];
+}
+
+/**
+ * Bedrock module interface
+ */
+export interface BedrockModule {
+  type: string;
+  uuid: string;
+  version: number[];
+}
+
+/**
+ * Bedrock dependency interface
+ */
+export interface BedrockDependency {
+  uuid: string;
+  version: number[];
+}
+
+/**
+ * Bedrock definition file interface
+ */
+export interface BedrockDefinitionFile {
+  path: string;
+  content: object;
+}
+
+/**
+ * Bedrock recipe file interface
+ */
+export interface BedrockRecipeFile {
+  path: string;
+  content: object;
+}
+
+/**
+ * Bedrock loot table file interface
+ */
+export interface BedrockLootTableFile {
+  path: string;
+  content: object;
 }

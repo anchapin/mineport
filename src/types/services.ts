@@ -61,8 +61,8 @@ export interface ConversionJob {
  * @since 1.0.0
  */
 export interface ConversionInput {
-  /** Path to the Java mod file to convert */
-  modFile: string;
+  /** Path to the Java mod file to convert or Buffer containing the mod file */
+  modFile: string | Buffer;
   /** Output directory for the converted Bedrock addon */
   outputPath: string;
   /** Configuration options for the conversion process */
@@ -107,11 +107,38 @@ export interface ConversionStatus {
  */
 export interface ConversionResult {
   jobId: string;
-  bedrockAddon: {
+  success: boolean;
+  result?: {
+    modId: string;
+    manifestInfo: {
+      modId: string;
+      modName: string;
+      version: string;
+      author: string;
+    };
+    registryNames: string[];
+    texturePaths: string[];
+    analysisNotes: Array<{
+      type: 'info' | 'warning' | 'error';
+      message: string;
+    }>;
+    bedrockAddon: {
+      resourcePack: string;
+      behaviorPack: string;
+    };
+    report: any;
+    convertedFiles?: any[];
+    [key: string]: any;
+  };
+  bedrockAddon?: {
     resourcePack: string;
     behaviorPack: string;
   };
-  report: any;
+  validation?: {
+    isValid: boolean;
+    errors: any[];
+    warnings: any[];
+  };
   errors: any[];
   warnings: any[];
 }

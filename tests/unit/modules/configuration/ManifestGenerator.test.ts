@@ -23,7 +23,7 @@ describe('ManifestGenerator', () => {
     vi.resetAllMocks();
 
     // Mock fs.access for fileExists
-    vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.access).mockImplementation(async (filePath: any) => {
       if (
         filePath.includes('mods.toml') ||
         filePath.includes('fabric.mod.json') ||
@@ -35,7 +35,7 @@ describe('ManifestGenerator', () => {
     });
 
     // Mock fs.readFile for metadata extraction
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: string) => {
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
       if (filePath.includes('mods.toml')) {
         return `
           modId = "examplemod"
@@ -92,8 +92,8 @@ describe('ManifestGenerator', () => {
       const modPath = '/path/to/mod';
 
       // Mock fs.access to only find mods.toml
-      vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
-        if (filePath.includes('mods.toml')) {
+      vi.mocked(fs.access).mockImplementation(async (filePath) => {
+        if (filePath.toString().includes('mods.toml')) {
           return Promise.resolve();
         }
         return Promise.reject(new Error('File not found'));
@@ -119,8 +119,8 @@ describe('ManifestGenerator', () => {
       const modPath = '/path/to/mod';
 
       // Mock fs.access to only find fabric.mod.json
-      vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
-        if (filePath.includes('fabric.mod.json')) {
+      vi.mocked(fs.access).mockImplementation(async (filePath) => {
+        if (filePath.toString().includes('fabric.mod.json')) {
           return Promise.resolve();
         }
         return Promise.reject(new Error('File not found'));
@@ -146,8 +146,8 @@ describe('ManifestGenerator', () => {
       const modPath = '/path/to/mod';
 
       // Mock fs.access to only find mcmod.info
-      vi.mocked(fs.access).mockImplementation(async (filePath: string) => {
-        if (filePath.includes('mcmod.info')) {
+      vi.mocked(fs.access).mockImplementation(async (filePath) => {
+        if (filePath.toString().includes('mcmod.info')) {
           return Promise.resolve();
         }
         return Promise.reject(new Error('File not found'));

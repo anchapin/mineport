@@ -220,7 +220,7 @@ describe('Packaging Pipeline Integration', () => {
     const licenseEmbedder = new LicenseEmbedder();
 
     // Embed license
-    const licenseResult = await licenseEmbedder.embed(
+    const licenseResult = await licenseEmbedder.embedLicense(
       {
         type: 'MIT',
         author: 'Test Author',
@@ -229,11 +229,12 @@ describe('Packaging Pipeline Integration', () => {
         compatible: true,
       },
       {
-        behaviorPackDir,
-        resourcePackDir,
         modId: 'mock-forge-mod',
         modName: 'Mock Forge Mod',
-      }
+        author: 'Test Author',
+        version: '1.0.0',
+      },
+      outputDir
     );
 
     expect(licenseResult.success).toBe(true);
@@ -245,13 +246,12 @@ describe('Packaging Pipeline Integration', () => {
     // Create addon validator
     const addonValidator = new AddonValidator();
 
-    // Validate behavior pack
-    const behaviorValidation = await addonValidator.validateBehaviorPack(behaviorPackDir);
-    expect(behaviorValidation.valid).toBe(true);
-
-    // Validate resource pack
-    const resourceValidation = await addonValidator.validateResourcePack(resourcePackDir);
-    expect(resourceValidation.valid).toBe(true);
+    // Validate addon
+    const addonValidation = await addonValidator.validateAddon({
+      behaviorPackPath: behaviorPackDir,
+      resourcePackPath: resourcePackDir,
+    });
+    expect(addonValidation.valid).toBe(true);
   });
 
   it('should generate a conversion report', async () => {
@@ -259,47 +259,50 @@ describe('Packaging Pipeline Integration', () => {
     const reportGenerator = new ConversionReportGenerator();
 
     // Generate report
-    const report = await reportGenerator.generate({
-      modId: 'mock-forge-mod',
-      modName: 'Mock Forge Mod',
-      modVersion: '1.0.0',
-      modLoader: 'forge',
-      conversionDate: new Date(),
-      features: [
-        {
-          id: 'feature-1',
-          name: 'Custom Block',
-          description: 'A custom block implementation',
-          type: 'BLOCK',
-          compatibilityTier: 1,
-          sourceFiles: ['src/main/java/com/example/mockmod/blocks/CustomBlock.java'],
+    const report = await reportGenerator.generateReport(
+      {
+        modId: 'mock-forge-mod',
+        modName: 'Mock Forge Mod',
+        modVersion: '1.0.0',
+        modLoader: 'forge',
+        conversionDate: new Date(),
+        features: [
+          {
+            id: 'feature-1',
+            name: 'Custom Block',
+            description: 'A custom block implementation',
+            type: 'BLOCK',
+            compatibilityTier: 1,
+            sourceFiles: ['src/main/java/com/example/mockmod/blocks/CustomBlock.java'],
+          },
+          {
+            id: 'feature-2',
+            name: 'Custom Item',
+            description: 'A custom item implementation',
+            type: 'ITEM',
+            compatibilityTier: 1,
+            sourceFiles: ['src/main/java/com/example/mockmod/items/CustomItem.java'],
+          },
+        ],
+        assets: {
+          textures: 2,
+          models: 1,
+          sounds: 0,
         },
-        {
-          id: 'feature-2',
-          name: 'Custom Item',
-          description: 'A custom item implementation',
-          type: 'ITEM',
-          compatibilityTier: 1,
-          sourceFiles: ['src/main/java/com/example/mockmod/items/CustomItem.java'],
+        configuration: {
+          blocks: 1,
+          items: 1,
+          recipes: 0,
+          lootTables: 0,
         },
-      ],
-      assets: {
-        textures: 2,
-        models: 1,
-        sounds: 0,
+        scripts: {
+          generatedFiles: 1,
+          totalLines: 10,
+        },
+        compromises: [],
       },
-      configuration: {
-        blocks: 1,
-        items: 1,
-        recipes: 0,
-        lootTables: 0,
-      },
-      scripts: {
-        generatedFiles: 1,
-        totalLines: 10,
-      },
-      compromises: [],
-    });
+      outputDir
+    );
 
     expect(report).toBeDefined();
     expect(report.html).toBeDefined();
@@ -322,26 +325,29 @@ describe('Packaging Pipeline Integration', () => {
     const guideGenerator = new ManualPostProcessingGuide();
 
     // Generate guide
-    const guide = await guideGenerator.generate({
-      modId: 'mock-forge-mod',
-      modName: 'Mock Forge Mod',
-      manualSteps: [
-        {
-          id: 'step-1',
-          title: 'Configure Custom Block Properties',
-          description: 'Adjust the custom block properties in the blocks/custom_block.json file.',
-          priority: 'high',
-          codeSnippet:
-            '{\n  "minecraft:block": {\n    "components": {\n      "minecraft:material": { "stone": true },\n      // Add additional properties here\n    }\n  }\n}',
-        },
-        {
-          id: 'step-2',
-          title: 'Test the Addon In-Game',
-          description: 'Import the addon into Minecraft and test all features.',
-          priority: 'medium',
-        },
-      ],
-    });
+    const guide = await guideGenerator.generateGuide(
+      {
+        modId: 'mock-forge-mod',
+        modName: 'Mock Forge Mod',
+        manualSteps: [
+          {
+            id: 'step-1',
+            title: 'Configure Custom Block Properties',
+            description: 'Adjust the custom block properties in the blocks/custom_block.json file.',
+            priority: 'high',
+            codeSnippet:
+              '{\n  "minecraft:block": {\n    "components": {\n      "minecraft:material": { "stone": true },\n      // Add additional properties here\n    }\n  }\n}',
+          },
+          {
+            id: 'step-2',
+            title: 'Test the Addon In-Game',
+            description: 'Import the addon into Minecraft and test all features.',
+            priority: 'medium',
+          },
+        ],
+      },
+      outputDir
+    );
 
     expect(guide).toBeDefined();
     expect(guide.markdown).toBeDefined();
@@ -358,13 +364,40 @@ describe('Packaging Pipeline Integration', () => {
     const addonPackager = new AddonPackager();
 
     // Package the addon
-    const packageResult = await addonPackager.package({
-      behaviorPackDir,
-      resourcePackDir,
-      outputDir,
-      modId: 'mock-forge-mod',
-      modName: 'Mock Forge Mod',
-      includeSource: true,
+    const packageResult = await addonPackager.createAddon({
+      outputPath: outputDir,
+      bedrockConfigs: {
+        manifests: {
+          behaviorPack: {
+            format_version: 2,
+            header: {
+              name: 'Mock Forge Mod',
+              description: 'A mock Forge mod for testing',
+              uuid: '00000000-0000-0000-0000-000000000001',
+              version: [1, 0, 0],
+              min_engine_version: [1, 19, 0],
+            },
+            modules: [],
+          },
+          resourcePack: {
+            format_version: 2,
+            header: {
+              name: 'Mock Forge Mod Resources',
+              description: 'Resources for Mock Forge Mod',
+              uuid: '00000000-0000-0000-0000-000000000004',
+              version: [1, 0, 0],
+              min_engine_version: [1, 19, 0],
+            },
+            modules: [],
+          },
+        },
+      },
+      behaviorPackFiles: [],
+      resourcePackFiles: [],
+      documentation: {
+        conversionReport: { html: '', json: '', markdown: '' },
+        postProcessingGuide: { html: '', markdown: '' },
+      },
     });
 
     expect(packageResult.success).toBe(true);

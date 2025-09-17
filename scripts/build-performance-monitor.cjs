@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 /**
  * Build Performance Monitor
@@ -37,15 +37,15 @@ class BuildPerformanceMonitor {
   startPhase(phaseName) {
     const startTime = Date.now();
     const startMemory = process.memoryUsage();
-    
+
     console.log(`📊 Starting build phase: ${phaseName}`);
-    
+
     this.metrics.buildTimes[phaseName] = {
       startTime,
       startMemory,
       status: 'running'
     };
-    
+
     return {
       phaseName,
       startTime,
@@ -59,7 +59,7 @@ class BuildPerformanceMonitor {
   endPhase(phaseName, success = true, additionalMetrics = {}) {
     const endTime = Date.now();
     const endMemory = process.memoryUsage();
-    
+
     if (!this.metrics.buildTimes[phaseName]) {
       console.warn(`⚠️ Phase ${phaseName} was not started`);
       return;
@@ -85,7 +85,7 @@ class BuildPerformanceMonitor {
 
     const statusIcon = success ? '✅' : '❌';
     console.log(`${statusIcon} Build phase ${phaseName} ${success ? 'completed' : 'failed'} in ${this.formatDuration(duration)}`);
-    
+
     // Check for performance issues
     this.checkPhasePerformance(phaseName, duration, memoryDelta);
   }
@@ -104,7 +104,7 @@ class BuildPerformanceMonitor {
     }
 
     const cache = this.metrics.cacheMetrics[cacheType];
-    
+
     if (hit) {
       cache.hits++;
       console.log(`🎯 Cache hit for ${cacheType}: ${cacheKey}`);
@@ -123,7 +123,7 @@ class BuildPerformanceMonitor {
 
     // Calculate hit rate
     const hitRate = cache.hits / (cache.hits + cache.misses);
-    
+
     // Warn about low hit rates
     if (hitRate < 0.5 && (cache.hits + cache.misses) > 5) {
       this.addWarning(`Low cache hit rate for ${cacheType}: ${(hitRate * 100).toFixed(1)}%`);
@@ -137,7 +137,7 @@ class BuildPerformanceMonitor {
     const usage = process.resourceUsage();
     const memUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
-    
+
     this.metrics.resourceUsage = {
       timestamp: Date.now(),
       memory: {
@@ -189,15 +189,15 @@ class BuildPerformanceMonitor {
   monitorTypeScriptBuild() {
     const tsconfigPath = path.join(process.cwd(), 'tsconfig.json');
     const buildInfoPath = path.join(process.cwd(), 'tsconfig.tsbuildinfo');
-    
+
     let tsConfig = {};
     let buildInfo = {};
-    
+
     try {
       if (fs.existsSync(tsconfigPath)) {
         tsConfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
       }
-      
+
       if (fs.existsSync(buildInfoPath)) {
         buildInfo = JSON.parse(fs.readFileSync(buildInfoPath, 'utf8'));
       }
@@ -287,7 +287,7 @@ class BuildPerformanceMonitor {
    */
   checkResourceUsage() {
     const { memory, platform } = this.metrics.resourceUsage;
-    
+
     // Check memory usage
     const memoryUsagePercent = (memory.heapUsed / platform.totalMemory) * 100;
     if (memoryUsagePercent > 80) {
@@ -336,7 +336,7 @@ class BuildPerformanceMonitor {
    */
   generateReport() {
     const totalDuration = Date.now() - this.startTime;
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       totalDuration,
@@ -503,7 +503,7 @@ class BuildPerformanceMonitor {
     markdown += `## Build Phases\n\n`;
     markdown += `| Phase | Duration | Status | Memory Usage |\n`;
     markdown += `|-------|----------|--------|-------------|\n`;
-    
+
     for (const [phaseName, phase] of Object.entries(report.buildTimes)) {
       const status = phase.status === 'completed' ? '✅' : phase.status === 'failed' ? '❌' : '⏳';
       const memoryUsage = phase.memoryDelta ? this.formatBytes(phase.memoryDelta.heapUsed) : 'N/A';
@@ -516,7 +516,7 @@ class BuildPerformanceMonitor {
       markdown += `## Cache Performance\n\n`;
       markdown += `| Cache Type | Hit Rate | Hits | Misses | Total Size |\n`;
       markdown += `|------------|----------|------|--------|------------|\n`;
-      
+
       for (const [cacheType, cache] of Object.entries(report.cacheMetrics)) {
         const hitRate = cache.hits + cache.misses > 0 ? (cache.hits / (cache.hits + cache.misses) * 100).toFixed(1) : '0';
         markdown += `| ${cacheType} | ${hitRate}% | ${cache.hits} | ${cache.misses} | ${this.formatBytes(cache.totalSize)} |\n`;
@@ -532,7 +532,7 @@ class BuildPerformanceMonitor {
       markdown += `- Heap Total: ${this.formatBytes(report.resourceUsage.memory.heapTotal)}\n`;
       markdown += `- RSS: ${this.formatBytes(report.resourceUsage.memory.rss)}\n`;
       markdown += `- External: ${this.formatBytes(report.resourceUsage.memory.external)}\n\n`;
-      
+
       markdown += `**System:**\n`;
       markdown += `- CPUs: ${report.resourceUsage.platform.cpus}\n`;
       markdown += `- Total Memory: ${this.formatBytes(report.resourceUsage.platform.totalMemory)}\n`;
@@ -577,7 +577,7 @@ class BuildPerformanceMonitor {
    */
   updateHistory(report) {
     let history = { builds: [] };
-    
+
     if (fs.existsSync(this.historyFile)) {
       try {
         history = JSON.parse(fs.readFileSync(this.historyFile, 'utf8'));
@@ -601,7 +601,7 @@ class BuildPerformanceMonitor {
       }, {}),
       cacheHitRates: Object.keys(report.cacheMetrics).reduce((acc, cache) => {
         const metrics = report.cacheMetrics[cache];
-        acc[cache] = metrics.hits + metrics.misses > 0 ? 
+        acc[cache] = metrics.hits + metrics.misses > 0 ?
           (metrics.hits / (metrics.hits + metrics.misses)) : 0;
         return acc;
       }, {}),
@@ -628,14 +628,14 @@ class BuildPerformanceMonitor {
     try {
       const history = JSON.parse(fs.readFileSync(this.historyFile, 'utf8'));
       const builds = history.builds;
-      
+
       if (builds.length < 2) {
         return [];
       }
 
       const latest = builds[builds.length - 1];
       const baseline = builds.slice(0, builds.length - 1);
-      
+
       // Calculate baseline averages
       const baselineAvg = {
         totalDuration: baseline.reduce((sum, b) => sum + b.totalDuration, 0) / baseline.length,
@@ -647,7 +647,7 @@ class BuildPerformanceMonitor {
         const phaseDurations = baseline
           .filter(b => b.phases[phase])
           .map(b => b.phases[phase].duration);
-        
+
         if (phaseDurations.length > 0) {
           baselineAvg.phases[phase] = phaseDurations.reduce((sum, d) => sum + d, 0) / phaseDurations.length;
         }
@@ -708,11 +708,11 @@ class BuildPerformanceMonitor {
 
   getDirectorySize(dirPath) {
     if (!fs.existsSync(dirPath)) return 0;
-    
+
     try {
       let totalSize = 0;
       const files = fs.readdirSync(dirPath, { withFileTypes: true });
-      
+
       for (const file of files) {
         const filePath = path.join(dirPath, file.name);
         if (file.isDirectory()) {
@@ -721,7 +721,7 @@ class BuildPerformanceMonitor {
           totalSize += fs.statSync(filePath).size;
         }
       }
-      
+
       return totalSize;
     } catch (error) {
       return 0;
@@ -730,7 +730,7 @@ class BuildPerformanceMonitor {
 
   countPackages(nodeModulesPath) {
     if (!fs.existsSync(nodeModulesPath)) return 0;
-    
+
     try {
       return fs.readdirSync(nodeModulesPath, { withFileTypes: true })
         .filter(dirent => dirent.isDirectory() && !dirent.name.startsWith('.'))
@@ -742,60 +742,60 @@ class BuildPerformanceMonitor {
 }
 
 // CLI interface
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   const monitor = new BuildPerformanceMonitor();
-  
+
   const command = process.argv[2];
-  
+
   switch (command) {
     case 'start':
       const phase = process.argv[3];
       if (!phase) {
-        console.error('Usage: build-performance-monitor.js start <phase-name>');
+        console.error('Usage: build-performance-monitor.cjs start <phase-name>');
         process.exit(1);
       }
       monitor.startPhase(phase);
       break;
-      
+
     case 'end':
       const endPhase = process.argv[3];
       const success = process.argv[4] !== 'false';
       if (!endPhase) {
-        console.error('Usage: build-performance-monitor.js end <phase-name> [success]');
+        console.error('Usage: build-performance-monitor.cjs end <phase-name> [success]');
         process.exit(1);
       }
       monitor.endPhase(endPhase, success);
       break;
-      
+
     case 'cache':
       const cacheType = process.argv[3];
       const cacheKey = process.argv[4];
       const hit = process.argv[5] === 'true';
       const size = parseInt(process.argv[6]) || 0;
       if (!cacheType || !cacheKey) {
-        console.error('Usage: build-performance-monitor.js cache <type> <key> <hit> [size]');
+        console.error('Usage: build-performance-monitor.cjs cache <type> <key> <hit> [size]');
         process.exit(1);
       }
       monitor.monitorCachePerformance(cacheType, cacheKey, hit, size);
       break;
-      
+
     case 'resource':
       monitor.monitorResourceUsage();
       break;
-      
+
     case 'typescript':
       monitor.monitorTypeScriptBuild();
       break;
-      
+
     case 'dependencies':
       const packageManager = process.argv[3] || 'npm';
       monitor.monitorDependencyInstallation(packageManager);
       break;
-      
+
     case 'report':
       monitor.generateReport();
       break;
-      
+
     case 'regressions':
       const threshold = parseFloat(process.argv[3]) || 0.2;
       const regressions = monitor.detectRegressions(threshold);
@@ -814,26 +814,26 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         console.log('No performance regressions detected');
       }
       break;
-      
+
     case 'pipeline-metrics':
       // Generate pipeline metrics from the latest report
       const reportFiles = fs.readdirSync(monitor.reportDir)
         .filter(file => file.startsWith('build-report-') && file.endsWith('.json'))
         .sort()
         .reverse();
-      
+
       if (reportFiles.length === 0) {
         console.error('No build reports found. Run "report" command first.');
         process.exit(1);
       }
-      
+
       const latestReportPath = path.join(monitor.reportDir, reportFiles[0]);
       const latestReport = JSON.parse(fs.readFileSync(latestReportPath, 'utf8'));
       monitor.generatePipelineMetrics(latestReport);
       break;
-      
+
     default:
-      console.log('Usage: build-performance-monitor.js <command> [args...]');
+      console.log('Usage: build-performance-monitor.cjs <command> [args...]');
       console.log('Commands:');
       console.log('  start <phase>              - Start monitoring a build phase');
       console.log('  end <phase> [success]      - End monitoring a build phase');
@@ -848,4 +848,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 }
 
-export { BuildPerformanceMonitor };
+module.exports = { BuildPerformanceMonitor };

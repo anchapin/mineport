@@ -2,7 +2,7 @@
 
 /**
  * Version Consistency Validation Script
- * 
+ *
  * Validates that version numbers are consistent across package.json and all
  * documentation files. Ensures that version references in documentation
  * stay synchronized with the actual package version.
@@ -63,14 +63,14 @@ const results = {
  */
 async function validateVersionConsistency() {
   console.log('🔢 Starting version consistency validation...\n');
-  
+
   try {
     // Load package.json
     await loadPackageInfo();
-    
+
     console.log(`Package: ${results.packageName}`);
     console.log(`Current version: ${results.packageVersion}\n`);
-    
+
     // Check each documentation file
     for (const filePath of CONFIG.documentationFiles) {
       if (await fileExists(filePath)) {
@@ -83,14 +83,14 @@ async function validateVersionConsistency() {
         });
       }
     }
-    
+
     generateReport();
-    
+
     // Exit with error code if validation fails
     if (results.inconsistencies.length > 0 || results.errors.length > 0) {
       process.exit(1);
     }
-    
+
   } catch (error) {
     console.error('❌ Version consistency validation failed:', error.message);
     process.exit(1);
@@ -104,18 +104,18 @@ async function loadPackageInfo() {
   try {
     const packageContent = await fs.promises.readFile(CONFIG.packageJsonPath, 'utf8');
     const packageData = JSON.parse(packageContent);
-    
+
     results.packageVersion = packageData.version;
     results.packageName = packageData.name;
-    
+
     if (!results.packageVersion) {
       throw new Error('No version found in package.json');
     }
-    
+
     if (!results.packageName) {
       throw new Error('No name found in package.json');
     }
-    
+
   } catch (error) {
     throw new Error(`Failed to load package.json: ${error.message}`);
   }
@@ -123,7 +123,7 @@ async function loadPackageInfo() {
 
 /**
  * Check if a file exists
- * 
+ *
  * @param {string} filePath - Path to check
  * @returns {Promise<boolean>} True if file exists
  */
@@ -138,22 +138,22 @@ async function fileExists(filePath) {
 
 /**
  * Validate version references in a single file
- * 
+ *
  * @param {string} filePath - Path to the file to validate
  */
 async function validateFileVersions(filePath) {
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');
     const relativePath = path.relative(process.cwd(), filePath);
-    
+
     console.log(`Checking versions in: ${relativePath}`);
-    
+
     const versionRefs = extractVersionReferences(content, filePath);
-    
+
     for (const ref of versionRefs) {
       validateVersionReference(ref, relativePath);
     }
-    
+
   } catch (error) {
     results.errors.push({
       file: filePath,
@@ -164,7 +164,7 @@ async function validateFileVersions(filePath) {
 
 /**
  * Extract version references from file content
- * 
+ *
  * @param {string} content - File content
  * @param {string} filePath - File path for context
  * @returns {Array} Array of version reference objects
@@ -172,27 +172,27 @@ async function validateFileVersions(filePath) {
 function extractVersionReferences(content, filePath) {
   const references = [];
   const lines = content.split('\n');
-  
+
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex];
     const lineNumber = lineIndex + 1;
-    
+
     // Check each version pattern
     for (const pattern of CONFIG.versionPatterns) {
       let match;
       pattern.lastIndex = 0; // Reset regex state
-      
+
       while ((match = pattern.exec(line)) !== null) {
         const fullMatch = match[0];
         const versionMatch = match[1] || match[2]; // Different patterns capture version in different groups
-        
+
         if (versionMatch && isValidVersion(versionMatch)) {
           // Check if this should be excluded
           const shouldExclude = CONFIG.excludePatterns.some(excludePattern => {
             excludePattern.lastIndex = 0;
             return excludePattern.test(fullMatch);
           });
-          
+
           if (!shouldExclude) {
             references.push({
               version: versionMatch,
@@ -206,13 +206,13 @@ function extractVersionReferences(content, filePath) {
       }
     }
   }
-  
+
   return references;
 }
 
 /**
  * Check if a string is a valid semantic version
- * 
+ *
  * @param {string} version - Version string to validate
  * @returns {boolean} True if valid version
  */
@@ -223,15 +223,15 @@ function isValidVersion(version) {
 
 /**
  * Validate a single version reference
- * 
+ *
  * @param {Object} ref - Version reference object
  * @param {string} relativePath - Relative file path for reporting
  */
 function validateVersionReference(ref, relativePath) {
   results.versionReferences.push(ref);
-  
+
   const { version, context, line, column } = ref;
-  
+
   // Check if version matches package version
   if (version !== results.packageVersion) {
     // Special handling for changelog files - they may contain historical versions
@@ -266,7 +266,7 @@ function validateVersionReference(ref, relativePath) {
 
 /**
  * Check if a context suggests this is referencing the current version
- * 
+ *
  * @param {string} context - The context string containing the version
  * @returns {boolean} True if this appears to be a current version reference
  */
@@ -279,7 +279,7 @@ function isCurrentVersionReference(context) {
     /badge/i,
     /install/i
   ];
-  
+
   return currentVersionIndicators.some(indicator => indicator.test(context));
 }
 
@@ -295,7 +295,7 @@ function generateReport() {
   console.log(`Version references found: ${results.versionReferences.length}`);
   console.log(`Inconsistencies: ${results.inconsistencies.length}`);
   console.log('');
-  
+
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
@@ -304,16 +304,16 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Version references summary
   if (results.versionReferences.length > 0) {
     console.log('📋 Version References Found:');
     const groupedRefs = groupVersionReferences(results.versionReferences);
-    
+
     Object.entries(groupedRefs).forEach(([version, refs]) => {
       const status = version === results.packageVersion ? '✅' : '❌';
       console.log(`  ${status} ${version} (${refs.length} references)`);
-      
+
       refs.forEach(ref => {
         const relativePath = path.relative(process.cwd(), ref.file);
         console.log(`    ${relativePath}:${ref.line} - ${ref.context.substring(0, 60)}${ref.context.length > 60 ? '...' : ''}`);
@@ -321,7 +321,7 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Inconsistencies
   if (results.inconsistencies.length > 0) {
     console.log(`❌ Version Inconsistencies (${results.inconsistencies.length}):`);
@@ -333,7 +333,7 @@ function generateReport() {
       console.log('');
     });
   }
-  
+
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Processing Errors (${results.errors.length}):`);
@@ -342,7 +342,7 @@ function generateReport() {
     });
     console.log('');
   }
-  
+
   // Summary
   if (results.inconsistencies.length === 0 && results.errors.length === 0) {
     console.log('✅ All version references are consistent!');
@@ -355,7 +355,7 @@ function generateReport() {
       console.log(`   ${results.errors.length} processing errors occurred`);
     }
   }
-  
+
   // Recommendations
   if (results.inconsistencies.length > 0) {
     console.log('\n💡 Recommendations:');
@@ -367,7 +367,7 @@ function generateReport() {
 
 /**
  * Group version references by version number
- * 
+ *
  * @param {Array} references - Array of version reference objects
  * @returns {Object} Grouped references by version
  */

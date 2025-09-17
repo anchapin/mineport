@@ -4,9 +4,9 @@
  * This hook provides functionality for the conversion process using the ConversionContext.
  */
 
-import { useCallback, useEffect } from 'react';
-import { ConversionAPIServiceImpl } from '../services.js';
-import { UserPreferences } from '../types.js';
+import { useCallback } from 'react';
+import { ConversionAPIServiceImpl } from '../services/index.js';
+import { UserPreferences } from '../types/index.js';
 import { useConversionContext } from '../context/ConversionContext.js';
 
 export const useConversion = () => {
@@ -22,7 +22,8 @@ export const useConversion = () => {
     resetState,
   } = useConversionContext();
 
-  const { uploadState, conversionProgress, conversionJob, userPreferences } = state;
+  const { uploadState, conversionProgress, conversionJob, userPreferences, conversionResult } =
+    state;
 
   // Create API service instance
   const apiService = useCallback(() => {
@@ -461,6 +462,13 @@ export const useConversion = () => {
     uploadState,
     conversionProgress,
     conversionJob,
+    state: {
+      userPreferences,
+      uploadState,
+      conversionProgress,
+      conversionJob,
+      conversionResult,
+    },
     handleFileSelected,
     handleSourceRepoChange,
     handlePreferencesChange,

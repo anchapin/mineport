@@ -12,6 +12,9 @@ import { EventEmitter } from 'events';
 import { PerformanceObserver } from 'perf_hooks';
 import logger from '../utils/logger.js';
 
+/**
+ * Performance metrics collected from the system and process
+ */
 export interface PerformanceMetrics {
   timestamp: Date;
   cpu: {
@@ -46,6 +49,9 @@ export interface PerformanceMetrics {
   };
 }
 
+/**
+ * Performance profile for tracking operation performance
+ */
 export interface PerformanceProfile {
   name: string;
   startTime: number;
@@ -58,6 +64,9 @@ export interface PerformanceProfile {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Performance alert for notifying about performance issues
+ */
 export interface PerformanceAlert {
   type: 'cpu' | 'memory' | 'gc' | 'custom';
   severity: 'low' | 'medium' | 'high' | 'critical';
@@ -68,6 +77,9 @@ export interface PerformanceAlert {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Configuration options for performance monitoring
+ */
 export interface MonitoringOptions {
   interval: number; // milliseconds
   enableGCMonitoring: boolean;
@@ -83,7 +95,7 @@ export interface MonitoringOptions {
 }
 
 /**
- * Performance monitoring and profiling service
+ * Performance monitoring and profiling service for tracking system metrics and identifying bottlenecks
  */
 export class PerformanceMonitor extends EventEmitter {
   private options: MonitoringOptions;
@@ -122,6 +134,7 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Start performance monitoring
+   * @returns void
    */
   startMonitoring(): void {
     if (this.monitoringTimer) {
@@ -137,6 +150,7 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Stop performance monitoring
+   * @returns void
    */
   stopMonitoring(): void {
     if (this.monitoringTimer) {
@@ -149,6 +163,9 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Start profiling a specific operation
+   * @param name - Unique name for the profiling session
+   * @param metadata - Optional metadata to associate with the profile
+   * @returns The profile name for reference
    */
   startProfile(name: string, metadata?: Record<string, any>): string {
     if (!this.options.enableProfiling) {
@@ -171,6 +188,8 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * End profiling and return results
+   * @param name - Name of the profiling session to end
+   * @returns Performance profile results or null if not found
    */
   endProfile(name: string): PerformanceProfile | null {
     if (!this.options.enableProfiling) {
@@ -194,7 +213,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Collect current performance metrics
+   * Collect current performance metrics from system and process
+   * @returns void
    */
   private collectMetrics(): void {
     const now = new Date();
@@ -256,7 +276,9 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Calculate CPU usage percentage
+   * Calculate CPU usage percentage from CPU usage data
+   * @param cpuUsage - CPU usage data from process.cpuUsage()
+   * @returns CPU usage as a percentage (0-100)
    */
   private calculateCpuUsage(cpuUsage: NodeJS.CpuUsage): number {
     const totalUsage = cpuUsage.user + cpuUsage.system;
@@ -265,7 +287,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Setup garbage collection monitoring
+   * Setup garbage collection monitoring and event listeners
+   * @returns void
    */
   private setupGCMonitoring(): void {
     if (!this.options.enableGCMonitoring) {
@@ -275,9 +298,9 @@ export class PerformanceMonitor extends EventEmitter {
     // Enable GC monitoring if available
     if (typeof global.gc === 'function') {
       const originalGC = global.gc;
-      global.gc = () => {
+      global.gc = async () => {
         const start = Date.now();
-        originalGC();
+        await originalGC();
         const duration = Date.now() - start;
 
         this.gcStats.collections++;
@@ -315,7 +338,9 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Check for performance alerts
+   * Check for performance alerts based on current metrics
+   * @param metrics - Current performance metrics to evaluate
+   * @returns void
    */
   private checkAlerts(metrics: PerformanceMetrics): void {
     if (!this.options.enableAlerts) {
@@ -375,7 +400,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Clean up old metrics
+   * Clean up old metrics beyond the retention period
+   * @returns void
    */
   private cleanupOldMetrics(): void {
     const cutoff = Date.now() - this.options.retentionPeriod;
@@ -383,7 +409,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Clean up old alerts
+   * Clean up old alerts beyond the retention period
+   * @returns void
    */
   private cleanupOldAlerts(): void {
     const cutoff = Date.now() - this.options.retentionPeriod;
@@ -392,6 +419,14 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Get current metrics
+   * @returns Latest performance metrics or null if none available
+   * @example
+   * ```typescript
+   * const current = monitor.getCurrentMetrics();
+   * if (current) {
+   *   console.log(`CPU usage: ${current.cpu.usage}%`);
+   * }
+   * ```
    */
   getCurrentMetrics(): PerformanceMetrics | null {
     return this.metrics.length > 0 ? this.metrics[this.metrics.length - 1] : null;
@@ -399,6 +434,13 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Get metrics history
+   * @param limit - Optional limit on number of metrics to return
+   * @returns Array of performance metrics in chronological order
+   * @example
+   * ```typescript
+   * const last10 = monitor.getMetricsHistory(10);
+   * const avgCpu = last10.reduce((sum, m) => sum + m.cpu.usage, 0) / last10.length;
+   * ```
    */
   getMetricsHistory(limit?: number): PerformanceMetrics[] {
     const metrics = [...this.metrics];
@@ -407,6 +449,12 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Get active profiles
+   * @returns Array of currently running performance profiles
+   * @example
+   * ```typescript
+   * const activeProfiles = monitor.getActiveProfiles();
+   * console.log(`${activeProfiles.length} operations being profiled`);
+   * ```
    */
   getActiveProfiles(): PerformanceProfile[] {
     return Array.from(this.profiles.values());
@@ -414,6 +462,8 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Get recent alerts
+   * @param limit - Optional limit on number of alerts to return
+   * @returns Array of recent performance alerts
    */
   getRecentAlerts(limit?: number): PerformanceAlert[] {
     const alerts = [...this.alerts].reverse(); // Most recent first
@@ -422,6 +472,13 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Get performance summary
+   * @returns Comprehensive performance summary with current metrics, averages, and alert counts
+   * @example
+   * ```typescript
+   * const summary = monitor.getPerformanceSummary();
+   * console.log(`Average CPU: ${summary.averages.cpuUsage}%`);
+   * console.log(`Active alerts: ${summary.alerts.total}`);
+   * ```
    */
   getPerformanceSummary(): {
     current: PerformanceMetrics | null;
@@ -475,10 +532,11 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Force garbage collection (if available)
+   * @returns True if GC was triggered, false if not available
    */
-  forceGC(): boolean {
+  async forceGC(): Promise<boolean> {
     if (typeof global.gc === 'function') {
-      global.gc();
+      await global.gc();
       return true;
     }
     return false;
@@ -486,6 +544,13 @@ export class PerformanceMonitor extends EventEmitter {
 
   /**
    * Create a custom alert
+   * @param type - Custom type identifier for the alert
+   * @param severity - Severity level of the alert
+   * @param message - Human-readable alert message
+   * @param value - Current value that triggered the alert
+   * @param threshold - Threshold value that was exceeded
+   * @param metadata - Optional additional metadata
+   * @returns void
    */
   createAlert(
     type: string,
@@ -510,7 +575,8 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   /**
-   * Destroy the performance monitor
+   * Destroy the performance monitor and clean up resources
+   * @returns void
    */
   destroy(): void {
     this.stopMonitoring();

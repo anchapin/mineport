@@ -19,7 +19,7 @@ describe('RenderingStubGenerator', () => {
   let testFeature: Feature;
 
   beforeEach(() => {
-    generator = new RenderingStubGenerator(mockLogger);
+    generator = new RenderingStubGenerator();
 
     testFeature = {
       id: 'custom-renderer',
@@ -59,14 +59,14 @@ describe('RenderingStubGenerator', () => {
     const javaCode = `
       public class CustomShader {
         private ShaderProgram shaderProgram;
-        
+
         public void init() {
           shaderProgram = new ShaderProgram();
           shaderProgram.attachShader(GL20.GL_VERTEX_SHADER, vertexSource);
           shaderProgram.attachShader(GL20.GL_FRAGMENT_SHADER, fragmentSource);
           shaderProgram.link();
         }
-        
+
         public void use() {
           shaderProgram.use();
           glUniform1f(timeUniform, Minecraft.getSystemTime() / 1000.0f);
@@ -86,16 +86,16 @@ describe('RenderingStubGenerator', () => {
       public class ComplexRenderer extends TileEntitySpecialRenderer {
         private ShaderProgram shaderProgram;
         private ModelRenderer modelRenderer;
-        
+
         @Override
         public void render(TileEntity tileEntity, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
           // Apply shader
           shaderProgram.use();
           glUniform1f(timeUniform, Minecraft.getSystemTime() / 1000.0f);
-          
+
           // Render model
           modelRenderer.render(null, 0, 0, 0, 0, 0, 1.0f);
-          
+
           // Draw GUI elements
           drawRect(10, 10, 100, 100, 0xFFFFFFFF);
           drawString(Minecraft.getMinecraft().fontRenderer, "Hello", 20, 20, 0xFFFFFFFF);
@@ -188,11 +188,11 @@ describe('RenderingStubGenerator', () => {
     const javaCode = `
       public class SimpleClass {
         private String name;
-        
+
         public SimpleClass(String name) {
           this.name = name;
         }
-        
+
         public String getName() {
           return name;
         }

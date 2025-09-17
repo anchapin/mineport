@@ -206,8 +206,11 @@ export const EnhancedConversionUI: React.FC<EnhancedConversionUIProps> = ({
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [conversionOptions, setConversionOptions] = useState<ConversionOptions>({
+  const [conversionOptions, setConversionOptions] = useState<
+    ConversionOptions & Record<string, any>
+  >({
     targetMinecraftVersion: '1.20.0',
+    compromiseStrategy: 'balanced' as const,
     includeDocumentation: true,
     optimizeAssets: true,
     enableDebugMode: false,
@@ -333,38 +336,41 @@ export const EnhancedConversionUI: React.FC<EnhancedConversionUIProps> = ({
   /**
    * Update progress from job status
    */
-  const updateProgressFromJobStatus = useCallback((status: ConversionStatus) => {
-    setUIState((prevState) => ({
-      ...prevState,
-      currentStage: {
-        name: status.currentStage || 'processing',
-        status:
-          status.status === 'completed'
-            ? 'completed'
-            : status.status === 'failed'
-              ? 'failed'
-              : 'running',
-        progress: status.progress || 0,
-        details: {
-          description: getStageDescription(status.currentStage || 'processing'),
-          currentTask: status.currentTask,
-          metadata: status.metadata,
+  const updateProgressFromJobStatus = useCallback(
+    (status: ConversionStatus & Record<string, any>) => {
+      setUIState((prevState) => ({
+        ...prevState,
+        currentStage: {
+          name: status.currentStage || 'processing',
+          status:
+            status.status === 'completed'
+              ? 'completed'
+              : status.status === 'failed'
+                ? 'failed'
+                : 'running',
+          progress: status.progress || 0,
+          details: {
+            description: getStageDescription(status.currentStage || 'processing'),
+            currentTask: status.currentTask,
+            metadata: status.metadata,
+          },
         },
-      },
-      progress: {
-        ...prevState.progress,
-        overall: status.progress || 0,
-        currentStage: status.currentStage,
-        estimatedTimeRemaining: status.estimatedTimeRemaining,
-      },
-    }));
-  }, []);
+        progress: {
+          ...prevState.progress,
+          overall: status.progress || 0,
+          currentStage: status.currentStage,
+          estimatedTimeRemaining: status.estimatedTimeRemaining,
+        },
+      }));
+    },
+    []
+  );
 
   /**
    * Handle job completion
    */
   const handleJobCompleted = useCallback(
-    (result: ConversionResult) => {
+    (result: ConversionResult & Record<string, any>) => {
       const conversionResults: ConversionResults = {
         success: true,
         outputPath: result.outputPath,
@@ -648,7 +654,7 @@ export const EnhancedConversionUI: React.FC<EnhancedConversionUIProps> = ({
               onFileSelected={setSelectedFile}
               onSourceRepoChange={() => {}} // Implement if needed
               uploadState={{
-                file: selectedFile,
+                file: selectedFile ?? undefined,
                 isUploading: false,
                 progress: 0,
               }}

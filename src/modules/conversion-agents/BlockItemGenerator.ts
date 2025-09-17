@@ -11,7 +11,7 @@ import {
   BlockDefinition,
   ItemDefinition,
   RecipeDefinition,
-  ConversionResult,
+  ConversionAgentResult,
   ConversionMetadata,
   OutputFile,
 } from './types.js';
@@ -43,7 +43,7 @@ export class BlockItemGenerator {
   /**
    * Generate block definitions from block information
    */
-  async generateBlockDefinitions(blocks: BlockInfo[]): Promise<ConversionResult> {
+  async generateBlockDefinitions(blocks: BlockInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -65,7 +65,7 @@ export class BlockItemGenerator {
           // Add validation errors but continue processing
           for (const error of validationResult.errors) {
             warnings.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               message: `Block ${block.identifier} validation warning: ${error}`,
               component: 'model',
               details: { blockId: block.identifier, validationError: error },
@@ -116,7 +116,7 @@ export class BlockItemGenerator {
   /**
    * Generate item definitions from item information
    */
-  async generateItemDefinitions(items: ItemInfo[]): Promise<ConversionResult> {
+  async generateItemDefinitions(items: ItemInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -133,7 +133,7 @@ export class BlockItemGenerator {
           // Add validation errors but continue processing
           for (const error of validationResult.errors) {
             warnings.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               message: `Item ${item.identifier} validation warning: ${error}`,
               component: 'model',
               details: { itemId: item.identifier, validationError: error },
@@ -184,7 +184,7 @@ export class BlockItemGenerator {
   /**
    * Generate recipe definitions from recipe information
    */
-  async createRecipeDefinitions(recipes: RecipeInfo[]): Promise<ConversionResult> {
+  async createRecipeDefinitions(recipes: RecipeInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -201,7 +201,7 @@ export class BlockItemGenerator {
           // Add validation errors but continue processing
           for (const error of validationResult.errors) {
             warnings.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               message: `Recipe ${recipe.identifier} validation warning: ${error}`,
               component: 'model',
               details: { recipeId: recipe.identifier, validationError: error },

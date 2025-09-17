@@ -1,11 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import {
-  SoundProcessor,
-  JavaSoundFile,
-  BedrockSoundFile,
-} from '../../../../src/modules/assets/SoundProcessor.js';
+import { SoundProcessor } from '../../../../src/modules/assets/SoundProcessor.js';
+import { JavaSoundFile, BedrockSoundFile } from '../../../../src/types/assets.js';
 
 // Mock the logger
 vi.mock('../../../../src/utils/logger', () => ({
@@ -103,8 +100,9 @@ describe('SoundProcessor', () => {
 
       // Check that sounds.json was generated
       expect(result.soundsJson).toBeDefined();
-      expect(result.soundsJson['format_version']).toBe('1.14.0');
-      expect(result.soundsJson['sound_definitions']).toBeDefined();
+      const soundsJson = result.soundsJson as any;
+      expect(soundsJson.format_version).toBe('1.14.0');
+      expect(soundsJson.sound_definitions).toBeDefined();
     });
 
     it('should handle errors during conversion', async () => {

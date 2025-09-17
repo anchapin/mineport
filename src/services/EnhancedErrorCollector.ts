@@ -197,7 +197,7 @@ export class EnhancedErrorCollector extends ErrorCollector implements IEnhancedE
       return {
         success: false,
         strategy: RecoveryStrategy.ABORT,
-        message: `Recovery failed: ${recoveryError.message}`,
+        message: `Recovery failed: ${recoveryError instanceof Error ? recoveryError.message : String(recoveryError)}`,
         details: { originalError: recoveryError },
       };
     }

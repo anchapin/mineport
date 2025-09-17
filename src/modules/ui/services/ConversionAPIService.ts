@@ -6,7 +6,7 @@
  */
 
 import { ConversionError } from '../../../types/errors.js';
-import { ConversionProgress } from '../types.js';
+import { ConversionProgress } from '../types/index.js';
 
 /**
  * Input for starting a conversion
@@ -74,9 +74,9 @@ export interface ConversionStatus {
 }
 
 /**
- * Result of a conversion job
+ * Result of a conversion API call
  */
-export interface ConversionResult {
+export interface ConversionAPIResult {
   /**
    * Job ID
    */
@@ -168,5 +168,5 @@ export interface ConversionAPIService {
    * @param jobId Job ID
    * @returns Promise resolving to conversion result
    */
-  getConversionResult(jobId: string): Promise<ConversionResult>;
+  getConversionResult(jobId: string): Promise<ConversionAPIResult>;
 }

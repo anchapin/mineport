@@ -30,7 +30,6 @@ describe('UI Backend Integration', () => {
 
     conversionService = new ConversionService({
       jobQueue,
-      fileProcessor,
       javaAnalyzer,
       validationPipeline,
       featureFlagService,

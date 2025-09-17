@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MMIRParser } from '../../../../src/modules/logic/MMIRParser.js';
 
 vi.mock('../../../../src/utils/logger.js', async () => {
-  const actual = await vi.importActual('../../../../src/utils/logger.js');
+  const actual = (await vi.importActual('../../../../src/utils/logger.js')) as any;
   return {
     ...actual,
     default: {
@@ -79,7 +79,7 @@ describe('MMIRParser', () => {
         import java.util.List;
         import net.minecraft.world.World;
         import static net.minecraftforge.common.ForgeHooks.*;
-        
+
         public class TestClass {
         }
       `;
@@ -278,7 +278,7 @@ describe('MMIRParser', () => {
           public void tick() { // Common mappable method
             world.getBlock(pos); // Common mappable API
           }
-          
+
           public void customRender() { // Likely unmappable
             GL11.glBegin(GL11.GL_QUADS); // Rendering API - unmappable
           }

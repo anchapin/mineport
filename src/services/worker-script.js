@@ -1,6 +1,6 @@
 /**
  * Worker Script - Handles CPU-intensive tasks in worker threads
- * 
+ *
  * This script runs in worker threads to handle tasks like:
  * - File analysis
  * - Asset conversion
@@ -51,7 +51,7 @@ const taskHandlers = {
   async assetConversion(data) {
     const { AssetConverter } = await import('../modules/conversion-agents/AssetConverter.js');
     const converter = new AssetConverter();
-    
+
     switch (data.assetType) {
       case 'textures':
         return await converter.convertTextures(data.assets);
@@ -70,7 +70,7 @@ const taskHandlers = {
   async validation(data) {
     const { ValidationPipeline } = await import('../services/ValidationPipeline.js');
     const pipeline = new ValidationPipeline();
-    
+
     // Add stages based on data configuration
     if (data.stages) {
       for (const stageConfig of data.stages) {
@@ -80,11 +80,11 @@ const taskHandlers = {
         pipeline.addStage({
           name: stageConfig.name,
           validator: stage.validate.bind(stage),
-          required: stageConfig.required
+          required: stageConfig.required,
         });
       }
     }
-    
+
     return await pipeline.runValidation(data.input);
   },
 
@@ -94,7 +94,7 @@ const taskHandlers = {
   async parallelFileProcessing(data) {
     const results = [];
     const errors = [];
-    
+
     for (const fileData of data.files) {
       try {
         const result = await this.fileValidation(fileData);
@@ -103,7 +103,7 @@ const taskHandlers = {
         errors.push({ file: fileData.filename, error: error.message });
       }
     }
-    
+
     return { results, errors };
   },
 
@@ -113,7 +113,7 @@ const taskHandlers = {
   async batchAnalysis(data) {
     const results = [];
     const errors = [];
-    
+
     for (const analysisData of data.batch) {
       try {
         const result = await this.javaAnalysis(analysisData);
@@ -122,7 +122,7 @@ const taskHandlers = {
         errors.push({ id: analysisData.id, error: error.message });
       }
     }
-    
+
     return { results, errors };
   },
 
@@ -134,27 +134,27 @@ const taskHandlers = {
     if (global.gc) {
       global.gc();
     }
-    
+
     const startMemory = process.memoryUsage();
-    
+
     try {
       // Perform the actual computation
       const result = await taskHandlers[data.subtask](data.taskData);
-      
+
       // Clean up and force GC again
       if (global.gc) {
         global.gc();
       }
-      
+
       const endMemory = process.memoryUsage();
-      
+
       return {
         result,
         memoryUsage: {
           start: startMemory,
           end: endMemory,
-          peak: endMemory.heapUsed - startMemory.heapUsed
-        }
+          peak: endMemory.heapUsed - startMemory.heapUsed,
+        },
       };
     } catch (error) {
       // Clean up on error
@@ -163,7 +163,7 @@ const taskHandlers = {
       }
       throw error;
     }
-  }
+  },
 };
 
 /**
@@ -172,30 +172,29 @@ const taskHandlers = {
 if (parentPort) {
   parentPort.on('message', async (message) => {
     const { taskId, type, data } = message;
-    
+
     try {
       // Check if handler exists
       if (!taskHandlers[type]) {
         throw new Error(`Unknown task type: ${type}`);
       }
-      
+
       // Execute the task
       const result = await taskHandlers[type](data);
-      
+
       // Send result back to main thread
       parentPort.postMessage({
         taskId,
         data: result,
-        workerId
+        workerId,
       });
-      
     } catch (error) {
       // Send error back to main thread
       parentPort.postMessage({
         taskId,
         error: error.message,
         stack: error.stack,
-        workerId
+        workerId,
       });
     }
   });
@@ -214,7 +213,7 @@ if (parentPort) {
   // Signal that worker is ready
   parentPort.postMessage({
     type: 'ready',
-    workerId
+    workerId,
   });
 }
 

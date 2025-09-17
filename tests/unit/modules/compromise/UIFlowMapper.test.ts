@@ -12,6 +12,7 @@ const mockLogger = {
   info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),
+  verbose: vi.fn(),
 } as unknown as Logger;
 
 describe('UIFlowMapper', () => {
@@ -39,13 +40,13 @@ describe('UIFlowMapper', () => {
       public class CustomInventoryScreen extends GuiScreen {
         private GuiButton closeButton;
         private GuiTextField searchField;
-        
+
         @Override
         public void initGui() {
           this.closeButton = this.addButton(new GuiButton(0, this.width / 2 - 100, this.height - 30, 200, 20, "Close"));
           this.searchField = new GuiTextField(1, this.fontRenderer, this.width / 2 - 100, 40, 200, 20);
         }
-        
+
         @Override
         public void drawScreen(int mouseX, int mouseY, float partialTicks) {
           this.drawDefaultBackground();
@@ -75,7 +76,7 @@ describe('UIFlowMapper', () => {
         public CustomContainerScreen(Container container) {
           super(container);
         }
-        
+
         @Override
         protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
           GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -84,7 +85,7 @@ describe('UIFlowMapper', () => {
           int j = (this.height - this.ySize) / 2;
           this.drawTexturedModalRect(i, j, 0, 0, this.xSize, this.ySize);
         }
-        
+
         @Override
         protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
           this.fontRenderer.drawString("Container", 8, 6, 4210752);
@@ -109,14 +110,14 @@ describe('UIFlowMapper', () => {
         private GuiButton closeButton;
         private GuiButton nextPageButton;
         private GuiTextField searchField;
-        
+
         @Override
         public void initGui() {
           this.closeButton = this.addButton(new GuiButton(0, this.width / 2 - 100, this.height - 30, 200, 20, "Close"));
           this.nextPageButton = this.addButton(new GuiButton(1, this.width / 2 + 50, this.height - 60, 100, 20, "Next Page"));
           this.searchField = new GuiTextField(2, this.fontRenderer, this.width / 2 - 100, 40, 200, 20);
         }
-        
+
         @Override
         protected void actionPerformed(GuiButton button) {
           if (button.id == 0) {
@@ -125,7 +126,7 @@ describe('UIFlowMapper', () => {
             this.mc.displayGuiScreen(new NextPageScreen(this.container));
           }
         }
-        
+
         @Override
         protected void keyTyped(char typedChar, int keyCode) {
           if (this.searchField.textboxKeyTyped(typedChar, keyCode)) {
@@ -134,7 +135,7 @@ describe('UIFlowMapper', () => {
             super.keyTyped(typedChar, keyCode);
           }
         }
-        
+
         private void updateSearchResults() {
           // Update search results based on search field
         }
@@ -228,7 +229,7 @@ describe('UIFlowMapper', () => {
         private GuiTextField nameField;
         private GuiCheckBox notificationsCheckbox;
         private GuiSlider volumeSlider;
-        
+
         @Override
         public void initGui() {
           this.saveButton = this.addButton(new GuiButton(0, this.width / 2 - 100, this.height - 30, 200, 20, "Save"));
@@ -236,7 +237,7 @@ describe('UIFlowMapper', () => {
           this.notificationsCheckbox = new GuiCheckBox(2, this.width / 2 - 100, 80, "Enable Notifications", true);
           this.volumeSlider = new GuiSlider(3, this.width / 2 - 100, 110, 200, 20, "Volume: ", "", 0.0F, 1.0F, 0.5F, false, true);
         }
-        
+
         @Override
         protected void actionPerformed(GuiButton button) {
           if (button.id == 0) {
@@ -244,7 +245,7 @@ describe('UIFlowMapper', () => {
             this.mc.displayGuiScreen(null);
           }
         }
-        
+
         private void saveSettings() {
           // Save settings
         }
@@ -272,7 +273,7 @@ describe('UIFlowMapper', () => {
         private GuiButton tab1Button;
         private GuiButton tab2Button;
         private GuiButton closeButton;
-        
+
         @Override
         public void initGui() {
           this.tab1Button = this.addButton(new GuiButton(0, 10, 10, 100, 20, "Tab 1"));
@@ -280,11 +281,11 @@ describe('UIFlowMapper', () => {
           this.closeButton = this.addButton(new GuiButton(2, this.width / 2 - 100, this.height - 30, 200, 20, "Close"));
           this.addTab("Tab 1");
         }
-        
+
         private void addTab(String tabName) {
           // Add tab content
         }
-        
+
         @Override
         protected void actionPerformed(GuiButton button) {
           if (button.id == 0) {
@@ -319,7 +320,7 @@ describe('UIFlowMapper', () => {
         public InventoryContainer(Container container) {
           super(container);
         }
-        
+
         @Override
         protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
           GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -328,7 +329,7 @@ describe('UIFlowMapper', () => {
           int j = (this.height - this.ySize) / 2;
           this.drawTexturedModalRect(i, j, 0, 0, this.xSize, this.ySize);
         }
-        
+
         @Override
         public void initGui() {
           super.initGui();
