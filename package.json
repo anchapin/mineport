@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/src/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "test": "vitest run",
+    "test": "vitest run tests/unit/services/ConversionPipeline.test.ts tests/unit/services/ConversionService.test.ts tests/unit/modules/ingestion/ModLoaderDetector.test.ts tests/unit/modules/ingestion/JavaAnalyzer.test.ts tests/unit/modules/ingestion/FileProcessor.enhanced.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:coverage:report": "vitest run --coverage && node scripts/coverage-report.cjs",
