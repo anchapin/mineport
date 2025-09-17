@@ -12,8 +12,8 @@ vi.mock('../../../src/services/JobQueue');
 vi.mock('../../../src/services/ResourceAllocator');
 vi.mock('../../../src/modules/ingestion/ModValidator', () => ({
   ModValidator: vi.fn().mockImplementation(() => ({
-    validate: vi.fn().mockResolvedValue({
-      valid: true,
+    validateMod: vi.fn().mockResolvedValue({
+      isValid: true,
       modInfo: {
         id: 'test-mod',
         name: 'Test Mod',
@@ -30,6 +30,7 @@ vi.mock('../../../src/modules/ingestion/ModValidator', () => ({
         license: { type: 'MIT', text: 'MIT License' },
       },
       errors: [],
+      extractedPath: '/path/to/extracted',
     }),
   })),
 }));
@@ -66,12 +67,17 @@ vi.mock('../../../src/modules/logic/LogicTranslationEngine', () => ({
       stubFunctions: [],
       conversionNotes: [],
     }),
+    translateJavaCode: vi.fn().mockResolvedValue({
+      javascriptFiles: [],
+      stubFunctions: [],
+      conversionNotes: [],
+    }),
   })),
 }));
 
 vi.mock('../../../src/modules/configuration/ManifestGenerator', () => ({
   ManifestGenerator: vi.fn().mockImplementation(() => ({
-    generate: vi.fn().mockResolvedValue({
+    generateManifests: vi.fn().mockResolvedValue({
       behaviorPack: { manifest: 'bp' },
       resourcePack: { manifest: 'rp' },
     }),
@@ -85,12 +91,17 @@ vi.mock('../../../src/modules/configuration/BlockItemDefinitionConverter', () =>
       blocks: [],
       items: [],
     }),
+    convertItemDefinitions: vi.fn().mockReturnValue([]),
   })),
 }));
 
 vi.mock('../../../src/modules/configuration/RecipeConverter', () => ({
   RecipeConverter: vi.fn().mockImplementation(() => ({
     convert: vi.fn().mockResolvedValue({
+      success: true,
+      convertedFiles: [],
+    }),
+    convertRecipes: vi.fn().mockResolvedValue({
       success: true,
       convertedFiles: [],
     }),
@@ -103,18 +114,30 @@ vi.mock('../../../src/modules/configuration/LootTableConverter', () => ({
       success: true,
       convertedFiles: [],
     }),
+    parseJavaLootTables: vi.fn().mockResolvedValue({
+      success: true,
+      lootTables: {},
+      conversionNotes: [],
+      errors: [],
+    }),
+    writeLootTables: vi.fn().mockResolvedValue(undefined),
   })),
 }));
 
 vi.mock('../../../src/modules/configuration/LicenseEmbedder', () => ({
   LicenseEmbedder: vi.fn().mockImplementation(() => ({
     embed: vi.fn().mockResolvedValue(undefined),
+    embedLicense: vi.fn().mockResolvedValue(undefined),
   })),
 }));
 
 vi.mock('../../../src/modules/packaging/AddonValidator', () => ({
   AddonValidator: vi.fn().mockImplementation(() => ({
     validate: vi.fn().mockResolvedValue({
+      valid: true,
+      errors: [],
+    }),
+    validateAddon: vi.fn().mockResolvedValue({
       valid: true,
       errors: [],
     }),
@@ -126,12 +149,18 @@ vi.mock('../../../src/modules/packaging/ConversionReportGenerator', () => ({
     generate: vi.fn().mockResolvedValue({
       reportPath: '/path/to/report.html',
     }),
+    generateReport: vi.fn().mockResolvedValue({
+      reportPath: '/path/to/report.html',
+    }),
   })),
 }));
 
 vi.mock('../../../src/modules/packaging/AddonPackager', () => ({
   AddonPackager: vi.fn().mockImplementation(() => ({
     package: vi.fn().mockResolvedValue({
+      addonPath: '/path/to/addon.mcaddon',
+    }),
+    createAddon: vi.fn().mockResolvedValue({
       addonPath: '/path/to/addon.mcaddon',
     }),
   })),

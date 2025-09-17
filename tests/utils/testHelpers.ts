@@ -97,6 +97,37 @@ export function createMockFileSystem(files: Record<string, string>): void {
             new Error(`ENOENT: no such file or directory, access '${filePath}'`)
           );
         }),
+        readdir: vi.fn((dirPath: string, options?: any) => {
+          const normalizedPath = dirPath.replace(/\\/g, '/');
+          const entries = [];
+          const withFileTypes = options?.withFileTypes;
+          
+          // Find all files that start with this directory path
+          for (const filePath of Object.keys(files)) {
+            if (filePath.startsWith(normalizedPath + '/')) {
+              const relativePath = filePath.substring(normalizedPath.length + 1);
+              const firstSlashIndex = relativePath.indexOf('/');
+              const entryName = firstSlashIndex === -1 ? relativePath : relativePath.substring(0, firstSlashIndex);
+              
+              if (!entries.find(e => (withFileTypes ? e.name : e) === entryName)) {
+                if (withFileTypes) {
+                  entries.push({
+                    name: entryName,
+                    isFile: () => firstSlashIndex === -1,
+                    isDirectory: () => firstSlashIndex !== -1,
+                  });
+                } else {
+                  entries.push(entryName);
+                }
+              }
+            }
+          }
+          
+          if (entries.length > 0 || files[normalizedPath]) {
+            return Promise.resolve(entries);
+          }
+          return Promise.reject(new Error(`ENOENT: no such file or directory, scandir '${dirPath}'`));
+        }),
       },
       existsSync: vi.fn((filePath: string) => {
         const normalizedPath = filePath.replace(/\\/g, '/');

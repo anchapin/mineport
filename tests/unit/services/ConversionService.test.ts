@@ -87,14 +87,19 @@ describe('ConversionService', () => {
     });
 
     jobQueue.getJob = vi.fn().mockImplementation((id) => {
-      return {
-        id,
-        type: 'conversion',
-        data: { modFile: 'test.jar', outputPath: '/output', options: {} },
-        priority: 1,
-        createdAt: new Date(),
-        status: 'pending',
-      };
+      // Only return job data for known job IDs
+      if (id === 'mock_job_id' || id === 'completed_job' || id === 'pending_job') {
+        return {
+          id,
+          type: 'conversion',
+          data: { modFile: 'test.jar', outputPath: '/output', options: {} },
+          priority: 1,
+          createdAt: new Date(),
+          status: id === 'completed_job' ? 'completed' : 'pending',
+        };
+      }
+      // Return undefined for non-existent jobs
+      return undefined;
     });
 
     jobQueue.getJobs = vi.fn().mockReturnValue([
