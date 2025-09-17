@@ -95,43 +95,54 @@ export interface APIMapping {
  * @throws Error if the mapping is invalid
  */
 export function validateAPIMapping(mapping: Partial<APIMapping>): void {
-  if (!mapping.javaSignature || typeof mapping.javaSignature !== 'string' || mapping.javaSignature.trim().length === 0) {
+  if (
+    !mapping.javaSignature ||
+    typeof mapping.javaSignature !== 'string' ||
+    mapping.javaSignature.trim().length === 0
+  ) {
     throw new Error('Java signature is required and must be a non-empty string');
   }
-  
-  if (!mapping.bedrockEquivalent || typeof mapping.bedrockEquivalent !== 'string' || mapping.bedrockEquivalent.trim().length === 0) {
+
+  if (
+    !mapping.bedrockEquivalent ||
+    typeof mapping.bedrockEquivalent !== 'string' ||
+    mapping.bedrockEquivalent.trim().length === 0
+  ) {
     throw new Error('Bedrock equivalent is required and must be a non-empty string');
   }
-  
+
   const validConversionTypes = ['direct', 'wrapper', 'complex', 'impossible'];
   if (!mapping.conversionType || !validConversionTypes.includes(mapping.conversionType)) {
     throw new Error(`Conversion type must be one of: ${validConversionTypes.join(', ')}`);
   }
-  
+
   if (mapping.notes !== undefined && typeof mapping.notes !== 'string') {
     throw new Error('Notes must be a string if provided');
   }
-  
+
   if (mapping.deprecated !== undefined && typeof mapping.deprecated !== 'boolean') {
     throw new Error('Deprecated must be a boolean if provided');
   }
-  
-  if (mapping.version !== undefined && (typeof mapping.version !== 'number' || mapping.version < 1)) {
+
+  if (
+    mapping.version !== undefined &&
+    (typeof mapping.version !== 'number' || mapping.version < 1)
+  ) {
     throw new Error('Version must be a positive number if provided');
   }
-  
+
   if (mapping.createdAt !== undefined && !(mapping.createdAt instanceof Date)) {
     throw new Error('createdAt must be a Date object if provided');
   }
-  
+
   if (mapping.lastUpdated !== undefined && !(mapping.lastUpdated instanceof Date)) {
     throw new Error('lastUpdated must be a Date object if provided');
   }
-  
+
   if (mapping.minecraftVersions !== undefined && !Array.isArray(mapping.minecraftVersions)) {
     throw new Error('minecraftVersions must be an array if provided');
   }
-  
+
   if (mapping.modLoaders !== undefined) {
     if (!Array.isArray(mapping.modLoaders)) {
       throw new Error('modLoaders must be an array if provided');
@@ -139,7 +150,9 @@ export function validateAPIMapping(mapping: Partial<APIMapping>): void {
     const validLoaders = ['forge', 'fabric'];
     for (const loader of mapping.modLoaders) {
       if (!validLoaders.includes(loader)) {
-        throw new Error(`Invalid mod loader: ${loader}. Must be one of: ${validLoaders.join(', ')}`);
+        throw new Error(
+          `Invalid mod loader: ${loader}. Must be one of: ${validLoaders.join(', ')}`
+        );
       }
     }
   }

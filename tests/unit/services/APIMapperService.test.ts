@@ -3,7 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { InMemoryMappingDatabase, createAPIMapperService, APIMapperServiceImpl } from '../../../src/services/APIMapperService';
+import {
+  InMemoryMappingDatabase,
+  createAPIMapperService,
+  APIMapperServiceImpl,
+} from '../../../src/services/APIMapperService';
 import { ConfigurationService } from '../../../src/services/ConfigurationService';
 import { APIMapping } from '../../../src/modules/logic/APIMapping';
 import { APIMapperService } from '../../../src/types/api';
@@ -35,7 +39,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
   let mockConfigService: ConfigurationService;
 
   beforeEach(async () => {
-    await fs.unlink(DB_PATH).catch(e => {
+    await fs.unlink(DB_PATH).catch((e) => {
       if (e.code !== 'ENOENT') console.error(e);
     });
 
@@ -56,7 +60,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
   });
 
   afterEach(async () => {
-    await fs.unlink(DB_PATH).catch(e => {
+    await fs.unlink(DB_PATH).catch((e) => {
       if (e.code !== 'ENOENT') console.error(e);
     });
     vi.clearAllMocks();
@@ -119,7 +123,9 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       expect(updatedMapping.bedrockEquivalent).toBe(updates.bedrockEquivalent);
       expect(updatedMapping.notes).toBe(updates.notes);
       expect(updatedMapping.version).toBe(2); // Version should increment
-      expect(updatedMapping.lastUpdated.getTime()).toBeGreaterThan(createdMapping.lastUpdated.getTime());
+      expect(updatedMapping.lastUpdated.getTime()).toBeGreaterThan(
+        createdMapping.lastUpdated.getTime()
+      );
     });
 
     it('should delete a mapping', async () => {
@@ -205,11 +211,11 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       expect(directMappings.length).toBeGreaterThan(0);
       expect(wrapperMappings.length).toBeGreaterThan(0);
 
-      directMappings.forEach(mapping => {
+      directMappings.forEach((mapping) => {
         expect(mapping.conversionType).toBe('direct');
       });
 
-      wrapperMappings.forEach(mapping => {
+      wrapperMappings.forEach((mapping) => {
         expect(mapping.conversionType).toBe('wrapper');
       });
     });
@@ -218,8 +224,8 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       const searchResults = await apiMapperService.getMappings({ search: 'filter' });
       expect(searchResults.length).toBeGreaterThanOrEqual(3);
 
-      searchResults.forEach(mapping => {
-        const hasSearchTerm = 
+      searchResults.forEach((mapping) => {
+        const hasSearchTerm =
           mapping.javaSignature.toLowerCase().includes('filter') ||
           mapping.bedrockEquivalent.toLowerCase().includes('filter') ||
           mapping.notes.toLowerCase().includes('filter');
@@ -245,8 +251,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       await apiMapperService.addMapping(mappingData);
 
       // Attempting to add same signature should throw
-      await expect(apiMapperService.addMapping(mappingData))
-        .rejects.toThrow();
+      await expect(apiMapperService.addMapping(mappingData)).rejects.toThrow();
     });
   });
 

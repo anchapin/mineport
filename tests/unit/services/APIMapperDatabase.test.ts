@@ -3,7 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { InMemoryMappingDatabase, MappingNotFoundError, ValidationError } from '../../../src/services/APIMapperService';
+import {
+  InMemoryMappingDatabase,
+  MappingNotFoundError,
+  ValidationError,
+} from '../../../src/services/APIMapperService';
 import { APIMapping } from '../../../src/modules/logic/APIMapping';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -32,14 +36,14 @@ describe('InMemoryMappingDatabase', () => {
   let database: InMemoryMappingDatabase;
 
   beforeEach(async () => {
-    await fs.unlink(DB_PATH).catch(e => {
+    await fs.unlink(DB_PATH).catch((e) => {
       if (e.code !== 'ENOENT') console.error(e);
     });
     database = new InMemoryMappingDatabase(DB_PATH);
   });
 
   afterEach(async () => {
-    await fs.unlink(DB_PATH).catch(e => {
+    await fs.unlink(DB_PATH).catch((e) => {
       if (e.code !== 'ENOENT') console.error(e);
     });
     vi.clearAllMocks();
@@ -48,7 +52,7 @@ describe('InMemoryMappingDatabase', () => {
   describe('CRUD Operations', () => {
     it('should create a new mapping with proper versioning and timestamps', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-123');
-      
+
       const mappingData = {
         javaSignature: 'test.create.Method',
         bedrockEquivalent: 'test.bedrock.method',
@@ -81,7 +85,7 @@ describe('InMemoryMappingDatabase', () => {
 
     it('should retrieve a mapping by ID', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-456');
-      
+
       const mappingData = {
         javaSignature: 'test.get.Method',
         bedrockEquivalent: 'test.bedrock.get',
@@ -95,7 +99,7 @@ describe('InMemoryMappingDatabase', () => {
       expect(retrievedMapping).toBeDefined();
       expect(retrievedMapping!.id).toBe(createdMapping.id);
       expect(retrievedMapping!.javaSignature).toBe(mappingData.javaSignature);
-      
+
       // Ensure it's a deep clone (different object instances but same dates)
       expect(retrievedMapping!.createdAt).toBeInstanceOf(Date);
       expect(retrievedMapping!.createdAt.getTime()).toBe(createdMapping.createdAt.getTime());
@@ -103,7 +107,7 @@ describe('InMemoryMappingDatabase', () => {
 
     it('should retrieve a mapping by Java signature', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-789');
-      
+
       const mappingData = {
         javaSignature: 'test.getBySignature.Method',
         bedrockEquivalent: 'test.bedrock.getBySignature',
@@ -120,7 +124,7 @@ describe('InMemoryMappingDatabase', () => {
 
     it('should update a mapping with version increment', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-update');
-      
+
       const mappingData = {
         javaSignature: 'test.update.Method',
         bedrockEquivalent: 'test.bedrock.update',
@@ -131,13 +135,13 @@ describe('InMemoryMappingDatabase', () => {
       const createdMapping = await database.create(mappingData);
       const originalVersion = createdMapping.version;
       const originalCreatedAt = createdMapping.createdAt;
-      
+
       // Wait a moment to ensure lastUpdated timestamps differ
-      await new Promise(resolve => setTimeout(resolve, 1));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1));
+
       const updates = {
         notes: 'Updated notes',
-        bedrockEquivalent: 'test.bedrock.updated'
+        bedrockEquivalent: 'test.bedrock.updated',
       };
 
       const updatedMapping = await database.update(createdMapping.id, updates);
@@ -145,17 +149,21 @@ describe('InMemoryMappingDatabase', () => {
       expect(updatedMapping.version).toBe(originalVersion + 1);
       expect(updatedMapping.notes).toBe(updates.notes);
       expect(updatedMapping.bedrockEquivalent).toBe(updates.bedrockEquivalent);
-      expect(updatedMapping.lastUpdated.getTime()).toBeGreaterThan(createdMapping.lastUpdated.getTime());
+      expect(updatedMapping.lastUpdated.getTime()).toBeGreaterThan(
+        createdMapping.lastUpdated.getTime()
+      );
       expect(updatedMapping.createdAt.getTime()).toBe(originalCreatedAt.getTime());
     });
 
     it('should throw MappingNotFoundError when updating non-existent mapping', async () => {
-      await expect(database.update('non-existent-id', { notes: 'test' })).rejects.toThrow(MappingNotFoundError);
+      await expect(database.update('non-existent-id', { notes: 'test' })).rejects.toThrow(
+        MappingNotFoundError
+      );
     });
 
     it('should delete a mapping', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-delete');
-      
+
       const mappingData = {
         javaSignature: 'test.delete.Method',
         bedrockEquivalent: 'test.bedrock.delete',
@@ -165,9 +173,9 @@ describe('InMemoryMappingDatabase', () => {
 
       const createdMapping = await database.create(mappingData);
       const deleteResult = await database.delete(createdMapping.id);
-      
+
       expect(deleteResult).toBe(true);
-      
+
       const retrievedMapping = await database.get(createdMapping.id);
       expect(retrievedMapping).toBeUndefined();
     });
@@ -181,7 +189,7 @@ describe('InMemoryMappingDatabase', () => {
   describe('Filtering and Bulk Operations', () => {
     beforeEach(async () => {
       vi.mocked(uuidv4).mockImplementation(() => `uuid-${Math.random()}`);
-      
+
       // Create test mappings
       await database.create({
         javaSignature: 'test.filter.Direct',
@@ -189,7 +197,7 @@ describe('InMemoryMappingDatabase', () => {
         conversionType: 'direct',
         notes: 'Direct conversion test',
       });
-      
+
       await database.create({
         javaSignature: 'test.filter.Wrapper',
         bedrockEquivalent: 'test.bedrock.wrapper',
@@ -201,22 +209,25 @@ describe('InMemoryMappingDatabase', () => {
     it('should filter mappings by conversion type', async () => {
       const directMappings = await database.getAll({ conversionType: 'direct' });
       const wrapperMappings = await database.getAll({ conversionType: 'wrapper' });
-      
+
       expect(directMappings).toHaveLength(1);
       expect(directMappings[0].conversionType).toBe('direct');
-      
+
       expect(wrapperMappings).toHaveLength(1);
       expect(wrapperMappings[0].conversionType).toBe('wrapper');
     });
 
     it('should filter mappings by search term', async () => {
       const searchResults = await database.getAll({ search: 'direct' });
-      
+
       expect(searchResults.length).toBeGreaterThan(0);
-      expect(searchResults.some(m => 
-        m.javaSignature.toLowerCase().includes('direct') || 
-        m.notes.toLowerCase().includes('direct')
-      )).toBe(true);
+      expect(
+        searchResults.some(
+          (m) =>
+            m.javaSignature.toLowerCase().includes('direct') ||
+            m.notes.toLowerCase().includes('direct')
+        )
+      ).toBe(true);
     });
 
     it('should return correct count', async () => {
@@ -228,7 +239,7 @@ describe('InMemoryMappingDatabase', () => {
   describe('Persistence', () => {
     it('should persist and load mappings from file', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-persist');
-      
+
       const mappingData = {
         javaSignature: 'test.persist.Method',
         bedrockEquivalent: 'test.bedrock.persist',
@@ -237,11 +248,11 @@ describe('InMemoryMappingDatabase', () => {
       };
 
       await database.create(mappingData);
-      
+
       // Create new database instance and load from file
       const newDatabase = new InMemoryMappingDatabase(DB_PATH);
       await newDatabase.load();
-      
+
       const loadedMapping = await newDatabase.getBySignature(mappingData.javaSignature);
       expect(loadedMapping).toBeDefined();
       expect(loadedMapping!.javaSignature).toBe(mappingData.javaSignature);
@@ -252,8 +263,8 @@ describe('InMemoryMappingDatabase', () => {
   describe('Thread Safety', () => {
     it('should handle concurrent operations without race conditions', async () => {
       vi.mocked(uuidv4).mockImplementation(() => `concurrent-${Math.random()}`);
-      
-      const concurrentOps = Array.from({ length: 10 }, (_, i) => 
+
+      const concurrentOps = Array.from({ length: 10 }, (_, i) =>
         database.create({
           javaSignature: `concurrent.test.Method${i}`,
           bedrockEquivalent: `concurrent.bedrock.method${i}`,
@@ -263,7 +274,7 @@ describe('InMemoryMappingDatabase', () => {
       );
 
       const results = await Promise.all(concurrentOps);
-      
+
       // All operations should succeed
       expect(results).toHaveLength(10);
       results.forEach((result, i) => {

@@ -121,7 +121,7 @@ export class ConfigurationService extends EventEmitter {
       // Navigate through nested config object
       const keys = keyPath.split('.');
       let value: any = this.config;
-      
+
       for (const key of keys) {
         if (value && typeof value === 'object' && key in value) {
           value = value[key];
@@ -129,8 +129,8 @@ export class ConfigurationService extends EventEmitter {
           return defaultValue as T;
         }
       }
-      
-      return value !== undefined ? value : defaultValue as T;
+
+      return value !== undefined ? value : (defaultValue as T);
     } catch (error) {
       return defaultValue as T;
     }

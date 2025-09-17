@@ -6,7 +6,7 @@
  */
 
 import { APIMapping, validateAPIMapping } from '../modules/logic/APIMapping';
-import { APIMapperService, MappingFilter, ImportResult, MappingDatabase, MappingFailure } from '../types/api';
+import { APIMapperService, MappingFilter, ImportResult, MappingDatabase } from '../types/api';
 import { createLogger } from '../utils/logger';
 import { ErrorHandler } from '../utils/errorHandler';
 import { ErrorSeverity, createErrorCode } from '../types/errors';
@@ -29,7 +29,10 @@ export class MappingNotFoundError extends Error {
 }
 
 export class ValidationError extends Error {
-  constructor(message: string, public field?: string) {
+  constructor(
+    message: string,
+    public field?: string
+  ) {
     super(`Validation error: ${message}`);
     this.name = 'ValidationError';
   }
@@ -37,7 +40,9 @@ export class ValidationError extends Error {
 
 export class VersionConflictError extends Error {
   constructor(id: string, expectedVersion: number, actualVersion: number) {
-    super(`Version conflict for mapping '${id}': expected ${expectedVersion}, found ${actualVersion}`);
+    super(
+      `Version conflict for mapping '${id}': expected ${expectedVersion}, found ${actualVersion}`
+    );
     this.name = 'VersionConflictError';
   }
 }
@@ -55,7 +60,7 @@ export class InMemoryMappingDatabase implements MappingDatabase {
   private async withWriteLock<T>(operation: () => Promise<T>): Promise<T> {
     const previousLock = this.writeLock;
     let releaseLock!: () => void;
-    this.writeLock = new Promise(resolve => {
+    this.writeLock = new Promise((resolve) => {
       releaseLock = resolve;
     });
     await previousLock;
@@ -82,19 +87,21 @@ export class InMemoryMappingDatabase implements MappingDatabase {
             // Backward compatibility: if createdAt doesn't exist, use lastUpdated
             mapping.createdAt = new Date(mapping.lastUpdated);
           }
-          
+
           // Ensure version is a number for backward compatibility
           if (typeof mapping.version === 'string') {
             mapping.version = 1; // Convert semantic versions to number
           }
-          
+
           // Validate loaded mapping
           try {
             validateAPIMapping(mapping);
             this.mappings.set(mapping.id, mapping);
             this.signatureIndex.set(mapping.javaSignature, mapping.id);
           } catch (error) {
-            logger.warn(`Skipping invalid mapping during load: ${mapping.id}`, { error: error.message });
+            logger.warn(`Skipping invalid mapping during load: ${mapping.id}`, {
+              error: error.message,
+            });
           }
         }
         logger.info(`Loaded ${mappings.length} mappings from ${this.dbPath}`);
@@ -117,14 +124,16 @@ export class InMemoryMappingDatabase implements MappingDatabase {
     });
   }
 
-  async create(mapping: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>): Promise<APIMapping> {
+  async create(
+    mapping: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>
+  ): Promise<APIMapping> {
     // Validate the input mapping
     try {
       validateAPIMapping(mapping);
     } catch (error: any) {
       throw new ValidationError(error.message);
     }
-    
+
     const now = new Date();
     const newMapping: APIMapping = {
       ...mapping,
@@ -160,17 +169,18 @@ export class InMemoryMappingDatabase implements MappingDatabase {
   async getAll(filter?: MappingFilter): Promise<APIMapping[]> {
     let results = Array.from(this.mappings.values());
     if (filter) {
-      results = results.filter(m =>
-        (!filter.conversionType || m.conversionType === filter.conversionType) &&
-        (!filter.version || m.version.toString() === filter.version) &&
-        (!filter.search ||
-          (m.javaSignature.toLowerCase().includes(filter.search.toLowerCase()) ||
-           m.bedrockEquivalent.toLowerCase().includes(filter.search.toLowerCase()) ||
-           m.notes.toLowerCase().includes(filter.search.toLowerCase())))
+      results = results.filter(
+        (m) =>
+          (!filter.conversionType || m.conversionType === filter.conversionType) &&
+          (!filter.version || m.version.toString() === filter.version) &&
+          (!filter.search ||
+            m.javaSignature.toLowerCase().includes(filter.search.toLowerCase()) ||
+            m.bedrockEquivalent.toLowerCase().includes(filter.search.toLowerCase()) ||
+            m.notes.toLowerCase().includes(filter.search.toLowerCase()))
       );
     }
     // Return deep cloned results to prevent external mutation
-    return results.map(mapping => this.deepCloneMapping(mapping));
+    return results.map((mapping) => this.deepCloneMapping(mapping));
   }
 
   private deepCloneMapping(mapping: APIMapping): APIMapping {
@@ -180,15 +190,20 @@ export class InMemoryMappingDatabase implements MappingDatabase {
       lastUpdated: new Date(mapping.lastUpdated),
       minecraftVersions: mapping.minecraftVersions ? [...mapping.minecraftVersions] : undefined,
       modLoaders: mapping.modLoaders ? [...mapping.modLoaders] : undefined,
-      exampleUsage: mapping.exampleUsage ? {
-        java: mapping.exampleUsage.java,
-        bedrock: mapping.exampleUsage.bedrock
-      } : undefined,
-      metadata: mapping.metadata ? { ...mapping.metadata } : undefined
+      exampleUsage: mapping.exampleUsage
+        ? {
+            java: mapping.exampleUsage.java,
+            bedrock: mapping.exampleUsage.bedrock,
+          }
+        : undefined,
+      metadata: mapping.metadata ? { ...mapping.metadata } : undefined,
     };
   }
 
-  async update(id: string, updates: Partial<Omit<APIMapping, 'id' | 'createdAt'>>): Promise<APIMapping> {
+  async update(
+    id: string,
+    updates: Partial<Omit<APIMapping, 'id' | 'createdAt'>>
+  ): Promise<APIMapping> {
     // Validate updates if they contain core fields
     if (updates.javaSignature || updates.bedrockEquivalent || updates.conversionType) {
       try {
@@ -197,22 +212,22 @@ export class InMemoryMappingDatabase implements MappingDatabase {
         throw new ValidationError(error.message);
       }
     }
-    
+
     let updatedMapping: APIMapping;
     await this.withWriteLock(async () => {
       const existing = this.mappings.get(id);
       if (!existing) throw new MappingNotFoundError(id, 'id');
-      
+
       // Create deep clone to prevent external mutation
       const updatedFields = { ...updates };
       delete (updatedFields as any).createdAt; // Prevent modification of createdAt
       delete (updatedFields as any).id; // Prevent modification of id
-      
-      updatedMapping = { 
-        ...existing, 
-        ...updatedFields, 
+
+      updatedMapping = {
+        ...existing,
+        ...updatedFields,
         version: existing.version + 1,
-        lastUpdated: new Date() 
+        lastUpdated: new Date(),
       };
       if (updates.javaSignature && updates.javaSignature !== existing.javaSignature) {
         if (this.signatureIndex.has(updates.javaSignature)) {
@@ -280,7 +295,10 @@ export class APIMapperServiceImpl implements APIMapperService {
     this.cacheMaxSize = this.configService.get('apiMapper.cacheMaxSize', 1000);
   }
 
-  public static async create(configService: ConfigurationService, database?: MappingDatabase): Promise<APIMapperServiceImpl> {
+  public static async create(
+    configService: ConfigurationService,
+    database?: MappingDatabase
+  ): Promise<APIMapperServiceImpl> {
     const service = new APIMapperServiceImpl(configService, database);
     await service.initializeDefaultMappings();
     logger.info('APIMapperService initialized', {
@@ -313,11 +331,11 @@ export class APIMapperServiceImpl implements APIMapperService {
         logger.debug(`No mapping found for Java signature: ${javaSignature}`);
         return undefined;
       }
-      
+
       if (mapping.deprecated) {
         logger.warn(`Using deprecated mapping for: ${javaSignature}`);
       }
-      
+
       return mapping.bedrockEquivalent;
     } catch (error: any) {
       this.handleError(error, 'MAP_JAVA_TO_BEDROCK', { javaSignature });
@@ -336,12 +354,16 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
   }
 
-  async addMapping(mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>): Promise<APIMapping> {
+  async addMapping(
+    mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>
+  ): Promise<APIMapping> {
     try {
       this.validateMapping(mappingData);
       const newMapping = await this.database.create(mappingData);
       if (this.cacheEnabled) this.addToCache(newMapping.javaSignature, newMapping);
-      logger.info(`Added new mapping: ${newMapping.javaSignature} -> ${newMapping.bedrockEquivalent}`);
+      logger.info(
+        `Added new mapping: ${newMapping.javaSignature} -> ${newMapping.bedrockEquivalent}`
+      );
       return newMapping;
     } catch (error: any) {
       this.handleError(error, 'ADD_MAPPING', { mappingData });
@@ -349,7 +371,10 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
   }
 
-  async updateMapping(id: string, updates: Partial<Omit<APIMapping, 'id' | 'createdAt'>>): Promise<APIMapping> {
+  async updateMapping(
+    id: string,
+    updates: Partial<Omit<APIMapping, 'id' | 'createdAt'>>
+  ): Promise<APIMapping> {
     try {
       const updatedMapping = await this.database.update(id, updates);
       if (this.cacheEnabled) {
@@ -389,7 +414,15 @@ export class APIMapperServiceImpl implements APIMapperService {
       return result;
     } catch (error: any) {
       this.handleError(error, 'IMPORT_MAPPINGS', {});
-      return { added: 0, updated: 0, failed: mappings.length, failures: mappings.map(m => ({ mapping: m as APIMapping, reason: 'A critical error occurred during import.' })) };
+      return {
+        added: 0,
+        updated: 0,
+        failed: mappings.length,
+        failures: mappings.map((m) => ({
+          mapping: m as APIMapping,
+          reason: 'A critical error occurred during import.',
+        })),
+      };
     }
   }
 
@@ -455,7 +488,12 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
   }
 
-  private handleError(error: Error, errorCode: string, context: object, severity: ErrorSeverity = ErrorSeverity.ERROR) {
+  private handleError(
+    error: Error,
+    errorCode: string,
+    context: object,
+    severity: ErrorSeverity = ErrorSeverity.ERROR
+  ) {
     const errorMessage = error.message || 'An unknown error occurred.';
     logger.error(`Error in ${errorCode}: ${errorMessage}`, { error, ...context });
     ErrorHandler.systemError(
@@ -468,6 +506,8 @@ export class APIMapperServiceImpl implements APIMapperService {
   }
 }
 
-export async function createAPIMapperService(configService: ConfigurationService): Promise<APIMapperService> {
-    return APIMapperServiceImpl.create(configService);
+export async function createAPIMapperService(
+  configService: ConfigurationService
+): Promise<APIMapperService> {
+  return APIMapperServiceImpl.create(configService);
 }

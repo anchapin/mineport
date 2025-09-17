@@ -7,6 +7,9 @@
 
 import { APIMapping } from '../modules/logic/APIMapping';
 
+// Re-export APIMapping for convenience
+export { APIMapping };
+
 /**
  * Filter for querying API mappings.
  */
@@ -44,7 +47,9 @@ export interface MappingDatabase {
    * @param mappingData - The mapping data to create, without id, version, createdAt, or lastUpdated.
    * @returns The newly created APIMapping with all fields.
    */
-  create(mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>): Promise<APIMapping>;
+  create(
+    mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>
+  ): Promise<APIMapping>;
 
   /**
    * Retrieves a single API mapping by its unique ID.
@@ -96,7 +101,6 @@ export interface MappingDatabase {
   count(): Promise<number>;
 }
 
-
 /**
  * Service for managing and providing access to Java-to-Bedrock API mappings.
  * It integrates with a versioned database and provides caching capabilities.
@@ -121,7 +125,9 @@ export interface APIMapperService {
    * @param mappingData - The data for the new mapping.
    * @returns The created APIMapping.
    */
-  addMapping(mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>): Promise<APIMapping>;
+  addMapping(
+    mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>
+  ): Promise<APIMapping>;
 
   /**
    * Updates an existing API mapping.
@@ -160,10 +166,3 @@ export interface APIMapperService {
    */
   getDatabaseStats(): Promise<{ totalMappings: number }>;
 }
-=======
-  failures: {
-    mapping: APIMapping;
-    reason: string;
-  }[];
-}
->>>>>>> origin/main

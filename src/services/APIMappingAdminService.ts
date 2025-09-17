@@ -106,8 +106,8 @@ export class APIMappingAdminService {
         );
       }
 
-      if (!mapping.version || mapping.version.trim() === '') {
-        result.errors.push('Version is required');
+      if (!mapping.version || mapping.version < 1) {
+        result.errors.push('Version is required and must be a positive number');
       }
 
       if (!mapping.notes || mapping.notes.trim() === '') {
@@ -136,19 +136,7 @@ export class APIMappingAdminService {
         result.warnings.push('Bedrock equivalent format may be invalid');
       }
 
-      // Version format validation
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (mapping.version && !this.isValidVersion(mapping.version)) {
-        result.warnings.push('Version format should follow semantic versioning (e.g., 1.0.0)');
-      }
+      // Version is now numeric and validated above
 
       // Example usage validation
       /**
@@ -339,7 +327,7 @@ export class APIMappingAdminService {
         }
 
         // Update mapping
-        await this.apiMapperService.updateMapping(mapping);
+        await this.apiMapperService.updateMapping(mapping.id, mapping);
         result.successful++;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -598,14 +586,6 @@ export class APIMappingAdminService {
     return bedrockSignaturePattern.test(signature);
   }
 
-  /**
-   * Validate version format
-   */
-  private isValidVersion(version: string): boolean {
-    // Basic semantic versioning pattern
-    const semverPattern = /^\d+\.\d+\.\d+(-[a-zA-Z0-9-]+)?$/;
-    return semverPattern.test(version);
-  }
 }
 
 /**
