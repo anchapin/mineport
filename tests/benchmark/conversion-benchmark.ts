@@ -156,18 +156,18 @@ async function runConversionBenchmark() {
                 cyclomaticComplexity: 0,
                 cognitiveComplexity: 0,
                 linesOfCode: 0,
-                nestingDepth: 0
+                nestingDepth: 0,
               },
               imports: [],
               classes: [],
-              methods: []
+              methods: [],
             },
             dependencies: [],
             complexity: {
               cyclomaticComplexity: 0,
               cognitiveComplexity: 0,
               linesOfCode: 0,
-              nestingDepth: 0
+              nestingDepth: 0,
             },
           };
 

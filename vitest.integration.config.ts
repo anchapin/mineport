@@ -4,11 +4,11 @@ export default defineConfig({
   test: {
     include: ['tests/integration/**/*.test.ts'],
     exclude: [
-      'tests/unit/**', 
-      'tests/benchmark/**', 
+      'tests/unit/**',
+      'tests/benchmark/**',
       'tests/security/**',
       'tests/integration/consistency-validation.test.ts',
-      'tests/integration/modporter-ai-integration.test.ts'
+      'tests/integration/modporter-ai-integration.test.ts',
     ],
     testTimeout: 30000, // Longer timeout for integration tests
     hookTimeout: 10000,
