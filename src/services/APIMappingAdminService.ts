@@ -585,7 +585,6 @@ export class APIMappingAdminService {
       /^[a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*(\(\))?$/;
     return bedrockSignaturePattern.test(signature);
   }
-
 }
 
 /**
