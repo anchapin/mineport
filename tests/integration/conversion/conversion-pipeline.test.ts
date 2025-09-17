@@ -84,7 +84,10 @@ describe('Conversion Pipeline Integration', () => {
       models: [
         {
           path: 'assets/mock-forge-mod/models/block/custom_block.json',
-          data: { parent: 'block/cube_all', textures: { all: 'mock-forge-mod:block/custom_block' } },
+          data: {
+            parent: 'block/cube_all',
+            textures: { all: 'mock-forge-mod:block/custom_block' },
+          },
           type: 'block' as const,
           metadata: {
             parent: 'block/cube_all',
@@ -110,9 +113,7 @@ describe('Conversion Pipeline Integration', () => {
 
     // Verify error handling consistency
     if (assetResult.errors && assetResult.errors.length > 0) {
-      expect(
-        assetResult.errors.every((error) => error.moduleOrigin.includes('ASSET'))
-      ).toBe(true);
+      expect(assetResult.errors.every((error) => error.moduleOrigin.includes('ASSET'))).toBe(true);
     }
 
     // Test asset organization
