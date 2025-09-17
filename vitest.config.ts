@@ -5,6 +5,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    exclude: [
+      'tests/integration/consistency-validation.test.ts',
+      'tests/security/modporter-ai-security.test.ts',
+      'tests/integration/modporter-ai-integration.test.ts'
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

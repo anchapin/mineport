@@ -53,7 +53,10 @@ describe('Module Interactions Integration Tests', () => {
 
       // Step 2: Analyze features
       const featureAnalyzer = new FeatureCompatibilityAnalyzer();
-      const analysisResult = await featureAnalyzer.analyzeFeatures(validationResult.extractedMod, 'forge');
+      const analysisResult = await featureAnalyzer.analyzeFeatures(
+        validationResult.extractedMod,
+        'forge'
+      );
 
       expect(analysisResult.success).toBe(true);
       expect(
@@ -246,7 +249,7 @@ describe('Module Interactions Integration Tests', () => {
         apiMappings: new Map(),
         compromiseSettings: { allowStubs: true },
       });
-      
+
       // Convert translation errors to ConversionError format
       const translationErrors = (logicResult.errors || []).map((error, index) => ({
         id: `translation-error-${index}`,
@@ -297,14 +300,16 @@ describe('Module Interactions Integration Tests', () => {
         animations: [],
       });
 
-      const mockFeatures = [{
-        id: 'test-feature',
-        name: 'Test Feature',
-        type: 'BLOCK',
-        compatibilityTier: 3,
-        sourceFiles: [],
-        sourceLineNumbers: [],
-      }];
+      const mockFeatures = [
+        {
+          id: 'test-feature',
+          name: 'Test Feature',
+          type: 'BLOCK',
+          compatibilityTier: 3,
+          sourceFiles: [],
+          sourceLineNumbers: [],
+        },
+      ];
       await compromiseEngine.applyStrategies(mockFeatures);
 
       // Verify modules received configuration
@@ -323,7 +328,7 @@ describe('Module Interactions Integration Tests', () => {
           expect.objectContaining({
             id: 'test-feature',
             name: 'Test Feature',
-          })
+          }),
         ])
       );
     });

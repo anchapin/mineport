@@ -7,7 +7,10 @@ import {
 } from '../helpers.js';
 import { AssetTranslationModule } from '../../../src/modules/assets/AssetTranslationModule.js';
 import { LogicTranslationEngine } from '../../../src/modules/logic/LogicTranslationEngine.js';
-import { ConversionPipeline, ConversionPipelineInput } from '../../../src/services/ConversionPipeline.js';
+import {
+  ConversionPipeline,
+  ConversionPipelineInput,
+} from '../../../src/services/ConversionPipeline.js';
 import { ErrorCollector } from '../../../src/services/ErrorCollector.js';
 import { ConfigurationService } from '../../../src/services/ConfigurationService.js';
 import fs from 'fs';
@@ -178,7 +181,7 @@ describe('Conversion Pipeline Integration', () => {
         configResult
       )
     ).toBe(true);
-    
+
     // The basic implementation only returns { success: true }, so we can't check for these yet:
     // expect(configResult.generatedFiles?.length).toBeGreaterThanOrEqual(0);
     // expect(configResult.manifests?.behaviorPack).toBeDefined();
@@ -209,7 +212,7 @@ describe('Conversion Pipeline Integration', () => {
 
     // Use unified logic translation engine
     const logicEngine = new LogicTranslationEngine();
-    const javaCode = mockLogicFeatures.map(f => f.javaCode).join('\n');
+    const javaCode = mockLogicFeatures.map((f) => f.javaCode).join('\n');
     const logicResult = await logicEngine.translateLogic(javaCode, {
       modInfo: { name: 'mock-forge-mod', version: '1.0.0', modLoader: 'forge' },
       targetPlatform: 'bedrock',

@@ -150,11 +150,24 @@ async function runConversionBenchmark() {
           // Convert MMIRContext to MMIRRepresentation
           const mmirRepresentation = {
             ast: [],
+            metadata: {
+              originalLinesOfCode: 0,
+              complexity: {
+                cyclomaticComplexity: 0,
+                cognitiveComplexity: 0,
+                linesOfCode: 0,
+                nestingDepth: 0
+              },
+              imports: [],
+              classes: [],
+              methods: []
+            },
             dependencies: [],
             complexity: {
-              cyclomatic: 0,
-              cognitive: 0,
-              halstead: { volume: 0, difficulty: 0, effort: 0 },
+              cyclomaticComplexity: 0,
+              cognitiveComplexity: 0,
+              linesOfCode: 0,
+              nestingDepth: 0
             },
           };
 

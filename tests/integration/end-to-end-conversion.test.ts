@@ -120,7 +120,7 @@ describe('End-to-End Conversion Tests', () => {
       expect(result.result?.texturePaths?.length).toBeGreaterThan(0);
       expect(result.result?.manifestInfo?.version).toBeDefined();
       expect(result.result?.manifestInfo?.author).toBeDefined();
-      
+
       // Note: Specific content checks disabled for current mock implementation
       // TODO: Re-enable specific content verification once full implementation is complete
     });
@@ -154,7 +154,7 @@ describe('End-to-End Conversion Tests', () => {
 
       // Current implementation doesn't throw, but returns success/failure status
       const result = await conversionService.processModFile(invalidJarBuffer, 'invalid.jar');
-      
+
       // For now, expect it to succeed with basic mock data
       // TODO: Implement proper error handling that sets success: false for invalid files
       expect(result.success).toBeDefined();
@@ -274,7 +274,7 @@ describe('End-to-End Conversion Tests', () => {
       expect(result.result?.manifestInfo?.modId).toBeDefined();
       expect(result.result?.registryNames?.length).toBeGreaterThan(0);
       expect(result.result?.texturePaths?.length).toBeGreaterThan(0);
-      
+
       // Note: Specific content matching disabled for current mock implementation
       // TODO: Re-enable detailed consistency checks once full implementation is complete
     });

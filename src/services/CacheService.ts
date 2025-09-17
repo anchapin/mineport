@@ -57,7 +57,7 @@ export interface CacheKey {
 export class CacheService {
   private memoryCache: LRUCache<string, CacheEntry<any>>;
   private options: CacheOptions;
-  private metrics: CacheMetrics;
+  private metrics!: CacheMetrics; // Initialized in constructor
   private persistenceEnabled: boolean;
   private persistenceDir: string;
   private enabled: boolean;
@@ -146,9 +146,7 @@ export class CacheService {
       max: this.options.maxSize || 1000,
       ttl: this.options.defaultTTL || 3600000,
       dispose: (entry: CacheEntry<any>, key: string) => {
-        if (this.metrics) {
-          this.metrics.evictions++;
-        }
+        this.metrics.evictions++;
         if (this.persistenceEnabled) {
           this.persistToDisk(key, entry).catch((error) => {
             logger.error('Failed to persist evicted cache entry', { error, key });
