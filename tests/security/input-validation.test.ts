@@ -72,7 +72,7 @@ describe('Input Validation Security Tests', () => {
 
   describe('SourceCodeFetcher', () => {
     it('should validate GitHub repository URLs', () => {
-      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'test-token' });
+      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'fake-test-token-12345' });
 
       // Valid URLs
       expect(() =>
@@ -91,7 +91,7 @@ describe('Input Validation Security Tests', () => {
     });
 
     it('should prevent path traversal in output paths', async () => {
-      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'test-token' });
+      const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'fake-test-token-67890' });
 
       // Mock the fetchSourceCode method to avoid actual GitHub API calls
       sourceCodeFetcher.fetchSourceCode = vi.fn().mockImplementation(async (options) => {
