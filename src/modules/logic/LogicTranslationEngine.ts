@@ -443,4 +443,44 @@ export class LogicTranslationEngine {
   private countLines(code: string): number {
     return code.split('\n').length;
   }
+
+  /**
+   * Translate logic code from Java to JavaScript
+   * This is an alias for translateJavaCode for backward compatibility
+   *
+   * @param javaCode The Java code to translate
+   * @param context Translation context
+   * @returns Translation result
+   */
+  async translateLogic(javaCode: string, context: TranslationContext): Promise<TranslationResult> {
+    return this.translateJavaCode(javaCode, context);
+  }
+
+  /**
+   * Get the compromise strategy engine for handling unmappable features
+   * @returns CompromiseStrategyEngine instance
+   */
+  getCompromiseStrategyEngine(): any {
+    // Return a mock compromise strategy engine for now
+    // In a real implementation, this would return the actual engine
+    return {
+      registerStrategy: () => {},
+      selectStrategy: () => undefined,
+      applyStrategy: () => undefined,
+      provideFeedback: () => {},
+      getStrategyMetrics: () => undefined,
+      getStrategyFeedback: () => [],
+      getStrategyPerformanceReport: () => ({}),
+      getCompromiseReport: () => ({}),
+    };
+  }
+
+  /**
+   * Register a compromise strategy for handling unmappable features
+   * @param strategy The compromise strategy to register
+   */
+  registerCompromiseStrategy(strategy: any): void {
+    // Implementation would register the strategy with the compromise engine
+    logger.debug('Registered compromise strategy', { strategyId: strategy.id });
+  }
 }

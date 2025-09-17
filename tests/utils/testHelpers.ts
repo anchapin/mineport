@@ -291,6 +291,7 @@ export function createMockConversionResult(
               failedFeatures: 1,
             },
           },
+          convertedFiles: [],
         }
       : undefined,
     bedrockAddon: success
@@ -301,10 +302,10 @@ export function createMockConversionResult(
       : undefined,
     validation: {
       isValid: success,
-      errors: success ? [] : [{ message: 'Test error' }],
+      errors: success ? [] : [{ message: 'Test error', code: 'TEST_ERROR', severity: 'error' }],
       warnings: [],
     },
-    errors: success ? [] : [{ message: 'Test error' }],
+    errors: success ? [] : [{ message: 'Test error', code: 'TEST_ERROR', severity: 'error' }],
     warnings: [],
   };
 }

@@ -32,6 +32,9 @@ export interface ConversionServiceOptions {
   jobQueue: any;
   resourceAllocator?: any;
   statusUpdateInterval?: number;
+  javaAnalyzer?: any;
+  fileProcessor?: any;
+  workerPool?: any;
 }
 
 /**
@@ -43,12 +46,18 @@ export class ConversionService extends EventEmitter implements IConversionServic
   private statusUpdateInterval: number;
   private activeJobs: Map<string, any> = new Map();
   private statusIntervalId?: NodeJS.Timeout;
+  private javaAnalyzer?: any;
+  private fileProcessor?: any;
+  private workerPool?: any;
 
   constructor(options: ConversionServiceOptions) {
     super();
     this.jobQueue = options.jobQueue;
     this.resourceAllocator = options.resourceAllocator;
     this.statusUpdateInterval = options.statusUpdateInterval || 5000;
+    this.javaAnalyzer = options.javaAnalyzer;
+    this.fileProcessor = options.fileProcessor;
+    this.workerPool = options.workerPool;
   }
 
   /**

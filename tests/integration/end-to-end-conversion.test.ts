@@ -24,7 +24,7 @@ describe('End-to-End Conversion Tests', () => {
       fileProcessor,
       javaAnalyzer,
       assetConverter,
-      validationPipeline
+      validationPipeline,
     });
 
     tempDir = path.join(process.cwd(), 'temp', `e2e-test-${Date.now()}`);

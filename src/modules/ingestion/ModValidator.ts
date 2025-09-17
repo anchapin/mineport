@@ -28,6 +28,16 @@ const execAsync = promisify(exec);
  */
 export interface ModValidationResult {
   isValid: boolean;
+  /** Alias for isValid for backward compatibility */
+  valid?: boolean;
+  /** Success flag for backward compatibility */
+  success?: boolean;
+  /** Mod ID for direct access */
+  modId?: string;
+  /** Mod loader type for direct access */
+  modLoader?: 'forge' | 'fabric' | 'unknown';
+  /** Extracted mod for backward compatibility */
+  extractedMod?: any;
   modInfo?: {
     modId?: string;
     modName?: string;
@@ -150,9 +160,20 @@ export class ModValidator {
 
       // Combine results from enhanced analysis and legacy validation
       result.isValid = true;
+      result.valid = true; // Backward compatibility
+      result.success = true; // Backward compatibility
       result.extractedPath = extractPath;
+
+      const modId = analysisResult.modId || modStructureResult.modInfo?.modId;
+      const modLoader = (analysisResult as any).modLoader || 'unknown';
+
+      // Set direct access properties for backward compatibility
+      result.modId = modId;
+      result.modLoader = modLoader;
+      result.extractedMod = analysisResult; // For backward compatibility
+
       result.modInfo = {
-        modId: analysisResult.modId || modStructureResult.modInfo?.modId,
+        modId,
         modName: analysisResult.manifestInfo?.modName || modStructureResult.modInfo?.modName,
         modVersion: analysisResult.manifestInfo?.version || modStructureResult.modInfo?.modVersion,
         modDescription: analysisResult.manifestInfo?.description,

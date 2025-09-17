@@ -283,14 +283,18 @@ describe('ModPorter-AI Integration Tests', () => {
           material: 'stone',
           hardness: 2.0,
           textures: {
-            all: 'test_block'
+            all: 'test_block',
           },
         },
       ];
 
       const blockDefinitions = await blockItemGenerator.generateBlockDefinitions(blockInfos);
       expect(blockDefinitions).toBeDefined();
-      expect(Array.isArray(blockDefinitions.blocks) ? blockDefinitions.blocks[0]?.identifier : blockDefinitions.identifier).toBe('test_block');
+      expect(
+        Array.isArray(blockDefinitions.blocks)
+          ? blockDefinitions.blocks[0]?.identifier
+          : blockDefinitions.identifier
+      ).toBe('test_block');
 
       // Step 2: Validate generated definitions
       const validationInput = {
@@ -323,7 +327,9 @@ describe('ModPorter-AI Integration Tests', () => {
             },
           },
           definitions: {
-            blocks: Array.isArray(blockDefinitions.blocks) ? blockDefinitions.blocks : [blockDefinitions],
+            blocks: Array.isArray(blockDefinitions.blocks)
+              ? blockDefinitions.blocks
+              : [blockDefinitions],
             items: [],
           },
           recipes: {},
@@ -482,13 +488,17 @@ describe('ModPorter-AI Integration Tests', () => {
           material: 'stone',
           hardness: 1.0,
           textures: {
-            all: name
+            all: name,
           },
         }));
 
       const blockDefinitions = await blockItemGenerator.generateBlockDefinitions(blockInfos);
       expect(blockDefinitions).toBeDefined();
-      expect(Array.isArray(blockDefinitions.blocks) ? blockDefinitions.blocks[0]?.identifier : blockDefinitions.identifier).toBe('flow_block');
+      expect(
+        Array.isArray(blockDefinitions.blocks)
+          ? blockDefinitions.blocks[0]?.identifier
+          : blockDefinitions.identifier
+      ).toBe('flow_block');
 
       // Step 6: Final validation
       const finalValidationInput = {
@@ -521,7 +531,9 @@ describe('ModPorter-AI Integration Tests', () => {
             },
           },
           definitions: {
-            blocks: Array.isArray(blockDefinitions.blocks) ? blockDefinitions.blocks : [blockDefinitions],
+            blocks: Array.isArray(blockDefinitions.blocks)
+              ? blockDefinitions.blocks
+              : [blockDefinitions],
             items: [],
           },
           recipes: {},

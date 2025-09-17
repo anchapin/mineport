@@ -614,6 +614,49 @@ export class WorkerPool extends EventEmitter {
   }
 
   /**
+   * Gets comprehensive metrics about the worker pool performance
+   *
+   * @returns Object containing detailed performance metrics and statistics
+   *
+   * @example
+   * ```typescript
+   * const metrics = workerPool.getMetrics();
+   * console.log(`Pool efficiency: ${metrics.efficiency}%`);
+   * ```
+   */
+  getMetrics() {
+    const workers = Array.from(this.workers.values());
+    const totalJobs = workers.reduce((sum, w) => sum + w.processedJobs, 0);
+    const totalFailures = workers.reduce((sum, w) => sum + w.failedJobs, 0);
+    const busyWorkers = workers.filter((w) => w.status === 'busy').length;
+    const idleWorkers = workers.filter((w) => w.status === 'idle').length;
+    const errorWorkers = workers.filter((w) => w.status === 'error').length;
+
+    return {
+      totalWorkers: workers.length,
+      busyWorkers,
+      idleWorkers,
+      errorWorkers,
+      totalJobsProcessed: totalJobs,
+      totalJobsFailed: totalFailures,
+      successRate: totalJobs > 0 ? ((totalJobs - totalFailures) / totalJobs) * 100 : 0,
+      efficiency: workers.length > 0 ? (busyWorkers / workers.length) * 100 : 0,
+      averageJobsPerWorker: workers.length > 0 ? totalJobs / workers.length : 0,
+      queueLength: this.taskQueue.length,
+      uptime: Date.now() - (workers[0]?.startedAt.getTime() || Date.now()),
+      workerDetails: workers.map((worker) => ({
+        id: worker.id,
+        status: worker.status,
+        processedJobs: worker.processedJobs,
+        failedJobs: worker.failedJobs,
+        capabilities: worker.capabilities,
+        uptime: Date.now() - worker.startedAt.getTime(),
+        lastHeartbeat: worker.lastHeartbeat,
+      })),
+    };
+  }
+
+  /**
    * Destroys the worker pool, cancelling all jobs and cleaning up all resources
    *
    * @example

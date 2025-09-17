@@ -190,7 +190,7 @@ export class AssetTranslationModule {
       // Convert particle definitions to particle files
       const particleFiles = particleResult.convertedParticles.map((particle) => ({
         path: particle.path,
-        content: particle.content,
+        content: typeof particle.data === 'string' ? particle.data : JSON.stringify(particle.data), // Convert data to string content
         metadata: { name: particle.name },
       }));
 
@@ -304,7 +304,7 @@ export class AssetTranslationModule {
       // Convert particle files back to particle definitions for organization
       const particleDefinitions = bedrockAssets.particles.map((particle) => ({
         path: particle.path,
-        data: Buffer.from(particle.content),
+        data: Buffer.from(particle.content), // Convert string content to Buffer for organization
         name: particle.metadata?.name || 'unknown',
       }));
 

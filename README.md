@@ -19,6 +19,7 @@ A hybrid translation pipeline to convert Minecraft Java Edition mods to Bedrock 
 - [Development](#development)
 - [Testing](#testing)
 - [Contributing](#contributing)
+- [Repository Guidelines](AGENTS.md)
 - [Troubleshooting](#troubleshooting)
 - [Examples](#examples)
 - [License](#license)
@@ -491,3 +492,5 @@ For commercial support, training, or custom development:
 **Made with ❤️ by the Minecraft Mod Converter team**
 
 *Converting the impossible, one mod at a time.*
+
+

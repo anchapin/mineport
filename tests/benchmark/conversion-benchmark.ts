@@ -89,7 +89,9 @@ async function runConversionBenchmark() {
         fn: async () => {
           const textureConverter = new TextureConverter();
           // Create mock texture files for testing
-          const mockTextures = [{ path: 'test.png', data: Buffer.from('mock'), type: 'block' as const }];
+          const mockTextures = [
+            { path: 'test.png', data: Buffer.from('mock'), type: 'block' as const },
+          ];
           await textureConverter.convertTextures(mockTextures);
         },
       },
@@ -149,7 +151,11 @@ async function runConversionBenchmark() {
           const mmirRepresentation = {
             ast: [],
             dependencies: [],
-            complexity: { cyclomatic: 0, cognitive: 0, halstead: { volume: 0, difficulty: 0, effort: 0 } }
+            complexity: {
+              cyclomatic: 0,
+              cognitive: 0,
+              halstead: { volume: 0, difficulty: 0, effort: 0 },
+            },
           };
 
           // Transpile to JavaScript AST
