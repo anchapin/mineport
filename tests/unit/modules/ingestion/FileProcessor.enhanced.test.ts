@@ -57,7 +57,14 @@ describe('FileProcessor - Enhanced Tests', () => {
       const result = await fileProcessor.validateUpload(corruptedZip, 'corrupted.jar');
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some((e) => e.message.includes('magic') || e.message.includes('ZIP') || e.message.includes('invalid'))).toBe(true);
+      expect(
+        result.errors.some(
+          (e) =>
+            e.message.includes('magic') ||
+            e.message.includes('ZIP') ||
+            e.message.includes('invalid')
+        )
+      ).toBe(true);
     });
 
     it('should validate multiple MIME types', async () => {

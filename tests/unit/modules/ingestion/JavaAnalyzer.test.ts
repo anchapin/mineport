@@ -190,12 +190,12 @@ side="BOTH"
       const zip = new AdmZip();
 
       const jsonData = {
-        parent: "minecraft:block/cube_all",
+        parent: 'minecraft:block/cube_all',
         textures: {
-          "all": "testmod:block/test_block",
-          "side": "testmod:block/another_block", 
-          "layer0": "testmod:item/test_item"
-        }
+          all: 'testmod:block/test_block',
+          side: 'testmod:block/another_block',
+          layer0: 'testmod:item/test_item',
+        },
       };
       zip.addFile('data/testmod/registry.json', Buffer.from(JSON.stringify(jsonData)));
       zip.writeZip(testJarPath);
