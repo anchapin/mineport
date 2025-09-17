@@ -95,7 +95,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
       // Use jobQueue if available, otherwise create job directly
       if (this.jobQueue && this.jobQueue.addJob) {
         const queueJob = this.jobQueue.addJob('conversion', input);
-        
+
         const job: ConversionJob = {
           id: queueJob.id,
           input,
@@ -112,17 +112,17 @@ export class ConversionService extends EventEmitter implements IConversionServic
             status: job.status,
             progress: job.progress,
           },
-          job
+          job,
         });
 
         // Emit job created event
         this.emit('job:created', job);
-        
+
         return job;
       } else {
         // Fallback for when jobQueue is not available
         const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-        
+
         const job: ConversionJob = {
           id: jobId,
           input,
@@ -164,7 +164,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
         type: 'conversion',
         status: filter?.status,
       });
-      
+
       return jobs.map((queueJob: any) => ({
         id: queueJob.id,
         input: queueJob.data,
@@ -182,7 +182,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
    */
   public cancelJob(jobId: string): boolean {
     logger.info('Cancelling conversion job', { jobId });
-    
+
     // Check if we can get the job first
     if (this.jobQueue && this.jobQueue.getJob) {
       const job = this.jobQueue.getJob(jobId);
@@ -192,7 +192,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -210,13 +210,13 @@ export class ConversionService extends EventEmitter implements IConversionServic
   public getJobResult(jobId: string): ConversionResult | undefined {
     if (this.jobQueue && this.jobQueue.getJob) {
       const job = this.jobQueue.getJob(jobId);
-      
+
       // Return result only if job is completed and has a result
       if (job && job.status === 'completed' && job.result) {
         return job.result;
       }
     }
-    
+
     return undefined;
   }
 
