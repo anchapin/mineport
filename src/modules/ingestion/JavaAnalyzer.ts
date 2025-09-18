@@ -173,6 +173,8 @@ export class JavaAnalyzer {
         texturePaths,
         manifestInfo,
         analysisNotes,
+        extractedFiles: { assets: new Map(), configs: new Map(), classFiles: new Map(), javaFiles: new Map(), others: new Map() },
+        sourceCodeAnalysis: { decompilation: { decompiledFiles: new Map(), failures: [] } }
       };
 
       // Cache the result if available
@@ -220,6 +222,8 @@ export class JavaAnalyzer {
           dependencies: [],
         },
         analysisNotes,
+        extractedFiles: { assets: new Map(), configs: new Map(), classFiles: new Map(), javaFiles: new Map(), others: new Map() },
+        sourceCodeAnalysis: { decompilation: { decompiledFiles: new Map(), failures: [] } }
       };
     }
   }
@@ -991,106 +995,4 @@ export class JavaAnalyzer {
       }
     }
   }
-<<<<<<< HEAD
 }
-=======
-
-  async analyzeJarFull(jarPath: string): Promise<AnalysisResult> {
-    const extractedFiles = await this.extractFiles(jarPath);
-    const manifestInfo = await this.parseManifestInfo(new AdmZip(jarPath));
-    const sourceCodeAnalysis = await this.decompileClassFiles(extractedFiles.classFiles);
-
-    return {
-        modId: manifestInfo.modId,
-        registryNames: [], // Replace with actual extraction logic
-        texturePaths: Array.from(extractedFiles.assets.keys()).filter(key => key.endsWith('.png')),
-        manifestInfo,
-        analysisNotes: [],
-        extractedFiles,
-        sourceCodeAnalysis
-    };
-  }
-
-    private async extractFiles(jarPath: string): Promise<ExtractedFiles> {
-        const zip = new AdmZip(jarPath);
-        const entries = zip.getEntries();
-
-        const extracted: ExtractedFiles = {
-            assets: new Map(),
-            configs: new Map(),
-            classFiles: new Map(),
-            javaFiles: new Map(),
-            others: new Map()
-        };
-
-        for (const entry of entries) {
-            if (entry.isDirectory) {
-                continue;
-            }
-
-            const content = entry.getData();
-            const entryPath = entry.entryName;
-
-            if (entryPath.startsWith('assets/')) {
-                extracted.assets.set(entryPath, content);
-            } else if (entryPath.endsWith('.json') || entryPath.endsWith('.toml') || entryPath.endsWith('.properties')) {
-                extracted.configs.set(entryPath, content);
-            } else if (entryPath.endsWith('.class')) {
-                extracted.classFiles.set(entryPath, content);
-            } else if (entryPath.endsWith('.java')) {
-                extracted.javaFiles.set(entryPath, entry.getData().toString('utf8'));
-            } else {
-                extracted.others.set(entryPath, content);
-            }
-        }
-        return extracted;
-    }
-
-    private async decompileClassFiles(classFiles: Map<string, Buffer>): Promise<DecompilationResult> {
-        const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'decompiler-'));
-        const decompiledFiles = new Map<string, string>();
-        const failures: DecompilationFailure[] = [];
-
-        try {
-            for (const [classPath, buffer] of classFiles.entries()) {
-                const tempClassFile = path.join(tempDir, path.basename(classPath));
-                await fs.writeFile(tempClassFile, buffer);
-            }
-
-            const decompilerPath = path.join(process.cwd(), 'fernflower.jar');
-            const command = `java -jar "${decompilerPath}" "${tempDir}" "${tempDir}"`;
-
-            try {
-                await execAsync(command, { timeout: 300000 }); // 5 minute timeout
-
-                const classNameMap = new Map<string, string>();
-                for (const classPath of classFiles.keys()) {
-                    classNameMap.set(path.basename(classPath, '.class'), classPath);
-                }
-
-                const files = await fs.readdir(tempDir);
-                for (const file of files) {
-                    if (file.endsWith('.java')) {
-                        const decompiledContent = await fs.readFile(path.join(tempDir, file), 'utf-8');
-                        const simpleClassName = path.basename(file, '.java');
-                        const originalClassPath = classNameMap.get(simpleClassName);
-
-                        if (originalClassPath) {
-                            decompiledFiles.set(originalClassPath.replace('.class', '.java'), decompiledContent);
-                        }
-                    }
-                }
-            } catch (error) {
-                logger.error('Decompilation failed', { error });
-                for (const classPath of classFiles.keys()) {
-                    failures.push({ classFile: classPath, error: (error as Error).message });
-                }
-            }
-        } finally {
-            await fs.rm(tempDir, { recursive: true, force: true });
-        }
-
-        return { decompiledFiles, failures };
-    }
-}
->>>>>>> aa1412d (feat: Implement 9-stage mod conversion pipeline)

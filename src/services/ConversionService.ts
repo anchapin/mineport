@@ -277,7 +277,10 @@ export class ConversionService extends EventEmitter implements IConversionServic
         validation: {
           isValid: true,
           errors: [],
+          warnings: [],
         },
+        errors: [],
+        warnings: [],
       };
       
       return result;
