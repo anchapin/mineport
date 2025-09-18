@@ -62,7 +62,10 @@ function validateAndNormalizePath(filePath: string, allowedDirectory?: string): 
     const resolvedPath = path.resolve(normalizedPath);
     const resolvedAllowedDir = path.resolve(allowedDirectory);
 
-    if (!resolvedPath.startsWith(resolvedAllowedDir + path.sep) && resolvedPath !== resolvedAllowedDir) {
+    if (
+      !resolvedPath.startsWith(resolvedAllowedDir + path.sep) &&
+      resolvedPath !== resolvedAllowedDir
+    ) {
       throw new Error('Invalid file path: path outside allowed directory');
     }
   }
