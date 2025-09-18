@@ -10,6 +10,7 @@ import { ConversionService } from '../../../../services/ConversionService';
 import { ValidationPipeline } from '../../../../services/ValidationPipeline';
 import { EnhancedErrorCollector } from '../../../../services/EnhancedErrorCollector';
 import { FeatureFlagService } from '../../../../services/FeatureFlagService';
+import type { ConversionJob, JobStatus } from '../../../../types/services';
 
 // Mock services
 jest.mock('../../../../services/ConversionService');
@@ -167,13 +168,17 @@ describe('EnhancedConversionUI', () => {
         input: {
           modFile: 'test-mod.jar',
           outputPath: '/tmp/test',
-          options: {}
+          options: {
+            targetMinecraftVersion: '1.20.0',
+            includeDocumentation: true,
+            optimizeAssets: true
+          }
         },
-        status: 'queued',
+        status: 'pending' as JobStatus,
         progress: 0,
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      } as ConversionJob);
 
       // This test would need more complex setup to properly test the conversion flow
       expect(mockConversionService.createConversionJob).toBeDefined();
@@ -207,7 +212,7 @@ describe('EnhancedConversionUI', () => {
       renderComponent();
       
       // Simulate WebSocket connection
-      const wsInstance = (WebSocket as jest.Mock).mock.instances[0];
+      const wsInstance = (WebSocket as unknown as jest.Mock).mock.instances[0];
       if (wsInstance.onopen) {
         wsInstance.onopen();
       }
@@ -226,7 +231,7 @@ describe('EnhancedConversionUI', () => {
     });
 
     it('should handle service errors gracefully', async () => {
-      mockConversionService.createConversionJob.mockRejectedValueOnce(
+      mockConversionService.createConversionJob.mockRejectedValue(
         new Error('Service unavailable')
       );
       

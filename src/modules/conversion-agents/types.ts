@@ -2,7 +2,7 @@
  * Type definitions for conversion agents
  */
 
-import { ConversionError, AssetConversionNote } from '../../types/errors';
+import { ConversionError, AssetConversionNote } from '../../types/errors.js';
 
 /**
  * Information about a texture to be converted
@@ -23,7 +23,17 @@ export interface TextureInfo {
 export interface SoundInfo {
   path: string;
   name: string;
-  category: 'ambient' | 'block' | 'hostile' | 'master' | 'music' | 'neutral' | 'player' | 'record' | 'voice' | 'weather';
+  category:
+    | 'ambient'
+    | 'block'
+    | 'hostile'
+    | 'master'
+    | 'music'
+    | 'neutral'
+    | 'player'
+    | 'record'
+    | 'voice'
+    | 'weather';
   buffer: Buffer;
   format: string;
   duration?: number;
@@ -41,9 +51,9 @@ export interface ModelInfo {
 }
 
 /**
- * Result of a conversion operation
+ * Result of a conversion agent operation
  */
-export interface ConversionResult {
+export interface ConversionAgentResult {
   success: boolean;
   outputFiles: OutputFile[];
   errors: ConversionError[];
@@ -69,7 +79,7 @@ export interface ConversionMetadata {
 export interface OutputFile {
   path: string;
   content: Buffer | string;
-  type: 'texture' | 'model' | 'sound' | 'json' | 'manifest';
+  type: 'texture' | 'model' | 'sound' | 'json' | 'manifest' | 'other';
   originalPath?: string;
 }
 
@@ -222,4 +232,6 @@ export interface RecipeDefinition {
   'minecraft:recipe_shaped'?: any;
   'minecraft:recipe_shapeless'?: any;
   'minecraft:recipe_furnace'?: any;
+  'minecraft:recipe_stonecutter'?: any;
+  'minecraft:recipe_smithing_transform'?: any;
 }

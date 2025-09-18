@@ -1,36 +1,70 @@
 /**
- * ASTTranspiler.ts
- * 
- * This module transforms Minecraft Modding Intermediate Representation (MMIR) into JavaScript AST.
- * It implements direct mapping for convertible patterns and generates code for mapped API calls.
+ * AST Transpiler for direct Java-to-JavaScript pattern mapping
+ * Handles mappable code patterns using AST-based transformation
  */
 
-import { MMIRContext, MMIRNode, MMIRNodeType, MMIRRelationship, MMIRRelationshipType } from './MMIRGenerator';
+import {
+  MMIRRepresentation,
+  TranslationContext,
+  ASTTranspilationResult,
+  ASTNode,
+  UnmappableCodeSegment,
+  LogicAPIMapping,
+  TranslationWarning,
+} from '../../types/logic-translation.js';
+import { logger } from '../../utils/logger.js';
+
+export interface TranspilationRule {
+  name: string;
+  pattern: ASTPattern;
+  transform: (node: ASTNode, context: TranslationContext) => string;
+  confidence: number;
+}
+
+export interface ASTPattern {
+  nodeType: string;
+  conditions?: PatternCondition[];
+  childPatterns?: ASTPattern[];
+}
+
+export interface PatternCondition {
+  property: string;
+  operator: 'equals' | 'contains' | 'matches' | 'exists';
+  value?: any;
+}
 
 /**
- * Represents a node in the JavaScript Abstract Syntax Tree
+ * JavaScript AST Node interface for code generation
  */
 export interface JavaScriptASTNode {
   type: string;
-  [key: string]: any; // Additional properties specific to node types
+  body?: JavaScriptASTNode[];
+  value?: any;
+  declarations?: JavaScriptASTNode[];
+  kind?: string;
+  id?: JavaScriptASTNode;
+  init?: JavaScriptASTNode;
+  name?: string;
+  specifiers?: JavaScriptASTNode[];
+  source?: JavaScriptASTNode;
+  local?: JavaScriptASTNode;
+  params?: JavaScriptASTNode[];
+  expression?: JavaScriptASTNode;
+  callee?: JavaScriptASTNode;
+  arguments?: JavaScriptASTNode[];
+  object?: JavaScriptASTNode;
+  property?: JavaScriptASTNode;
+  computed?: boolean;
+  expressions?: JavaScriptASTNode[];
+  quasis?: Array<{ value: { raw: string } }>;
+  properties?: JavaScriptASTNode[];
+  key?: JavaScriptASTNode;
+  static?: boolean;
+  sourceType?: string;
 }
 
 /**
- * Represents an API mapping between Java and Bedrock
- */
-export interface APIMapping {
-  javaSignature: string;
-  bedrockEquivalent: string;
-  conversionType: 'direct' | 'wrapper' | 'complex' | 'impossible';
-  notes: string;
-  exampleUsage?: {
-    java: string;
-    bedrock: string;
-  };
-}
-
-/**
- * Result of the transpilation process
+ * Result of AST transpilation to JavaScript
  */
 export interface TranspilationResult {
   jsAst: JavaScriptASTNode[];
@@ -40,1004 +74,538 @@ export interface TranspilationResult {
     modVersion: string;
     originalModLoader: 'forge' | 'fabric';
   };
-  unmappableNodes: MMIRNode[];
+  unmappableNodes: any[];
   warnings: string[];
 }
 
-/**
- * Class responsible for transpiling MMIR to JavaScript AST
- */
 export class ASTTranspiler {
-  private apiMappings: Map<string, APIMapping> = new Map();
-  
-  /**
-   * Creates a new ASTTranspiler instance
-   */
-  constructor() {
-    this.initializeDefaultMappings();
+  private transpilationRules: TranspilationRule[];
+  private apiMappingService: any; // Would be injected
+
+  constructor(apiMappingService?: any) {
+    this.apiMappingService = apiMappingService;
+    this.transpilationRules = this.initializeTranspilationRules();
   }
-  
+
   /**
-   * Initialize default API mappings
+   * Transpile MMIR to JavaScript using AST-based pattern matching
    */
-  private initializeDefaultMappings(): void {
-    // Add some basic mappings for common Minecraft APIs
-    this.addApiMapping({
-      javaSignature: 'Registry.register',
-      bedrockEquivalent: 'MinecraftServer.register',
-      conversionType: 'direct',
-      notes: 'Basic registration mapping'
-    });
-    
-    this.addApiMapping({
-      javaSignature: 'Registry.registerBlock',
-      bedrockEquivalent: 'MinecraftServer.registerBlock',
-      conversionType: 'direct',
-      notes: 'Block registration mapping'
-    });
-    
-    this.addApiMapping({
-      javaSignature: 'PlayerEvent.PlayerLoggedInEvent',
-      bedrockEquivalent: 'system.events.playerJoin',
-      conversionType: 'direct',
-      notes: 'Player join event mapping'
-    });
-    
-    this.addApiMapping({
-      javaSignature: 'PlayerEvent.PlayerLoggedOutEvent',
-      bedrockEquivalent: 'system.events.playerLeave',
-      conversionType: 'direct',
-      notes: 'Player leave event mapping'
-    });
-    
-    this.addApiMapping({
-      javaSignature: 'BlockEvent.BreakEvent',
-      bedrockEquivalent: 'system.events.blockBreak',
-      conversionType: 'direct',
-      notes: 'Block break event mapping'
-    });
-    
-    this.addApiMapping({
-      javaSignature: 'ItemRegistry.register',
-      bedrockEquivalent: 'system.registerItem',
-      conversionType: 'wrapper',
-      notes: 'Item registration with parameter transformation'
-    });
-    
-    this.addApiMapping({
-      javaSignature: 'BlockRegistry.register',
-      bedrockEquivalent: 'system.registerBlock',
-      conversionType: 'wrapper',
-      notes: 'Block registration with parameter transformation'
-    });
+  async transpile(
+    mmir: MMIRRepresentation,
+    context: TranslationContext
+  ): Promise<ASTTranspilationResult> {
+    logger.debug('Starting AST-based transpilation');
+
+    try {
+      const transpilationResult = await this.transpileNodes(mmir.ast, context);
+
+      const result: ASTTranspilationResult = {
+        code: transpilationResult.code,
+        unmappableCode: transpilationResult.unmappableSegments,
+        mappedAPIs: transpilationResult.mappedAPIs,
+        confidence: transpilationResult.confidence,
+        warnings: transpilationResult.warnings,
+      };
+
+      logger.debug('AST transpilation completed', {
+        codeLength: result.code.length,
+        unmappableSegments: result.unmappableCode.length,
+        confidence: result.confidence,
+      });
+
+      return result;
+    } catch (error) {
+      logger.error('AST transpilation failed', { error });
+      throw new Error(
+        `AST transpilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
-  
+
   /**
-   * Add an API mapping
-   * @param mapping The API mapping to add
+   * Transpile a collection of AST nodes
    */
-  public addApiMapping(mapping: APIMapping): void {
-    this.apiMappings.set(mapping.javaSignature, mapping);
-  }
-  
-  /**
-   * Get an API mapping by Java signature
-   * @param javaSignature The Java signature to look up
-   * @returns The API mapping if found, undefined otherwise
-   */
-  public getApiMapping(javaSignature: string): APIMapping | undefined {
-    return this.apiMappings.get(javaSignature);
-  }
-  
-  /**
-   * Transpile MMIR to JavaScript AST
-   * @param mmirContext The MMIR context to transpile
-   * @returns The transpilation result
-   */
-  public transpile(mmirContext: MMIRContext): TranspilationResult {
-    const jsAst: JavaScriptASTNode[] = [];
-    const unmappableNodes: MMIRNode[] = [];
-    const warnings: string[] = [];
-    
-    // Create the module structure
-    const moduleNode = this.createModuleNode(mmirContext);
-    jsAst.push(moduleNode);
-    
-    // Process each MMIR node
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const node of mmirContext.nodes) {
+  private async transpileNodes(
+    nodes: ASTNode[],
+    context: TranslationContext
+  ): Promise<{
+    code: string;
+    unmappableSegments: UnmappableCodeSegment[];
+    mappedAPIs: LogicAPIMapping[];
+    confidence: number;
+    warnings: TranslationWarning[];
+  }> {
+    const codeSegments: string[] = [];
+    const unmappableSegments: UnmappableCodeSegment[] = [];
+    const mappedAPIs: LogicAPIMapping[] = [];
+    const warnings: TranslationWarning[] = [];
+    let totalConfidence = 0;
+    let processedNodes = 0;
+
+    for (const node of nodes) {
       try {
-        const jsNodes = this.transpileNode(node, mmirContext);
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (jsNodes.length > 0) {
-          jsAst.push(...jsNodes);
+        const nodeResult = await this.transpileNode(node, context);
+
+        if (nodeResult.success) {
+          codeSegments.push(nodeResult.code);
+          mappedAPIs.push(...nodeResult.mappedAPIs);
+          totalConfidence += nodeResult.confidence;
+          warnings.push(...nodeResult.warnings);
         } else {
-          unmappableNodes.push(node);
-          warnings.push(`Unable to transpile node of type ${node.type}: ${node.id}`);
+          unmappableSegments.push({
+            originalCode: this.nodeToString(node),
+            reason: nodeResult.reason || 'No matching transpilation rule found',
+            context: {
+              className: context.modInfo.name,
+              methodName: this.extractMethodName(node),
+              lineNumber: node.position.line,
+              dependencies: context.modInfo.dependencies,
+            },
+            suggestedApproach: nodeResult.suggestedApproach || 'Use LLM-based translation',
+          });
         }
+
+        processedNodes++;
       } catch (error) {
-        unmappableNodes.push(node);
-        warnings.push(`Error transpiling node ${node.id}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-    
-    return {
-      jsAst,
-      metadata: {
-        modId: mmirContext.metadata.modId,
-        modName: mmirContext.metadata.modName,
-        modVersion: mmirContext.metadata.modVersion,
-        originalModLoader: mmirContext.metadata.modLoader
-      },
-      unmappableNodes,
-      warnings
-    };
-  }
-  
-  /**
-   * Create the module node for the JavaScript AST
-   * @param mmirContext The MMIR context
-   * @returns The module node
-   */
-  private createModuleNode(mmirContext: MMIRContext): JavaScriptASTNode {
-    // Ensure we have a valid mod ID
-    const modId = mmirContext.metadata.modId || 'examplemod';
-    
-    // Create a Program node (root of JavaScript AST)
-    return {
-      type: 'Program',
-      sourceType: 'module',
-      body: [
-        // Add module metadata as a comment
-        {
-          type: 'CommentBlock',
-          value: `
- * Mod: ${mmirContext.metadata.modName}
- * ID: ${modId}
- * Version: ${mmirContext.metadata.modVersion}
- * Original Mod Loader: ${mmirContext.metadata.modLoader}
- * Authors: ${mmirContext.metadata.authors.join(', ')}
- * License: ${mmirContext.metadata.license}
- * Description: ${mmirContext.metadata.description}
- * 
- * This file was automatically generated by the Minecraft Mod Converter.
- * Original Java code has been transpiled to JavaScript for Bedrock Edition.
- `
-        },
-        
-        // Add module initialization
-        {
-          type: 'VariableDeclaration',
-          kind: 'const',
-          declarations: [
-            {
-              type: 'VariableDeclarator',
-              id: {
-                type: 'Identifier',
-                name: 'MOD_ID'
-              },
-              init: {
-                type: 'Literal',
-                value: modId
-              }
-            }
-          ]
-        },
-        
-        // Add system import for Bedrock scripting
-        {
-          type: 'ImportDeclaration',
-          specifiers: [
-            {
-              type: 'ImportDefaultSpecifier',
-              local: {
-                type: 'Identifier',
-                name: 'system'
-              }
-            }
-          ],
-          source: {
-            type: 'Literal',
-            value: '@minecraft/server'
-          }
-        }
-      ]
-    };
-  }
-  
-  /**
-   * Transpile an MMIR node to JavaScript AST nodes
-   * @param node The MMIR node to transpile
-   * @param mmirContext The full MMIR context
-   * @returns Array of JavaScript AST nodes
-   */
-  private transpileNode(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    /**
-     * switch method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    switch (node.type) {
-      case MMIRNodeType.ModDeclaration:
-        return this.transpileModDeclaration(node, mmirContext);
-      
-      case MMIRNodeType.EventHandler:
-        return this.transpileEventHandler(node, mmirContext);
-      
-      case MMIRNodeType.BlockRegistration:
-        return this.transpileBlockRegistration(node, mmirContext);
-      
-      case MMIRNodeType.ItemRegistration:
-        return this.transpileItemRegistration(node, mmirContext);
-      
-      case MMIRNodeType.Function:
-      case MMIRNodeType.Method:
-        return this.transpileFunction(node, mmirContext);
-      
-      case MMIRNodeType.Field:
-      case MMIRNodeType.Property:
-        return this.transpileField(node, mmirContext);
-      
-      default:
-        // Return empty array for unmappable nodes
-        return [];
-    }
-  }
-  
-  /**
-   * Transpile a mod declaration node
-   * @param node The mod declaration node
-   * @param mmirContext The full MMIR context
-   * @returns JavaScript AST nodes
-   */
-  private transpileModDeclaration(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    const modId = node.properties.modId || mmirContext.metadata.modId;
-    
-    // Create a module initialization function
-    return [
-      {
-        type: 'FunctionDeclaration',
-        id: {
-          type: 'Identifier',
-          name: 'initializeMod'
-        },
-        params: [],
-        body: {
-          type: 'BlockStatement',
-          body: [
-            {
-              type: 'ExpressionStatement',
-              expression: {
-                type: 'CallExpression',
-                callee: {
-                  type: 'MemberExpression',
-                  object: {
-                    type: 'Identifier',
-                    name: 'console'
-                  },
-                  property: {
-                    type: 'Identifier',
-                    name: 'log'
-                  },
-                  computed: false
-                },
-                arguments: [
-                  {
-                    type: 'Literal',
-                    value: `Initializing mod: ${modId}`
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      
-      // Call the initialization function
-      {
-        type: 'ExpressionStatement',
-        expression: {
-          type: 'CallExpression',
-          callee: {
-            type: 'Identifier',
-            name: 'initializeMod'
+        logger.warn('Failed to transpile node', {
+          nodeType: node.type,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+
+        unmappableSegments.push({
+          originalCode: this.nodeToString(node),
+          reason: `Transpilation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          context: {
+            className: context.modInfo.name,
+            methodName: this.extractMethodName(node),
+            lineNumber: node.position.line,
+            dependencies: context.modInfo.dependencies,
           },
-          arguments: []
-        }
-      }
-    ];
-  }
-  
-  /**
-   * Transpile an event handler node
-   * @param node The event handler node
-   * @param mmirContext The full MMIR context
-   * @returns JavaScript AST nodes
-   */
-  private transpileEventHandler(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    const methodName = node.properties.methodName || 'handleEvent';
-    const eventType = node.properties.eventType || 'UnknownEvent';
-    
-    // Look up the event type in API mappings
-    const mapping = this.findEventMapping(eventType);
-    const bedrockEvent = mapping ? mapping.bedrockEquivalent : 'system.events.beforeChat'; // Default fallback
-    
-    // Create an event handler registration
-    return [
-      {
-        type: 'ExpressionStatement',
-        expression: {
-          type: 'CallExpression',
-          callee: {
-            type: 'MemberExpression',
-            object: {
-              type: 'MemberExpression',
-              object: {
-                type: 'Identifier',
-                name: bedrockEvent.split('.')[0]
-              },
-              property: {
-                type: 'Identifier',
-                name: bedrockEvent.split('.')[1]
-              },
-              computed: false
-            },
-            property: {
-              type: 'Identifier',
-              name: 'subscribe'
-            },
-            computed: false
-          },
-          arguments: [
-            {
-              type: 'ArrowFunctionExpression',
-              params: [
-                {
-                  type: 'Identifier',
-                  name: 'event'
-                }
-              ],
-              body: {
-                type: 'BlockStatement',
-                body: [
-                  {
-                    type: 'ExpressionStatement',
-                    expression: {
-                      type: 'CallExpression',
-                      callee: {
-                        type: 'MemberExpression',
-                        object: {
-                          type: 'Identifier',
-                          name: 'console'
-                        },
-                        property: {
-                          type: 'Identifier',
-                          name: 'log'
-                        },
-                        computed: false
-                      },
-                      arguments: [
-                        {
-                          type: 'TemplateLiteral',
-                          quasis: [
-                            {
-                              type: 'TemplateElement',
-                              value: {
-                                raw: 'Event handler ',
-                                cooked: 'Event handler '
-                              },
-                              tail: false
-                            },
-                            {
-                              type: 'TemplateElement',
-                              value: {
-                                raw: ' called',
-                                cooked: ' called'
-                              },
-                              tail: true
-                            }
-                          ],
-                          expressions: [
-                            {
-                              type: 'Literal',
-                              value: methodName
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  }
-                ]
-              },
-              expression: false
-            }
-          ]
-        }
-      }
-    ];
-  }
-  
-  /**
-   * Find an event mapping in the API mappings
-   * @param eventType The Java event type
-   * @returns The API mapping if found, undefined otherwise
-   */
-  private findEventMapping(eventType: string): APIMapping | undefined {
-    // Try exact match first
-    let mapping = this.apiMappings.get(eventType);
-    
-    // If not found, try partial matches
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!mapping) {
-      /**
-       * for method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      for (const [key, value] of this.apiMappings.entries()) {
-        /**
-         * if method.
-         * 
-         * TODO: Add detailed description of the method's purpose and behavior.
-         * 
-         * @param param - TODO: Document parameters
-         * @returns result - TODO: Document return value
-         * @since 1.0.0
-         */
-        if (eventType.includes(key)) {
-          mapping = value;
-          break;
-        }
-      }
-    }
-    
-    return mapping;
-  }
-  
-  /**
-   * Transpile a block registration node
-   * @param node The block registration node
-   * @param mmirContext The full MMIR context
-   * @returns JavaScript AST nodes
-   */
-  private transpileBlockRegistration(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    const blockId = node.properties.blockId || 'unknown_block';
-    
-    // Look up the registration method in API mappings
-    const mapping = this.apiMappings.get('BlockRegistry.register');
-    const bedrockMethod = mapping ? mapping.bedrockEquivalent : 'system.registerBlock';
-    
-    // Create a block registration call
-    return [
-      {
-        type: 'ExpressionStatement',
-        expression: {
-          type: 'CallExpression',
-          callee: {
-            type: 'MemberExpression',
-            object: {
-              type: 'Identifier',
-              name: bedrockMethod.split('.')[0]
-            },
-            property: {
-              type: 'Identifier',
-              name: bedrockMethod.split('.')[1]
-            },
-            computed: false
-          },
-          arguments: [
-            {
-              type: 'ObjectExpression',
-              properties: [
-                {
-                  type: 'Property',
-                  key: {
-                    type: 'Identifier',
-                    name: 'identifier'
-                  },
-                  value: {
-                    type: 'Literal',
-                    value: `${mmirContext.metadata.modId}:${blockId}`
-                  },
-                  kind: 'init',
-                  computed: false,
-                  method: false,
-                  shorthand: false
-                }
-              ]
-            }
-          ]
-        }
-      }
-    ];
-  }
-  
-  /**
-   * Transpile an item registration node
-   * @param node The item registration node
-   * @param mmirContext The full MMIR context
-   * @returns JavaScript AST nodes
-   */
-  private transpileItemRegistration(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    const itemId = node.properties.itemId || 'unknown_item';
-    
-    // Look up the registration method in API mappings
-    const mapping = this.apiMappings.get('ItemRegistry.register');
-    const bedrockMethod = mapping ? mapping.bedrockEquivalent : 'system.registerItem';
-    
-    // Create an item registration call
-    return [
-      {
-        type: 'ExpressionStatement',
-        expression: {
-          type: 'CallExpression',
-          callee: {
-            type: 'MemberExpression',
-            object: {
-              type: 'Identifier',
-              name: bedrockMethod.split('.')[0]
-            },
-            property: {
-              type: 'Identifier',
-              name: bedrockMethod.split('.')[1]
-            },
-            computed: false
-          },
-          arguments: [
-            {
-              type: 'ObjectExpression',
-              properties: [
-                {
-                  type: 'Property',
-                  key: {
-                    type: 'Identifier',
-                    name: 'identifier'
-                  },
-                  value: {
-                    type: 'Literal',
-                    value: `${mmirContext.metadata.modId}:${itemId}`
-                  },
-                  kind: 'init',
-                  computed: false,
-                  method: false,
-                  shorthand: false
-                }
-              ]
-            }
-          ]
-        }
-      }
-    ];
-  }
-  
-  /**
-   * Transpile a function or method node
-   * @param node The function or method node
-   * @param mmirContext The full MMIR context
-   * @returns JavaScript AST nodes
-   */
-  private transpileFunction(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    const functionName = node.properties.methodName || node.properties.functionName || 'unknownFunction';
-    const className = node.properties.className || '';
-    const javaSignature = `${className}.${functionName}`;
-    
-    // Look up the method in API mappings
-    const mapping = this.apiMappings.get(javaSignature);
-    
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (mapping) {
-      // Create a mapped method call
-      const [objectName, methodName] = mapping.bedrockEquivalent.split('.');
-      
-      return [
-        {
-          type: 'ExpressionStatement',
-          expression: {
-            type: 'CallExpression',
-            callee: {
-              type: 'MemberExpression',
-              object: {
-                type: 'Identifier',
-                name: objectName
-              },
-              property: {
-                type: 'Identifier',
-                name: methodName
-              },
-              computed: false
-            },
-            arguments: this.createMethodArguments(node)
-          }
-        }
-      ];
-    }
-    
-    // If no mapping found, create a function declaration
-    return [
-      {
-        type: 'FunctionDeclaration',
-        id: {
-          type: 'Identifier',
-          name: functionName
-        },
-        params: this.createFunctionParams(node),
-        body: {
-          type: 'BlockStatement',
-          body: this.createFunctionBody(node, mmirContext)
-        }
-      }
-    ];
-  }
-  
-  /**
-   * Create method arguments from an MMIR node
-   * @param node The MMIR node
-   * @returns Array of argument nodes
-   */
-  private createMethodArguments(node: MMIRNode): JavaScriptASTNode[] {
-    const args: JavaScriptASTNode[] = [];
-    
-    // Add parameters if defined in the node
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (node.properties.parameters && Array.isArray(node.properties.parameters)) {
-      /**
-       * for method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      for (const param of node.properties.parameters) {
-        if (param.type === 'Identifier') {
-          args.push({
-            type: 'Identifier',
-            name: param.name || 'param'
-          });
-        } else if (param.type === 'NewExpression') {
-          args.push({
-            type: 'NewExpression',
-            callee: {
-              type: 'Identifier',
-              name: param.className || 'Object'
-            },
-            arguments: []
-          });
-        } else {
-          args.push({
-            type: 'Identifier',
-            name: 'param'
-          });
-        }
-      }
-    }
-    
-    return args;
-  }
-  
-  /**
-   * Create function parameters from an MMIR node
-   * @param node The MMIR node
-   * @returns Array of parameter nodes
-   */
-  private createFunctionParams(node: MMIRNode): JavaScriptASTNode[] {
-    const params: JavaScriptASTNode[] = [];
-    
-    // Add parameters if defined in the node
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (node.properties.parameters && Array.isArray(node.properties.parameters)) {
-      /**
-       * for method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      for (const param of node.properties.parameters) {
-        params.push({
-          type: 'Identifier',
-          name: param.name || 'param'
+          suggestedApproach: 'Manual review required',
         });
       }
     }
-    
-    return params;
-  }
-  
-  /**
-   * Create function body statements from an MMIR node
-   * @param node The MMIR node
-   * @param mmirContext The full MMIR context
-   * @returns Array of statement nodes
-   */
-  private createFunctionBody(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    const body: JavaScriptASTNode[] = [];
-    
-    // Add a placeholder comment if no body is defined
-    body.push({
-      type: 'ExpressionStatement',
-      expression: {
-        type: 'CallExpression',
-        callee: {
-          type: 'MemberExpression',
-          object: {
-            type: 'Identifier',
-            name: 'console'
-          },
-          property: {
-            type: 'Identifier',
-            name: 'log'
-          },
-          computed: false
-        },
-        arguments: [
-          {
-            type: 'Literal',
-            value: `Function ${node.properties.methodName || node.properties.functionName || 'unknown'} called`
-          }
-        ]
-      }
-    });
-    
-    return body;
-  }
-  
-  /**
-   * Transpile a field or property node
-   * @param node The field or property node
-   * @param mmirContext The full MMIR context
-   * @returns JavaScript AST nodes
-   */
-  private transpileField(node: MMIRNode, mmirContext: MMIRContext): JavaScriptASTNode[] {
-    const fieldName = node.properties.fieldName || node.properties.propertyName || 'unknownField';
-    const isStatic = node.properties.isStatic || false;
-    
-    // Create a variable declaration
-    return [
-      {
-        type: 'VariableDeclaration',
-        kind: isStatic ? 'const' : 'let',
-        declarations: [
-          {
-            type: 'VariableDeclarator',
-            id: {
-              type: 'Identifier',
-              name: fieldName
-            },
-            init: this.createFieldInitializer(node)
-          }
-        ]
-      }
-    ];
-  }
-  
-  /**
-   * Create a field initializer expression
-   * @param node The MMIR node
-   * @returns The initializer expression node
-   */
-  private createFieldInitializer(node: MMIRNode): JavaScriptASTNode {
-    // Use the initialValue if provided, otherwise use null
-    if (node.properties.initialValue !== undefined) {
-      if (typeof node.properties.initialValue === 'string') {
-        return {
-          type: 'Literal',
-          value: node.properties.initialValue
-        };
-      } else if (typeof node.properties.initialValue === 'number') {
-        return {
-          type: 'Literal',
-          value: node.properties.initialValue
-        };
-      } else if (typeof node.properties.initialValue === 'boolean') {
-        return {
-          type: 'Literal',
-          value: node.properties.initialValue
-        };
-      }
-    }
-    
-    // Default to null
+
+    const averageConfidence = processedNodes > 0 ? totalConfidence / processedNodes : 0;
+    const code = codeSegments.join('\n');
+
     return {
-      type: 'Literal',
-      value: null
+      code,
+      unmappableSegments,
+      mappedAPIs,
+      confidence: averageConfidence,
+      warnings,
     };
   }
-  
-  /**
-   * Generate JavaScript code from AST
-   * @param ast The JavaScript AST
-   * @returns Generated JavaScript code
-   */
-  public generateJavaScript(ast: JavaScriptASTNode[]): string {
-    // This is a simplified implementation
-    // In a real implementation, we would use a library like escodegen
-    
-    let code = '';
-    
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const node of ast) {
-      code += this.generateNodeCode(node) + '\n\n';
-    }
-    
-    return code;
-  }
-  
-  /**
-   * Generate JavaScript code for a single AST node
-   * @param node The AST node
-   * @returns Generated JavaScript code
-   */
-  private generateNodeCode(node: JavaScriptASTNode): string {
-    /**
-     * switch method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    switch (node.type) {
-      case 'Program':
-        return node.body.map(bodyNode => this.generateNodeCode(bodyNode)).join('\n\n');
-      
-      case 'CommentBlock':
-        return `/*${node.value}*/`;
-      
-      case 'VariableDeclaration':
-        const declarations = node.declarations.map(decl => this.generateNodeCode(decl)).join(', ');
-        return `${node.kind} ${declarations};`;
-      
-      case 'VariableDeclarator':
-        const init = node.init ? ` = ${this.generateNodeCode(node.init)}` : '';
-        return `${this.generateNodeCode(node.id)}${init}`;
-      
-      case 'Identifier':
-        return node.name;
-      
-      case 'Literal':
-        if (typeof node.value === 'string') {
-          return `"${node.value}"`;
-        } else if (node.value === null) {
-          return 'null';
-        } else {
-          return String(node.value);
-        }
-      
-      case 'ImportDeclaration':
-        const specifiers = node.specifiers.map(spec => this.generateNodeCode(spec)).join(', ');
-        return `import ${specifiers} from ${this.generateNodeCode(node.source)};`;
-      
-      case 'ImportDefaultSpecifier':
-        return this.generateNodeCode(node.local);
-      
-      case 'FunctionDeclaration':
-        const params = node.params.map(param => this.generateNodeCode(param)).join(', ');
-        const body = this.generateNodeCode(node.body);
-        return `function ${this.generateNodeCode(node.id)}(${params}) ${body}`;
-      
-      case 'BlockStatement':
-        const statements = node.body.map(stmt => this.generateNodeCode(stmt)).join('\n  ');
-        return `{\n  ${statements}\n}`;
-      
-      case 'ExpressionStatement':
-        return `${this.generateNodeCode(node.expression)};`;
-      
-      case 'CallExpression':
-        const args = node.arguments.map(arg => this.generateNodeCode(arg)).join(', ');
-        return `${this.generateNodeCode(node.callee)}(${args})`;
-      
-      case 'MemberExpression':
-        const object = this.generateNodeCode(node.object);
-        const property = node.computed 
-          ? `[${this.generateNodeCode(node.property)}]` 
-          : `.${this.generateNodeCode(node.property)}`;
-        return `${object}${property}`;
-      
-      case 'ArrowFunctionExpression':
-        const arrowParams = node.params.map(param => this.generateNodeCode(param)).join(', ');
-        const arrowBody = this.generateNodeCode(node.body);
-        return `(${arrowParams}) => ${arrowBody}`;
-      
-      case 'TemplateLiteral':
-        let result = '`';
-        for (let i = 0; i < node.expressions.length; i++) {
-          result += node.quasis[i].value.raw;
-          result += '${' + this.generateNodeCode(node.expressions[i]) + '}';
-        }
-        result += node.quasis[node.quasis.length - 1].value.raw;
-        result += '`';
-        return result;
-      
-      case 'ObjectExpression':
-        const properties = node.properties.map(prop => this.generateNodeCode(prop)).join(', ');
-        return `{ ${properties} }`;
-      
-      case 'Property':
-        const key = node.computed 
-          ? `[${this.generateNodeCode(node.key)}]` 
-          : this.generateNodeCode(node.key);
-        const value = this.generateNodeCode(node.value);
-        return `${key}: ${value}`;
-      
-      default:
-        return `/* Unsupported node type: ${node.type} */`;
-    }
-  }
-}
 
-/**
- * Factory function to create an ASTTranspiler instance
- * @returns A new ASTTranspiler instance
- */
-export function createASTTranspiler(): ASTTranspiler {
-  return new ASTTranspiler();
+  /**
+   * Transpile a single AST node
+   */
+  private async transpileNode(
+    node: ASTNode,
+    context: TranslationContext
+  ): Promise<{
+    success: boolean;
+    code: string;
+    mappedAPIs: LogicAPIMapping[];
+    confidence: number;
+    warnings: TranslationWarning[];
+    reason?: string;
+    suggestedApproach?: string;
+  }> {
+    // Find matching transpilation rule
+    const matchingRule = this.findMatchingRule(node);
+
+    if (!matchingRule) {
+      return {
+        success: false,
+        code: '',
+        mappedAPIs: [],
+        confidence: 0,
+        warnings: [],
+        reason: `No transpilation rule found for node type: ${node.type}`,
+        suggestedApproach: 'Use LLM-based semantic translation',
+      };
+    }
+
+    try {
+      // Apply the transpilation rule
+      const transpiledCode = matchingRule.transform(node, context);
+
+      // Extract any API mappings used
+      const mappedAPIs = await this.extractAPIMappings(node, transpiledCode, context);
+
+      // Generate warnings if needed
+      const warnings = this.generateWarnings(node, matchingRule, context);
+
+      // Recursively transpile child nodes if needed
+      const childResults = await this.transpileChildNodes(node, context);
+
+      const finalCode = this.combineCodeSegments(transpiledCode, childResults.code);
+
+      return {
+        success: true,
+        code: finalCode,
+        mappedAPIs: [...mappedAPIs, ...childResults.mappedAPIs],
+        confidence: (matchingRule.confidence + childResults.confidence) / 2,
+        warnings: [...warnings, ...childResults.warnings],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        code: '',
+        mappedAPIs: [],
+        confidence: 0,
+        warnings: [],
+        reason: `Transpilation rule execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        suggestedApproach: 'Manual review and custom implementation required',
+      };
+    }
+  }
+
+  /**
+   * Transpile child nodes recursively
+   */
+  private async transpileChildNodes(
+    node: ASTNode,
+    context: TranslationContext
+  ): Promise<{
+    code: string;
+    mappedAPIs: LogicAPIMapping[];
+    confidence: number;
+    warnings: TranslationWarning[];
+  }> {
+    if (node.children.length === 0) {
+      return {
+        code: '',
+        mappedAPIs: [],
+        confidence: 1.0,
+        warnings: [],
+      };
+    }
+
+    const childResult = await this.transpileNodes(node.children, context);
+
+    return {
+      code: childResult.code,
+      mappedAPIs: childResult.mappedAPIs,
+      confidence: childResult.confidence,
+      warnings: childResult.warnings,
+    };
+  }
+
+  /**
+   * Find matching transpilation rule for a node
+   */
+  private findMatchingRule(node: ASTNode): TranspilationRule | null {
+    for (const rule of this.transpilationRules) {
+      if (this.matchesPattern(node, rule.pattern)) {
+        return rule;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Check if a node matches a pattern
+   */
+  private matchesPattern(node: ASTNode, pattern: ASTPattern): boolean {
+    // Check node type
+    if (node.type !== pattern.nodeType) {
+      return false;
+    }
+
+    // Check conditions
+    if (pattern.conditions) {
+      for (const condition of pattern.conditions) {
+        if (!this.evaluateCondition(node, condition)) {
+          return false;
+        }
+      }
+    }
+
+    // Check child patterns
+    if (pattern.childPatterns) {
+      if (node.children.length < pattern.childPatterns.length) {
+        return false;
+      }
+
+      for (let i = 0; i < pattern.childPatterns.length; i++) {
+        if (!this.matchesPattern(node.children[i], pattern.childPatterns[i])) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Evaluate a pattern condition
+   */
+  private evaluateCondition(node: ASTNode, condition: PatternCondition): boolean {
+    const propertyValue = this.getNodeProperty(node, condition.property);
+
+    switch (condition.operator) {
+      case 'equals':
+        return propertyValue === condition.value;
+      case 'contains':
+        return (
+          typeof propertyValue === 'string' &&
+          typeof condition.value === 'string' &&
+          propertyValue.includes(condition.value)
+        );
+      case 'matches':
+        return (
+          typeof propertyValue === 'string' &&
+          typeof condition.value === 'string' &&
+          new RegExp(condition.value).test(propertyValue)
+        );
+      case 'exists':
+        return propertyValue !== undefined && propertyValue !== null;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Get a property value from a node
+   */
+  private getNodeProperty(node: ASTNode, property: string): any {
+    switch (property) {
+      case 'type':
+        return node.type;
+      case 'value':
+        return node.value;
+      case 'childCount':
+        return node.children.length;
+      case 'javaType':
+        return node.metadata?.javaType;
+      case 'mappable':
+        return node.metadata?.mappable;
+      default:
+        return undefined;
+    }
+  }
+
+  /**
+   * Extract API mappings used in transpilation
+   */
+  private async extractAPIMappings(
+    _node: ASTNode,
+    _transpiledCode: string,
+    _context: TranslationContext
+  ): Promise<LogicAPIMapping[]> {
+    const mappings: LogicAPIMapping[] = [];
+
+    // This would analyze the transpiled code and identify which API mappings were used
+    // For now, return empty array as this requires integration with API mapping service
+
+    return mappings;
+  }
+
+  /**
+   * Generate warnings for transpilation
+   */
+  private generateWarnings(
+    node: ASTNode,
+    rule: TranspilationRule,
+    _context: TranslationContext
+  ): TranslationWarning[] {
+    const warnings: TranslationWarning[] = [];
+
+    // Check for low confidence transpilation
+    if (rule.confidence < 0.7) {
+      warnings.push({
+        type: 'low_confidence_transpilation',
+        message: `Transpilation rule '${rule.name}' has low confidence (${rule.confidence})`,
+        severity: 'warning',
+        location: node.position,
+        suggestion: 'Consider manual review of the generated code',
+      });
+    }
+
+    // Check for complex node structures
+    if (node.children.length > 10) {
+      warnings.push({
+        type: 'complex_node_structure',
+        message: `Node has many children (${node.children.length}), transpilation may be incomplete`,
+        severity: 'warning',
+        location: node.position,
+        suggestion: 'Verify that all child elements are properly transpiled',
+      });
+    }
+
+    return warnings;
+  }
+
+  /**
+   * Combine code segments
+   */
+  private combineCodeSegments(parentCode: string, childCode: string): string {
+    if (!childCode.trim()) {
+      return parentCode;
+    }
+
+    if (!parentCode.trim()) {
+      return childCode;
+    }
+
+    return `${parentCode}\n${childCode}`;
+  }
+
+  /**
+   * Convert AST node to string representation
+   */
+  private nodeToString(node: ASTNode): string {
+    // This would generate a string representation of the original Java code
+    // For now, return a simplified representation
+    let result = node.value || node.type;
+
+    if (node.children.length > 0) {
+      const childStrings = node.children.map((child) => this.nodeToString(child));
+      result += ` { ${childStrings.join('; ')} }`;
+    }
+
+    return result;
+  }
+
+  /**
+   * Extract method name from node context
+   */
+  private extractMethodName(node: ASTNode): string {
+    if (node.type === 'MethodDeclaration') {
+      return node.value || 'unknownMethod';
+    }
+
+    // Look for method declaration in parent context
+    // This is simplified - in practice, we'd maintain a context stack
+    return 'unknownMethod';
+  }
+
+  /**
+   * Initialize transpilation rules
+   */
+  private initializeTranspilationRules(): TranspilationRule[] {
+    return [
+      // Class Declaration Rule
+      {
+        name: 'ClassDeclaration',
+        pattern: {
+          nodeType: 'ClassDeclaration',
+        },
+        transform: (node: ASTNode, _context: TranslationContext) => {
+          const className = node.value || 'UnknownClass';
+          return `// Transpiled class: ${className}\nclass ${className} {\n  constructor() {\n    // Class initialization\n  }\n}`;
+        },
+        confidence: 0.9,
+      },
+
+      // Method Declaration Rule
+      {
+        name: 'MethodDeclaration',
+        pattern: {
+          nodeType: 'MethodDeclaration',
+        },
+        transform: (_node: ASTNode, _context: TranslationContext) => {
+          const methodName = _node.value || 'unknownMethod';
+          return `  ${methodName}() {\n    // Method implementation\n  }`;
+        },
+        confidence: 0.8,
+      },
+
+      // If Statement Rule
+      {
+        name: 'IfStatement',
+        pattern: {
+          nodeType: 'IfStatement',
+        },
+        transform: (_node: ASTNode, _context: TranslationContext) => {
+          return `if (condition) {\n  // If body\n}`;
+        },
+        confidence: 0.95,
+      },
+
+      // For Loop Rule
+      {
+        name: 'ForLoop',
+        pattern: {
+          nodeType: 'ForLoop',
+        },
+        transform: (_node: ASTNode, _context: TranslationContext) => {
+          return `for (let i = 0; i < length; i++) {\n  // Loop body\n}`;
+        },
+        confidence: 0.9,
+      },
+
+      // While Loop Rule
+      {
+        name: 'WhileLoop',
+        pattern: {
+          nodeType: 'WhileLoop',
+        },
+        transform: (_node: ASTNode, _context: TranslationContext) => {
+          return `while (condition) {\n  // Loop body\n}`;
+        },
+        confidence: 0.9,
+      },
+
+      // Method Call Rule
+      {
+        name: 'MethodCall',
+        pattern: {
+          nodeType: 'MethodCall',
+        },
+        transform: (node: ASTNode, _context: TranslationContext) => {
+          const methodName = node.value || 'unknownMethod';
+          return `${methodName}();`;
+        },
+        confidence: 0.7,
+      },
+
+      // Assignment Rule
+      {
+        name: 'Assignment',
+        pattern: {
+          nodeType: 'Assignment',
+        },
+        transform: (node: ASTNode, _context: TranslationContext) => {
+          const variableName = node.value || 'variable';
+          return `let ${variableName} = value;`;
+        },
+        confidence: 0.85,
+      },
+
+      // Field Declaration Rule
+      {
+        name: 'FieldDeclaration',
+        pattern: {
+          nodeType: 'FieldDeclaration',
+        },
+        transform: (node: ASTNode, _context: TranslationContext) => {
+          const fieldName = node.value || 'field';
+          return `  ${fieldName} = null;`;
+        },
+        confidence: 0.8,
+      },
+
+      // Comment Rule
+      {
+        name: 'Comment',
+        pattern: {
+          nodeType: 'Comment',
+        },
+        transform: (node: ASTNode, _context: TranslationContext) => {
+          const comment = node.value || '';
+          if (comment.startsWith('//')) {
+            return comment;
+          } else if (comment.startsWith('/*')) {
+            return comment;
+          }
+          return `// ${comment}`;
+        },
+        confidence: 1.0,
+      },
+    ];
+  }
 }

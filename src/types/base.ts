@@ -2,6 +2,8 @@
  * Core type definitions used throughout the application
  */
 
+import { LicenseInfo } from './errors.js';
+
 /**
  * Represents a Java mod
  */
@@ -44,17 +46,6 @@ export interface ConfigFile {
 }
 
 /**
- * Represents license information
- */
-export interface LicenseInfo {
-  type: string;
-  text: string;
-  permissions: string[];
-  limitations: string[];
-  conditions: string[];
-}
-
-/**
  * Represents a source code location
  */
 export interface SourceLocation {
@@ -63,14 +54,8 @@ export interface SourceLocation {
   startColumn: number;
   endLine: number;
   endColumn: number;
-}
-
-/**
- * Common interface for conversion notes
- */
-export interface ConversionNote {
-  type: 'info' | 'warning' | 'error' | 'critical';
-  message: string;
-  sourceLocation?: SourceLocation;
-  moduleOrigin: string;
+  /** Line number (alias for startLine) */
+  line: number;
+  /** Column number (alias for startColumn) */
+  column: number;
 }

@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CompromisePreferencesService } from '../../../../../src/modules/ui/services/CompromisePreferencesService';
-import { CompromiseStrategyEngine } from '../../../../../src/modules/compromise/CompromiseStrategyEngine';
-import { Feature } from '../../../../../src/types/compromise';
-import { UserPreferences } from '../../../../../src/modules/ui/types';
+import { CompromisePreferencesService } from '../../../../../src/modules/ui/services/CompromisePreferencesService.js';
+import { Feature } from '../../../../../src/types/compromise.js';
+import { UserPreferences } from '../../../../../src/modules/ui/types/index.js';
 
 // Mock the logger
 vi.mock('../../../../../src/utils/logger', () => ({
@@ -10,8 +9,8 @@ vi.mock('../../../../../src/utils/logger', () => ({
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
-  })
+    error: vi.fn(),
+  }),
 }));
 
 describe('CompromisePreferencesService', () => {
@@ -26,8 +25,8 @@ describe('CompromisePreferencesService', () => {
         totalStrategies: 3,
         activeStrategies: 3,
         strategies: [],
-        generatedAt: new Date()
-      })
+        generatedAt: new Date(),
+      }),
     };
 
     service = new CompromisePreferencesService(mockCompromiseEngine);
@@ -35,7 +34,7 @@ describe('CompromisePreferencesService', () => {
 
   it('should initialize with default preferences', () => {
     const preferences = service.getPreferences();
-    
+
     expect(preferences).toBeDefined();
     expect(preferences.theme).toBe('light');
     expect(preferences.compromiseStrategies).toHaveLength(3);
@@ -51,19 +50,19 @@ describe('CompromisePreferencesService', () => {
           name: 'Dimension Simulation',
           description: 'Test description',
           isEnabled: false,
-          options: []
-        }
+          options: [],
+        },
       ],
       conversionOptions: {
         generateDebugInfo: true,
         optimizeOutput: false,
         includeComments: false,
-        targetMinecraftVersion: '1.19'
-      }
+        targetMinecraftVersion: '1.19',
+      },
     };
 
     service.updatePreferences(newPreferences);
-    
+
     const updatedPreferences = service.getPreferences();
     expect(updatedPreferences.theme).toBe('dark');
     expect(updatedPreferences.conversionOptions.generateDebugInfo).toBe(true);
@@ -78,7 +77,7 @@ describe('CompromisePreferencesService', () => {
         type: 'dimension',
         compatibilityTier: 3,
         sourceFiles: ['TestDimension.java'],
-        sourceLineNumbers: [[10, 20]]
+        sourceLineNumbers: [[10, 20]],
       },
       {
         id: 'test-rendering',
@@ -87,17 +86,17 @@ describe('CompromisePreferencesService', () => {
         type: 'rendering',
         compatibilityTier: 3,
         sourceFiles: ['TestRenderer.java'],
-        sourceLineNumbers: [[30, 40]]
-      }
+        sourceLineNumbers: [[30, 40]],
+      },
     ];
 
     const previews = service.previewStrategyEffects(testFeatures);
-    
+
     expect(previews).toHaveLength(2);
     expect(previews[0].featureId).toBe('test-dimension');
     expect(previews[0].strategyId).toBe('teleportation-simulation');
     expect(previews[0].userConfigurable).toBe(true);
-    
+
     expect(previews[1].featureId).toBe('test-rendering');
     expect(previews[1].strategyId).toBe('rendering-stub');
     expect(previews[1].userConfigurable).toBe(true);
@@ -111,11 +110,11 @@ describe('CompromisePreferencesService', () => {
       type: 'unknown',
       compatibilityTier: 3,
       sourceFiles: ['Unknown.java'],
-      sourceLineNumbers: [[50, 60]]
+      sourceLineNumbers: [[50, 60]],
     };
 
     const previews = service.previewStrategyEffects([testFeature]);
-    
+
     expect(previews).toHaveLength(1);
     expect(previews[0].featureId).toBe('unsupported-feature');
     expect(previews[0].strategyId).toBe(null);
@@ -133,23 +132,23 @@ describe('CompromisePreferencesService', () => {
         technicalSuccess: true,
         issues: ['Minor visual glitch'],
         suggestions: ['Add more particles'],
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       context: {
         featureType: 'dimension',
         compatibilityTier: 3,
-        sourceComplexity: 'medium' as const
-      }
+        sourceComplexity: 'medium' as const,
+      },
     };
 
     service.collectUserFeedback(feedback);
-    
+
     expect(mockCompromiseEngine.provideFeedback).toHaveBeenCalledWith(feedback);
   });
 
   it('should get strategy performance report from engine', () => {
     const report = service.getStrategyPerformanceReport();
-    
+
     expect(report).toBeDefined();
     expect(report.totalStrategies).toBe(3);
     expect(mockCompromiseEngine.getStrategyPerformanceReport).toHaveBeenCalled();
@@ -163,7 +162,7 @@ describe('CompromisePreferencesService', () => {
       type: 'dimension',
       compatibilityTier: 3,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
 
     // Update preferences to customize dimension simulation
@@ -180,35 +179,35 @@ describe('CompromisePreferencesService', () => {
               id: 'useParticleEffects',
               name: 'Use Particle Effects',
               value: false,
-              type: 'boolean'
+              type: 'boolean',
             },
             {
               id: 'teleportationDelay',
               name: 'Teleportation Delay (ms)',
               value: 2000,
-              type: 'number'
+              type: 'number',
             },
             {
               id: 'simulationQuality',
               name: 'Simulation Quality',
               value: 'low',
-              type: 'select'
-            }
-          ]
-        }
+              type: 'select',
+            },
+          ],
+        },
       ],
       conversionOptions: {
         generateDebugInfo: false,
         optimizeOutput: true,
         includeComments: true,
-        targetMinecraftVersion: '1.20'
-      }
+        targetMinecraftVersion: '1.20',
+      },
     };
 
     service.updatePreferences(customPreferences);
-    
+
     const previews = service.previewStrategyEffects([testFeature]);
-    
+
     expect(previews).toHaveLength(1);
     expect(previews[0].previewResult.implementationDetails).toContain('2000ms');
     expect(previews[0].previewResult.implementationDetails).toContain('Quality: low');

@@ -1,9 +1,9 @@
 /**
  * Feature Flag Service
- * 
+ *
  * Service for managing feature flags to enable gradual rollout of ModPorter-AI integration features.
  * Supports percentage-based rollouts, user targeting, and group targeting.
- * 
+ *
  * @since 1.0.0
  */
 
@@ -60,7 +60,7 @@ export const MODPORTER_AI_FEATURES = {
   PERFORMANCE_MONITORING: 'performance_monitoring',
   ADVANCED_LOGGING: 'advanced_logging',
   ASSET_OPTIMIZATION: 'asset_optimization',
-  FULL_INTEGRATION: 'modporter_ai_full_integration'
+  FULL_INTEGRATION: 'modporter_ai_full_integration',
 } as const;
 
 /**
@@ -91,7 +91,7 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
   /**
    * Check if a feature flag is enabled for the given context
-   * 
+   *
    * @param flagName Name of the feature flag
    * @param context Evaluation context
    * @returns True if the feature is enabled
@@ -103,7 +103,7 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
   /**
    * Evaluate a feature flag with detailed result
-   * 
+   *
    * @param flagName Name of the feature flag
    * @param context Evaluation context
    * @returns Detailed evaluation result
@@ -117,11 +117,11 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
     }
 
     const flag = this.flags.get(flagName);
-    
+
     if (!flag) {
       const result: FeatureFlagResult = {
         isEnabled: false,
-        reason: 'Flag not found'
+        reason: 'Flag not found',
       };
       this.cache.set(cacheKey, { result, timestamp: Date.now() });
       return result;
@@ -131,7 +131,7 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
     if (!flag.isEnabled) {
       const result: FeatureFlagResult = {
         isEnabled: false,
-        reason: 'Flag globally disabled'
+        reason: 'Flag globally disabled',
       };
       this.cache.set(cacheKey, { result, timestamp: Date.now() });
       return result;
@@ -142,14 +142,14 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
       if (flag.targetUsers.includes(context.userId)) {
         const result: FeatureFlagResult = {
           isEnabled: true,
-          reason: 'User targeted'
+          reason: 'User targeted',
         };
         this.cache.set(cacheKey, { result, timestamp: Date.now() });
         return result;
       } else {
         const result: FeatureFlagResult = {
           isEnabled: false,
-          reason: 'User not in target list'
+          reason: 'User not in target list',
         };
         this.cache.set(cacheKey, { result, timestamp: Date.now() });
         return result;
@@ -158,18 +158,18 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
     // Check group targeting
     if (context?.userGroups && flag.targetGroups.length > 0) {
-      const hasTargetGroup = context.userGroups.some(group => flag.targetGroups.includes(group));
+      const hasTargetGroup = context.userGroups.some((group) => flag.targetGroups.includes(group));
       if (hasTargetGroup) {
         const result: FeatureFlagResult = {
           isEnabled: true,
-          reason: 'Group targeted'
+          reason: 'Group targeted',
         };
         this.cache.set(cacheKey, { result, timestamp: Date.now() });
         return result;
       } else {
         const result: FeatureFlagResult = {
           isEnabled: false,
-          reason: 'User groups not in target list'
+          reason: 'User groups not in target list',
         };
         this.cache.set(cacheKey, { result, timestamp: Date.now() });
         return result;
@@ -178,13 +178,15 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
     // Percentage-based rollout
     if (flag.rolloutPercentage > 0) {
-      const hash = this.hashString(flagName + (context?.userId || context?.sessionId || 'anonymous'));
+      const hash = this.hashString(
+        flagName + (context?.userId || context?.sessionId || 'anonymous')
+      );
       const percentage = (hash % 100) + 1;
-      
+
       if (percentage <= flag.rolloutPercentage) {
         const result: FeatureFlagResult = {
           isEnabled: true,
-          reason: `Percentage rollout (${percentage}% <= ${flag.rolloutPercentage}%)`
+          reason: `Percentage rollout (${percentage}% <= ${flag.rolloutPercentage}%)`,
         };
         this.cache.set(cacheKey, { result, timestamp: Date.now() });
         return result;
@@ -193,7 +195,7 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
     const result: FeatureFlagResult = {
       isEnabled: false,
-      reason: 'Not in rollout percentage'
+      reason: 'Not in rollout percentage',
     };
     this.cache.set(cacheKey, { result, timestamp: Date.now() });
     return result;
@@ -201,7 +203,7 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
   /**
    * Get a feature flag configuration
-   * 
+   *
    * @param flagName Name of the feature flag
    * @returns Feature flag configuration or null if not found
    */
@@ -211,14 +213,14 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
   /**
    * Set or update a feature flag configuration
-   * 
+   *
    * @param flagName Name of the feature flag
    * @param config Partial configuration to update
    */
   async setFlag(flagName: string, config: Partial<FeatureFlag>): Promise<void> {
     const existingFlag = this.flags.get(flagName);
     const now = new Date();
-    
+
     const flag: FeatureFlag = {
       id: existingFlag?.id || flagName,
       name: flagName,
@@ -230,19 +232,23 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
       metadata: { ...existingFlag?.metadata, ...config.metadata },
       createdBy: config.createdBy || existingFlag?.createdBy,
       createdAt: existingFlag?.createdAt || now,
-      updatedAt: now
+      updatedAt: now,
     };
 
     this.flags.set(flagName, flag);
     this.clearCache();
-    
+
     this.emit('flag:updated', { flagName, flag });
-    logger.info('Feature flag updated', { flagName, isEnabled: flag.isEnabled, rolloutPercentage: flag.rolloutPercentage });
+    logger.info('Feature flag updated', {
+      flagName,
+      isEnabled: flag.isEnabled,
+      rolloutPercentage: flag.rolloutPercentage,
+    });
   }
 
   /**
    * Get all feature flags
-   * 
+   *
    * @returns Array of all feature flags
    */
   async getAllFlags(): Promise<FeatureFlag[]> {
@@ -251,7 +257,7 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
 
   /**
    * Delete a feature flag
-   * 
+   *
    * @param flagName Name of the feature flag to delete
    * @returns True if the flag was deleted, false if it didn't exist
    */
@@ -274,56 +280,56 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
         name: MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING,
         description: 'Enable enhanced file processing with security scanning',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS,
         description: 'Enable multi-strategy Java analysis for better registry extraction',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.SPECIALIZED_CONVERSION_AGENTS,
         description: 'Enable specialized conversion agents for assets',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.COMPREHENSIVE_VALIDATION,
         description: 'Enable comprehensive validation pipeline',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.SECURITY_SCANNING,
         description: 'Enable advanced security scanning for uploaded files',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.PERFORMANCE_MONITORING,
         description: 'Enable performance monitoring and metrics collection',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.ADVANCED_LOGGING,
         description: 'Enable advanced structured logging with security events',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.ASSET_OPTIMIZATION,
         description: 'Enable asset optimization during conversion',
         isEnabled: false,
-        rolloutPercentage: 0
+        rolloutPercentage: 0,
       },
       {
         name: MODPORTER_AI_FEATURES.FULL_INTEGRATION,
         description: 'Enable full ModPorter-AI integration',
         isEnabled: false,
-        rolloutPercentage: 0
-      }
+        rolloutPercentage: 0,
+      },
     ];
 
     for (const flagConfig of defaultFlags) {
@@ -337,11 +343,13 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
    * Generate cache key for flag evaluation
    */
   private getCacheKey(flagName: string, context?: FeatureFlagContext): string {
-    const contextKey = context ? JSON.stringify({
-      userId: context.userId,
-      userGroups: context.userGroups?.sort(),
-      sessionId: context.sessionId
-    }) : 'anonymous';
+    const contextKey = context
+      ? JSON.stringify({
+          userId: context.userId,
+          userGroups: context.userGroups?.sort(),
+          sessionId: context.sessionId,
+        })
+      : 'anonymous';
     return `${flagName}:${this.hashString(contextKey)}`;
   }
 
@@ -352,7 +360,7 @@ export class FeatureFlagService extends EventEmitter implements IFeatureFlagServ
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);

@@ -18,7 +18,7 @@ class MigrationRunner {
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
     });
-    
+
     this.migrationsDir = path.join(__dirname, '..', 'src', 'database', 'migrations');
   }
 
@@ -70,20 +70,20 @@ class MigrationRunner {
     const filePath = path.join(this.migrationsDir, filename);
     const content = await fs.readFile(filePath, 'utf8');
     const checksum = await this.calculateChecksum(content);
-    
+
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
-      
+
       // Execute the migration
       await client.query(content);
-      
+
       // Record the migration
       await client.query(
         'INSERT INTO migrations (filename, checksum) VALUES ($1, $2)',
         [filename, checksum]
       );
-      
+
       await client.query('COMMIT');
       console.log(`✓ Executed migration: ${filename}`);
     } catch (error) {
@@ -97,20 +97,20 @@ class MigrationRunner {
   async rollbackMigration(filename) {
     const rollbackFile = filename.replace('.sql', '.rollback.sql');
     const rollbackPath = path.join(this.migrationsDir, rollbackFile);
-    
+
     try {
       const content = await fs.readFile(rollbackPath, 'utf8');
-      
+
       const client = await this.pool.connect();
       try {
         await client.query('BEGIN');
-        
+
         // Execute the rollback
         await client.query(content);
-        
+
         // Remove the migration record
         await client.query('DELETE FROM migrations WHERE filename = $1', [filename]);
-        
+
         await client.query('COMMIT');
         console.log(`✓ Rolled back migration: ${filename}`);
       } catch (error) {
@@ -130,63 +130,63 @@ class MigrationRunner {
 
   async runMigrations() {
     console.log('🚀 Starting database migrations...');
-    
+
     await this.ensureMigrationsTable();
-    
+
     const migrationFiles = await this.getMigrationFiles();
     const executedMigrations = await this.getExecutedMigrations();
-    
+
     const pendingMigrations = migrationFiles.filter(
       file => !executedMigrations.includes(file)
     );
-    
+
     if (pendingMigrations.length === 0) {
       console.log('✓ No pending migrations');
       return;
     }
-    
+
     console.log(`📋 Found ${pendingMigrations.length} pending migrations`);
-    
+
     for (const migration of pendingMigrations) {
       await this.executeMigration(migration);
     }
-    
+
     console.log('✅ All migrations completed successfully');
   }
 
   async rollbackLastMigration() {
     console.log('🔄 Rolling back last migration...');
-    
+
     const executedMigrations = await this.getExecutedMigrations();
-    
+
     if (executedMigrations.length === 0) {
       console.log('ℹ No migrations to rollback');
       return;
     }
-    
+
     const lastMigration = executedMigrations[executedMigrations.length - 1];
     await this.rollbackMigration(lastMigration);
-    
+
     console.log('✅ Rollback completed successfully');
   }
 
   async validateMigrations() {
     console.log('🔍 Validating migrations...');
-    
+
     const migrationFiles = await this.getMigrationFiles();
     const client = await this.pool.connect();
-    
+
     try {
       for (const filename of migrationFiles) {
         const filePath = path.join(this.migrationsDir, filename);
         const content = await fs.readFile(filePath, 'utf8');
         const currentChecksum = await this.calculateChecksum(content);
-        
+
         const result = await client.query(
           'SELECT checksum FROM migrations WHERE filename = $1',
           [filename]
         );
-        
+
         if (result.rows.length > 0) {
           const storedChecksum = result.rows[0].checksum;
           if (currentChecksum !== storedChecksum) {
@@ -194,7 +194,7 @@ class MigrationRunner {
           }
         }
       }
-      
+
       console.log('✅ All migrations validated successfully');
     } finally {
       client.release();
@@ -203,40 +203,39 @@ class MigrationRunner {
 
   async dryRunMigrations() {
     console.log('🧪 Running migration dry-run...');
-    
+
     await this.ensureMigrationsTable();
-    
+
     const migrationFiles = await this.getMigrationFiles();
     const executedMigrations = await this.getExecutedMigrations();
-    
+
     const pendingMigrations = migrationFiles.filter(
       file => !executedMigrations.includes(file)
     );
-    
+
     if (pendingMigrations.length === 0) {
       console.log('✓ No pending migrations to test');
       return;
     }
-    
+
     console.log(`📋 Testing ${pendingMigrations.length} pending migrations`);
-    
+
     const client = await this.pool.connect();
-    
+
     try {
       for (const migration of pendingMigrations) {
         console.log(`🧪 Testing migration: ${migration}`);
-        
+
         const filePath = path.join(this.migrationsDir, migration);
         const content = await fs.readFile(filePath, 'utf8');
-        
+
         // Start a transaction for dry-run
         await client.query('BEGIN');
-        
         try {
           // Execute the migration in the transaction
           await client.query(content);
           console.log(`✓ Migration ${migration} syntax is valid`);
-          
+
           // Rollback the transaction (dry-run)
           await client.query('ROLLBACK');
         } catch (error) {
@@ -244,7 +243,7 @@ class MigrationRunner {
           throw new Error(`Migration ${migration} failed dry-run: ${error.message}`);
         }
       }
-      
+
       console.log('✅ All migrations passed dry-run validation');
     } finally {
       client.release();
@@ -260,7 +259,7 @@ class MigrationRunner {
 async function main() {
   const command = process.argv[2];
   const runner = new MigrationRunner();
-  
+
   try {
     switch (command) {
       case 'up':

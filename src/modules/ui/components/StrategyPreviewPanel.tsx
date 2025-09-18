@@ -1,5 +1,5 @@
 import React from 'react';
-import { StrategyPreview } from '../services/CompromisePreferencesService';
+import { StrategyPreview } from '../services/CompromisePreferencesService.js';
 
 interface StrategyPreviewPanelProps {
   previews: StrategyPreview[];
@@ -8,7 +8,7 @@ interface StrategyPreviewPanelProps {
 
 export const StrategyPreviewPanel: React.FC<StrategyPreviewPanelProps> = ({
   previews,
-  onPreviewUpdate
+  onPreviewUpdate,
 }) => {
   const handleRefreshPreview = (featureId: string) => {
     if (onPreviewUpdate) {
@@ -22,51 +22,56 @@ export const StrategyPreviewPanel: React.FC<StrategyPreviewPanelProps> = ({
       <p className="preview-description">
         Preview how your compromise strategy preferences will affect feature conversion:
       </p>
-      
+
       {previews.length === 0 ? (
         <div className="no-previews">
           <p>No features available for preview. Upload a mod to see strategy effects.</p>
         </div>
       ) : (
         <div className="preview-list">
-          {previews.map(preview => (
+          {previews.map((preview) => (
             <div key={preview.featureId} className="preview-item">
               <div className="preview-header">
                 <h4>{preview.featureName}</h4>
-                <span className={`strategy-badge ${preview.userConfigurable ? 'configurable' : 'not-configurable'}`}>
+                <span
+                  className={`strategy-badge ${preview.userConfigurable ? 'configurable' : 'not-configurable'}`}
+                >
                   {preview.strategyName}
                 </span>
               </div>
-              
+
               {preview.previewResult ? (
                 <div className="preview-content">
                   <div className="strategy-type">
                     <strong>Type:</strong> {preview.previewResult.type}
                   </div>
-                  
+
                   <div className="strategy-description">
                     <strong>Description:</strong> {preview.previewResult.description}
                   </div>
-                  
+
                   <div className="implementation-details">
                     <strong>Implementation:</strong>
                     <p>{preview.previewResult.implementationDetails}</p>
                   </div>
-                  
-                  {preview.previewResult.limitations && preview.previewResult.limitations.length > 0 && (
-                    <div className="limitations">
-                      <strong>Limitations:</strong>
-                      <ul>
-                        {preview.previewResult.limitations.map((limitation: string, index: number) => (
-                          <li key={index}>{limitation}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
+
+                  {preview.previewResult.limitations &&
+                    preview.previewResult.limitations.length > 0 && (
+                      <div className="limitations">
+                        <strong>Limitations:</strong>
+                        <ul>
+                          {preview.previewResult.limitations.map(
+                            (limitation: string, index: number) => (
+                              <li key={index}>{limitation}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
+
                   {preview.userConfigurable && (
                     <div className="preview-actions">
-                      <button 
+                      <button
                         className="refresh-preview-btn"
                         onClick={() => handleRefreshPreview(preview.featureId)}
                       >
@@ -87,7 +92,7 @@ export const StrategyPreviewPanel: React.FC<StrategyPreviewPanelProps> = ({
           ))}
         </div>
       )}
-      
+
       <div className="preview-legend">
         <h4>Legend:</h4>
         <div className="legend-items">

@@ -1,11 +1,11 @@
 /**
  * Manifest Parser Component
- * 
+ *
  * This component provides parsing capabilities for various mod manifest formats
  * including MANIFEST.MF, mcmod.info, and mods.toml files.
  */
 
-import logger from '../../utils/logger';
+import logger from '../../utils/logger.js';
 
 /**
  * Parsed manifest information
@@ -51,11 +51,14 @@ export class ManifestParser {
    */
   parseManifestMF(content: string): ManifestParseResult {
     const warnings: string[] = [];
-    
+
     try {
-      const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      const lines = content
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
       const attributes: Record<string, string> = {};
-      
+
       for (const line of lines) {
         const colonIndex = line.indexOf(':');
         if (colonIndex > 0) {
@@ -66,23 +69,25 @@ export class ManifestParser {
       }
 
       // Extract mod information from manifest attributes
-      const modId = attributes['Implementation-Title'] || 
-                   attributes['Specification-Title'] || 
-                   attributes['Bundle-SymbolicName'] || 
-                   'unknown';
-      
-      const modName = attributes['Implementation-Title'] || 
-                     attributes['Specification-Title'] || 
-                     modId;
-      
-      const version = attributes['Implementation-Version'] || 
-                     attributes['Specification-Version'] || 
-                     attributes['Bundle-Version'] || 
-                     '1.0.0';
+      const modId =
+        attributes['Implementation-Title'] ||
+        attributes['Specification-Title'] ||
+        attributes['Bundle-SymbolicName'] ||
+        'unknown';
 
-      const author = attributes['Implementation-Vendor'] || 
-                    attributes['Specification-Vendor'] || 
-                    attributes['Bundle-Vendor'];
+      const modName =
+        attributes['Implementation-Title'] || attributes['Specification-Title'] || modId;
+
+      const version =
+        attributes['Implementation-Version'] ||
+        attributes['Specification-Version'] ||
+        attributes['Bundle-Version'] ||
+        '1.0.0';
+
+      const author =
+        attributes['Implementation-Vendor'] ||
+        attributes['Specification-Vendor'] ||
+        attributes['Bundle-Vendor'];
 
       if (!attributes['Implementation-Title'] && !attributes['Specification-Title']) {
         warnings.push('No standard mod identification found in MANIFEST.MF');
@@ -117,7 +122,7 @@ export class ManifestParser {
    */
   parseMcmodInfo(content: string): ManifestParseResult {
     const warnings: string[] = [];
-    
+
     try {
       const modInfo = JSON.parse(content);
       const modData = Array.isArray(modInfo) ? modInfo[0] : modInfo;
@@ -175,9 +180,9 @@ export class ManifestParser {
           modName: modData.name || 'Unknown Mod',
           version: modData.version || '1.0.0',
           description: modData.description,
-          author: Array.isArray(modData.authorList) ? 
-                  modData.authorList.join(', ') : 
-                  modData.authorList || modData.author,
+          author: Array.isArray(modData.authorList)
+            ? modData.authorList.join(', ')
+            : modData.authorList || modData.author,
           dependencies,
           metadata: modData,
         },
@@ -200,7 +205,7 @@ export class ManifestParser {
    */
   parseModsToml(content: string): ManifestParseResult {
     const warnings: string[] = [];
-    
+
     try {
       // Simple TOML parsing for the specific fields we need
       const modIdMatch = content.match(/modId\s*=\s*["']([^"']+)["']/);
@@ -213,20 +218,18 @@ export class ManifestParser {
 
       // Parse dependencies
       const dependencies: ManifestDependency[] = [];
-      
+
       // Find all dependency sections
       const dependencyPattern = /\[\[dependencies\.([^\]]+)\]\]([\s\S]*?)(?=\[\[|$)/g;
       let depMatch;
-      
+
       while ((depMatch = dependencyPattern.exec(content)) !== null) {
         const modId = depMatch[1];
         const depSection = depMatch[2];
-        
+
         const depModIdMatch = depSection.match(/modId\s*=\s*["']([^"']+)["']/);
         const mandatoryMatch = depSection.match(/mandatory\s*=\s*(true|false)/);
         const versionRangeMatch = depSection.match(/versionRange\s*=\s*["']([^"']+)["']/);
-        const orderingMatch = depSection.match(/ordering\s*=\s*["']([^"']+)["']/);
-        const sideMatch = depSection.match(/side\s*=\s*["']([^"']+)["']/);
 
         dependencies.push({
           modId: depModIdMatch ? depModIdMatch[1] : modId,
@@ -276,7 +279,7 @@ export class ManifestParser {
    */
   parseFabricModJson(content: string): ManifestParseResult {
     const warnings: string[] = [];
-    
+
     try {
       const fabricMod = JSON.parse(content);
 
@@ -286,7 +289,7 @@ export class ManifestParser {
 
       // Parse dependencies
       const dependencies: ManifestDependency[] = [];
-      
+
       if (fabricMod.depends) {
         for (const [modId, version] of Object.entries(fabricMod.depends)) {
           dependencies.push({
@@ -327,9 +330,9 @@ export class ManifestParser {
           modName: fabricMod.name || 'Unknown Mod',
           version: fabricMod.version || '1.0.0',
           description: fabricMod.description,
-          author: Array.isArray(fabricMod.authors) ? 
-                  fabricMod.authors.map((a: any) => typeof a === 'string' ? a : a.name).join(', ') : 
-                  fabricMod.authors,
+          author: Array.isArray(fabricMod.authors)
+            ? fabricMod.authors.map((a: any) => (typeof a === 'string' ? a : a.name)).join(', ')
+            : fabricMod.authors,
           dependencies,
           metadata: fabricMod,
         },
@@ -351,10 +354,12 @@ export class ManifestParser {
    * @returns Sanitized mod ID
    */
   private sanitizeModId(modId: string): string {
-    return modId
-      .toLowerCase()
-      .replace(/[^a-z0-9_]/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .replace(/_+/g, '_') || 'unknown';
+    return (
+      modId
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .replace(/_+/g, '_') || 'unknown'
+    );
   }
 }

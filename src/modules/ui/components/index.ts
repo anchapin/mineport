@@ -1,8 +1,8 @@
 /**
  * UI Components
- * 
+ *
  * React components for the Minecraft Mod Converter user interface.
- * 
+ *
  * Public API:
  * - FileUploader: Component for uploading mod files
  * - ProgressTracker: Component for displaying conversion progress
@@ -11,7 +11,7 @@
  * - JobMonitoringPanel: Component for monitoring conversion jobs
  * - StrategyPreviewPanel: Component for previewing compromise strategies
  * - APIMappingManagementPanel: Component for managing API mappings
- * 
+ *
  * Enhanced Components:
  * - EnhancedConversionUI: Main enhanced conversion interface
  * - EnhancedProgressTracker: Enhanced progress tracking with real-time updates

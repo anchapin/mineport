@@ -2,7 +2,7 @@
 
 /**
  * Module Dependency Analyzer
- * 
+ *
  * This script analyzes the dependencies between modules in the Minecraft Mod Converter
  * and generates documentation and validation reports.
  */
@@ -26,19 +26,19 @@ class DependencyAnalyzer {
    */
   analyze() {
     console.log('🔍 Analyzing module dependencies...\n');
-    
+
     // Find all TypeScript files
     const srcDir = path.join(process.cwd(), 'src');
     this.scanDirectory(srcDir);
-    
+
     // Detect circular dependencies
     this.detectCircularDependencies();
-    
+
     // Generate reports
     this.generateDependencyGraph();
     this.generateModuleDocumentation();
     this.generateValidationReport();
-    
+
     console.log('✅ Dependency analysis complete!');
   }
 
@@ -47,10 +47,10 @@ class DependencyAnalyzer {
    */
   scanDirectory(dir) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
-      
+
       if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
         this.scanDirectory(fullPath);
       } else if (entry.isFile() && entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) {
@@ -65,33 +65,33 @@ class DependencyAnalyzer {
   analyzeFile(filePath) {
     const content = fs.readFileSync(filePath, 'utf8');
     const relativePath = path.relative(process.cwd(), filePath);
-    
+
     // Extract module name from path
     const moduleName = this.getModuleName(relativePath);
     if (moduleName) {
       this.modules.add(moduleName);
     }
-    
+
     // Find import statements
     const importRegex = /import\s+.*?\s+from\s+['"]([^'"]+)['"]/g;
     let match;
-    
+
     const fileDependencies = new Set();
-    
+
     while ((match = importRegex.exec(content)) !== null) {
       const importPath = match[1];
       const dependencyModule = this.resolveDependency(relativePath, importPath);
-      
+
       if (dependencyModule && dependencyModule !== moduleName) {
         fileDependencies.add(dependencyModule);
       }
     }
-    
+
     if (moduleName && fileDependencies.size > 0) {
       if (!this.dependencies.has(moduleName)) {
         this.dependencies.set(moduleName, new Set());
       }
-      
+
       for (const dep of fileDependencies) {
         this.dependencies.get(moduleName).add(dep);
       }
@@ -103,7 +103,7 @@ class DependencyAnalyzer {
    */
   getModuleName(filePath) {
     const parts = filePath.split('/');
-    
+
     if (parts.includes('modules')) {
       const moduleIndex = parts.indexOf('modules');
       if (moduleIndex + 1 < parts.length) {
@@ -116,7 +116,7 @@ class DependencyAnalyzer {
     } else if (parts.includes('types')) {
       return 'types';
     }
-    
+
     return null;
   }
 
@@ -131,12 +131,12 @@ class DependencyAnalyzer {
       const relativePath = path.relative(process.cwd(), resolvedPath);
       return this.getModuleName(relativePath);
     }
-    
+
     // Handle absolute imports (if any)
     if (importPath.startsWith('src/')) {
       return this.getModuleName(importPath);
     }
-    
+
     return null;
   }
 
@@ -146,7 +146,7 @@ class DependencyAnalyzer {
   detectCircularDependencies() {
     const visited = new Set();
     const recursionStack = new Set();
-    
+
     for (const module of this.modules) {
       if (!visited.has(module)) {
         this.dfsCircularCheck(module, visited, recursionStack, []);
@@ -161,9 +161,9 @@ class DependencyAnalyzer {
     visited.add(module);
     recursionStack.add(module);
     path.push(module);
-    
+
     const dependencies = this.dependencies.get(module) || new Set();
-    
+
     for (const dep of dependencies) {
       if (!visited.has(dep)) {
         this.dfsCircularCheck(dep, visited, recursionStack, [...path]);
@@ -174,7 +174,7 @@ class DependencyAnalyzer {
         this.circularDependencies.push(cycle);
       }
     }
-    
+
     recursionStack.delete(module);
   }
 
@@ -183,15 +183,15 @@ class DependencyAnalyzer {
    */
   generateDependencyGraph() {
     let mermaid = '```mermaid\ngraph TD\n';
-    
+
     // Add nodes
     for (const module of this.modules) {
       const displayName = module.replace('modules/', '').replace(/\//g, '_');
       mermaid += `    ${displayName}[${module}]\n`;
     }
-    
+
     mermaid += '\n';
-    
+
     // Add edges
     for (const [module, deps] of this.dependencies) {
       const fromName = module.replace('modules/', '').replace(/\//g, '_');
@@ -200,9 +200,9 @@ class DependencyAnalyzer {
         mermaid += `    ${fromName} --> ${toName}\n`;
       }
     }
-    
+
     mermaid += '```\n';
-    
+
     // Write to file
     const outputPath = path.join(process.cwd(), 'docs', 'module-dependencies.md');
     const content = `# Module Dependency Graph
@@ -232,7 +232,7 @@ ${this.circularDependencies.map((cycle, i) => `
 `).join('')}
 ` : '## ✅ No Circular Dependencies Found'}
 `;
-    
+
     fs.writeFileSync(outputPath, content);
     console.log(`📊 Dependency graph written to: ${outputPath}`);
   }
@@ -253,7 +253,7 @@ ${this.circularDependencies.map((cycle, i) => `
       'utils': 'Utility functions and helpers',
       'types': 'TypeScript type definitions'
     };
-    
+
     return Array.from(this.modules)
       .sort()
       .map(module => `- **${module}**: ${descriptions[module] || 'Module description not available'}`)
@@ -265,7 +265,7 @@ ${this.circularDependencies.map((cycle, i) => `
    */
   generateModuleDocumentation() {
     const outputPath = path.join(process.cwd(), 'docs', 'module-interactions.md');
-    
+
     let content = `# Module Interactions Documentation
 
 This document describes how modules interact with each other in the Minecraft Mod Converter.
@@ -275,31 +275,31 @@ This document describes how modules interact with each other in the Minecraft Mo
 | Module | Dependencies | Dependents |
 |--------|-------------|------------|
 `;
-    
+
     for (const module of Array.from(this.modules).sort()) {
       const deps = this.dependencies.get(module) || new Set();
       const dependents = this.getDependents(module);
-      
+
       content += `| ${module} | ${Array.from(deps).join(', ') || 'None'} | ${dependents.join(', ') || 'None'} |\n`;
     }
-    
+
     content += `\n## Detailed Module Interactions\n\n`;
-    
+
     for (const module of Array.from(this.modules).sort()) {
       const deps = this.dependencies.get(module) || new Set();
       if (deps.size > 0) {
         content += `### ${module}\n\n`;
         content += `**Dependencies**: ${Array.from(deps).join(', ')}\n\n`;
         content += `**Interaction Details**:\n`;
-        
+
         for (const dep of deps) {
           content += `- Uses **${dep}** for ${this.getInteractionDescription(module, dep)}\n`;
         }
-        
+
         content += '\n';
       }
     }
-    
+
     fs.writeFileSync(outputPath, content);
     console.log(`📋 Module interactions documented in: ${outputPath}`);
   }
@@ -309,13 +309,13 @@ This document describes how modules interact with each other in the Minecraft Mo
    */
   getDependents(targetModule) {
     const dependents = [];
-    
+
     for (const [module, deps] of this.dependencies) {
       if (deps.has(targetModule)) {
         dependents.push(module);
       }
     }
-    
+
     return dependents;
   }
 
@@ -340,7 +340,7 @@ This document describes how modules interact with each other in the Minecraft Mo
         'modules/compromise': 'compromise strategy configuration'
       }
     };
-    
+
     return interactions[from]?.[to] || 'shared functionality';
   }
 
@@ -349,7 +349,7 @@ This document describes how modules interact with each other in the Minecraft Mo
    */
   generateValidationReport() {
     const outputPath = path.join(process.cwd(), 'docs', 'dependency-validation.md');
-    
+
     let content = `# Dependency Validation Report
 
 Generated on: ${new Date().toISOString()}
@@ -363,24 +363,24 @@ Generated on: ${new Date().toISOString()}
 ## Validation Results
 
 `;
-    
+
     if (this.circularDependencies.length === 0) {
       content += `✅ **PASS**: No circular dependencies detected\n\n`;
     } else {
       content += `❌ **FAIL**: ${this.circularDependencies.length} circular dependencies detected\n\n`;
       content += `### Circular Dependencies\n\n`;
-      
+
       this.circularDependencies.forEach((cycle, i) => {
         content += `${i + 1}. \`${cycle.join(' → ')}\`\n`;
       });
-      
+
       content += '\n### Recommendations\n\n';
       content += '- Review the circular dependencies listed above\n';
       content += '- Consider refactoring to break circular dependencies\n';
       content += '- Move shared functionality to a common module\n';
       content += '- Use dependency injection to reduce coupling\n\n';
     }
-    
+
     // Check for high coupling
     const highCouplingModules = [];
     for (const [module, deps] of this.dependencies) {
@@ -388,15 +388,15 @@ Generated on: ${new Date().toISOString()}
         highCouplingModules.push({ module, count: deps.size });
       }
     }
-    
+
     if (highCouplingModules.length > 0) {
       content += `⚠️ **WARNING**: High coupling detected in ${highCouplingModules.length} modules\n\n`;
       content += `### High Coupling Modules\n\n`;
-      
+
       highCouplingModules.forEach(({ module, count }) => {
         content += `- **${module}**: ${count} dependencies\n`;
       });
-      
+
       content += '\n### Recommendations\n\n';
       content += '- Consider breaking down highly coupled modules\n';
       content += '- Use interfaces to reduce direct dependencies\n';
@@ -404,16 +404,16 @@ Generated on: ${new Date().toISOString()}
     } else {
       content += `✅ **PASS**: No high coupling detected\n\n`;
     }
-    
+
     content += `## Module Dependency Details\n\n`;
-    
+
     for (const [module, deps] of Array.from(this.dependencies.entries()).sort()) {
       content += `### ${module}\n`;
       content += `- **Dependency Count**: ${deps.size}\n`;
       content += `- **Dependencies**: ${Array.from(deps).join(', ') || 'None'}\n`;
       content += `- **Dependents**: ${this.getDependents(module).join(', ') || 'None'}\n\n`;
     }
-    
+
     fs.writeFileSync(outputPath, content);
     console.log(`✅ Validation report written to: ${outputPath}`);
   }

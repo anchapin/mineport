@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ManifestParser, ParsedManifest, ManifestParseResult } from '../../../../src/modules/ingestion/ManifestParser';
+import { ManifestParser } from '../../../../src/modules/ingestion/ManifestParser.js';
 
 describe('ManifestParser', () => {
   let parser: ManifestParser;
@@ -66,15 +66,17 @@ No colons here
 
   describe('parseMcmodInfo', () => {
     it('should parse a valid mcmod.info file with array format', () => {
-      const mcmodContent = JSON.stringify([{
-        modid: 'testmod',
-        name: 'Test Mod',
-        version: '1.0.0',
-        description: 'A test mod for unit testing',
-        authorList: ['Test Author', 'Another Author'],
-        dependencies: ['forge', 'jei'],
-        requiredMods: ['minecraft']
-      }]);
+      const mcmodContent = JSON.stringify([
+        {
+          modid: 'testmod',
+          name: 'Test Mod',
+          version: '1.0.0',
+          description: 'A test mod for unit testing',
+          authorList: ['Test Author', 'Another Author'],
+          dependencies: ['forge', 'jei'],
+          requiredMods: ['minecraft'],
+        },
+      ]);
 
       const result = parser.parseMcmodInfo(mcmodContent);
 
@@ -95,7 +97,7 @@ No colons here
         modid: 'singlemod',
         name: 'Single Mod',
         version: '2.0.0',
-        author: 'Single Author'
+        author: 'Single Author',
       });
 
       const result = parser.parseMcmodInfo(mcmodContent);
@@ -108,15 +110,17 @@ No colons here
     });
 
     it('should handle mcmod.info with complex dependencies', () => {
-      const mcmodContent = JSON.stringify([{
-        modid: 'complexmod',
-        name: 'Complex Mod',
-        version: '1.0.0',
-        dependencies: [
-          { modId: 'forge', version: '[40,)', required: true, type: 'required' },
-          { modId: 'jei', version: '*', required: false, type: 'optional' }
-        ]
-      }]);
+      const mcmodContent = JSON.stringify([
+        {
+          modid: 'complexmod',
+          name: 'Complex Mod',
+          version: '1.0.0',
+          dependencies: [
+            { modId: 'forge', version: '[40,)', required: true, type: 'required' },
+            { modId: 'jei', version: '*', required: false, type: 'optional' },
+          ],
+        },
+      ]);
 
       const result = parser.parseMcmodInfo(mcmodContent);
 
@@ -236,19 +240,19 @@ version="1.0.0"
         description: 'A test fabric mod',
         authors: [
           { name: 'Fabric Author', contact: { email: 'author@example.com' } },
-          'Another Author'
+          'Another Author',
         ],
         depends: {
           fabricloader: '>=0.14.0',
           minecraft: '~1.19.2',
-          java: '>=17'
+          java: '>=17',
         },
         recommends: {
-          modmenu: '*'
+          modmenu: '*',
         },
         conflicts: {
-          badmod: '*'
-        }
+          badmod: '*',
+        },
       });
 
       const result = parser.parseFabricModJson(fabricContent);
@@ -260,22 +264,24 @@ version="1.0.0"
       expect(result.manifest!.description).toBe('A test fabric mod');
       expect(result.manifest!.author).toBe('Fabric Author, Another Author');
       expect(result.manifest!.dependencies).toHaveLength(5);
-      
+
       // Check required dependencies
-      const requiredDeps = result.manifest!.dependencies.filter(d => d.required);
+      const requiredDeps = result.manifest!.dependencies.filter((d) => d.required);
       expect(requiredDeps).toHaveLength(3);
-      expect(requiredDeps.map(d => d.modId)).toContain('fabricloader');
-      expect(requiredDeps.map(d => d.modId)).toContain('minecraft');
-      expect(requiredDeps.map(d => d.modId)).toContain('java');
-      
+      expect(requiredDeps.map((d) => d.modId)).toContain('fabricloader');
+      expect(requiredDeps.map((d) => d.modId)).toContain('minecraft');
+      expect(requiredDeps.map((d) => d.modId)).toContain('java');
+
       // Check optional dependencies
-      const optionalDeps = result.manifest!.dependencies.filter(d => !d.required);
+      const optionalDeps = result.manifest!.dependencies.filter((d) => !d.required);
       expect(optionalDeps).toHaveLength(2);
-      expect(optionalDeps.map(d => d.modId)).toContain('modmenu');
-      expect(optionalDeps.map(d => d.modId)).toContain('badmod');
-      
+      expect(optionalDeps.map((d) => d.modId)).toContain('modmenu');
+      expect(optionalDeps.map((d) => d.modId)).toContain('badmod');
+
       // Check dependency types
-      const incompatibleDeps = result.manifest!.dependencies.filter(d => d.type === 'incompatible');
+      const incompatibleDeps = result.manifest!.dependencies.filter(
+        (d) => d.type === 'incompatible'
+      );
       expect(incompatibleDeps).toHaveLength(1);
       expect(incompatibleDeps[0].modId).toBe('badmod');
     });
@@ -283,7 +289,7 @@ version="1.0.0"
     it('should handle fabric.mod.json with minimal information', () => {
       const fabricContent = JSON.stringify({
         schemaVersion: 1,
-        id: 'minimal_fabric'
+        id: 'minimal_fabric',
       });
 
       const result = parser.parseFabricModJson(fabricContent);
@@ -298,7 +304,7 @@ version="1.0.0"
     it('should handle fabric.mod.json without id', () => {
       const fabricContent = JSON.stringify({
         schemaVersion: 1,
-        name: 'No ID Fabric Mod'
+        name: 'No ID Fabric Mod',
       });
 
       const result = parser.parseFabricModJson(fabricContent);
@@ -323,14 +329,14 @@ version="1.0.0"
       // Test through parseManifestMF since sanitizeModId is private
       const manifestContent = `Implementation-Title: Test-Mod With Spaces!@#$%`;
       const result = parser.parseManifestMF(manifestContent);
-      
+
       expect(result.manifest!.modId).toBe('test_mod_with_spaces');
     });
 
     it('should handle empty or invalid mod IDs', () => {
       const manifestContent = `Implementation-Title: !!!@@@###`;
       const result = parser.parseManifestMF(manifestContent);
-      
+
       expect(result.manifest!.modId).toBe('unknown');
     });
   });

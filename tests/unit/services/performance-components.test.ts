@@ -1,6 +1,6 @@
 /**
  * Performance Components Unit Tests
- * 
+ *
  * Basic unit tests for performance optimization components
  */
 
@@ -8,9 +8,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { CacheService } from '../../../src/services/CacheService';
-import { PerformanceMonitor } from '../../../src/services/PerformanceMonitor';
-import { ResourceAllocator } from '../../../src/services/ResourceAllocator';
+import { CacheService } from '../../../src/services/CacheService.js';
+import { PerformanceMonitor } from '../../../src/services/PerformanceMonitor.js';
+import { ResourceAllocator } from '../../../src/services/ResourceAllocator.js';
 
 describe('Performance Components Unit Tests', () => {
   let tempDir: string;
@@ -28,17 +28,17 @@ describe('Performance Components Unit Tests', () => {
       const cache = new CacheService({
         maxSize: 10,
         enablePersistence: false,
-        enableMetrics: true
+        enableMetrics: true,
       });
 
-      const key = { type: 'test' as const, identifier: 'test-key' };
+      const key = { type: 'file_validation' as const, identifier: 'test-key' };
       const value = { data: 'test-value' };
 
       await cache.set(key, value);
       const retrieved = await cache.get(key);
 
       expect(retrieved).toEqual(value);
-      
+
       const metrics = cache.getMetrics();
       expect(metrics.totalEntries).toBe(1);
       expect(metrics.hits).toBe(1);
@@ -49,13 +49,13 @@ describe('Performance Components Unit Tests', () => {
     it('should handle cache eviction', async () => {
       const cache = new CacheService({
         maxSize: 2,
-        enablePersistence: false
+        enablePersistence: false,
       });
 
       // Fill cache beyond capacity
-      await cache.set({ type: 'test', identifier: 'key1' }, { data: '1' });
-      await cache.set({ type: 'test', identifier: 'key2' }, { data: '2' });
-      await cache.set({ type: 'test', identifier: 'key3' }, { data: '3' });
+      await cache.set({ type: 'file_validation', identifier: 'key1' }, { data: '1' });
+      await cache.set({ type: 'file_validation', identifier: 'key2' }, { data: '2' });
+      await cache.set({ type: 'file_validation', identifier: 'key3' }, { data: '3' });
 
       const metrics = cache.getMetrics();
       expect(metrics.totalEntries).toBeLessThanOrEqual(2);
@@ -69,11 +69,11 @@ describe('Performance Components Unit Tests', () => {
       const monitor = new PerformanceMonitor({
         interval: 100,
         enableProfiling: true,
-        enableAlerts: false
+        enableAlerts: false,
       });
 
       // Wait for at least one metrics collection
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const metrics = monitor.getCurrentMetrics();
       expect(metrics).toBeDefined();
@@ -86,14 +86,14 @@ describe('Performance Components Unit Tests', () => {
     it('should profile operations', async () => {
       const monitor = new PerformanceMonitor({
         enableProfiling: true,
-        enableAlerts: false
+        enableAlerts: false,
       });
 
       const profileId = monitor.startProfile('test-operation');
-      
+
       // Simulate some work
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       const profile = monitor.endProfile(profileId);
 
       expect(profile).toBeDefined();
@@ -136,14 +136,14 @@ describe('Performance Components Unit Tests', () => {
 
       const tempFile = await tempManager.createTempFile({
         prefix: 'test',
-        suffix: '.tmp'
+        suffix: '.tmp',
       });
 
       expect(tempFile.path).toBeDefined();
-      
+
       // Write some data
       await fs.writeFile(tempFile.path, 'test data');
-      
+
       // Verify file exists
       const stats = await fs.stat(tempFile.path);
       expect(stats.isFile()).toBe(true);

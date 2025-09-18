@@ -40,7 +40,7 @@ interface AutoFixResult {
 /**
  * AddonValidator class responsible for validating Bedrock addons against specifications,
  * detecting errors, and automatically fixing common issues.
- * 
+ *
  * This class handles:
  * 1. Validating addon structure against Bedrock specifications
  * 2. Detecting errors in manifests, scripts, and resources
@@ -55,9 +55,9 @@ export class AddonValidator {
     'header.uuid',
     'header.version',
     'header.min_engine_version',
-    'modules'
+    'modules',
   ];
-  
+
   private readonly VALID_MODULE_TYPES = [
     'resources',
     'data',
@@ -65,16 +65,12 @@ export class AddonValidator {
     'interface',
     'world_template',
     'script',
-    'javascript'
+    'javascript',
   ];
-  
+
   private readonly REQUIRED_DIRECTORIES = {
-    behaviorPack: [
-      'scripts'
-    ],
-    resourcePack: [
-      'textures'
-    ]
+    behaviorPack: ['scripts'],
+    resourcePack: ['textures'],
   };
 
   /**
@@ -84,22 +80,22 @@ export class AddonValidator {
    */
   public async validateAddon(addonPaths: AddonPaths): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
-    
+
     // Validate behavior pack
     const behaviorPackErrors = await this.validateBehaviorPack(addonPaths.behaviorPackPath);
     errors.push(...behaviorPackErrors);
-    
+
     // Validate resource pack
     const resourcePackErrors = await this.validateResourcePack(addonPaths.resourcePackPath);
     errors.push(...resourcePackErrors);
-    
+
     // Validate relationships between packs
     const relationshipErrors = await this.validatePackRelationships(addonPaths);
     errors.push(...relationshipErrors);
-    
+
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -109,15 +105,18 @@ export class AddonValidator {
    * @param errors The validation errors to fix
    * @returns An auto-fix result with information about fixed and remaining errors
    */
-  public async autoFixIssues(addonPaths: AddonPaths, errors: ValidationError[]): Promise<AutoFixResult> {
+  public async autoFixIssues(
+    addonPaths: AddonPaths,
+    errors: ValidationError[]
+  ): Promise<AutoFixResult> {
     const fixedErrors: ValidationError[] = [];
     const remainingErrors: ValidationError[] = [];
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -125,9 +124,9 @@ export class AddonValidator {
     for (const error of errors) {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -136,9 +135,9 @@ export class AddonValidator {
         const fixed = await this.fixError(addonPaths, error);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -152,11 +151,11 @@ export class AddonValidator {
         remainingErrors.push(error);
       }
     }
-    
+
     return {
       fixed: fixedErrors.length > 0,
       fixedErrors,
-      remainingErrors
+      remainingErrors,
     };
   }
 
@@ -167,13 +166,13 @@ export class AddonValidator {
    */
   private async validateBehaviorPack(behaviorPackPath: string): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Check if behavior pack exists
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -184,18 +183,18 @@ export class AddonValidator {
         message: 'Behavior pack directory does not exist',
         severity: 'error',
         path: behaviorPackPath,
-        autoFixable: false
+        autoFixable: false,
       });
       return errors;
     }
-    
+
     // Validate manifest.json
     const manifestPath = path.join(behaviorPackPath, 'manifest.json');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -206,36 +205,38 @@ export class AddonValidator {
         message: 'manifest.json is missing in behavior pack',
         severity: 'error',
         path: manifestPath,
-        autoFixable: false
+        autoFixable: false,
       });
     } else {
       try {
         const manifestContent = fs.readFileSync(manifestPath, 'utf8');
         const manifest = JSON.parse(manifestContent);
-        
+
         // Validate required fields
         const manifestErrors = this.validateManifest(manifest, 'behavior');
-        errors.push(...manifestErrors.map(err => ({
-          ...err,
-          path: manifestPath
-        })));
+        errors.push(
+          ...manifestErrors.map((err) => ({
+            ...err,
+            path: manifestPath,
+          }))
+        );
       } catch (error) {
         errors.push({
           type: 'manifest',
           message: `Failed to parse manifest.json: ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: manifestPath,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     // Validate required directories
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -244,9 +245,9 @@ export class AddonValidator {
       const dirPath = path.join(behaviorPackPath, dir);
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -257,18 +258,18 @@ export class AddonValidator {
           message: `Required directory '${dir}' is missing in behavior pack`,
           severity: 'warning',
           path: dirPath,
-          autoFixable: true
+          autoFixable: true,
         });
       }
     }
-    
+
     // Validate scripts
     const scriptsDir = path.join(behaviorPackPath, 'scripts');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -277,14 +278,14 @@ export class AddonValidator {
       const scriptErrors = await this.validateScripts(scriptsDir);
       errors.push(...scriptErrors);
     }
-    
+
     // Validate block definitions
     const blocksDir = path.join(behaviorPackPath, 'blocks');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -293,14 +294,14 @@ export class AddonValidator {
       const blockErrors = await this.validateBlockDefinitions(blocksDir);
       errors.push(...blockErrors);
     }
-    
+
     // Validate item definitions
     const itemsDir = path.join(behaviorPackPath, 'items');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -309,7 +310,7 @@ export class AddonValidator {
       const itemErrors = await this.validateItemDefinitions(itemsDir);
       errors.push(...itemErrors);
     }
-    
+
     return errors;
   }
 
@@ -320,13 +321,13 @@ export class AddonValidator {
    */
   private async validateResourcePack(resourcePackPath: string): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Check if resource pack exists
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -337,18 +338,18 @@ export class AddonValidator {
         message: 'Resource pack directory does not exist',
         severity: 'error',
         path: resourcePackPath,
-        autoFixable: false
+        autoFixable: false,
       });
       return errors;
     }
-    
+
     // Validate manifest.json
     const manifestPath = path.join(resourcePackPath, 'manifest.json');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -359,36 +360,38 @@ export class AddonValidator {
         message: 'manifest.json is missing in resource pack',
         severity: 'error',
         path: manifestPath,
-        autoFixable: false
+        autoFixable: false,
       });
     } else {
       try {
         const manifestContent = fs.readFileSync(manifestPath, 'utf8');
         const manifest = JSON.parse(manifestContent);
-        
+
         // Validate required fields
         const manifestErrors = this.validateManifest(manifest, 'resource');
-        errors.push(...manifestErrors.map(err => ({
-          ...err,
-          path: manifestPath
-        })));
+        errors.push(
+          ...manifestErrors.map((err) => ({
+            ...err,
+            path: manifestPath,
+          }))
+        );
       } catch (error) {
         errors.push({
           type: 'manifest',
           message: `Failed to parse manifest.json: ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: manifestPath,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     // Validate required directories
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -397,9 +400,9 @@ export class AddonValidator {
       const dirPath = path.join(resourcePackPath, dir);
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -410,18 +413,18 @@ export class AddonValidator {
           message: `Required directory '${dir}' is missing in resource pack`,
           severity: 'warning',
           path: dirPath,
-          autoFixable: true
+          autoFixable: true,
         });
       }
     }
-    
+
     // Validate textures
     const texturesDir = path.join(resourcePackPath, 'textures');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -430,14 +433,14 @@ export class AddonValidator {
       const textureErrors = await this.validateTextures(texturesDir);
       errors.push(...textureErrors);
     }
-    
+
     // Validate models
     const modelsDir = path.join(resourcePackPath, 'models');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -446,7 +449,7 @@ export class AddonValidator {
       const modelErrors = await this.validateModels(modelsDir);
       errors.push(...modelErrors);
     }
-    
+
     return errors;
   }
 
@@ -457,30 +460,33 @@ export class AddonValidator {
    */
   private async validatePackRelationships(addonPaths: AddonPaths): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Check if both packs exist
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
-    if (!fs.existsSync(addonPaths.behaviorPackPath) || !fs.existsSync(addonPaths.resourcePackPath)) {
+    if (
+      !fs.existsSync(addonPaths.behaviorPackPath) ||
+      !fs.existsSync(addonPaths.resourcePackPath)
+    ) {
       return errors; // Skip relationship validation if either pack doesn't exist
     }
-    
+
     // Read manifests
     const behaviorManifestPath = path.join(addonPaths.behaviorPackPath, 'manifest.json');
     const resourceManifestPath = path.join(addonPaths.resourcePackPath, 'manifest.json');
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -488,21 +494,21 @@ export class AddonValidator {
     if (!fs.existsSync(behaviorManifestPath) || !fs.existsSync(resourceManifestPath)) {
       return errors; // Skip relationship validation if either manifest doesn't exist
     }
-    
+
     try {
       const behaviorManifest = JSON.parse(fs.readFileSync(behaviorManifestPath, 'utf8'));
       const resourceManifest = JSON.parse(fs.readFileSync(resourceManifestPath, 'utf8'));
-      
+
       // Check if behavior pack has dependency on resource pack
       const hasDependency = behaviorManifest.dependencies?.some(
         (dep: any) => dep.uuid === resourceManifest.header?.uuid
       );
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -513,19 +519,19 @@ export class AddonValidator {
           message: 'Behavior pack should have a dependency on the resource pack',
           severity: 'warning',
           path: behaviorManifestPath,
-          autoFixable: true
+          autoFixable: true,
         });
       }
-      
+
       // Check if pack versions match
       const behaviorVersion = behaviorManifest.header?.version;
       const resourceVersion = resourceManifest.header?.version;
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -533,21 +539,21 @@ export class AddonValidator {
       if (behaviorVersion && resourceVersion) {
         const behaviorVersionStr = behaviorVersion.join('.');
         const resourceVersionStr = resourceVersion.join('.');
-        
+
         if (behaviorVersionStr !== resourceVersionStr) {
           errors.push({
             type: 'manifest',
             message: `Behavior pack version (${behaviorVersionStr}) does not match resource pack version (${resourceVersionStr})`,
             severity: 'warning',
             path: behaviorManifestPath,
-            autoFixable: true
+            autoFixable: true,
           });
         }
       }
     } catch (error) {
       // Error already reported in validateBehaviorPack and validateResourcePack
     }
-    
+
     return errors;
   }
 
@@ -559,13 +565,13 @@ export class AddonValidator {
    */
   private validateManifest(manifest: any, packType: 'behavior' | 'resource'): ValidationError[] {
     const errors: ValidationError[] = [];
-    
+
     // Check required fields
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -573,12 +579,12 @@ export class AddonValidator {
     for (const field of this.REQUIRED_MANIFEST_FIELDS) {
       const fieldParts = field.split('.');
       let value = manifest;
-      
+
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -590,29 +596,29 @@ export class AddonValidator {
             type: 'manifest',
             message: `Required field '${field}' is missing in ${packType} pack manifest`,
             severity: 'error',
-            autoFixable: false
+            autoFixable: false,
           });
           break;
         }
       }
     }
-    
+
     // Check format version
     if (manifest.format_version && typeof manifest.format_version !== 'number') {
       errors.push({
         type: 'manifest',
         message: `format_version should be a number in ${packType} pack manifest`,
         severity: 'warning',
-        autoFixable: true
+        autoFixable: true,
       });
     }
-    
+
     // Check UUID format
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -621,9 +627,9 @@ export class AddonValidator {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -633,17 +639,17 @@ export class AddonValidator {
           type: 'manifest',
           message: `Invalid UUID format in ${packType} pack manifest`,
           severity: 'error',
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     // Check version format
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -654,14 +660,14 @@ export class AddonValidator {
           type: 'manifest',
           message: `Version should be an array of 3 numbers in ${packType} pack manifest`,
           severity: 'warning',
-          autoFixable: true
+          autoFixable: true,
         });
       } else {
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -672,20 +678,20 @@ export class AddonValidator {
               type: 'manifest',
               message: `Version array should contain only numbers in ${packType} pack manifest`,
               severity: 'warning',
-              autoFixable: true
+              autoFixable: true,
             });
             break;
           }
         }
       }
     }
-    
+
     // Check module types
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -693,9 +699,9 @@ export class AddonValidator {
     if (manifest.modules) {
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -703,9 +709,9 @@ export class AddonValidator {
       for (const module of manifest.modules) {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -715,16 +721,16 @@ export class AddonValidator {
             type: 'manifest',
             message: `Invalid module type '${module.type}' in ${packType} pack manifest`,
             severity: 'error',
-            autoFixable: false
+            autoFixable: false,
           });
         }
-        
+
         // Check module UUID format
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -733,9 +739,9 @@ export class AddonValidator {
           const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -745,13 +751,13 @@ export class AddonValidator {
               type: 'manifest',
               message: `Invalid module UUID format in ${packType} pack manifest`,
               severity: 'error',
-              autoFixable: false
+              autoFixable: false,
             });
           }
         }
       }
     }
-    
+
     return errors;
   }
 
@@ -762,7 +768,7 @@ export class AddonValidator {
    */
   private async validateScripts(scriptsDir: string): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Check if scripts directory is empty
     const files = this.getFilesRecursively(scriptsDir, '.js');
     if (files.length === 0) {
@@ -771,17 +777,17 @@ export class AddonValidator {
         message: 'Scripts directory is empty',
         severity: 'warning',
         path: scriptsDir,
-        autoFixable: false
+        autoFixable: false,
       });
       return errors;
     }
-    
+
     // Validate each script file
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -789,13 +795,13 @@ export class AddonValidator {
     for (const file of files) {
       try {
         const content = fs.readFileSync(file, 'utf8');
-        
+
         // Check for common script errors
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -806,10 +812,10 @@ export class AddonValidator {
             message: `Script file '${path.relative(scriptsDir, file)}' contains ES6 import/export statements which are not supported in Bedrock`,
             severity: 'error',
             path: file,
-            autoFixable: false
+            autoFixable: false,
           });
         }
-        
+
         // Check for empty scripts
         if (content.trim() === '') {
           errors.push({
@@ -817,32 +823,41 @@ export class AddonValidator {
             message: `Script file '${path.relative(scriptsDir, file)}' is empty`,
             severity: 'warning',
             path: file,
-            autoFixable: true
+            autoFixable: true,
           });
         }
-        
+
         // Check for missing semicolons (simple check)
         const lines = content.split('\n');
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
            */
-          if (line && !line.endsWith(';') && !line.endsWith('{') && !line.endsWith('}') && 
-              !line.endsWith(':') && !line.startsWith('//') && !line.startsWith('/*') && 
-              !line.endsWith('*/') && !line.startsWith('import') && !line.startsWith('export')) {
+          if (
+            line &&
+            !line.endsWith(';') &&
+            !line.endsWith('{') &&
+            !line.endsWith('}') &&
+            !line.endsWith(':') &&
+            !line.startsWith('//') &&
+            !line.startsWith('/*') &&
+            !line.endsWith('*/') &&
+            !line.startsWith('import') &&
+            !line.startsWith('export')
+          ) {
             errors.push({
               type: 'script',
               message: `Script file '${path.relative(scriptsDir, file)}' may be missing semicolons on line ${i + 1}`,
               severity: 'warning',
               path: file,
-              autoFixable: false
+              autoFixable: false,
             });
           }
         }
@@ -852,11 +867,11 @@ export class AddonValidator {
           message: `Failed to read script file '${path.relative(scriptsDir, file)}': ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: file,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     return errors;
   }
 
@@ -867,16 +882,16 @@ export class AddonValidator {
    */
   private async validateBlockDefinitions(blocksDir: string): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Get all JSON files in the blocks directory
     const files = this.getFilesRecursively(blocksDir, '.json');
-    
+
     // Validate each block definition file
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -885,13 +900,13 @@ export class AddonValidator {
       try {
         const content = fs.readFileSync(file, 'utf8');
         const blockDef = JSON.parse(content);
-        
+
         // Check for required fields in block definitions
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -902,16 +917,16 @@ export class AddonValidator {
             message: `Block definition '${path.relative(blocksDir, file)}' is missing 'format_version'`,
             severity: 'error',
             path: file,
-            autoFixable: true
+            autoFixable: true,
           });
         }
-        
+
         // Check for description field
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -922,7 +937,7 @@ export class AddonValidator {
             message: `Block definition '${path.relative(blocksDir, file)}' is missing 'description'`,
             severity: 'warning',
             path: file,
-            autoFixable: true
+            autoFixable: true,
           });
         }
       } catch (error) {
@@ -931,11 +946,11 @@ export class AddonValidator {
           message: `Failed to parse block definition '${path.relative(blocksDir, file)}': ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: file,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     return errors;
   }
 
@@ -946,16 +961,16 @@ export class AddonValidator {
    */
   private async validateItemDefinitions(itemsDir: string): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Get all JSON files in the items directory
     const files = this.getFilesRecursively(itemsDir, '.json');
-    
+
     // Validate each item definition file
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -964,13 +979,13 @@ export class AddonValidator {
       try {
         const content = fs.readFileSync(file, 'utf8');
         const itemDef = JSON.parse(content);
-        
+
         // Check for required fields in item definitions
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -981,16 +996,16 @@ export class AddonValidator {
             message: `Item definition '${path.relative(itemsDir, file)}' is missing 'format_version'`,
             severity: 'error',
             path: file,
-            autoFixable: true
+            autoFixable: true,
           });
         }
-        
+
         // Check for description field
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -1001,7 +1016,7 @@ export class AddonValidator {
             message: `Item definition '${path.relative(itemsDir, file)}' is missing 'description'`,
             severity: 'warning',
             path: file,
-            autoFixable: true
+            autoFixable: true,
           });
         }
       } catch (error) {
@@ -1010,11 +1025,11 @@ export class AddonValidator {
           message: `Failed to parse item definition '${path.relative(itemsDir, file)}': ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: file,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     return errors;
   }
 
@@ -1025,7 +1040,7 @@ export class AddonValidator {
    */
   private async validateTextures(texturesDir: string): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Check if textures directory is empty
     const files = this.getFilesRecursively(texturesDir, '.png');
     if (files.length === 0) {
@@ -1034,17 +1049,17 @@ export class AddonValidator {
         message: 'Textures directory is empty',
         severity: 'warning',
         path: texturesDir,
-        autoFixable: false
+        autoFixable: false,
       });
     }
-    
+
     // Check for terrain_texture.json
     const terrainTexturePath = path.join(texturesDir, 'terrain_texture.json');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1055,7 +1070,7 @@ export class AddonValidator {
         message: 'terrain_texture.json is missing',
         severity: 'warning',
         path: terrainTexturePath,
-        autoFixable: true
+        autoFixable: true,
       });
     } else {
       try {
@@ -1067,18 +1082,18 @@ export class AddonValidator {
           message: `Failed to parse terrain_texture.json: ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: terrainTexturePath,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     // Check for item_texture.json
     const itemTexturePath = path.join(texturesDir, 'item_texture.json');
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1089,7 +1104,7 @@ export class AddonValidator {
         message: 'item_texture.json is missing',
         severity: 'warning',
         path: itemTexturePath,
-        autoFixable: true
+        autoFixable: true,
       });
     } else {
       try {
@@ -1101,11 +1116,11 @@ export class AddonValidator {
           message: `Failed to parse item_texture.json: ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: itemTexturePath,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     return errors;
   }
 
@@ -1116,16 +1131,16 @@ export class AddonValidator {
    */
   private async validateModels(modelsDir: string): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Get all JSON files in the models directory
     const files = this.getFilesRecursively(modelsDir, '.json');
-    
+
     // Validate each model file
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1134,13 +1149,13 @@ export class AddonValidator {
       try {
         const content = fs.readFileSync(file, 'utf8');
         const model = JSON.parse(content);
-        
+
         // Check for format_version in geometry files
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -1151,7 +1166,7 @@ export class AddonValidator {
             message: `Model file '${path.relative(modelsDir, file)}' is missing 'format_version'`,
             severity: 'error',
             path: file,
-            autoFixable: true
+            autoFixable: true,
           });
         }
       } catch (error) {
@@ -1160,11 +1175,11 @@ export class AddonValidator {
           message: `Failed to parse model file '${path.relative(modelsDir, file)}': ${error instanceof Error ? error.message : String(error)}`,
           severity: 'error',
           path: file,
-          autoFixable: false
+          autoFixable: false,
         });
       }
     }
-    
+
     return errors;
   }
 
@@ -1177,9 +1192,9 @@ export class AddonValidator {
   private async fixError(addonPaths: AddonPaths, error: ValidationError): Promise<boolean> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1187,12 +1202,12 @@ export class AddonValidator {
     if (!error.path) {
       return false;
     }
-    
+
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1200,19 +1215,19 @@ export class AddonValidator {
     switch (error.type) {
       case 'structure':
         return this.fixStructureError(error);
-      
+
       case 'manifest':
         return this.fixManifestError(addonPaths, error);
-      
+
       case 'script':
         return this.fixScriptError(error);
-      
+
       case 'resource':
         return this.fixResourceError(error);
-      
+
       case 'definition':
         return this.fixDefinitionError(error);
-      
+
       default:
         return false;
     }
@@ -1226,9 +1241,9 @@ export class AddonValidator {
   private async fixStructureError(error: ValidationError): Promise<boolean> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1236,13 +1251,13 @@ export class AddonValidator {
     if (!error.path) {
       return false;
     }
-    
+
     // Create missing directories
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1255,7 +1270,7 @@ export class AddonValidator {
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -1268,9 +1283,9 @@ export class AddonValidator {
   private async fixManifestError(addonPaths: AddonPaths, error: ValidationError): Promise<boolean> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1278,13 +1293,13 @@ export class AddonValidator {
     if (!error.path) {
       return false;
     }
-    
+
     // Fix dependency between behavior and resource packs
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1293,15 +1308,15 @@ export class AddonValidator {
       try {
         const behaviorManifestPath = path.join(addonPaths.behaviorPackPath, 'manifest.json');
         const resourceManifestPath = path.join(addonPaths.resourcePackPath, 'manifest.json');
-        
+
         const behaviorManifest = JSON.parse(fs.readFileSync(behaviorManifestPath, 'utf8'));
         const resourceManifest = JSON.parse(fs.readFileSync(resourceManifestPath, 'utf8'));
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -1309,25 +1324,25 @@ export class AddonValidator {
         if (!behaviorManifest.dependencies) {
           behaviorManifest.dependencies = [];
         }
-        
+
         behaviorManifest.dependencies.push({
           uuid: resourceManifest.header.uuid,
-          version: resourceManifest.header.version
+          version: resourceManifest.header.version,
         });
-        
+
         fs.writeFileSync(behaviorManifestPath, JSON.stringify(behaviorManifest, null, 2));
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     // Fix version mismatch between behavior and resource packs
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1336,26 +1351,26 @@ export class AddonValidator {
       try {
         const behaviorManifestPath = path.join(addonPaths.behaviorPackPath, 'manifest.json');
         const resourceManifestPath = path.join(addonPaths.resourcePackPath, 'manifest.json');
-        
+
         const behaviorManifest = JSON.parse(fs.readFileSync(behaviorManifestPath, 'utf8'));
         const resourceManifest = JSON.parse(fs.readFileSync(resourceManifestPath, 'utf8'));
-        
+
         // Use behavior pack version for both
         resourceManifest.header.version = [...behaviorManifest.header.version];
-        
+
         fs.writeFileSync(resourceManifestPath, JSON.stringify(resourceManifest, null, 2));
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     // Fix format_version type
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1363,26 +1378,26 @@ export class AddonValidator {
     if (error.message.includes('format_version should be a number')) {
       try {
         const manifest = JSON.parse(fs.readFileSync(error.path, 'utf8'));
-        
+
         if (typeof manifest.format_version === 'string') {
           manifest.format_version = parseFloat(manifest.format_version) || 2;
         } else {
           manifest.format_version = 2; // Default to version 2
         }
-        
+
         fs.writeFileSync(error.path, JSON.stringify(manifest, null, 2));
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     // Fix version array format
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1390,12 +1405,12 @@ export class AddonValidator {
     if (error.message.includes('Version should be an array')) {
       try {
         const manifest = JSON.parse(fs.readFileSync(error.path, 'utf8'));
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -1407,9 +1422,9 @@ export class AddonValidator {
           const version = [...manifest.header.version];
           /**
            * while method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -1417,20 +1432,20 @@ export class AddonValidator {
           while (version.length < 3) version.push(0);
           manifest.header.version = version.slice(0, 3);
         }
-        
+
         fs.writeFileSync(error.path, JSON.stringify(manifest, null, 2));
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     // Fix version array element types
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1438,30 +1453,30 @@ export class AddonValidator {
     if (error.message.includes('Version array should contain only numbers')) {
       try {
         const manifest = JSON.parse(fs.readFileSync(error.path, 'utf8'));
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         if (Array.isArray(manifest.header.version)) {
-          manifest.header.version = manifest.header.version.map(v => {
-            const num = parseInt(v);
+          manifest.header.version = manifest.header.version.map((v: number) => {
+            const num = parseInt(v.toString());
             return isNaN(num) ? 0 : num;
           });
         }
-        
+
         fs.writeFileSync(error.path, JSON.stringify(manifest, null, 2));
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -1473,9 +1488,9 @@ export class AddonValidator {
   private async fixScriptError(error: ValidationError): Promise<boolean> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1483,30 +1498,31 @@ export class AddonValidator {
     if (!error.path) {
       return false;
     }
-    
+
     // Fix empty script files
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (error.message.includes('is empty')) {
       try {
-        const defaultScript = '// This file was auto-generated by the AddonValidator\n' +
-                             '// Add your code here\n\n' +
-                             'console.log("Hello from Minecraft!");\n';
-        
+        const defaultScript =
+          '// This file was auto-generated by the AddonValidator\n' +
+          '// Add your code here\n\n' +
+          'console.log("Hello from Minecraft!");\n';
+
         fs.writeFileSync(error.path, defaultScript);
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -1518,9 +1534,9 @@ export class AddonValidator {
   private async fixResourceError(error: ValidationError): Promise<boolean> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1528,13 +1544,13 @@ export class AddonValidator {
     if (!error.path) {
       return false;
     }
-    
+
     // Create missing terrain_texture.json
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1542,24 +1558,24 @@ export class AddonValidator {
     if (error.message.includes('terrain_texture.json is missing')) {
       try {
         const defaultTerrainTexture = {
-          "resource_pack_name": "vanilla",
-          "texture_name": "atlas.terrain",
-          "texture_data": {}
+          resource_pack_name: 'vanilla',
+          texture_name: 'atlas.terrain',
+          texture_data: {},
         };
-        
+
         fs.writeFileSync(error.path, JSON.stringify(defaultTerrainTexture, null, 2));
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     // Create missing item_texture.json
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1567,43 +1583,43 @@ export class AddonValidator {
     if (error.message.includes('item_texture.json is missing')) {
       try {
         const defaultItemTexture = {
-          "resource_pack_name": "vanilla",
-          "texture_name": "atlas.items",
-          "texture_data": {}
+          resource_pack_name: 'vanilla',
+          texture_name: 'atlas.items',
+          texture_data: {},
         };
-        
+
         fs.writeFileSync(error.path, JSON.stringify(defaultItemTexture, null, 2));
         return true;
       } catch (err) {
         return false;
       }
     }
-    
+
     // Fix missing format_version in model files
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
-    if (error.message.includes('missing \'format_version\'')) {
+    if (error.message.includes("missing 'format_version'")) {
       try {
         const model = JSON.parse(fs.readFileSync(error.path, 'utf8'));
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         if (!model.format_version) {
-          model.format_version = "1.16.0";
+          model.format_version = '1.16.0';
           fs.writeFileSync(error.path, JSON.stringify(model, null, 2));
           return true;
         }
@@ -1611,7 +1627,7 @@ export class AddonValidator {
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -1623,9 +1639,9 @@ export class AddonValidator {
   private async fixDefinitionError(error: ValidationError): Promise<boolean> {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1633,47 +1649,47 @@ export class AddonValidator {
     if (!error.path) {
       return false;
     }
-    
+
     try {
       const definition = JSON.parse(fs.readFileSync(error.path, 'utf8'));
       let modified = false;
-      
+
       // Fix missing format_version
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
-      if (error.message.includes('missing \'format_version\'')) {
-        definition.format_version = "1.16.0";
+      if (error.message.includes("missing 'format_version'")) {
+        definition.format_version = '1.16.0';
         modified = true;
       }
-      
+
       // Fix missing description
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
-      if (error.message.includes('missing \'description\'')) {
+      if (error.message.includes("missing 'description'")) {
         const fileName = path.basename(error.path, '.json');
         definition.description = `Auto-generated description for ${fileName}`;
         modified = true;
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -1685,7 +1701,7 @@ export class AddonValidator {
     } catch (err) {
       return false;
     }
-    
+
     return false;
   }
 
@@ -1697,12 +1713,12 @@ export class AddonValidator {
    */
   private getFilesRecursively(directory: string, extension: string): string[] {
     const files: string[] = [];
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1710,26 +1726,26 @@ export class AddonValidator {
     if (!fs.existsSync(directory)) {
       return files;
     }
-    
+
     const entries = fs.readdirSync(directory, { withFileTypes: true });
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     for (const entry of entries) {
       const fullPath = path.join(directory, entry.name);
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -1740,7 +1756,7 @@ export class AddonValidator {
         files.push(fullPath);
       }
     }
-    
+
     return files;
   }
 }

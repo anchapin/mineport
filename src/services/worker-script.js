@@ -1,6 +1,6 @@
 /**
  * Worker Script - Handles CPU-intensive tasks in worker threads
- * 
+ *
  * This script runs in worker threads to handle tasks like:
  * - File analysis
  * - Asset conversion
@@ -8,8 +8,8 @@
  * - Validation processing
  */
 
-const { parentPort, workerData } = require('worker_threads');
-const path = require('path');
+import { parentPort, workerData } from 'worker_threads';
+import path from 'path';
 
 // Worker ID from worker data
 const workerId = workerData?.workerId || 'unknown';
@@ -22,7 +22,7 @@ const taskHandlers = {
    * Java analysis task
    */
   async javaAnalysis(data) {
-    const { JavaAnalyzer } = require('../modules/ingestion/JavaAnalyzer');
+    const { JavaAnalyzer } = await import('../modules/ingestion/JavaAnalyzer.js');
     const analyzer = new JavaAnalyzer();
     return await analyzer.analyzeJarForMVP(data.jarPath);
   },
@@ -31,7 +31,7 @@ const taskHandlers = {
    * File validation task
    */
   async fileValidation(data) {
-    const { FileProcessor } = require('../modules/ingestion/FileProcessor');
+    const { FileProcessor } = await import('../modules/ingestion/FileProcessor.js');
     const processor = new FileProcessor(data.options);
     return await processor.validateUpload(data.buffer, data.filename);
   },
@@ -40,7 +40,7 @@ const taskHandlers = {
    * Security scanning task
    */
   async securityScan(data) {
-    const { SecurityScanner } = require('../modules/ingestion/SecurityScanner');
+    const { SecurityScanner } = await import('../modules/ingestion/SecurityScanner.js');
     const scanner = new SecurityScanner();
     return await scanner.scanBuffer(data.buffer, data.filename);
   },
@@ -49,9 +49,9 @@ const taskHandlers = {
    * Asset conversion task
    */
   async assetConversion(data) {
-    const { AssetConverter } = require('../modules/conversion-agents/AssetConverter');
+    const { AssetConverter } = await import('../modules/conversion-agents/AssetConverter.js');
     const converter = new AssetConverter();
-    
+
     switch (data.assetType) {
       case 'textures':
         return await converter.convertTextures(data.assets);
@@ -68,22 +68,23 @@ const taskHandlers = {
    * Validation pipeline task
    */
   async validation(data) {
-    const { ValidationPipeline } = require('../services/ValidationPipeline');
+    const { ValidationPipeline } = await import('../services/ValidationPipeline.js');
     const pipeline = new ValidationPipeline();
-    
+
     // Add stages based on data configuration
     if (data.stages) {
       for (const stageConfig of data.stages) {
-        const StageClass = require(stageConfig.modulePath)[stageConfig.className];
+        const module = await import(stageConfig.modulePath);
+        const StageClass = module[stageConfig.className];
         const stage = new StageClass(stageConfig.options);
         pipeline.addStage({
           name: stageConfig.name,
           validator: stage.validate.bind(stage),
-          required: stageConfig.required
+          required: stageConfig.required,
         });
       }
     }
-    
+
     return await pipeline.runValidation(data.input);
   },
 
@@ -93,7 +94,7 @@ const taskHandlers = {
   async parallelFileProcessing(data) {
     const results = [];
     const errors = [];
-    
+
     for (const fileData of data.files) {
       try {
         const result = await this.fileValidation(fileData);
@@ -102,7 +103,7 @@ const taskHandlers = {
         errors.push({ file: fileData.filename, error: error.message });
       }
     }
-    
+
     return { results, errors };
   },
 
@@ -112,7 +113,7 @@ const taskHandlers = {
   async batchAnalysis(data) {
     const results = [];
     const errors = [];
-    
+
     for (const analysisData of data.batch) {
       try {
         const result = await this.javaAnalysis(analysisData);
@@ -121,7 +122,7 @@ const taskHandlers = {
         errors.push({ id: analysisData.id, error: error.message });
       }
     }
-    
+
     return { results, errors };
   },
 
@@ -133,27 +134,27 @@ const taskHandlers = {
     if (global.gc) {
       global.gc();
     }
-    
+
     const startMemory = process.memoryUsage();
-    
+
     try {
       // Perform the actual computation
       const result = await taskHandlers[data.subtask](data.taskData);
-      
+
       // Clean up and force GC again
       if (global.gc) {
         global.gc();
       }
-      
+
       const endMemory = process.memoryUsage();
-      
+
       return {
         result,
         memoryUsage: {
           start: startMemory,
           end: endMemory,
-          peak: endMemory.heapUsed - startMemory.heapUsed
-        }
+          peak: endMemory.heapUsed - startMemory.heapUsed,
+        },
       };
     } catch (error) {
       // Clean up on error
@@ -162,7 +163,7 @@ const taskHandlers = {
       }
       throw error;
     }
-  }
+  },
 };
 
 /**
@@ -171,30 +172,29 @@ const taskHandlers = {
 if (parentPort) {
   parentPort.on('message', async (message) => {
     const { taskId, type, data } = message;
-    
+
     try {
       // Check if handler exists
       if (!taskHandlers[type]) {
         throw new Error(`Unknown task type: ${type}`);
       }
-      
+
       // Execute the task
       const result = await taskHandlers[type](data);
-      
+
       // Send result back to main thread
       parentPort.postMessage({
         taskId,
         data: result,
-        workerId
+        workerId,
       });
-      
     } catch (error) {
       // Send error back to main thread
       parentPort.postMessage({
         taskId,
         error: error.message,
         stack: error.stack,
-        workerId
+        workerId,
       });
     }
   });
@@ -213,8 +213,8 @@ if (parentPort) {
   // Signal that worker is ready
   parentPort.postMessage({
     type: 'ready',
-    workerId
+    workerId,
   });
 }
 
-module.exports = { taskHandlers };
+export { taskHandlers };

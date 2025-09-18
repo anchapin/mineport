@@ -1,23 +1,24 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CompromiseStrategyEngine } from '../../../../src/modules/compromise/CompromiseStrategyEngine';
-import { Feature, CompromiseStrategy, FeatureType } from '../../../../src/types/compromise';
+import { CompromiseStrategyEngine } from '../../../../src/modules/compromise/CompromiseStrategyEngine.js';
+import { Feature, CompromiseStrategy, FeatureType } from '../../../../src/types/compromise.js';
 
 // Mock logger
 const mockLogger = {
   debug: vi.fn(),
   info: vi.fn(),
   warn: vi.fn(),
-  error: vi.fn()
+  error: vi.fn(),
+  verbose: vi.fn(),
 };
 
 describe('CompromiseStrategyEngine', () => {
   let engine: CompromiseStrategyEngine;
-  
+
   beforeEach(() => {
     engine = new CompromiseStrategyEngine(mockLogger);
     vi.clearAllMocks();
   });
-  
+
   it('should register default strategies', () => {
     // Create a test feature for each type
     const dimensionFeature: Feature = {
@@ -27,9 +28,9 @@ describe('CompromiseStrategyEngine', () => {
       type: 'dimension',
       compatibilityTier: 3,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
-    
+
     const renderingFeature: Feature = {
       id: 'test-rendering',
       name: 'Test Rendering',
@@ -37,9 +38,9 @@ describe('CompromiseStrategyEngine', () => {
       type: 'rendering',
       compatibilityTier: 3,
       sourceFiles: ['TestRenderer.java'],
-      sourceLineNumbers: [[30, 40]]
+      sourceLineNumbers: [[30, 40]],
     };
-    
+
     const uiFeature: Feature = {
       id: 'test-ui',
       name: 'Test UI',
@@ -47,23 +48,23 @@ describe('CompromiseStrategyEngine', () => {
       type: 'ui',
       compatibilityTier: 3,
       sourceFiles: ['TestUI.java'],
-      sourceLineNumbers: [[50, 60]]
+      sourceLineNumbers: [[50, 60]],
     };
-    
+
     // Test that strategies are selected for each feature type
     const dimensionStrategy = engine.selectStrategy(dimensionFeature);
     const renderingStrategy = engine.selectStrategy(renderingFeature);
     const uiStrategy = engine.selectStrategy(uiFeature);
-    
+
     expect(dimensionStrategy).toBeDefined();
     expect(renderingStrategy).toBeDefined();
     expect(uiStrategy).toBeDefined();
-    
+
     expect(dimensionStrategy?.id).toBe('teleportation-simulation');
     expect(renderingStrategy?.id).toBe('rendering-stub');
     expect(uiStrategy?.id).toBe('form-mapping');
   });
-  
+
   it('should register custom strategies', () => {
     const customStrategy: CompromiseStrategy = {
       id: 'custom-strategy',
@@ -75,13 +76,13 @@ describe('CompromiseStrategyEngine', () => {
         name: 'Custom Approximation',
         description: `Custom approximation for ${feature.name}`,
         implementationDetails: 'Custom implementation details',
-        limitations: ['Custom limitation']
-      })
+        limitations: ['Custom limitation'],
+      }),
     };
-    
+
     // Register with 'custom' as the feature type to match our test feature
     engine.registerStrategy('custom' as FeatureType, customStrategy);
-    
+
     const customFeature: Feature = {
       id: 'test-custom',
       name: 'Test Custom',
@@ -89,18 +90,18 @@ describe('CompromiseStrategyEngine', () => {
       type: 'custom',
       compatibilityTier: 3,
       sourceFiles: ['TestCustom.java'],
-      sourceLineNumbers: [[70, 80]]
+      sourceLineNumbers: [[70, 80]],
     };
-    
+
     const selectedStrategy = engine.selectStrategy(customFeature);
-    
+
     expect(selectedStrategy).toBeDefined();
     expect(selectedStrategy?.id).toBe('custom-strategy');
     expect(mockLogger.debug).toHaveBeenCalledWith(
       'Registered compromise strategy: Custom Strategy for feature type: custom'
     );
   });
-  
+
   it('should apply strategies and generate results', () => {
     const dimensionFeature: Feature = {
       id: 'test-dimension',
@@ -109,21 +110,23 @@ describe('CompromiseStrategyEngine', () => {
       type: 'dimension',
       compatibilityTier: 3,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
-    
+
     const result = engine.applyStrategy(dimensionFeature);
-    
+
     expect(result).toBeDefined();
     expect(result?.type).toBe('simulation');
     expect(result?.name).toBe('Dimension Simulation');
-    expect(result?.description).toBe('Simulates the Test Dimension dimension using teleportation and visual effects');
+    expect(result?.description).toBe(
+      'Simulates the Test Dimension dimension using teleportation and visual effects'
+    );
     expect(result?.limitations).toHaveLength(3);
     expect(mockLogger.info).toHaveBeenCalledWith(
       'Applied compromise strategy: Teleportation-based Dimension Simulation to feature: Test Dimension'
     );
   });
-  
+
   it('should generate a compromise report', () => {
     const dimensionFeature: Feature = {
       id: 'test-dimension',
@@ -132,9 +135,9 @@ describe('CompromiseStrategyEngine', () => {
       type: 'dimension',
       compatibilityTier: 3,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
-    
+
     const renderingFeature: Feature = {
       id: 'test-rendering',
       name: 'Test Rendering',
@@ -142,29 +145,33 @@ describe('CompromiseStrategyEngine', () => {
       type: 'rendering',
       compatibilityTier: 3,
       sourceFiles: ['TestRenderer.java'],
-      sourceLineNumbers: [[30, 40]]
+      sourceLineNumbers: [[30, 40]],
     };
-    
+
     // Apply strategies to features
     engine.applyStrategy(dimensionFeature);
     engine.applyStrategy(renderingFeature);
-    
+
     // Get the compromise report
     const report = engine.getCompromiseReport();
-    
+
     expect(report.totalCompromisesApplied).toBe(2);
     expect(report.appliedStrategies).toHaveLength(2);
-    
-    const dimensionStrategy = report.appliedStrategies.find(s => s.featureId === 'test-dimension');
-    const renderingStrategy = report.appliedStrategies.find(s => s.featureId === 'test-rendering');
-    
+
+    const dimensionStrategy = report.appliedStrategies.find(
+      (s) => s.featureId === 'test-dimension'
+    );
+    const renderingStrategy = report.appliedStrategies.find(
+      (s) => s.featureId === 'test-rendering'
+    );
+
     expect(dimensionStrategy).toBeDefined();
     expect(renderingStrategy).toBeDefined();
-    
+
     expect(dimensionStrategy?.strategyId).toBe('teleportation-simulation');
     expect(renderingStrategy?.strategyId).toBe('rendering-stub');
   });
-  
+
   it('should handle features with no applicable strategies', () => {
     const unsupportedFeature: Feature = {
       id: 'unsupported',
@@ -173,11 +180,11 @@ describe('CompromiseStrategyEngine', () => {
       type: 'unknown',
       compatibilityTier: 3,
       sourceFiles: ['Unsupported.java'],
-      sourceLineNumbers: [[90, 100]]
+      sourceLineNumbers: [[90, 100]],
     };
-    
+
     const result = engine.applyStrategy(unsupportedFeature);
-    
+
     expect(result).toBeUndefined();
     expect(mockLogger.warn).toHaveBeenCalledWith(
       'No compromise strategies registered for feature type: unknown'
@@ -192,13 +199,13 @@ describe('CompromiseStrategyEngine', () => {
       type: 'dimension',
       compatibilityTier: 3,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
-    
+
     // Apply a strategy first
     const result = engine.applyStrategy(dimensionFeature);
     expect(result).toBeDefined();
-    
+
     // Provide feedback
     const feedback = {
       strategyId: 'teleportation-simulation',
@@ -209,20 +216,20 @@ describe('CompromiseStrategyEngine', () => {
         technicalSuccess: true,
         issues: ['Limited visual effects'],
         suggestions: ['Add more particle effects'],
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       context: {
         featureType: 'dimension',
         compatibilityTier: 3,
-        sourceComplexity: 'medium' as const
-      }
+        sourceComplexity: 'medium' as const,
+      },
     };
-    
+
     // This should not throw
     expect(() => {
       engine.provideFeedback(feedback);
     }).not.toThrow();
-    
+
     // Verify feedback was recorded
     const strategyFeedback = engine.getStrategyFeedback('teleportation-simulation');
     expect(strategyFeedback).toHaveLength(1);
@@ -237,12 +244,12 @@ describe('CompromiseStrategyEngine', () => {
       type: 'dimension',
       compatibilityTier: 3,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
-    
+
     // Apply a strategy
     engine.applyStrategy(dimensionFeature);
-    
+
     // Check metrics were created
     const metrics = engine.getStrategyMetrics('teleportation-simulation');
     expect(metrics).toBeDefined();
@@ -258,15 +265,15 @@ describe('CompromiseStrategyEngine', () => {
       type: 'dimension',
       compatibilityTier: 3,
       sourceFiles: ['TestDimension.java'],
-      sourceLineNumbers: [[10, 20]]
+      sourceLineNumbers: [[10, 20]],
     };
-    
+
     // Apply a strategy
     engine.applyStrategy(dimensionFeature);
-    
+
     // Get performance report
     const report = engine.getStrategyPerformanceReport();
-    
+
     expect(report).toBeDefined();
     expect(report.totalStrategies).toBeGreaterThan(0);
     expect(report.strategies).toHaveLength(1);

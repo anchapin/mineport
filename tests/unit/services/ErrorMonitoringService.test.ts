@@ -3,35 +3,61 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ErrorMonitoringService, MonitoringConfig, AlertThresholds } from '../../../src/services/ErrorMonitoringService';
-import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorCollector';
-import { AlertingService } from '../../../src/services/AlertingService';
-import { MonitoringService } from '../../../src/services/MonitoringService';
 import {
-  ConversionError,
+  ErrorMonitoringService,
+  MonitoringConfig,
+  AlertThresholds,
+} from '../../../src/services/ErrorMonitoringService.js';
+import { EnhancedErrorCollector } from '../../../src/services/EnhancedErrorCollector.js';
+import { AlertingService } from '../../../src/services/AlertingService.js';
+import { MonitoringService } from '../../../src/services/MonitoringService.js';
+import {
   ErrorSeverity,
   ErrorType,
   createConversionError,
-  createEnhancedConversionError
-} from '../../../src/types/errors';
+  createEnhancedConversionError,
+} from '../../../src/types/errors.js';
 
 // Mock logger
-vi.mock('../../../src/utils/logger', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn()
-  }
-}));
+vi.mock('../../../src/utils/logger', async () => {
+  const actual = (await vi.importActual('../../../src/utils/logger')) as any;
+  return {
+    ...actual,
+    default: {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    },
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    })),
+    logger: {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      logStructuredEvent: vi.fn(),
+      logSecurityEvent: vi.fn(),
+      logPerformanceEvent: vi.fn(),
+      logBusinessEvent: vi.fn(),
+      logSystemEvent: vi.fn(),
+    },
+  };
+});
 
 // Mock services
 const mockAlertingService = {
-  sendAlert: vi.fn().mockResolvedValue(undefined)
+  sendAlert: vi.fn().mockResolvedValue(undefined),
 } as unknown as AlertingService;
 
 const mockMonitoringService = {
-  recordMetric: vi.fn()
+  recordMetric: vi.fn(),
 } as unknown as MonitoringService;
 
 describe('ErrorMonitoringService', () => {
@@ -42,12 +68,12 @@ describe('ErrorMonitoringService', () => {
 
   beforeEach(() => {
     mockErrorCollector = new EnhancedErrorCollector();
-    
+
     mockThresholds = {
       errorRate: { warning: 5, critical: 20 },
       errorCount: { warning: 10, critical: 50 },
       componentFailures: { warning: 1, critical: 3 },
-      recoveryFailureRate: { warning: 0.3, critical: 0.7 }
+      recoveryFailureRate: { warning: 0.3, critical: 0.7 },
     };
 
     mockConfig = {
@@ -56,7 +82,7 @@ describe('ErrorMonitoringService', () => {
       alertThresholds: mockThresholds,
       enableTrendAnalysis: true,
       enableAnomalyDetection: true,
-      retentionPeriod: 3600000 // 1 hour
+      retentionPeriod: 3600000, // 1 hour
     };
 
     monitoringService = new ErrorMonitoringService(
@@ -94,20 +120,20 @@ describe('ErrorMonitoringService', () => {
   describe('startMonitoring', () => {
     it('should start monitoring successfully', () => {
       monitoringService.stopMonitoring(); // Stop auto-started monitoring
-      
+
       expect(() => {
         monitoringService.startMonitoring();
       }).not.toThrow();
-      
+
       monitoringService.stopMonitoring();
     });
 
     it('should not start multiple monitoring intervals', () => {
       monitoringService.stopMonitoring();
-      
+
       monitoringService.startMonitoring();
       monitoringService.startMonitoring(); // Second call should be ignored
-      
+
       expect(() => {
         monitoringService.stopMonitoring();
       }).not.toThrow();
@@ -123,7 +149,7 @@ describe('ErrorMonitoringService', () => {
 
     it('should handle stopping when not started', () => {
       monitoringService.stopMonitoring();
-      
+
       expect(() => {
         monitoringService.stopMonitoring();
       }).not.toThrow();
@@ -144,7 +170,7 @@ describe('ErrorMonitoringService', () => {
             type: ErrorType.VALIDATION,
             severity: ErrorSeverity.ERROR,
             message: `Test error ${i}`,
-            moduleOrigin: 'TEST'
+            moduleOrigin: 'TEST',
           }),
           []
         );
@@ -157,8 +183,8 @@ describe('ErrorMonitoringService', () => {
       // Should have created an alert
       const alerts = monitoringService.getActiveAlerts();
       expect(alerts.length).toBeGreaterThan(0);
-      
-      const errorRateAlert = alerts.find(alert => alert.type === 'error_rate');
+
+      const errorRateAlert = alerts.find((alert) => alert.type === 'error_rate');
       expect(errorRateAlert).toBeDefined();
     });
 
@@ -171,7 +197,7 @@ describe('ErrorMonitoringService', () => {
             type: ErrorType.SECURITY,
             severity: ErrorSeverity.CRITICAL,
             message: 'Critical file error',
-            moduleOrigin: 'FILE'
+            moduleOrigin: 'FILE',
           }),
           []
         );
@@ -181,7 +207,7 @@ describe('ErrorMonitoringService', () => {
       await (monitoringService as any).performMonitoringCheck();
 
       const alerts = monitoringService.getActiveAlerts();
-      const componentAlert = alerts.find(alert => alert.type === 'component_failure');
+      const componentAlert = alerts.find((alert) => alert.type === 'component_failure');
       expect(componentAlert).toBeDefined();
     });
 
@@ -194,29 +220,29 @@ describe('ErrorMonitoringService', () => {
             type: ErrorType.VALIDATION,
             severity: ErrorSeverity.ERROR,
             message: `Registry extraction failed ${i}`,
-            moduleOrigin: 'JAVA'
+            moduleOrigin: 'JAVA',
           }),
           [
             {
               strategy: 'retry' as any,
               description: 'Retry extraction',
               automated: true,
-              maxRetries: 1
-            }
+              maxRetries: 1,
+            },
           ]
         );
-        
+
         // Simulate failed recovery
         error.recoveryAttempts = 2;
         error.hasBeenRecovered = false;
-        
+
         mockErrorCollector.addEnhancedError(error);
       }
 
       await (monitoringService as any).performMonitoringCheck();
 
       const alerts = monitoringService.getActiveAlerts();
-      const recoveryAlert = alerts.find(alert => alert.type === 'recovery_failure');
+      const recoveryAlert = alerts.find((alert) => alert.type === 'recovery_failure');
       expect(recoveryAlert).toBeDefined();
     });
   });
@@ -224,7 +250,7 @@ describe('ErrorMonitoringService', () => {
   describe('alert management', () => {
     beforeEach(async () => {
       monitoringService.stopMonitoring();
-      
+
       // Create a test alert
       const error = createEnhancedConversionError(
         createConversionError({
@@ -232,19 +258,19 @@ describe('ErrorMonitoringService', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.CRITICAL,
           message: 'Test critical error',
-          moduleOrigin: 'TEST'
+          moduleOrigin: 'TEST',
         }),
         []
       );
-      
+
       for (let i = 0; i < 25; i++) {
         mockErrorCollector.addEnhancedError({
           ...error,
           id: `error-${i}`,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
-      
+
       await (monitoringService as any).performMonitoringCheck();
     });
 
@@ -264,9 +290,9 @@ describe('ErrorMonitoringService', () => {
         const alertId = alerts[0].id;
         const result = monitoringService.acknowledgeAlert(alertId);
         expect(result).toBe(true);
-        
+
         const updatedAlerts = monitoringService.getAllAlerts();
-        const acknowledgedAlert = updatedAlerts.find(a => a.id === alertId);
+        const acknowledgedAlert = updatedAlerts.find((a) => a.id === alertId);
         expect(acknowledgedAlert?.acknowledged).toBe(true);
       }
     });
@@ -277,9 +303,9 @@ describe('ErrorMonitoringService', () => {
         const alertId = alerts[0].id;
         const result = monitoringService.resolveAlert(alertId);
         expect(result).toBe(true);
-        
+
         const activeAlerts = monitoringService.getActiveAlerts();
-        const resolvedAlert = activeAlerts.find(a => a.id === alertId);
+        const resolvedAlert = activeAlerts.find((a) => a.id === alertId);
         expect(resolvedAlert).toBeUndefined();
       }
     });
@@ -298,7 +324,7 @@ describe('ErrorMonitoringService', () => {
   describe('getMonitoringStatistics', () => {
     beforeEach(async () => {
       monitoringService.stopMonitoring();
-      
+
       // Create various types of alerts
       const errors = [
         createConversionError({
@@ -306,33 +332,38 @@ describe('ErrorMonitoringService', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.ERROR,
           message: 'Test error 1',
-          moduleOrigin: 'TEST'
+          moduleOrigin: 'TEST',
         }),
         createConversionError({
           code: 'FILE-ERR-001',
           type: ErrorType.SECURITY,
           severity: ErrorSeverity.CRITICAL,
           message: 'File error 1',
-          moduleOrigin: 'FILE'
-        })
+          moduleOrigin: 'FILE',
+        }),
       ];
 
       for (const error of errors) {
         for (let i = 0; i < 15; i++) {
-          mockErrorCollector.addEnhancedError(createEnhancedConversionError({
-            ...error,
-            id: `${error.moduleOrigin}-error-${i}`,
-            timestamp: new Date()
-          }, []));
+          mockErrorCollector.addEnhancedError(
+            createEnhancedConversionError(
+              {
+                ...error,
+                id: `${error.moduleOrigin}-error-${i}`,
+                timestamp: new Date(),
+              },
+              []
+            )
+          );
         }
       }
-      
+
       await (monitoringService as any).performMonitoringCheck();
     });
 
     it('should return monitoring statistics', () => {
       const stats = monitoringService.getMonitoringStatistics();
-      
+
       expect(stats).toBeDefined();
       expect(typeof stats.totalAlerts).toBe('number');
       expect(typeof stats.activeAlerts).toBe('number');
@@ -341,21 +372,23 @@ describe('ErrorMonitoringService', () => {
       expect(typeof stats.averageResolutionTime).toBe('number');
     });
 
-    it('should track alert resolution times', () => {
+    it('should track alert resolution times', async () => {
+      vi.useFakeTimers();
       const alerts = monitoringService.getActiveAlerts();
       if (alerts.length > 0) {
         const alertId = alerts[0].id;
-        
+
         // Wait a bit then resolve
         setTimeout(() => {
           monitoringService.resolveAlert(alertId);
         }, 10);
-        
-        setTimeout(() => {
-          const stats = monitoringService.getMonitoringStatistics();
-          expect(stats.averageResolutionTime).toBeGreaterThan(0);
-        }, 20);
+
+        await vi.advanceTimersByTimeAsync(20);
+
+        const stats = monitoringService.getMonitoringStatistics();
+        expect(stats.averageResolutionTime).toBeGreaterThan(0);
       }
+      vi.useRealTimers();
     });
   });
 
@@ -373,14 +406,14 @@ describe('ErrorMonitoringService', () => {
             type: ErrorType.VALIDATION,
             severity: ErrorSeverity.ERROR,
             message: `Trend test error ${i}`,
-            moduleOrigin: 'TREND'
+            moduleOrigin: 'TREND',
           }),
           []
         );
         mockErrorCollector.addEnhancedError(error);
-        
+
         // Simulate time passing
-        await new Promise(resolve => setTimeout(resolve, 1));
+        await new Promise((resolve) => setTimeout(resolve, 1));
       }
 
       // Should not throw during trend analysis
@@ -397,7 +430,7 @@ describe('ErrorMonitoringService', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.ERROR,
           message: 'Insufficient data error',
-          moduleOrigin: 'TEST'
+          moduleOrigin: 'TEST',
         }),
         []
       );
@@ -424,7 +457,7 @@ describe('ErrorMonitoringService', () => {
             type: ErrorType.VALIDATION,
             severity: ErrorSeverity.ERROR,
             message: `Baseline error ${i}`,
-            moduleOrigin: 'BASELINE'
+            moduleOrigin: 'BASELINE',
           }),
           []
         );
@@ -455,12 +488,12 @@ describe('ErrorMonitoringService', () => {
         errorRate: { warning: 1, critical: 5 },
         errorCount: { warning: 5, critical: 20 },
         componentFailures: { warning: 0, critical: 1 },
-        recoveryFailureRate: { warning: 0.1, critical: 0.5 }
+        recoveryFailureRate: { warning: 0.1, critical: 0.5 },
       };
 
       const customConfig: MonitoringConfig = {
         ...mockConfig,
-        alertThresholds: customThresholds
+        alertThresholds: customThresholds,
       };
 
       expect(() => {
@@ -477,7 +510,7 @@ describe('ErrorMonitoringService', () => {
     it('should handle disabled trend analysis', () => {
       const configWithoutTrends: MonitoringConfig = {
         ...mockConfig,
-        enableTrendAnalysis: false
+        enableTrendAnalysis: false,
       };
 
       expect(() => {
@@ -494,7 +527,7 @@ describe('ErrorMonitoringService', () => {
     it('should handle disabled anomaly detection', () => {
       const configWithoutAnomalies: MonitoringConfig = {
         ...mockConfig,
-        enableAnomalyDetection: false
+        enableAnomalyDetection: false,
       };
 
       expect(() => {
@@ -520,7 +553,7 @@ describe('ErrorMonitoringService', () => {
         ...mockErrorCollector,
         getErrorRateMetrics: vi.fn().mockImplementation(() => {
           throw new Error('Collector error');
-        })
+        }),
       } as any;
 
       const faultyService = new ErrorMonitoringService(
@@ -540,7 +573,7 @@ describe('ErrorMonitoringService', () => {
 
     it('should handle alerting service failures gracefully', async () => {
       const faultyAlertingService = {
-        sendAlert: vi.fn().mockRejectedValue(new Error('Alerting failed'))
+        sendAlert: vi.fn().mockRejectedValue(new Error('Alerting failed')),
       } as unknown as AlertingService;
 
       const serviceWithFaultyAlerting = new ErrorMonitoringService(
@@ -558,7 +591,7 @@ describe('ErrorMonitoringService', () => {
             type: ErrorType.VALIDATION,
             severity: ErrorSeverity.ERROR,
             message: `Faulty test error ${i}`,
-            moduleOrigin: 'FAULTY'
+            moduleOrigin: 'FAULTY',
           }),
           []
         );
@@ -588,7 +621,7 @@ describe('ErrorMonitoringService', () => {
             type: ErrorType.VALIDATION,
             severity: ErrorSeverity.CRITICAL,
             message: `Performance test error ${i}`,
-            moduleOrigin: 'PERF'
+            moduleOrigin: 'PERF',
           }),
           []
         );
@@ -610,7 +643,7 @@ describe('ErrorMonitoringService', () => {
       const shortRetentionConfig: MonitoringConfig = {
         ...mockConfig,
         retentionPeriod: 1000, // 1 second
-        enabled: false
+        enabled: false,
       };
 
       const serviceWithShortRetention = new ErrorMonitoringService(
@@ -627,7 +660,7 @@ describe('ErrorMonitoringService', () => {
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.ERROR,
           message: 'Retention test error',
-          moduleOrigin: 'RETENTION'
+          moduleOrigin: 'RETENTION',
         }),
         []
       );
@@ -636,7 +669,7 @@ describe('ErrorMonitoringService', () => {
       await (serviceWithShortRetention as any).performMonitoringCheck();
 
       // Wait for retention period to pass
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
       // Trigger cleanup
       await (serviceWithShortRetention as any).performMonitoringCheck();
