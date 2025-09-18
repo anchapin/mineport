@@ -83,6 +83,7 @@ export class StreamingFileProcessor {
     const startTime = Date.now();
     const startMemory = process.memoryUsage().heapUsed;
     let peakMemoryUsage = startMemory;
+    let chunksProcessed = 0;
 
     try {
       // Get file stats first
@@ -101,7 +102,7 @@ export class StreamingFileProcessor {
       }
 
       // Create streaming validation pipeline
-      const pipelineResult = await this.createValidationPipeline(filePath, stats.size, validationOptions);
+      const pipelineResult = await this.createValidationPipeline(filePath, stats.size, _validationOptions);
       const validationResult = pipelineResult.result;
       chunksProcessed = pipelineResult.chunksProcessed;
 
@@ -138,6 +139,7 @@ export class StreamingFileProcessor {
   ): Promise<{ result: ValidationResult; chunksProcessed: number }> {
     const errors: any[] = [];
     const warnings: any[] = [];
+    let chunksProcessed = 0;
 
     // Create hash stream for checksum calculation
     const hashStream = crypto.createHash('sha256');
@@ -151,6 +153,9 @@ export class StreamingFileProcessor {
     const validationTransform = new Transform({
       transform(chunk: Buffer, _encoding, callback) {
         try {
+          // Count chunks processed
+          chunksProcessed++;
+
           // Check magic number on first chunk
           if (!magicNumberChecked && chunk.length >= 4) {
             const magicNumber = chunk.subarray(0, 4);
@@ -229,7 +234,7 @@ export class StreamingFileProcessor {
           modifiedAt: new Date()
         }
       },
-      chunksProcessed
+      chunksProcessed: chunksProcessed
     };
   }
 
@@ -285,7 +290,7 @@ export class StreamingFileProcessor {
       enableMalwarePatternDetection: true
     };
 
-    const processor = new FileProcessor(validationOptions, defaultSecurityConfig);
+    const processor = new FileProcessor(validationOptions);
     return processor.validateUpload(buffer, filePath);
   }
 

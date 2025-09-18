@@ -58,6 +58,18 @@ export interface FileMetadata {
 }
 
 /**
+ * Configuration options for security scanning
+ */
+export interface SecurityScanOptions {
+  enableZipBombDetection: boolean;
+  enablePathTraversalDetection: boolean;
+  enableMalwarePatternDetection: boolean;
+  maxCompressionRatio: number;
+  maxExtractedSize: number;
+  scanTimeout: number;
+}
+
+/**
  * Result of security scanning process
  */
 export interface SecurityScanResult {

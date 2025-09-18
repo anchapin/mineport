@@ -115,8 +115,7 @@ export class ModValidator {
     };
 
     this.fileProcessor = fileProcessor || new FileProcessor(
-      defaultFileValidationConfig,
-      defaultSecurityScanningConfig
+      defaultFileValidationConfig
     );
     this.javaAnalyzer = javaAnalyzer || new JavaAnalyzer();
     this.securityScanner = securityScanner || new SecurityScanner(defaultSecurityScanningConfig);

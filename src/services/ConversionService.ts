@@ -180,7 +180,6 @@ export class ConversionService extends EventEmitter implements IConversionServic
 
     this.fileProcessor = options.fileProcessor || new FileProcessor(
       defaultFileValidationConfig,
-      defaultSecurityScanningConfig,
       this.cacheService,
       this.performanceMonitor
     );
@@ -368,14 +367,18 @@ export class ConversionService extends EventEmitter implements IConversionServic
       
       // Step 1: Enhanced file validation and security scanning (if enabled)
       if (useEnhancedFileProcessing) {
+        // Ensure modFile is a string path for file operations
+        const modFilePath = typeof input.modFile === 'string' ? input.modFile :
+          (() => { throw new Error('Buffer input not supported for enhanced file processing'); })();
+
         // Check file size to determine processing method
         const fs = await import('fs/promises');
-        const stats = await fs.stat(input.modFile);
+        const stats = await fs.stat(modFilePath);
         const fileSize = stats.size;
         
         if (fileSize > 10 * 1024 * 1024) { // Use streaming for files > 10MB
-          logger.info('Using streaming file processor for large file', { modFile: input.modFile, size: fileSize });
-          validationResult = await this.streamingFileProcessor.processLargeFile(input.modFile, {
+          logger.info('Using streaming file processor for large file', { modFile: modFilePath, size: fileSize });
+          validationResult = await this.streamingFileProcessor.processLargeFile(modFilePath, {
             maxFileSize: 500 * 1024 * 1024, // 500MB limit
             allowedMimeTypes: ['application/java-archive', 'application/zip'],
             enableMalwareScanning: true,
@@ -383,30 +386,40 @@ export class ConversionService extends EventEmitter implements IConversionServic
           });
         } else {
           // Use regular processing for smaller files
-          const fileBuffer = await this.readFileBuffer(input.modFile);
-          validationResult = await this.fileProcessor.validateUpload(fileBuffer, input.modFile);
+          const fileBuffer = await this.readFileBuffer(modFilePath);
+          validationResult = await this.fileProcessor.validateUpload(fileBuffer, modFilePath);
         }
         
         if (!validationResult.isValid) {
           const errorMessage = `File validation failed: ${validationResult.errors?.map((e: any) => e.message).join(', ')}`;
-          logger.error('File validation failed', { modFile: input.modFile, errors: validationResult.errors });
+          logger.error('File validation failed', { modFile: modFilePath, errors: validationResult.errors });
           throw new Error(errorMessage);
         }
-        
-        logger.info('Enhanced file processing completed', { modFile: input.modFile, streamingUsed: fileSize > 10 * 1024 * 1024 });
+
+        logger.info('Enhanced file processing completed', { modFile: modFilePath, streamingUsed: fileSize > 10 * 1024 * 1024 });
       }
       
       // Step 2: Enhanced Java analysis with multi-strategy extraction (if enabled)
       if (useMultiStrategyAnalysis) {
         // Use worker pool for CPU-intensive analysis
         try {
-          analysisResult = await this.workerPool.execute('javaAnalysis', {
-            jarPath: input.modFile
+          const jarPath = typeof input.modFile === 'string' ? input.modFile :
+            (() => { throw new Error('Buffer input not supported for worker analysis'); })();
+
+          analysisResult = await this.workerPool.runTask({
+            id: `analysis-${Date.now()}`,
+            priority: 1,
+            execute: async (input: { jarPath: string }) => {
+              return await this.javaAnalyzer.analyzeJarForMVP(input.jarPath);
+            },
+            input: { jarPath }
           });
         } catch (workerError) {
           // Fallback to direct analysis if worker fails
           logger.warn('Worker pool analysis failed, falling back to direct analysis', { error: workerError });
-          analysisResult = await this.javaAnalyzer.analyzeJarForMVP(input.modFile);
+          const jarPath = typeof input.modFile === 'string' ? input.modFile :
+            (() => { throw new Error('Buffer input not supported for direct analysis'); })();
+          analysisResult = await this.javaAnalyzer.analyzeJarForMVP(jarPath);
         }
         
         if (!analysisResult || analysisResult.modId === 'unknown') {
@@ -420,12 +433,16 @@ export class ConversionService extends EventEmitter implements IConversionServic
         });
       }
       
+      // Ensure we have a string path for pipeline input
+      const inputPath = typeof input.modFile === 'string' ? input.modFile :
+        (() => { throw new Error('Buffer input not supported for pipeline processing'); })();
+
       // Prepare enhanced pipeline input with analysis results
       const pipelineInput = {
-        inputPath: input.modFile,
+        inputPath: inputPath,
         outputPath: input.outputPath,
-        modId: analysisResult.modId || this.extractModId(input.modFile),
-        modName: analysisResult.modName || this.extractModName(input.modFile),
+        modId: analysisResult.modId || this.extractModId(inputPath),
+        modName: analysisResult.modName || this.extractModName(inputPath),
         modVersion: analysisResult.modVersion || input.options.targetMinecraftVersion,
         modDescription: analysisResult.modDescription || '',
         modAuthor: analysisResult.modAuthor || '',
@@ -736,72 +753,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
     });
   }
 
-  /**
-   * Update job statuses
-   */
-  private updateJobStatuses(): void {
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (!this.jobQueue) return;
-    
-    // Get all processing jobs
-    const processingJobs = this.jobQueue.getJobs({ status: 'processing' });
-    
-    /**
-     * for method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    for (const job of processingJobs) {
-      if (job.type !== 'conversion') continue;
-      
-      const activeJob = this.activeJobs.get(job.id);
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (!activeJob) continue;
-      
-      // Get job status from pipeline
-      const pipelineStatus = this.pipeline.getJobStatus(job.id);
-      
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (pipelineStatus) {
-        // Update active job status with pipeline status
-        activeJob.status.status = pipelineStatus.status as JobStatus;
-        if (pipelineStatus.progress !== undefined) {
-          activeJob.status.progress = pipelineStatus.progress;
-        }
-        
-        // Emit status update event
-        this.emit('job:status', activeJob.status);
-      }
-    }
-  }
+
 
   /**
    * Start status update interval
@@ -928,6 +880,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
         options: {
           targetMinecraftVersion: '1.20',
           includeDocumentation: true,
+          optimizeAssets: true,
         },
       });
 
