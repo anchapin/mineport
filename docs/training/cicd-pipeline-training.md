@@ -210,8 +210,8 @@ jobs:
 
 2. **Dependency Scanning**
    - Checks for known vulnerabilities in dependencies
-   - Uses Snyk for comprehensive vulnerability database
-   - Provides remediation suggestions
+   - Uses npm audit for built-in vulnerability scanning
+   - Provides remediation suggestions and fix options
 
 3. **Secret Scanning**
    - Detects hardcoded secrets in code
@@ -238,9 +238,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Run npm audit
+        run: npm audit --audit-level=high --json > npm-audit.json
 
   secret-scan:
     runs-on: ubuntu-latest

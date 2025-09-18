@@ -34,15 +34,15 @@ class SecurityAdvisoryCreator {
       console.log('Error parsing npm audit results:', error.message);
     }
 
-    // Parse Snyk results
+    // Parse enhanced npm audit results
     try {
-      const snykPath = 'snyk-results.json';
-      if (fs.existsSync(snykPath)) {
-        const snykResults = JSON.parse(fs.readFileSync(snykPath, 'utf8'));
-        vulnerabilities.push(...this.parseSnykResults(snykResults));
+      const npmAuditRawPath = 'npm-audit-raw.json';
+      if (fs.existsSync(npmAuditRawPath)) {
+        const npmAuditRaw = JSON.parse(fs.readFileSync(npmAuditRawPath, 'utf8'));
+        vulnerabilities.push(...this.parseEnhancedNpmAudit(npmAuditRaw));
       }
     } catch (error) {
-      console.log('Error parsing Snyk results:', error.message);
+      console.log('Error parsing enhanced npm audit results:', error.message);
     }
 
     return this.filterHighSeverity(vulnerabilities);
@@ -77,22 +77,22 @@ class SecurityAdvisoryCreator {
   }
 
   /**
-   * Parse Snyk results
+   * Parse enhanced npm audit results
    */
-  parseSnykResults(snykResults) {
+  parseEnhancedNpmAudit(npmAuditRaw) {
     const vulnerabilities = [];
 
-    if (snykResults.vulnerabilities) {
-      snykResults.vulnerabilities.forEach((vuln) => {
+    if (npmAuditRaw.vulnerabilities) {
+      Object.entries(npmAuditRaw.vulnerabilities).forEach(([packageName, vulnData]) => {
         vulnerabilities.push({
-          source: 'snyk',
-          package: vuln.packageName,
-          title: vuln.title,
-          severity: vuln.severity,
-          cve: vuln.identifiers?.CVE?.[0] || null,
-          url: vuln.url || null,
-          range: vuln.version || null,
-          description: vuln.description || `Vulnerability in ${vuln.packageName}: ${vuln.title}`,
+          source: 'npm-audit-enhanced',
+          package: packageName,
+          title: vulnData.title || `${vulnData.severity} vulnerability in ${packageName}`,
+          severity: vulnData.severity,
+          cve: vulnData.cve || null,
+          url: vulnData.url || null,
+          range: vulnData.range || null,
+          description: vulnData.title || `Vulnerability in ${packageName}: ${vulnData.severity} severity`,
         });
       });
     }

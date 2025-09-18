@@ -5,9 +5,14 @@
  * Implements continuous security posture assessment and policy enforcement
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const crypto = require('crypto');
+import fs from 'fs/promises';
+import path from 'path';
+import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 class SecurityPostureMonitor {
   constructor(options = {}) {
@@ -43,9 +48,11 @@ class SecurityPostureMonitor {
   /**
    * Assess current security posture
    */
-  async assessSecurityPosture() {
+  async assessSecurityPosture(silent = false) {
     const assessmentId = this.generateAssessmentId();
-    console.log(`Starting security posture assessment: ${assessmentId}`);
+    if (!silent) {
+      console.error(`Starting security posture assessment: ${assessmentId}`);
+    }
 
     try {
       const assessment = {
@@ -97,9 +104,11 @@ class SecurityPostureMonitor {
       // Check for alerts
       await this.checkSecurityAlerts(assessment);
 
-      console.log(`Security posture assessment completed: ${assessmentId}`);
-      console.log(`Overall Score: ${assessment.overall_score}/100`);
-      console.log(`Risk Level: ${assessment.risk_level.toUpperCase()}`);
+      if (!silent) {
+        console.error(`Security posture assessment completed: ${assessmentId}`);
+        console.error(`Overall Score: ${assessment.overall_score}/100`);
+        console.error(`Risk Level: ${assessment.risk_level.toUpperCase()}`);
+      }
 
       return assessment;
     } catch (error) {
@@ -959,36 +968,37 @@ class SecurityPostureMonitor {
 }
 
 // CLI interface
-if (require.main === module) {
+const isMainModule = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
+if (isMainModule) {
   const command = process.argv[2];
   const monitor = new SecurityPostureMonitor();
 
   switch (command) {
     case 'init':
-      monitor.initialize();
+      monitor.initialize().catch(console.error);
       break;
     case 'assess':
-      monitor.assessSecurityPosture().then((assessment) => {
+      monitor.assessSecurityPosture(true).then((assessment) => {
         console.log(JSON.stringify(assessment, null, 2));
-      });
+      }).catch(console.error);
       break;
     case 'enforce':
       const context = JSON.parse(process.argv[3] || '{}');
       monitor.enforcePolicies(context).then((result) => {
         console.log(JSON.stringify(result, null, 2));
-      });
+      }).catch(console.error);
       break;
     case 'update-policies':
       const source = process.argv[3] || 'automatic';
       monitor.updateSecurityPolicies(source).then((updates) => {
         console.log(`Applied ${updates.length} policy updates`);
-      });
+      }).catch(console.error);
       break;
     case 'report':
       const period = process.argv[3] || 'weekly';
       monitor.generatePostureReport(period).then((report) => {
         console.log(`Security posture report generated: ${report.id}`);
-      });
+      }).catch(console.error);
       break;
     default:
       console.log(
@@ -997,4 +1007,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = SecurityPostureMonitor;
+export default SecurityPostureMonitor;

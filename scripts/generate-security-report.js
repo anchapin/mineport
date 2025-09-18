@@ -114,30 +114,30 @@ class SecurityReportGenerator {
       console.log('Error parsing npm audit results:', error.message);
     }
 
-    // Parse Snyk results
+    // Parse enhanced npm audit results with SARIF format
     try {
-      if (fs.existsSync('snyk-results.json')) {
-        const snykResults = JSON.parse(fs.readFileSync('snyk-results.json', 'utf8'));
+      if (fs.existsSync('npm-audit-raw.json')) {
+        const npmAuditRaw = JSON.parse(fs.readFileSync('npm-audit-raw.json', 'utf8'));
 
-        if (snykResults.vulnerabilities) {
-          snykResults.vulnerabilities.forEach((vuln) => {
+        if (npmAuditRaw.vulnerabilities) {
+          Object.entries(npmAuditRaw.vulnerabilities).forEach(([packageName, vulnData]) => {
+            results.packages.add(packageName);
             results.vulnerabilities++;
-            results[vuln.severity]++;
-            results.packages.add(vuln.packageName);
+            results[vulnData.severity]++;
 
             results.details.push({
-              tool: 'Snyk',
-              package: vuln.packageName,
-              title: vuln.title,
-              severity: vuln.severity,
-              cve: vuln.identifiers?.CVE?.[0] || null,
-              url: vuln.url || null,
+              tool: 'npm audit (enhanced)',
+              package: packageName,
+              title: vulnData.title || `${vulnData.severity} vulnerability in ${packageName}`,
+              severity: vulnData.severity,
+              cve: vulnData.cve || null,
+              url: vulnData.url || null,
             });
           });
         }
       }
     } catch (error) {
-      console.log('Error parsing Snyk results:', error.message);
+      console.log('Error parsing enhanced npm audit results:', error.message);
     }
 
     results.packages = Array.from(results.packages);

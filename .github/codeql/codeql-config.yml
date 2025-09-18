@@ -1,4 +1,4 @@
-name: "ModPorter-AI CodeQL Config"
+name: "Mineport CodeQL Config"
 
 disable-default-queries: false
 

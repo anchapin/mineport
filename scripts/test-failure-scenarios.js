@@ -725,7 +725,7 @@ class FailureScenarioTester {
 
     const workflowContent = fs.readFileSync(securityWorkflow, 'utf8');
     const hasVulnerabilityScanning =
-      workflowContent.includes('snyk') ||
+      workflowContent.includes('npm audit') ||
       workflowContent.includes('codeql') ||
       workflowContent.includes('security');
 

@@ -27,7 +27,7 @@
 - [x] 2. Implement comprehensive security scanning pipeline
   - Create dedicated security workflow with SAST, dependency, and secret scanning
   - Integrate CodeQL for static code analysis
-  - Add dependency vulnerability scanning with Snyk
+  - Add dependency vulnerability scanning with npm audit
   - Implement secret detection and prevention
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
@@ -38,7 +38,7 @@
   - _Requirements: 2.1, 2.2_
 
 - [x] 2.2 Implement dependency vulnerability scanning
-  - Integrate Snyk for dependency vulnerability detection
+  - Integrate npm audit for dependency vulnerability detection
   - Configure vulnerability severity thresholds and blocking rules
   - Add automated security advisory creation for high-severity issues
   - _Requirements: 2.1, 2.4_
