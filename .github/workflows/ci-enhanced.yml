@@ -39,18 +39,12 @@ jobs:
           fetch-depth: 1
       
       - name: Log workflow start
-        uses: ./.github/workflows/audit-logging.yml
-        with:
-          operation_type: 'workflow_start'
-          operation_status: 'started'
-          operation_metadata: |
-            {
-              "workflow_name": "Enhanced CI Pipeline",
-              "trigger_event": "${{ github.event_name }}",
-              "trigger_ref": "${{ github.ref }}",
-              "trigger_actor": "${{ github.actor }}",
-              "skip_tests": "${{ github.event.inputs.skip_tests }}"
-            }
+        run: |
+          echo "Starting Enhanced CI Pipeline"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Skip tests: ${{ github.event.inputs.skip_tests }}"
 
   # Pre-flight checks
   preflight:
@@ -1207,27 +1201,16 @@ jobs:
           fi
       
       - name: Log workflow completion
-        uses: ./.github/workflows/audit-logging.yml
-        with:
-          operation_type: 'workflow_complete'
-          operation_status: '${{ steps.status.outputs.status }}'
-          operation_metadata: |
-            {
-              "workflow_name": "Enhanced CI Pipeline",
-              "duration_seconds": ${{ steps.duration.outputs.duration }},
-              "build_result": "${{ needs.build.result }}",
-              "test_aggregation_result": "${{ needs.test-aggregation.result }}",
-              "comprehensive_tests_result": "${{ needs.comprehensive-tests.result }}",
-              "quality_gate_result": "${{ needs.quality-gate.result }}",
-              "cache_management_result": "${{ needs.cache-management.result }}",
-              "notify_result": "${{ needs.notify.result }}",
-              "total_jobs": 7,
-              "failed_jobs": [
-                ${{ needs.build.result != 'success' && '"build"' || '' }}
-                ${{ needs.test-aggregation.result != 'success' && ',"test-aggregation"' || '' }}
-                ${{ needs.comprehensive-tests.result != 'success' && ',"comprehensive-tests"' || '' }}
-                ${{ needs.quality-gate.result != 'success' && ',"quality-gate"' || '' }}
-                ${{ needs.cache-management.result != 'success' && ',"cache-management"' || '' }}
-                ${{ needs.notify.result != 'success' && ',"notify"' || '' }}
-              ]
-            }
+        run: |
+          echo "Workflow completion audit log:"
+          echo "Operation: workflow_complete"
+          echo "Status: ${{ steps.status.outputs.status }}"
+          echo "Workflow: Enhanced CI Pipeline"
+          echo "Duration: ${{ steps.duration.outputs.duration }} seconds"
+          echo "Build result: ${{ needs.build.result }}"
+          echo "Test aggregation result: ${{ needs.test-aggregation.result }}"
+          echo "Comprehensive tests result: ${{ needs.comprehensive-tests.result }}"
+          echo "Quality gate result: ${{ needs.quality-gate.result }}"
+          echo "Cache management result: ${{ needs.cache-management.result }}"
+          echo "Notify result: ${{ needs.notify.result }}"
+          echo "Total jobs: 7"
