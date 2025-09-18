@@ -48,9 +48,11 @@ class SecurityPostureMonitor {
   /**
    * Assess current security posture
    */
-  async assessSecurityPosture() {
+  async assessSecurityPosture(silent = false) {
     const assessmentId = this.generateAssessmentId();
-    console.log(`Starting security posture assessment: ${assessmentId}`);
+    if (!silent) {
+      console.error(`Starting security posture assessment: ${assessmentId}`);
+    }
 
     try {
       const assessment = {
@@ -102,9 +104,11 @@ class SecurityPostureMonitor {
       // Check for alerts
       await this.checkSecurityAlerts(assessment);
 
-      console.log(`Security posture assessment completed: ${assessmentId}`);
-      console.log(`Overall Score: ${assessment.overall_score}/100`);
-      console.log(`Risk Level: ${assessment.risk_level.toUpperCase()}`);
+      if (!silent) {
+        console.error(`Security posture assessment completed: ${assessmentId}`);
+        console.error(`Overall Score: ${assessment.overall_score}/100`);
+        console.error(`Risk Level: ${assessment.risk_level.toUpperCase()}`);
+      }
 
       return assessment;
     } catch (error) {
@@ -974,7 +978,7 @@ if (isMainModule) {
       monitor.initialize().catch(console.error);
       break;
     case 'assess':
-      monitor.assessSecurityPosture().then((assessment) => {
+      monitor.assessSecurityPosture(true).then((assessment) => {
         console.log(JSON.stringify(assessment, null, 2));
       }).catch(console.error);
       break;
