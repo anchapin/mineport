@@ -16,11 +16,18 @@ paths-ignore:
   - "**/*.test.tsx"
   - "**/*.spec.ts"
   - "**/*.spec.tsx"
+  - "**/*.d.ts"
+  - "**/.github/**"
+  - "**/docs/**"
 
 paths:
   - src
   - scripts
   - config
+  - "**/*.js"
+  - "**/*.jsx"
+  - "**/*.ts"
+  - "**/*.tsx"
 
 # Custom query packs for enhanced security scanning
 packs:
