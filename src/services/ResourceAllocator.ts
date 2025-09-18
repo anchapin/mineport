@@ -103,8 +103,6 @@ export class ResourcePool<T> {
       hitRate: 0,
       averageUsage: 0,
     };
-
-    this.startCleanupTimer();
   }
 
   /**
@@ -247,7 +245,10 @@ export class ResourcePool<T> {
   /**
    * Start cleanup timer
    */
-  private startCleanupTimer(): void {
+  public startCleanupTimer(): void {
+    if (this.cleanupTimer) {
+      return;
+    }
     this.cleanupTimer = setInterval(() => {
       this.cleanup().catch((error) => {
         logger.error('Resource pool cleanup failed', { error });
@@ -316,7 +317,6 @@ export class TempFileManager {
 
   constructor(tempDir?: string) {
     this.tempDir = tempDir || os.tmpdir();
-    this.startCleanupTimer();
   }
 
   /**
@@ -434,7 +434,10 @@ export class TempFileManager {
   /**
    * Start cleanup timer
    */
-  private startCleanupTimer(): void {
+  public startCleanupTimer(): void {
+    if (this.cleanupTimer) {
+      return;
+    }
     this.cleanupTimer = setInterval(() => {
       this.cleanupOldFiles().catch((error) => {
         logger.error('Temp file cleanup failed', { error });
@@ -619,6 +622,23 @@ export class ResourceAllocator {
   }
 
   /**
+   * Start the resource allocator and its components
+   */
+  public start(): void {
+    this.tempFileManager.startCleanupTimer();
+    for (const pool of this.pools.values()) {
+      pool.startCleanupTimer();
+    }
+  }
+
+  /**
+   * Stop the resource allocator and destroy its components
+   */
+  public async stop(): Promise<void> {
+    await this.destroy();
+  }
+
+  /**
    * Create or get a resource pool
    */
   createPool<T>(
@@ -754,24 +774,6 @@ export class ResourceAllocator {
         this.allocations.delete(id);
       }
     }
-  }
-
-  /**
-   * Start the resource allocator
-   * @returns void
-   */
-  start(): void {
-    logger.info('ResourceAllocator started');
-    // Initialize any background processes if needed
-  }
-
-  /**
-   * Stop the resource allocator
-   * @returns void
-   */
-  stop(): void {
-    logger.info('ResourceAllocator stopped');
-    // Stop any background processes if needed
   }
 
   /**

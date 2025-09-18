@@ -9,7 +9,7 @@ export default defineConfig({
     hookTimeout: 20000, // 20 seconds for hooks
     exclude: [
       'tests/integration/consistency-validation.test.ts',
-      'tests/security/**/*', // Temporarily exclude all security tests to unblock CI
+      // Re-enabled security tests after fixing CodeQL issues
       'tests/integration/modporter-ai-integration.test.ts',
       'tests/deployment/smoke-tests.test.ts', // Requires running server
       'tests/benchmark/performance-optimization.test.ts', // Resource intensive tests
