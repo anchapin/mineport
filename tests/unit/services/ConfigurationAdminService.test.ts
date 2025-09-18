@@ -9,14 +9,18 @@ vi.mock('fs');
 vi.mock('path');
 
 // Mock logger
-vi.mock('../../../src/utils/logger', () => ({
-  createLogger: () => ({
-    info: vi.fn(),
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  }),
-}));
+vi.mock('../../../src/utils/logger', async () => {
+    const actual = await vi.importActual('../../../src/utils/logger') as object;
+    return {
+        ...actual,
+        createLogger: () => ({
+            info: vi.fn(),
+            debug: vi.fn(),
+            warn: vi.fn(),
+            error: vi.fn(),
+        }),
+    };
+});
 
 // Mock default config
 vi.mock('../../../config/default', () => ({

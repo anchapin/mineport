@@ -15,19 +15,11 @@ import AdmZip from 'adm-zip';
 import { 
   SecurityScanResult, 
   ThreatInfo, 
-  SecurityScanOptions, 
   TempFileInfo 
 } from '../../types/file-processing';
+import { SecurityScanningConfig } from '../../types/config.js';
 
 export class SecurityScanner {
-  private static readonly DEFAULT_OPTIONS: SecurityScanOptions = {
-    enableZipBombDetection: true,
-    enablePathTraversalDetection: true,
-    enableMalwarePatternDetection: true,
-    maxCompressionRatio: 100,
-    maxExtractedSize: 1024 * 1024 * 1024, // 1GB
-    scanTimeout: 30000 // 30 seconds
-  };
 
   private static readonly DANGEROUS_PATHS = [
     '../', '..\\', '/etc/', '/root/', 'C:\\Windows\\', 
@@ -51,10 +43,10 @@ export class SecurityScanner {
     Buffer.from('java.net.ServerSocket')
   ];
 
-  private options: SecurityScanOptions;
+  private options: SecurityScanningConfig;
 
-  constructor(options: Partial<SecurityScanOptions> = {}) {
-    this.options = { ...SecurityScanner.DEFAULT_OPTIONS, ...options };
+  constructor(options: SecurityScanningConfig) {
+    this.options = options;
   }
 
   /**

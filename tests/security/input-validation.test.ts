@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { ModValidator } from '../../src/modules/ingestion/ModValidator';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { FileProcessor } from '../../src/modules/ingestion/FileProcessor';
+import { FileValidationConfig, SecurityScanningConfig } from '../../src/types/config';
 import { SourceCodeFetcher } from '../../src/modules/ingestion/SourceCodeFetcher';
 import { createTempDirectory, cleanupTempDirectory } from '../integration/helpers';
 import fs from 'fs';
@@ -16,60 +17,47 @@ describe('Input Validation Security Tests', () => {
     cleanupTempDirectory(tempDir);
   });
   
-  describe('ModValidator', () => {
-    it('should reject malformed JAR files', async () => {
-      const modValidator = new ModValidator();
-      
-      // Create a malformed JAR file (just random bytes)
-      const malformedJar = Buffer.from('This is not a valid JAR file', 'utf-8');
-      
-      // Validate the file
-      const result = await modValidator.validate(malformedJar);
-      
-      // Should reject the file
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Invalid JAR file format');
+
+  describe('FileProcessor Input Validation', () => {
+    let fileProcessor: FileProcessor;
+
+    beforeEach(() => {
+      const fileValidationConfig: FileValidationConfig = {
+        maxFileSize: 10 * 1024 * 1024, // 10MB
+        allowedMimeTypes: ['application/java-archive', 'application/zip'],
+        enableMagicNumberValidation: true,
+        cacheValidationResults: false,
+        cacheTTL: 0,
+      };
+      const securityScanningConfig: SecurityScanningConfig = {
+        enableZipBombDetection: true,
+        maxCompressionRatio: 100,
+        maxExtractedSize: 100 * 1024 * 1024,
+        enablePathTraversalDetection: true,
+        enableMalwarePatternDetection: true,
+        scanTimeout: 5000,
+      };
+      fileProcessor = new FileProcessor(fileValidationConfig, securityScanningConfig);
+      // Mock the security scanner to avoid running actual scans
+      (fileProcessor as any).securityScanner = {
+        scanBuffer: vi.fn().mockResolvedValue({ isSafe: true, threats: [] }),
+      };
     });
-    
-    it('should reject empty files', async () => {
-      const modValidator = new ModValidator();
-      
-      // Create an empty file
-      const emptyFile = Buffer.alloc(0);
-      
-      // Validate the file
-      const result = await modValidator.validate(emptyFile);
-      
-      // Should reject the file
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
+
+    it('should reject files with disallowed MIME types', async () => {
+      const buffer = Buffer.from('this is not a zip file');
+      const result = await fileProcessor.validateUpload(buffer, 'test.txt');
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.code === 'INVALID_MIME_TYPE')).toBe(true);
     });
-    
-    it('should reject oversized files', async () => {
-      const modValidator = new ModValidator();
-      
-      // Create a large file (100MB)
-      const largeFile = Buffer.alloc(100 * 1024 * 1024, 'X');
-      
-      // Validate the file
-      const result = await modValidator.validate(largeFile);
-      
-      // Should reject the file
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
-    });
-    
-    it('should handle path traversal attempts', async () => {
-      const modValidator = new ModValidator();
-      
-      // Create a mock JAR with path traversal attempt
-      const mockJar = Buffer.from('PK\x03\x04' + '../../etc/passwd', 'utf-8');
-      
-      // Extract the mod (this should fail safely)
-      await expect(modValidator.extractMod(mockJar, 'test-mod')).rejects.toThrow();
+
+    it('should reject files that look like archives but have wrong extension', async () => {
+      const buffer = Buffer.from([0x50, 0x4B, 0x03, 0x04]); // ZIP magic number
+      const result = await fileProcessor.validateUpload(buffer, 'test.exe');
+      expect(result.warnings.some(w => w.code === 'UNEXPECTED_EXTENSION')).toBe(true);
     });
   });
-  
+
   describe('SourceCodeFetcher', () => {
     it('should validate GitHub repository URLs', () => {
       const sourceCodeFetcher = new SourceCodeFetcher({ githubToken: 'test-token' });

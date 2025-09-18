@@ -8,21 +8,23 @@
  * - Validation processing
  */
 
-const { parentPort, workerData } = require('worker_threads');
-const path = require('path');
+import { parentPort, workerData } from 'worker_threads';
+import path from 'path';
 
 // Worker ID from worker data
 const workerId = workerData?.workerId || 'unknown';
 
+const ext = process.env.NODE_ENV === 'test' ? '.ts' : '.js';
+
 /**
  * Task handlers for different types of work
  */
-const taskHandlers = {
+export const taskHandlers = {
   /**
    * Java analysis task
    */
   async javaAnalysis(data) {
-    const { JavaAnalyzer } = require('../modules/ingestion/JavaAnalyzer');
+    const { JavaAnalyzer } = await import(`../modules/ingestion/JavaAnalyzer${ext}`);
     const analyzer = new JavaAnalyzer();
     return await analyzer.analyzeJarForMVP(data.jarPath);
   },
@@ -31,7 +33,7 @@ const taskHandlers = {
    * File validation task
    */
   async fileValidation(data) {
-    const { FileProcessor } = require('../modules/ingestion/FileProcessor');
+    const { FileProcessor } = await import(`../modules/ingestion/FileProcessor${ext}`);
     const processor = new FileProcessor(data.options);
     return await processor.validateUpload(data.buffer, data.filename);
   },
@@ -40,7 +42,7 @@ const taskHandlers = {
    * Security scanning task
    */
   async securityScan(data) {
-    const { SecurityScanner } = require('../modules/ingestion/SecurityScanner');
+    const { SecurityScanner } = await import(`../modules/ingestion/SecurityScanner${ext}`);
     const scanner = new SecurityScanner();
     return await scanner.scanBuffer(data.buffer, data.filename);
   },
@@ -49,7 +51,7 @@ const taskHandlers = {
    * Asset conversion task
    */
   async assetConversion(data) {
-    const { AssetConverter } = require('../modules/conversion-agents/AssetConverter');
+    const { AssetConverter } = await import(`../modules/conversion-agents/AssetConverter${ext}`);
     const converter = new AssetConverter();
     
     switch (data.assetType) {
@@ -68,13 +70,17 @@ const taskHandlers = {
    * Validation pipeline task
    */
   async validation(data) {
-    const { ValidationPipeline } = require('../services/ValidationPipeline');
+    const { ValidationPipeline } = await import(`../services/ValidationPipeline${ext}`);
     const pipeline = new ValidationPipeline();
     
     // Add stages based on data configuration
     if (data.stages) {
       for (const stageConfig of data.stages) {
-        const StageClass = require(stageConfig.modulePath)[stageConfig.className];
+        const modulePath = stageConfig.modulePath.endsWith('.js')
+          ? stageConfig.modulePath.replace('.js', ext)
+          : `${stageConfig.modulePath}${ext}`;
+        const StageModule = await import(modulePath);
+        const StageClass = StageModule[stageConfig.className];
         const stage = new StageClass(stageConfig.options);
         pipeline.addStage({
           name: stageConfig.name,
@@ -216,5 +222,3 @@ if (parentPort) {
     workerId
   });
 }
-
-module.exports = { taskHandlers };

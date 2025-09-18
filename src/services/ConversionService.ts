@@ -29,6 +29,8 @@
  */
 
 import { EventEmitter } from 'events';
+import path from 'path';
+import fs from 'fs/promises';
 import { ConversionPipeline, ConversionPipelineInput, ConversionPipelineResult } from './ConversionPipeline';
 import { JobQueue, Job } from './JobQueue';
 import { ResourceAllocator } from './ResourceAllocator';
@@ -878,6 +880,41 @@ export class ConversionService extends EventEmitter implements IConversionServic
   private async readFileBuffer(filePath: string): Promise<Buffer> {
     const fs = await import('fs/promises');
     return await fs.readFile(filePath);
+  }
+
+  public async processModFile(file: Buffer, filename: string): Promise<ConversionResult> {
+    const tempDir = this.configService?.get('fileProcessor.tempDirectory') || './temp';
+    const tempFile = path.join(tempDir, filename);
+
+    try {
+      await fs.mkdir(tempDir, { recursive: true });
+      await fs.writeFile(tempFile, file);
+
+      const job = await this.createConversionJob({
+        modFile: tempFile,
+        outputPath: path.join(this.configService?.get('assetConverter.outputDirectory') || './output', filename),
+        options: {
+          targetMinecraftVersion: '1.20',
+          includeDocumentation: true,
+        },
+      });
+
+      return new Promise((resolve, reject) => {
+        const checkStatus = () => {
+          const status = this.getJobStatus(job.id);
+          if (status?.status === 'completed') {
+            resolve(this.getJobResult(job.id)!);
+          } else if (status?.status === 'failed') {
+            reject(new Error('Conversion job failed'));
+          } else {
+            setTimeout(checkStatus, 500);
+          }
+        };
+        checkStatus();
+      });
+    } finally {
+      await fs.unlink(tempFile).catch(() => {});
+    }
   }
 
   /**

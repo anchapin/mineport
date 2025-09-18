@@ -2,9 +2,13 @@ import {
   ModPorterAIConfig, 
   ConfigValidationResult, 
   ConfigValidationError, 
-  ConfigValidationWarning 
+  ConfigValidationWarning,
+  SecurityConfig
 } from '../types/config.js';
 import { logger } from '../utils/logger.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import { SecurityConfigSchema } from '../types/config.zod.js';
 
 /**
  * Configuration service for ModPorter-AI integration components
@@ -104,7 +108,42 @@ export class ConfigurationService {
    * Load configuration from environment variables with defaults
    */
   private loadConfiguration(): ModPorterAIConfig {
-    return {
+    // Load base security config from JSON
+    const securityConfigPath = path.resolve(process.cwd(), 'config', 'security.json');
+    let securityConfig: SecurityConfig;
+    try {
+        const securityConfigFile = fs.readFileSync(securityConfigPath, 'utf-8');
+        securityConfig = JSON.parse(securityConfigFile);
+    } catch (error) {
+        logger.error('Failed to load security.json, using default values.', { error });
+        // Provide a default structure if the file is missing or invalid
+        securityConfig = {
+            fileValidation: {
+                maxFileSize: 524288000,
+                allowedMimeTypes: ["application/java-archive", "application/zip"],
+                enableMagicNumberValidation: true,
+                cacheValidationResults: true,
+                cacheTTL: 3600000
+            },
+            securityScanning: {
+                enableZipBombDetection: true,
+                maxCompressionRatio: 100,
+                maxExtractedSize: 1073741824,
+                enablePathTraversalDetection: true,
+                enableMalwarePatternDetection: true,
+                scanTimeout: 30000
+            }
+        };
+    }
+
+    // Override with environment variables
+    securityConfig.fileValidation.maxFileSize = this.getEnvNumber('MAX_FILE_SIZE', securityConfig.fileValidation.maxFileSize);
+    securityConfig.securityScanning.scanTimeout = this.getEnvNumber('SECURITY_SCAN_TIMEOUT', securityConfig.securityScanning.scanTimeout);
+    securityConfig.securityScanning.enableMalwarePatternDetection = this.getEnvBoolean('ENABLE_MALWARE_SCANNING', securityConfig.securityScanning.enableMalwarePatternDetection);
+    securityConfig.securityScanning.maxCompressionRatio = this.getEnvNumber('MAX_COMPRESSION_RATIO', securityConfig.securityScanning.maxCompressionRatio);
+
+    const fullConfig: ModPorterAIConfig = {
+      security: securityConfig,
       fileProcessor: {
         maxFileSize: this.getEnvNumber('MODPORTER_FILE_MAX_SIZE', 500 * 1024 * 1024), // 500MB
         allowedMimeTypes: this.getEnvArray('MODPORTER_ALLOWED_MIME_TYPES', [
@@ -175,6 +214,7 @@ export class ConfigurationService {
         maxLogFiles: this.getEnvNumber('MODPORTER_MAX_LOG_FILES', 5)
       }
     };
+    return fullConfig;
   }
 
   /**
@@ -206,6 +246,19 @@ export class ConfigurationService {
     const errors: ConfigValidationError[] = [];
     const warnings: ConfigValidationWarning[] = [];
 
+    // Validate security config with Zod
+    const securityValidationResult = SecurityConfigSchema.safeParse(config.security);
+    if (!securityValidationResult.success) {
+        securityValidationResult.error.issues.forEach(issue => {
+            errors.push({
+                field: `security.${issue.path.join('.')}`,
+                message: issue.message,
+                value: issue.path.reduce((obj, key) => obj?.[key], config.security)
+            });
+        });
+    }
+
+    // Keep existing manual validation for other parts of the config
     // Validate file processor config
     if (config.fileProcessor.maxFileSize <= 0) {
       errors.push({

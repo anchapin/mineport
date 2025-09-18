@@ -30,7 +30,7 @@ describe('UpdateService', () => {
       }),
     });
     
-    const updates = await updateService.checkForUpdates();
+    const updates = await updateService.checkForApiMappingUpdates();
     
     expect(updates).toEqual({
       apiMappings: {
@@ -47,7 +47,7 @@ describe('UpdateService', () => {
     // Mock failed response
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
     
-    await expect(updateService.checkForUpdates()).rejects.toThrow('Network error');
+    await expect(updateService.checkForApiMappingUpdates()).rejects.toThrow('Network error');
   });
 
   it('should apply API mapping updates', async () => {

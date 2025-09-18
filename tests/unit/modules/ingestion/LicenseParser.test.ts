@@ -34,7 +34,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check result
     expect(result.type).toBe(LicenseType.MIT);
@@ -50,7 +50,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check result
     expect(result.type).toBe(LicenseType.GPL_3);
@@ -65,7 +65,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check result
     expect(result.type).toBe(LicenseType.LGPL_3);
@@ -80,7 +80,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check result
     expect(result.type).toBe(LicenseType.APACHE_2);
@@ -95,7 +95,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check result
     expect(result.type).toBe(LicenseType.UNKNOWN);
@@ -110,7 +110,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check result
     expect(result.type).toBe(LicenseType.NONE);
@@ -125,7 +125,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check extracted terms
     expect(result.terms).toBeDefined();
@@ -143,7 +143,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Generate attribution
     const attribution = licenseParser.generateAttribution(result, 'Test Mod');
@@ -181,7 +181,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Should use the most restrictive license (GPL)
     expect(result.type).toBe(LicenseType.GPL_3);
@@ -198,7 +198,7 @@ describe('LicenseParser', () => {
     });
     
     // Parse license
-    const result = await licenseParser.parse('/tmp/mod');
+    const result = await licenseParser.parseLicense('/tmp/mod');
     
     // Check result
     expect(result.type).toBe(LicenseType.APACHE_2);

@@ -178,7 +178,8 @@ describe('ConversionPipeline', () => {
         };
       }),
       failJob: vi.fn(),
-      completeJob: vi.fn()
+      completeJob: vi.fn(),
+      cancelJob: vi.fn().mockReturnValue(true)
     } as unknown as JobQueue;
     
     // Create mock resource allocator

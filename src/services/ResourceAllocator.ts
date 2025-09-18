@@ -79,7 +79,6 @@ export class ResourcePool<T> {
       averageUsage: 0
     };
 
-    this.startCleanupTimer();
   }
 
   /**
@@ -217,7 +216,10 @@ export class ResourcePool<T> {
   /**
    * Start cleanup timer
    */
-  private startCleanupTimer(): void {
+  public startCleanupTimer(): void {
+    if (this.cleanupTimer) {
+      return;
+    }
     this.cleanupTimer = setInterval(() => {
       this.cleanup().catch(error => {
         logger.error('Resource pool cleanup failed', { error });
@@ -281,7 +283,6 @@ export class TempFileManager {
 
   constructor(tempDir?: string) {
     this.tempDir = tempDir || os.tmpdir();
-    this.startCleanupTimer();
   }
 
   /**
@@ -382,7 +383,10 @@ export class TempFileManager {
   /**
    * Start cleanup timer
    */
-  private startCleanupTimer(): void {
+  public startCleanupTimer(): void {
+    if (this.cleanupTimer) {
+      return;
+    }
     this.cleanupTimer = setInterval(() => {
       this.cleanupOldFiles().catch(error => {
         logger.error('Temp file cleanup failed', { error });
@@ -419,6 +423,23 @@ export class ResourceAllocator {
 
   constructor(tempDir?: string) {
     this.tempFileManager = new TempFileManager(tempDir);
+  }
+
+  /**
+   * Start the resource allocator and its components
+   */
+  public start(): void {
+    this.tempFileManager.startCleanupTimer();
+    for (const pool of this.pools.values()) {
+      pool.startCleanupTimer();
+    }
+  }
+
+  /**
+   * Stop the resource allocator and destroy its components
+   */
+  public async stop(): Promise<void> {
+    await this.destroy();
   }
 
   /**

@@ -54,8 +54,8 @@ export function createMockGitHubResponse(repoName: string, files: string[]): any
  */
 export function createMockFileSystem(files: Record<string, string>): void {
   // Mock the fs module
-  vi.mock('fs', () => {
-    const actualFs = jest.requireActual('fs');
+  vi.mock('fs', async () => {
+    const actualFs = await vi.importActual('fs');
     return {
       ...actualFs,
       promises: {

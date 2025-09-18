@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FileProcessor } from '@modules/ingestion/FileProcessor';
 import { JavaAnalyzer } from '@modules/ingestion/JavaAnalyzer';
 import { AssetConverter } from '@modules/conversion-agents/AssetConverter';
 import { ValidationPipeline } from '@services/ValidationPipeline';
+import { ConfigurationService } from '@services/ConfigurationService';
+import { MonitoringService } from '@services/MonitoringService';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import AdmZip from 'adm-zip';
@@ -15,8 +17,13 @@ describe('ModPorter-AI Performance Tests', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    fileProcessor = new FileProcessor();
-    javaAnalyzer = new JavaAnalyzer();
+    const configService = ConfigurationService.getInstance();
+    const config = configService.getConfig();
+    const monitoringService = new MonitoringService(config.monitoring);
+    vi.spyOn(monitoringService, 'recordMetric').mockImplementation(() => {});
+
+    fileProcessor = new FileProcessor(config.fileProcessor, monitoringService);
+    javaAnalyzer = new JavaAnalyzer(config.javaAnalyzer);
     assetConverter = new AssetConverter();
     validationPipeline = new ValidationPipeline();
     tempDir = path.join(process.cwd(), 'temp', `perf-test-${Date.now()}`);

@@ -8,12 +8,21 @@ import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 const TEST_TIMEOUT = 30000;
 
 describe('ModPorter-AI Deployment Smoke Tests', () => {
+  let serverProcess: any;
+
   beforeAll(async () => {
+    // Start the server
+    serverProcess = exec('npm start');
+
     // Wait for service to be ready
     let retries = 10;
     while (retries > 0) {
@@ -22,9 +31,18 @@ describe('ModPorter-AI Deployment Smoke Tests', () => {
         break;
       } catch (error) {
         retries--;
-        if (retries === 0) throw new Error('Service not ready after 10 retries');
+        if (retries === 0) {
+          serverProcess.kill();
+          throw new Error('Service not ready after 10 retries');
+        }
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
+    }
+  }, 40000);
+
+  afterAll(() => {
+    if (serverProcess) {
+      serverProcess.kill();
     }
   });
 

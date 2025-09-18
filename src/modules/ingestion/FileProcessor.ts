@@ -13,7 +13,6 @@ import * as fs from 'fs/promises';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { 
-  FileValidationOptions, 
   ValidationResult, 
   ValidationError, 
   ValidationWarning,
@@ -23,47 +22,42 @@ import {
 import { SecurityScanner } from './SecurityScanner';
 import { CacheService } from '../../services/CacheService';
 import { PerformanceMonitor } from '../../services/PerformanceMonitor';
+import { MonitoringService } from '../../services/MonitoringService';
+import { FileValidationConfig, SecurityScanningConfig } from '../../types/config.js';
 
 export class FileProcessor {
-  private static readonly ALLOWED_MIME_TYPES = {
-    'application/java-archive': 'jar',
-    'application/zip': 'zip',
-    'application/x-zip-compressed': 'zip',
-    'application/octet-stream': 'jar' // Some systems report JAR as octet-stream
-  };
-
   private static readonly MAGIC_NUMBERS = {
     ZIP: Buffer.from([0x50, 0x4B, 0x03, 0x04]),
     JAR: Buffer.from([0x50, 0x4B, 0x03, 0x04]), // JAR files are ZIP files
   };
 
-  private static readonly DEFAULT_OPTIONS: FileValidationOptions = {
-    maxFileSize: 500 * 1024 * 1024, // 500MB
-    allowedMimeTypes: Object.keys(FileProcessor.ALLOWED_MIME_TYPES),
-    enableMalwareScanning: true,
-    tempDirectory: process.env.TEMP_DIR || '/tmp'
-  };
-
-  private options: FileValidationOptions;
+  private fileValidationConfig: FileValidationConfig;
+  private securityScanningConfig: SecurityScanningConfig;
   private securityScanner: SecurityScanner;
   private cache?: CacheService;
   private performanceMonitor?: PerformanceMonitor;
+  private monitoringService?: MonitoringService;
 
   constructor(
-    options: Partial<FileValidationOptions> = {},
+    fileValidationConfig: FileValidationConfig,
+    securityScanningConfig: SecurityScanningConfig,
     cache?: CacheService,
-    performanceMonitor?: PerformanceMonitor
+    performanceMonitor?: PerformanceMonitor,
+    monitoringService?: MonitoringService
   ) {
-    this.options = { ...FileProcessor.DEFAULT_OPTIONS, ...options };
-    this.securityScanner = new SecurityScanner();
+    this.fileValidationConfig = fileValidationConfig;
+    this.securityScanningConfig = securityScanningConfig;
+    this.securityScanner = new SecurityScanner(securityScanningConfig);
     this.cache = cache;
     this.performanceMonitor = performanceMonitor;
+    this.monitoringService = monitoringService;
   }
 
   /**
    * Validate an uploaded file with comprehensive security checks
    */
   async validateUpload(file: Buffer, filename: string): Promise<ValidationResult> {
+    const startTime = Date.now();
     const profileId = this.performanceMonitor?.startProfile('file-validation', { filename, size: file.length });
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
@@ -80,12 +74,21 @@ export class FileProcessor {
           return cachedResult;
         }
       }
-      // Basic file validation
-      const basicValidation = await this.performBasicValidation(file, filename);
+      // Perform basic validation and security scanning in parallel
+      const [basicValidation, securityScanResult] = await Promise.all([
+        this.performBasicValidation(file, filename),
+        this.securityScanningConfig.enableMalwarePatternDetection
+          ? this.securityScanner.scanBuffer(file, filename).catch(e => {
+              warnings.push({ code: 'SECURITY_SCAN_FAILED', message: `Security scan failed: ${e.message}`, details: { error: e.message }});
+              return null;
+            })
+          : Promise.resolve(null),
+      ]);
+
       errors.push(...basicValidation.errors);
       warnings.push(...basicValidation.warnings);
 
-      // If basic validation fails critically, don't proceed with security scanning
+      // If basic validation fails critically, we can still report security issues found in parallel
       const hasCriticalErrors = errors.some(error => error.severity === 'critical');
       if (hasCriticalErrors) {
         return {
@@ -97,27 +100,24 @@ export class FileProcessor {
         };
       }
 
-      // Security scanning
-      let securityResult: SecurityScanResult | null = null;
-      if (this.options.enableMalwareScanning) {
-        try {
-          securityResult = await this.securityScanner.scanBuffer(file, filename);
-          
-          if (!securityResult.isSafe) {
-            for (const threat of securityResult.threats) {
-              errors.push({
-                code: `SECURITY_${threat.type.toUpperCase()}`,
-                message: threat.description,
-                severity: threat.severity === 'high' ? 'critical' : 'error',
-                details: { threat, scanId: securityResult.scanId }
-              });
+      // Process security scan results
+      if (securityScanResult && !securityScanResult.isSafe) {
+        for (const threat of securityScanResult.threats) {
+          errors.push({
+            code: `SECURITY_${threat.type.toUpperCase()}`,
+            message: threat.description,
+            severity: threat.severity === 'high' ? 'critical' : 'error',
+            details: { threat, scanId: securityScanResult.scanId }
+          });
+
+          this.monitoringService?.recordSecurityMetric({
+            event: 'threat_detected',
+            severity: threat.severity,
+            details: {
+                threatType: threat.type,
+                fileName: filename,
+                fileSize: file.length
             }
-          }
-        } catch (scanError) {
-          warnings.push({
-            code: 'SECURITY_SCAN_FAILED',
-            message: `Security scan failed: ${scanError.message}`,
-            details: { error: scanError.message }
           });
         }
       }
@@ -142,6 +142,17 @@ export class FileProcessor {
       }
 
       this.performanceMonitor?.endProfile(profileId);
+
+      this.monitoringService?.recordPerformanceMetric({
+        operation: 'file_processing',
+        duration: Date.now() - startTime,
+        success: result.isValid,
+        details: {
+            fileSize: file.length,
+            errorCode: result.isValid ? undefined : errors[0]?.code
+        }
+      });
+
       return result;
 
     } catch (error) {
@@ -174,14 +185,14 @@ export class FileProcessor {
     const warnings: ValidationWarning[] = [];
 
     // File size validation
-    if (file.length > this.options.maxFileSize) {
+    if (file.length > this.fileValidationConfig.maxFileSize) {
       errors.push({
         code: 'FILE_TOO_LARGE',
-        message: `File size ${file.length} bytes exceeds maximum allowed size of ${this.options.maxFileSize} bytes`,
+        message: `File size ${file.length} bytes exceeds maximum allowed size of ${this.fileValidationConfig.maxFileSize} bytes`,
         severity: 'critical',
         details: { 
           actualSize: file.length, 
-          maxSize: this.options.maxFileSize 
+          maxSize: this.fileValidationConfig.maxFileSize
         }
       });
     }
@@ -247,6 +258,12 @@ export class FileProcessor {
     message: string;
     details?: any;
   } {
+    if (!this.fileValidationConfig.enableMagicNumberValidation) {
+      return {
+        isValid: true,
+        message: 'Magic number validation is disabled'
+      };
+    }
     if (file.length < 4) {
       return {
         isValid: false,
@@ -306,13 +323,12 @@ export class FileProcessor {
     }
 
     // Check if detected type is in allowed types
-    const allowedTypes = Object.keys(FileProcessor.ALLOWED_MIME_TYPES);
-    if (!allowedTypes.includes(detectedType)) {
+    if (!this.fileValidationConfig.allowedMimeTypes.includes(detectedType)) {
       return {
         isValid: false,
-        message: `File type '${detectedType}' is not allowed. Allowed types: ${allowedTypes.join(', ')}`,
+        message: `File type '${detectedType}' is not allowed. Allowed types: ${this.fileValidationConfig.allowedMimeTypes.join(', ')}`,
         severity: 'critical',
-        details: { detectedType, allowedTypes }
+        details: { detectedType, allowedTypes: this.fileValidationConfig.allowedMimeTypes }
       };
     }
 
@@ -410,19 +426,5 @@ export class FileProcessor {
    */
   getSecurityScanner(): SecurityScanner {
     return this.securityScanner;
-  }
-
-  /**
-   * Update validation options
-   */
-  updateOptions(newOptions: Partial<FileValidationOptions>): void {
-    this.options = { ...this.options, ...newOptions };
-  }
-
-  /**
-   * Get current validation options
-   */
-  getOptions(): FileValidationOptions {
-    return { ...this.options };
   }
 }

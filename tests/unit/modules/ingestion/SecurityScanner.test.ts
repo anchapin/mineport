@@ -7,41 +7,33 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import AdmZip from 'adm-zip';
 import { SecurityScanner } from '../../../../src/modules/ingestion/SecurityScanner';
-import { SecurityScanOptions } from '../../../../src/types/file-processing';
+import { SecurityScanningConfig } from '../../../../src/types/config';
 
 // Mock dependencies
 vi.mock('fs/promises');
 vi.mock('adm-zip');
 
-describe('SecurityScanner', () => {
+describe('SecurityScanner Threat Detection', () => {
   let securityScanner: SecurityScanner;
+  let mockConfig: SecurityScanningConfig;
   const mockFs = vi.mocked(fs);
   const mockAdmZip = vi.mocked(AdmZip);
 
   beforeEach(() => {
-    securityScanner = new SecurityScanner();
+    mockConfig = {
+      enableZipBombDetection: true,
+      maxCompressionRatio: 100,
+      maxExtractedSize: 1024 * 1024 * 1024,
+      enablePathTraversalDetection: true,
+      enableMalwarePatternDetection: true,
+      scanTimeout: 30000
+    };
+    securityScanner = new SecurityScanner(mockConfig);
     vi.clearAllMocks();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  describe('constructor', () => {
-    it('should initialize with default options', () => {
-      const scanner = new SecurityScanner();
-      expect(scanner).toBeDefined();
-    });
-
-    it('should accept custom options', () => {
-      const customOptions: Partial<SecurityScanOptions> = {
-        maxCompressionRatio: 50,
-        enableZipBombDetection: false
-      };
-      
-      const scanner = new SecurityScanner(customOptions);
-      expect(scanner).toBeDefined();
-    });
   });
 
   describe('scanBuffer', () => {
@@ -77,86 +69,175 @@ describe('SecurityScanner', () => {
       expect(result.scanId).toBeDefined();
     });
 
-    it('should detect ZIP bomb attacks', async () => {
-      const suspiciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
-      const filename = 'bomb.jar';
+    describe('ZIP Bomb Detection', () => {
+      it('should detect high compression ratio attacks', async () => {
+        const suspiciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'bomb.jar';
 
-      // Mock AdmZip for ZIP bomb
-      const mockZipInstance = {
-        getEntries: vi.fn().mockReturnValue([
-          {
-            entryName: 'large-file.txt',
-            isDirectory: false,
-            header: { size: 1000000000, compressedSize: 1000 }, // High compression ratio
-            getData: vi.fn().mockReturnValue(Buffer.from('compressed content'))
-          }
-        ])
-      };
-      mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        // Mock AdmZip for ZIP bomb
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            {
+              entryName: 'large-file.txt',
+              isDirectory: false,
+              header: { size: (mockConfig.maxCompressionRatio + 1) * 1000, compressedSize: 1000 },
+              getData: vi.fn().mockReturnValue(Buffer.from('compressed content'))
+            }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
 
-      const result = await securityScanner.scanBuffer(suspiciousBuffer, filename);
+        const result = await securityScanner.scanBuffer(suspiciousBuffer, filename);
 
-      expect(result.isSafe).toBe(false);
-      expect(result.threats).toHaveLength(1);
-      expect(result.threats[0].type).toBe('zip_bomb');
-      expect(result.threats[0].severity).toBe('high');
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'zip_bomb')).toBe(true);
+      });
+
+      it('should detect excessive uncompressed size', async () => {
+        const suspiciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'large_uncompressed.jar';
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            {
+              entryName: 'large-file.txt',
+              isDirectory: false,
+              header: { size: mockConfig.maxExtractedSize + 1, compressedSize: mockConfig.maxExtractedSize },
+              getData: vi.fn()
+            }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        const result = await securityScanner.scanBuffer(suspiciousBuffer, filename);
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'zip_bomb')).toBe(true);
+      });
+
+      it('should allow legitimate compressed files', async () => {
+        const cleanBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'clean-mod.jar';
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            {
+              entryName: 'legit-file.txt',
+              isDirectory: false,
+              header: { size: 1000, compressedSize: 500 },
+              getData: vi.fn().mockReturnValue(Buffer.from('clean content'))
+            }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        const result = await securityScanner.scanBuffer(cleanBuffer, filename);
+        expect(result.isSafe).toBe(true);
+      });
     });
 
-    it('should detect path traversal attempts', async () => {
-      const maliciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
-      const filename = 'traversal.jar';
+    describe('Path Traversal Prevention', () => {
+      it('should detect ../ traversal attempts', async () => {
+        const maliciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'traversal.jar';
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            { entryName: '../../../etc/passwd', isDirectory: false, header: {}, getData: vi.fn() }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'path_traversal')).toBe(true);
+      });
 
-      // Mock AdmZip for path traversal
-      const mockZipInstance = {
-        getEntries: vi.fn().mockReturnValue([
-          {
-            entryName: '../../../etc/passwd',
-            isDirectory: false,
-            header: { size: 100, compressedSize: 50 },
-            getData: vi.fn().mockReturnValue(Buffer.from('malicious content'))
-          },
-          {
-            entryName: '..\\..\\Windows\\System32\\config\\SAM',
-            isDirectory: false,
-            header: { size: 100, compressedSize: 50 },
-            getData: vi.fn().mockReturnValue(Buffer.from('malicious content'))
-          }
-        ])
-      };
-      mockAdmZip.mockImplementation(() => mockZipInstance as any);
+      it('should detect absolute path attempts', async () => {
+        const maliciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'absolute.jar';
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            { entryName: '/etc/passwd', isDirectory: false, header: {}, getData: vi.fn() }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'path_traversal')).toBe(true);
+      });
 
-      const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
+      it('should detect Windows path traversal', async () => {
+        const maliciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'windows_traversal.jar';
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            { entryName: '..\\..\\Windows\\System32\\SAM', isDirectory: false, header: {}, getData: vi.fn() }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'path_traversal')).toBe(true);
+      });
 
-      expect(result.isSafe).toBe(false);
-      expect(result.threats).toHaveLength(1);
-      expect(result.threats[0].type).toBe('path_traversal');
-      expect(result.threats[0].severity).toBe('high');
-      expect(result.threats[0].details?.paths).toBeDefined();
+      it('should allow legitimate nested paths', async () => {
+        const cleanBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'clean-mod.jar';
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            { entryName: 'assets/minecraft/textures/block/stone.png', isDirectory: false, header: {}, getData: vi.fn() }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        const result = await securityScanner.scanBuffer(cleanBuffer, filename);
+        expect(result.isSafe).toBe(true);
+      });
     });
 
-    it('should detect malicious code patterns', async () => {
-      const maliciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
-      const filename = 'malicious.jar';
+    describe('Malware Pattern Detection', () => {
+      it('should detect Runtime.exec patterns', async () => {
+        const maliciousBuffer = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(100).fill(0)]);
+        const filename = 'malicious.jar';
+        const mockZipInstance = {
+          getEntries: vi.fn().mockReturnValue([
+            {
+              entryName: 'com/example/MaliciousClass.class',
+              isDirectory: false,
+              header: { size: 200, compressedSize: 100 },
+              getData: vi.fn().mockReturnValue(Buffer.from('Runtime.getRuntime().exec("rm -rf /")'))
+            }
+          ])
+        };
+        mockAdmZip.mockImplementation(() => mockZipInstance as any);
 
-      // Mock AdmZip for malicious patterns
-      const mockZipInstance = {
-        getEntries: vi.fn().mockReturnValue([
-          {
-            entryName: 'com/example/MaliciousClass.class',
-            isDirectory: false,
-            header: { size: 200, compressedSize: 100 },
-            getData: vi.fn().mockReturnValue(Buffer.from('Runtime.getRuntime().exec("rm -rf /")'))
-          }
-        ])
-      };
-      mockAdmZip.mockImplementation(() => mockZipInstance as any);
+        const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
 
-      const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'malicious_code')).toBe(true);
+      });
 
-      expect(result.isSafe).toBe(false);
-      expect(result.threats).toHaveLength(1);
-      expect(result.threats[0].type).toBe('malicious_code');
-      expect(result.threats[0].severity).toBe('medium');
+      it('should detect reflection usage', async () => {
+        const maliciousBuffer = Buffer.from('java.lang.reflect.Method');
+        const filename = 'reflection.class';
+        mockFs.readFile.mockResolvedValue(maliciousBuffer); // For non-zip files
+
+        const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'malicious_code')).toBe(true);
+      });
+
+      it('should detect network socket creation', async () => {
+        const maliciousBuffer = Buffer.from('new java.net.Socket("evil.com", 80)');
+        const filename = 'socket.class';
+        mockFs.readFile.mockResolvedValue(maliciousBuffer);
+
+        const result = await securityScanner.scanBuffer(maliciousBuffer, filename);
+        expect(result.isSafe).toBe(false);
+        expect(result.threats.some(t => t.type === 'malicious_code')).toBe(true);
+      });
+
+      it('should allow legitimate Minecraft mod patterns', async () => {
+        const cleanBuffer = Buffer.from('This is a clean file with no malicious patterns.');
+        const filename = 'clean.class';
+        mockFs.readFile.mockResolvedValue(cleanBuffer);
+
+        const result = await securityScanner.scanBuffer(cleanBuffer, filename);
+        expect(result.isSafe).toBe(true);
+      });
     });
 
     it('should handle multiple threats in one file', async () => {

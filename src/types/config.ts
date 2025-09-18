@@ -2,6 +2,31 @@
  * Configuration interfaces for ModPorter-AI integration components
  */
 
+// New centralized security configuration
+export interface FileValidationConfig {
+  maxFileSize: number;
+  allowedMimeTypes: string[];
+  enableMagicNumberValidation: boolean;
+  cacheValidationResults: boolean;
+  cacheTTL: number;
+}
+
+export interface SecurityScanningConfig {
+  enableZipBombDetection: boolean;
+  maxCompressionRatio: number;
+  maxExtractedSize: number;
+  enablePathTraversalDetection: boolean;
+  enableMalwarePatternDetection: boolean;
+  scanTimeout: number;
+}
+
+export interface SecurityConfig {
+  fileValidation: FileValidationConfig;
+  securityScanning: SecurityScanningConfig;
+}
+
+
+// Existing configurations (to be refactored or deprecated)
 export interface FileProcessorConfig {
   maxFileSize: number;
   allowedMimeTypes: string[];
@@ -71,6 +96,7 @@ export interface LoggingConfig {
 }
 
 export interface ModPorterAIConfig {
+  security: SecurityConfig; // New centralized config
   fileProcessor: FileProcessorConfig;
   javaAnalyzer: JavaAnalyzerConfig;
   assetConverter: AssetConverterConfig;

@@ -88,18 +88,6 @@ export interface ThreatDetails {
 }
 
 /**
- * Configuration for security scanning
- */
-export interface SecurityScanOptions {
-  enableZipBombDetection: boolean;
-  enablePathTraversalDetection: boolean;
-  enableMalwarePatternDetection: boolean;
-  maxCompressionRatio: number;
-  maxExtractedSize: number;
-  scanTimeout: number;
-}
-
-/**
  * Temporary file information for processing
  */
 export interface TempFileInfo {

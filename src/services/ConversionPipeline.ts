@@ -151,34 +151,9 @@ export class ConversionPipeline {
     this.jobQueue = options?.jobQueue;
     this.resourceAllocator = options?.resourceAllocator;
     
-    // Apply configuration if provided
-    /**
-     * if method.
-     * 
-     * TODO: Add detailed description of the method's purpose and behavior.
-     * 
-     * @param param - TODO: Document parameters
-     * @returns result - TODO: Document return value
-     * @since 1.0.0
-     */
-    if (options?.configService) {
-      this.applyConfiguration(options.configService);
-    }
-  }
-  
-  /**
-   * Apply configuration from ConfigurationService
-   * 
-   * @param configService Configuration service
-   */
-  private applyConfiguration(configService: ConfigurationService): void {
-    // Register for configuration updates
-    configService.on('config:updated', (update: { key: string; value: any }) => {
-      // Handle configuration updates as needed
-      logger.debug('Received configuration update', { key: update.key });
-    });
-    
-    logger.info('Applied configuration to ConversionPipeline');
+    // The configService is expected to be initialized before this class is instantiated.
+    // We can fetch the config directly.
+    // This simplifies the design by removing the need for event listeners for config changes.
   }
   
   /**

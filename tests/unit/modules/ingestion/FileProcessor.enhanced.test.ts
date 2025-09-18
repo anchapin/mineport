@@ -15,7 +15,22 @@ describe('FileProcessor - Enhanced Tests', () => {
 
   beforeEach(async () => {
     mockSecurityScanner = new SecurityScanner();
-    fileProcessor = new FileProcessor();
+    const mockFileValidationConfig = {
+      maxFileSize: 524288000,
+      allowedMimeTypes: ["application/java-archive", "application/zip", "application/octet-stream", "application/x-zip-compressed"],
+      enableMagicNumberValidation: true,
+      cacheValidationResults: true,
+      cacheTTL: 3600000
+    };
+    const mockSecurityScanningConfig = {
+        enableZipBombDetection: true,
+        maxCompressionRatio: 100,
+        maxExtractedSize: 1073741824,
+        enablePathTraversalDetection: true,
+        enableMalwarePatternDetection: true,
+        scanTimeout: 30000
+    };
+    fileProcessor = new FileProcessor(mockFileValidationConfig, mockSecurityScanningConfig);
     tempDir = path.join(process.cwd(), 'temp', `test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
   });

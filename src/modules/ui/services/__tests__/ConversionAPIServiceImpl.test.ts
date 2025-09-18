@@ -4,18 +4,19 @@
 
 import { ConversionAPIServiceImpl, APIError } from '../ConversionAPIServiceImpl';
 
+import { vi } from 'vitest';
 // Mock fetch
-global.fetch = jest.fn();
-global.AbortController = jest.fn().mockImplementation(() => ({
+global.fetch = vi.fn();
+global.AbortController = vi.fn().mockImplementation(() => ({
   signal: {},
-  abort: jest.fn()
+  abort: vi.fn()
 }));
 
 describe('ConversionAPIServiceImpl', () => {
   let service: ConversionAPIServiceImpl;
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     service = new ConversionAPIServiceImpl({
       baseUrl: 'https://api.example.com',
       timeout: 5000
@@ -25,7 +26,7 @@ describe('ConversionAPIServiceImpl', () => {
   describe('startConversion', () => {
     it('should make a POST request to the correct endpoint', async () => {
       // Mock successful response
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ jobId: 'test-job-id' })
       });
@@ -55,7 +56,7 @@ describe('ConversionAPIServiceImpl', () => {
     
     it('should handle API errors', async () => {
       // Mock error response
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
         ok: false,
         status: 400,
         json: async () => ({ message: 'Invalid file format', code: 'INVALID_FILE' })
@@ -72,7 +73,7 @@ describe('ConversionAPIServiceImpl', () => {
     
     it('should handle network errors', async () => {
       // Mock network error
-      (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+      (global.fetch as vi.Mock).mockRejectedValueOnce(new Error('Network error'));
       
       // Create mock file
       const file = new File(['test'], 'test.jar', { type: 'application/java-archive' });
@@ -87,7 +88,7 @@ describe('ConversionAPIServiceImpl', () => {
   describe('getConversionStatus', () => {
     it('should make a GET request to the correct endpoint', async () => {
       // Mock successful response
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           jobId: 'test-job-id',
@@ -132,7 +133,7 @@ describe('ConversionAPIServiceImpl', () => {
   describe('cancelConversion', () => {
     it('should make a POST request to the correct endpoint', async () => {
       // Mock successful response
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true })
       });
@@ -157,7 +158,7 @@ describe('ConversionAPIServiceImpl', () => {
   describe('getConversionResult', () => {
     it('should make a GET request to the correct endpoint', async () => {
       // Mock successful response
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           jobId: 'test-job-id',

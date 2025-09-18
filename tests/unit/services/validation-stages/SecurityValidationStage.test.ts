@@ -11,6 +11,12 @@ import { ErrorType, ErrorSeverity } from '../../../../src/types/errors';
 
 // Mock logger
 vi.mock('../../../../src/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
   createLogger: () => ({
     info: vi.fn(),
     debug: vi.fn(),
