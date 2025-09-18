@@ -354,7 +354,7 @@ jobs:
     name: Generate Performance Report
     runs-on: ubuntu-latest
     needs: [performance-test, load-testing]
-    if: always()
+    if: false  # Temporarily disabled until artifact dependency issues are resolved
 
     steps:
       - name: Checkout code
