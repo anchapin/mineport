@@ -203,7 +203,8 @@ describe('ConversionService', () => {
     const jobId = 'non_existent_job';
 
     // Mock pipeline cancelJob to return false for non-existent job
-    // Note: Testing private property access is not recommended, using public interface instead
+    const mockPipeline = (conversionService as any).pipeline;
+    mockPipeline.cancelJob = vi.fn().mockReturnValue(false);
 
     const result = conversionService.cancelJob(jobId);
 

@@ -31,6 +31,7 @@
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs/promises';
+import { safeStatFile } from '../utils/pathSecurity.js';
 import {
   ConversionPipeline,
   // ConversionPipelineInput,
@@ -385,8 +386,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
               })();
 
         // Check file size to determine processing method
-        const fs = await import('fs/promises');
-        const stats = await fs.stat(modFilePath);
+        const stats = await safeStatFile(modFilePath);
         const fileSize = stats.size;
 
         if (fileSize > 10 * 1024 * 1024) {

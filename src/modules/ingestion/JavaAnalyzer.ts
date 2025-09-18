@@ -5,13 +5,14 @@
  * registry names, texture paths, and manifest information using various detection methods.
  */
 
-import fs from 'fs/promises';
+// import fs from 'fs/promises';
 // import path from 'path';
 import AdmZip from 'adm-zip';
 import * as crypto from 'crypto';
 import logger from '../../utils/logger.js';
 import { CacheService } from '../../services/CacheService.js';
 import { PerformanceMonitor } from '../../services/PerformanceMonitor.js';
+import { safeReadFile } from '../../utils/pathSecurity.js';
 
 /**
  * Analysis result containing extracted information from Java mod
@@ -105,7 +106,7 @@ export class JavaAnalyzer {
       // Check cache first if available
       if (this.cache && typeof this.cache.get === 'function') {
         try {
-          const fileBuffer = await fs.readFile(jarPath);
+          const fileBuffer = await safeReadFile(jarPath);
           const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
           const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
           const cachedResult = await this.cache.get<AnalysisResult>(cacheKey);
@@ -152,7 +153,7 @@ export class JavaAnalyzer {
       // Cache the result if available
       if (this.cache && typeof this.cache.set === 'function') {
         try {
-          const fileBuffer = await fs.readFile(jarPath);
+          const fileBuffer = await safeReadFile(jarPath);
           const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
           const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
           await this.cache.set(cacheKey, result, 7200000); // Cache for 2 hours
