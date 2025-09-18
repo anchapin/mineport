@@ -53,7 +53,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
     super();
     this.jobQueue = options.jobQueue;
     this.resourceAllocator = options.resourceAllocator;
-    
+
     // Use provided options or defaults
     this.statusUpdateInterval = options.statusUpdateInterval || 5000;
     this.javaAnalyzer = options.javaAnalyzer;
@@ -238,7 +238,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
     fileName: string
   ): Promise<ConversionResult> {
     logger.info('Processing mod file', { fileName });
-    
+
     try {
       const modId = this.extractModId(fileName);
       const modName = this.extractModName(fileName);
@@ -282,7 +282,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
         errors: [],
         warnings: [],
       };
-      
+
       return result;
     } catch (error) {
       logger.error('Failed to process mod file', { error, fileName });
