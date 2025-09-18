@@ -145,11 +145,12 @@ The security workflow implements multiple scanning layers:
        languages: javascript, typescript
    ```
 
-2. **Dependency Scanning (Snyk)**:
+2. **Dependency Scanning (npm audit)**:
    ```yaml
-   - uses: snyk/actions/node@master
-     with:
-       args: --severity-threshold=high
+   - name: Enhanced npm audit
+     run: |
+       npm audit --json > npm-audit-raw.json
+       node scripts/generate-sarif-from-npm-audit.js
    ```
 
 3. **Secret Scanning (GitLeaks)**:
@@ -168,7 +169,7 @@ The security workflow implements multiple scanning layers:
 
 2. **Required Secrets**:
    ```
-   SNYK_TOKEN          # For dependency scanning
+   # No external tokens needed - using free npm audit
    SLACK_WEBHOOK_URL   # For notifications
    DEPLOY_KEY          # For deployment access
    ```
@@ -241,8 +242,8 @@ strategy:
 To change vulnerability severity thresholds:
 
 ```yaml
-- name: Run Snyk
-  run: snyk test --severity-threshold=medium  # Change from high to medium
+- name: Run npm audit
+  run: npm audit --audit-level=medium  # Using free npm audit
 ```
 
 #### Customizing Performance Budgets
@@ -529,7 +530,7 @@ Key log locations and what to look for:
    cp enhanced-workflows/security.yml .github/workflows/
    
    # Set up required secrets
-   gh secret set SNYK_TOKEN
+   # No external secrets needed for npm audit
    ```
 
 3. **Enable Deployment Automation**:

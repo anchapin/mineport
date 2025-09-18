@@ -44,7 +44,7 @@ Our `.gitleaks.toml` configuration detects:
 
 - **GitHub tokens**: Personal access tokens, OAuth tokens, App tokens
 - **Cloud provider keys**: AWS, Azure, GCP credentials
-- **API keys**: Snyk, NPM, generic API keys
+- **API keys**: NPM tokens, generic API keys (Snyk not used)
 - **Database URLs**: Connection strings with embedded credentials
 - **Private keys**: RSA, EC, DSA, OpenSSH, PGP private keys
 - **JWT tokens**: JSON Web Tokens

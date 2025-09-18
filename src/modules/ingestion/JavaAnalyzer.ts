@@ -6,12 +6,40 @@
  */
 
 import fs from 'fs/promises';
-// import path from 'path';
+import _path from 'path';
+import _os from 'os';
 import AdmZip from 'adm-zip';
 import * as crypto from 'crypto';
 import logger from '../../utils/logger.js';
 import { CacheService } from '../../services/CacheService.js';
 import { PerformanceMonitor } from '../../services/PerformanceMonitor.js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const _execAsync = promisify(exec);
+
+export interface ExtractedFiles {
+  assets: Map<string, Buffer>;
+  configs: Map<string, Buffer>;
+  classFiles: Map<string, Buffer>;
+  javaFiles: Map<string, string>;
+  others: Map<string, Buffer>;
+}
+
+export interface DecompilationResult {
+  decompiledFiles: Map<string, string>;
+  failures: DecompilationFailure[];
+}
+
+export interface DecompilationFailure {
+  classFile: string;
+  error: string;
+}
+
+export interface SourceCodeAnalysis {
+  decompilation: DecompilationResult;
+  // Future analysis results can be added here
+}
 
 /**
  * Analysis result containing extracted information from Java mod
@@ -22,6 +50,8 @@ export interface AnalysisResult {
   texturePaths: string[];
   manifestInfo: ManifestInfo;
   analysisNotes: AnalysisNote[];
+  extractedFiles: ExtractedFiles;
+  sourceCodeAnalysis: SourceCodeAnalysis;
 }
 
 /**
@@ -151,6 +181,14 @@ export class JavaAnalyzer {
         texturePaths,
         manifestInfo,
         analysisNotes,
+        extractedFiles: {
+          assets: new Map(),
+          configs: new Map(),
+          classFiles: new Map(),
+          javaFiles: new Map(),
+          others: new Map(),
+        },
+        sourceCodeAnalysis: { decompilation: { decompiledFiles: new Map(), failures: [] } },
       };
 
       // Cache the result if available
@@ -206,8 +244,122 @@ export class JavaAnalyzer {
           dependencies: [],
         },
         analysisNotes,
+        extractedFiles: {
+          assets: new Map(),
+          configs: new Map(),
+          classFiles: new Map(),
+          javaFiles: new Map(),
+          others: new Map(),
+        },
+        sourceCodeAnalysis: { decompilation: { decompiledFiles: new Map(), failures: [] } },
       };
     }
+  }
+
+  /**
+   * Full analysis of JAR file including file extraction and decompilation
+   * @param jarPath Path to the JAR file to analyze
+   * @returns Promise<AnalysisResult> containing complete analysis results
+   */
+  async analyzeJarFull(jarPath: string): Promise<AnalysisResult> {
+    const profileId = this.performanceMonitor?.startProfile('java-full-analysis', { jarPath });
+
+    try {
+      // Start with MVP analysis
+      const mvpResult = await this.analyzeJarForMVP(jarPath);
+
+      // Perform full file extraction
+      const extractedFiles = await this.extractAllFiles(jarPath);
+
+      // Perform source code analysis with decompilation
+      const sourceCodeAnalysis = await this.performSourceCodeAnalysis(extractedFiles);
+
+      // Combine results
+      const result: AnalysisResult = {
+        ...mvpResult,
+        extractedFiles,
+        sourceCodeAnalysis,
+      };
+
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
+
+      return result;
+    } catch (error) {
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
+
+      // Fall back to MVP analysis if full analysis fails
+      logger.warn('Full analysis failed, falling back to MVP analysis', { error, jarPath });
+      return await this.analyzeJarForMVP(jarPath);
+    }
+  }
+
+  /**
+   * Extract all files from JAR with categorization
+   */
+  private async extractAllFiles(jarPath: string): Promise<ExtractedFiles> {
+    const zip = new AdmZip(jarPath);
+    const entries = zip.getEntries();
+
+    const extractedFiles: ExtractedFiles = {
+      assets: new Map(),
+      configs: new Map(),
+      classFiles: new Map(),
+      javaFiles: new Map(),
+      others: new Map(),
+    };
+
+    for (const entry of entries) {
+      if (entry.isDirectory) continue;
+
+      const entryPath = entry.entryName;
+      const data = entry.getData();
+
+      if (entryPath.startsWith('assets/')) {
+        extractedFiles.assets.set(entryPath, data);
+      } else if (
+        entryPath.endsWith('.json') ||
+        entryPath.endsWith('.toml') ||
+        entryPath.endsWith('.yml')
+      ) {
+        extractedFiles.configs.set(entryPath, data);
+      } else if (entryPath.endsWith('.class')) {
+        extractedFiles.classFiles.set(entryPath, data);
+      } else if (entryPath.endsWith('.java')) {
+        extractedFiles.javaFiles.set(entryPath, data.toString('utf-8'));
+      } else {
+        extractedFiles.others.set(entryPath, data);
+      }
+    }
+
+    return extractedFiles;
+  }
+
+  /**
+   * Perform source code analysis including decompilation
+   */
+  private async performSourceCodeAnalysis(
+    extractedFiles: ExtractedFiles
+  ): Promise<SourceCodeAnalysis> {
+    // For now, return basic structure - decompilation can be added later
+    const decompilation: DecompilationResult = {
+      decompiledFiles: new Map(),
+      failures: [],
+    };
+
+    // If we have Java files, include them
+    for (const [path, content] of extractedFiles.javaFiles) {
+      decompilation.decompiledFiles.set(path, content);
+    }
+
+    // Future: Add actual decompilation logic here for .class files
+
+    return {
+      decompilation,
+    };
   }
 
   /**
