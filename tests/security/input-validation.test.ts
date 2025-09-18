@@ -28,7 +28,7 @@ describe('Input Validation Security Tests', () => {
 
       // Should reject the file
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Invalid JAR file format');
+      expect(result.errors).toContain('Invalid magic number for .jar file');
     });
 
     it('should reject empty files', async () => {
