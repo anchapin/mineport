@@ -164,7 +164,7 @@ describe('JobQueue', () => {
 
 describe('JobQueue with persistence', () => {
   const mockDb = new Map<string, string>();
-  
+
   beforeEach(() => {
     mockDb.clear();
     vi.resetAllMocks();
@@ -204,12 +204,12 @@ describe('JobQueue with persistence', () => {
   it('should persist and recover the queue', async () => {
     // Ensure we start with a clean state
     mockDb.clear();
-    
+
     const persistenceOptions = {
       enabled: true,
       filePath: 'test-persist-recover.json',
     };
-    
+
     const { JobQueue } = await import('../../../src/services/JobQueue.js');
     const jobQueue = new JobQueue({ maxConcurrent: 2, persistence: persistenceOptions });
     await new Promise((resolve) => setTimeout(resolve, 100)); // wait for load
@@ -236,12 +236,12 @@ describe('JobQueue with persistence', () => {
   it('should handle atomic write failures', async () => {
     // Ensure we start with a clean state
     mockDb.clear();
-    
+
     const persistenceOptions = {
       enabled: true,
       filePath: 'test-atomic-failure.json',
     };
-    
+
     const fsMock = await vi.importMock('fs/promises');
     fsMock.rename = vi.fn().mockRejectedValue(new Error('Rename failed'));
 
