@@ -1,6 +1,6 @@
 /**
  * UI Backend Integration Tests
- * 
+ *
  * Tests the integration between the enhanced UI components and backend services
  */
 
@@ -23,18 +23,18 @@ describe('UI Backend Integration', () => {
     const jobQueue = new JobQueue();
     const fileProcessor = new FileProcessor();
     const javaAnalyzer = new JavaAnalyzer();
-    
+
     errorCollector = new EnhancedErrorCollector();
     validationPipeline = new ValidationPipeline({ errorCollector });
     featureFlagService = new FeatureFlagService();
-    
+
     conversionService = new ConversionService({
       jobQueue,
       fileProcessor,
       javaAnalyzer,
       validationPipeline,
       featureFlagService,
-      errorCollector
+      errorCollector,
     });
   });
 
@@ -67,11 +67,11 @@ describe('UI Backend Integration', () => {
         featureFlagService.isEnabled('enhanced_file_processing'),
         featureFlagService.isEnabled('multi_strategy_analysis'),
         featureFlagService.isEnabled('specialized_conversion_agents'),
-        featureFlagService.isEnabled('comprehensive_validation')
+        featureFlagService.isEnabled('comprehensive_validation'),
       ]);
 
       expect(flags).toHaveLength(4);
-      flags.forEach(flag => expect(typeof flag).toBe('boolean'));
+      flags.forEach((flag) => expect(typeof flag).toBe('boolean'));
     });
   });
 
@@ -79,7 +79,7 @@ describe('UI Backend Integration', () => {
     it('should collect and categorize errors', () => {
       // Test error collection functionality
       const metrics = errorCollector.getErrorRateMetrics();
-      
+
       expect(metrics).toHaveProperty('totalErrors');
       expect(metrics).toHaveProperty('errorRate');
       expect(metrics).toHaveProperty('errorsByType');
@@ -89,7 +89,7 @@ describe('UI Backend Integration', () => {
 
     it('should provide system health status', () => {
       const healthStatus = errorCollector.getSystemHealthStatus();
-      
+
       expect(healthStatus).toHaveProperty('overall');
       expect(healthStatus).toHaveProperty('components');
       expect(healthStatus).toHaveProperty('errorRate');
@@ -111,7 +111,7 @@ describe('UI Backend Integration', () => {
 
     it('should provide validation metrics', () => {
       const metrics = validationPipeline.getMetrics();
-      
+
       expect(metrics).toHaveProperty('totalValidations');
       expect(metrics).toHaveProperty('successRate');
       expect(metrics).toHaveProperty('averageExecutionTime');
@@ -172,7 +172,7 @@ describe('UI Backend Integration', () => {
 
   describe('Performance', () => {
     it('should handle multiple concurrent operations', async () => {
-      const operations = Array.from({ length: 10 }, (_, i) => 
+      const operations = Array.from({ length: 10 }, (_, i) =>
         featureFlagService.isEnabled(`test_flag_${i}`)
       );
 
@@ -181,12 +181,10 @@ describe('UI Backend Integration', () => {
     });
 
     it('should handle rapid status queries', () => {
-      const queries = Array.from({ length: 100 }, () => 
-        conversionService.getJobStatus('test-job')
-      );
+      const queries = Array.from({ length: 100 }, () => conversionService.getJobStatus('test-job'));
 
       expect(queries).toHaveLength(100);
-      queries.forEach(result => expect(result).toBeUndefined());
+      queries.forEach((result) => expect(result).toBeUndefined());
     });
   });
 

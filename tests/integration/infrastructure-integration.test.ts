@@ -13,7 +13,7 @@ describe('Infrastructure Integration Tests', () => {
   const projectRoot = path.join(__dirname, '..', '..');
   const scriptsDir = path.join(projectRoot, 'scripts');
   const configDir = path.join(projectRoot, 'config');
-  
+
   beforeAll(async () => {
     // Ensure test environment is set up
     process.env.NODE_ENV = 'test';
@@ -27,11 +27,14 @@ describe('Infrastructure Integration Tests', () => {
   describe('Deployment Scripts Integration', () => {
     it('should validate deploy-modporter-ai.sh script exists and is executable', async () => {
       const scriptPath = path.join(scriptsDir, 'deploy-modporter-ai.sh');
-      
+
       // Check if script exists
-      const scriptExists = await fs.access(scriptPath).then(() => true).catch(() => false);
+      const scriptExists = await fs
+        .access(scriptPath)
+        .then(() => true)
+        .catch(() => false);
       expect(scriptExists).toBe(true);
-      
+
       // Check if script is executable
       const stats = await fs.stat(scriptPath);
       expect(stats.mode & parseInt('111', 8)).toBeGreaterThan(0);
@@ -39,45 +42,60 @@ describe('Infrastructure Integration Tests', () => {
 
     it('should validate canary-deployment.sh script exists and is executable', async () => {
       const scriptPath = path.join(scriptsDir, 'canary-deployment.sh');
-      
-      const scriptExists = await fs.access(scriptPath).then(() => true).catch(() => false);
+
+      const scriptExists = await fs
+        .access(scriptPath)
+        .then(() => true)
+        .catch(() => false);
       expect(scriptExists).toBe(true);
-      
+
       const stats = await fs.stat(scriptPath);
       expect(stats.mode & parseInt('111', 8)).toBeGreaterThan(0);
     });
 
     it('should validate rollback-deployment.sh script exists and is executable', async () => {
       const scriptPath = path.join(scriptsDir, 'rollback-deployment.sh');
-      
-      const scriptExists = await fs.access(scriptPath).then(() => true).catch(() => false);
+
+      const scriptExists = await fs
+        .access(scriptPath)
+        .then(() => true)
+        .catch(() => false);
       expect(scriptExists).toBe(true);
-      
+
       const stats = await fs.stat(scriptPath);
       expect(stats.mode & parseInt('111', 8)).toBeGreaterThan(0);
     });
 
     it('should validate validate-deployment.js script exists and is executable', async () => {
       const scriptPath = path.join(scriptsDir, 'validate-deployment.js');
-      
-      const scriptExists = await fs.access(scriptPath).then(() => true).catch(() => false);
+
+      const scriptExists = await fs
+        .access(scriptPath)
+        .then(() => true)
+        .catch(() => false);
       expect(scriptExists).toBe(true);
-      
+
       const stats = await fs.stat(scriptPath);
       expect(stats.mode & parseInt('111', 8)).toBeGreaterThan(0);
     });
 
     it('should validate run-migrations.js script exists', async () => {
       const scriptPath = path.join(scriptsDir, 'run-migrations.js');
-      
-      const scriptExists = await fs.access(scriptPath).then(() => true).catch(() => false);
+
+      const scriptExists = await fs
+        .access(scriptPath)
+        .then(() => true)
+        .catch(() => false);
       expect(scriptExists).toBe(true);
     });
 
     it('should validate run-comprehensive-tests.js script exists', async () => {
       const scriptPath = path.join(scriptsDir, 'run-comprehensive-tests.js');
-      
-      const scriptExists = await fs.access(scriptPath).then(() => true).catch(() => false);
+
+      const scriptExists = await fs
+        .access(scriptPath)
+        .then(() => true)
+        .catch(() => false);
       expect(scriptExists).toBe(true);
     });
   });
@@ -85,29 +103,32 @@ describe('Infrastructure Integration Tests', () => {
   describe('Configuration Files Integration', () => {
     it('should validate deployment.json configuration exists and has required structure', async () => {
       const configPath = path.join(configDir, 'deployment.json');
-      
-      const configExists = await fs.access(configPath).then(() => true).catch(() => false);
+
+      const configExists = await fs
+        .access(configPath)
+        .then(() => true)
+        .catch(() => false);
       expect(configExists).toBe(true);
-      
+
       const configContent = await fs.readFile(configPath, 'utf8');
       const config = JSON.parse(configContent);
-      
+
       // Validate required structure
       expect(config).toHaveProperty('environments');
       expect(config).toHaveProperty('deployment');
       expect(config).toHaveProperty('rollback');
-      
+
       // Validate environments
       expect(config.environments).toHaveProperty('canary');
       expect(config.environments).toHaveProperty('staging');
       expect(config.environments).toHaveProperty('production');
-      
+
       // Validate deployment configuration
       expect(config.deployment).toHaveProperty('strategy');
       expect(config.deployment).toHaveProperty('healthCheckPath');
       expect(config.deployment).toHaveProperty('preDeploymentChecks');
       expect(config.deployment).toHaveProperty('postDeploymentChecks');
-      
+
       // Validate rollback configuration
       expect(config.rollback).toHaveProperty('automaticRollback');
       expect(config.rollback).toHaveProperty('rollbackTriggers');
@@ -116,23 +137,26 @@ describe('Infrastructure Integration Tests', () => {
 
     it('should validate monitoring.json configuration exists and has required structure', async () => {
       const configPath = path.join(configDir, 'monitoring.json');
-      
-      const configExists = await fs.access(configPath).then(() => true).catch(() => false);
+
+      const configExists = await fs
+        .access(configPath)
+        .then(() => true)
+        .catch(() => false);
       expect(configExists).toBe(true);
-      
+
       const configContent = await fs.readFile(configPath, 'utf8');
       const config = JSON.parse(configContent);
-      
+
       // Validate required structure
       expect(config).toHaveProperty('monitoring');
       expect(config).toHaveProperty('metrics');
       expect(config).toHaveProperty('alerts');
-      
+
       // Validate metrics configuration
       expect(config.metrics).toHaveProperty('system');
       expect(config.metrics).toHaveProperty('application');
       expect(config.metrics).toHaveProperty('modporter_ai');
-      
+
       // Validate alerts configuration
       expect(config.alerts).toHaveProperty('channels');
       expect(config.alerts).toHaveProperty('rules');
@@ -140,21 +164,24 @@ describe('Infrastructure Integration Tests', () => {
 
     it('should validate feature-flags.json configuration exists', async () => {
       const configPath = path.join(configDir, 'feature-flags.json');
-      
-      const configExists = await fs.access(configPath).then(() => true).catch(() => false);
+
+      const configExists = await fs
+        .access(configPath)
+        .then(() => true)
+        .catch(() => false);
       expect(configExists).toBe(true);
-      
+
       const configContent = await fs.readFile(configPath, 'utf8');
       const config = JSON.parse(configContent);
-      
+
       // Validate required feature flags
       const requiredFlags = [
         'enhanced_file_processing',
         'multi_strategy_analysis',
         'specialized_conversion_agents',
-        'comprehensive_validation'
+        'comprehensive_validation',
       ];
-      
+
       for (const flag of requiredFlags) {
         expect(config).toHaveProperty(flag);
         expect(typeof config[flag]).toBe('boolean');
@@ -184,16 +211,16 @@ describe('Infrastructure Integration Tests', () => {
       }
 
       const response = await axios.get(`${baseUrl}/health`);
-      
+
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('status');
       expect(response.data).toHaveProperty('timestamp');
       expect(response.data).toHaveProperty('checks');
       expect(response.data).toHaveProperty('summary');
-      
+
       // Validate checks structure
       expect(Array.isArray(response.data.checks)).toBe(true);
-      
+
       // Validate summary structure
       expect(response.data.summary).toHaveProperty('total');
       expect(response.data.summary).toHaveProperty('healthy');
@@ -208,7 +235,7 @@ describe('Infrastructure Integration Tests', () => {
       }
 
       const response = await axios.get(`${baseUrl}/ready`);
-      
+
       expect([200, 503]).toContain(response.status);
       expect(response.data).toHaveProperty('status');
       expect(response.data).toHaveProperty('timestamp');
@@ -222,7 +249,7 @@ describe('Infrastructure Integration Tests', () => {
       }
 
       const response = await axios.get(`${baseUrl}/live`);
-      
+
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('status');
       expect(response.data).toHaveProperty('timestamp');
@@ -238,23 +265,23 @@ describe('Infrastructure Integration Tests', () => {
       }
 
       const response = await axios.get(`${baseUrl}/metrics`);
-      
+
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('timestamp');
       expect(response.data).toHaveProperty('system');
       expect(response.data).toHaveProperty('memory');
       expect(response.data).toHaveProperty('health');
-      
+
       // Validate system metrics
       expect(response.data.system).toHaveProperty('uptime');
       expect(response.data.system).toHaveProperty('pid');
       expect(response.data.system).toHaveProperty('platform');
-      
+
       // Validate memory metrics
       expect(response.data.memory).toHaveProperty('rss');
       expect(response.data.memory).toHaveProperty('heapTotal');
       expect(response.data.memory).toHaveProperty('heapUsed');
-      
+
       // Validate health metrics
       expect(response.data.health).toHaveProperty('status');
       expect(response.data.health).toHaveProperty('totalChecks');
@@ -268,7 +295,7 @@ describe('Infrastructure Integration Tests', () => {
       }
 
       const response = await axios.get(`${baseUrl}/config/validate`);
-      
+
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('timestamp');
       expect(response.data).toHaveProperty('valid');
@@ -281,18 +308,27 @@ describe('Infrastructure Integration Tests', () => {
   describe('Database Migration Integration', () => {
     it('should validate migration files exist', async () => {
       const migrationDir = path.join(projectRoot, 'src', 'database', 'migrations');
-      
-      const migrationExists = await fs.access(migrationDir).then(() => true).catch(() => false);
+
+      const migrationExists = await fs
+        .access(migrationDir)
+        .then(() => true)
+        .catch(() => false);
       expect(migrationExists).toBe(true);
-      
+
       // Check for ModPorter-AI migration
       const migrationFile = path.join(migrationDir, '001_modporter_ai_integration.sql');
-      const migrationFileExists = await fs.access(migrationFile).then(() => true).catch(() => false);
+      const migrationFileExists = await fs
+        .access(migrationFile)
+        .then(() => true)
+        .catch(() => false);
       expect(migrationFileExists).toBe(true);
-      
+
       // Check for rollback migration
       const rollbackFile = path.join(migrationDir, '001_modporter_ai_integration.rollback.sql');
-      const rollbackFileExists = await fs.access(rollbackFile).then(() => true).catch(() => false);
+      const rollbackFileExists = await fs
+        .access(rollbackFile)
+        .then(() => true)
+        .catch(() => false);
       expect(rollbackFileExists).toBe(true);
     });
   });
@@ -302,7 +338,7 @@ describe('Infrastructure Integration Tests', () => {
       const packageJsonPath = path.join(projectRoot, 'package.json');
       const packageContent = await fs.readFile(packageJsonPath, 'utf8');
       const packageJson = JSON.parse(packageContent);
-      
+
       const requiredScripts = [
         'build',
         'test',
@@ -315,9 +351,9 @@ describe('Infrastructure Integration Tests', () => {
         'rollback',
         'db:migrate',
         'db:check',
-        'health:check'
+        'health:check',
       ];
-      
+
       for (const script of requiredScripts) {
         expect(packageJson.scripts).toHaveProperty(script);
         expect(typeof packageJson.scripts[script]).toBe('string');
@@ -330,19 +366,16 @@ describe('Infrastructure Integration Tests', () => {
     it('should validate required environment variables are documented', async () => {
       // Check if there's documentation for environment variables
       const envExamplePath = path.join(projectRoot, '.env.example');
-      const envExampleExists = await fs.access(envExamplePath).then(() => true).catch(() => false);
-      
+      const envExampleExists = await fs
+        .access(envExamplePath)
+        .then(() => true)
+        .catch(() => false);
+
       if (envExampleExists) {
         const envContent = await fs.readFile(envExamplePath, 'utf8');
-        
-        const requiredEnvVars = [
-          'DB_HOST',
-          'DB_PORT',
-          'DB_NAME',
-          'DB_USER',
-          'DB_PASSWORD'
-        ];
-        
+
+        const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
+
         for (const envVar of requiredEnvVars) {
           expect(envContent).toContain(envVar);
         }
@@ -353,21 +386,27 @@ describe('Infrastructure Integration Tests', () => {
   describe('Workflow Integration Points', () => {
     it('should validate GitHub Actions workflow files exist', async () => {
       const workflowDir = path.join(projectRoot, '.github', 'workflows');
-      
-      const workflowExists = await fs.access(workflowDir).then(() => true).catch(() => false);
+
+      const workflowExists = await fs
+        .access(workflowDir)
+        .then(() => true)
+        .catch(() => false);
       expect(workflowExists).toBe(true);
-      
+
       const expectedWorkflows = [
         'ci-enhanced.yml',
         'security.yml',
         'deploy.yml',
         'dependencies.yml',
-        'performance.yml'
+        'performance.yml',
       ];
-      
+
       for (const workflow of expectedWorkflows) {
         const workflowPath = path.join(workflowDir, workflow);
-        const workflowFileExists = await fs.access(workflowPath).then(() => true).catch(() => false);
+        const workflowFileExists = await fs
+          .access(workflowPath)
+          .then(() => true)
+          .catch(() => false);
         expect(workflowFileExists).toBe(true);
       }
     });
@@ -375,12 +414,15 @@ describe('Infrastructure Integration Tests', () => {
     it('should validate workflow files reference existing scripts', async () => {
       const workflowDir = path.join(projectRoot, '.github', 'workflows');
       const deployWorkflowPath = path.join(workflowDir, 'deploy.yml');
-      
-      const workflowExists = await fs.access(deployWorkflowPath).then(() => true).catch(() => false);
-      
+
+      const workflowExists = await fs
+        .access(deployWorkflowPath)
+        .then(() => true)
+        .catch(() => false);
+
       if (workflowExists) {
         const workflowContent = await fs.readFile(deployWorkflowPath, 'utf8');
-        
+
         // Check if workflow references existing scripts
         expect(workflowContent).toContain('deploy-modporter-ai.sh');
         expect(workflowContent).toContain('validate-deployment.js');
@@ -392,11 +434,17 @@ describe('Infrastructure Integration Tests', () => {
   describe('Test Infrastructure Integration', () => {
     it('should validate test configuration files exist', async () => {
       const vitestConfigPath = path.join(projectRoot, 'vitest.config.ts');
-      const vitestConfigExists = await fs.access(vitestConfigPath).then(() => true).catch(() => false);
+      const vitestConfigExists = await fs
+        .access(vitestConfigPath)
+        .then(() => true)
+        .catch(() => false);
       expect(vitestConfigExists).toBe(true);
-      
+
       const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
-      const tsconfigExists = await fs.access(tsconfigPath).then(() => true).catch(() => false);
+      const tsconfigExists = await fs
+        .access(tsconfigPath)
+        .then(() => true)
+        .catch(() => false);
       expect(tsconfigExists).toBe(true);
     });
 
@@ -406,12 +454,15 @@ describe('Infrastructure Integration Tests', () => {
         'tests/integration',
         'tests/security',
         'tests/benchmark',
-        'tests/deployment'
+        'tests/deployment',
       ];
-      
+
       for (const testDir of testDirs) {
         const testDirPath = path.join(projectRoot, testDir);
-        const testDirExists = await fs.access(testDirPath).then(() => true).catch(() => false);
+        const testDirExists = await fs
+          .access(testDirPath)
+          .then(() => true)
+          .catch(() => false);
         expect(testDirExists).toBe(true);
       }
     });
@@ -420,11 +471,17 @@ describe('Infrastructure Integration Tests', () => {
   describe('Security Configuration Integration', () => {
     it('should validate security configuration files exist', async () => {
       const securityConfigDir = path.join(projectRoot, 'security-config');
-      const securityConfigExists = await fs.access(securityConfigDir).then(() => true).catch(() => false);
+      const securityConfigExists = await fs
+        .access(securityConfigDir)
+        .then(() => true)
+        .catch(() => false);
       expect(securityConfigExists).toBe(true);
-      
+
       const gitleaksConfigPath = path.join(projectRoot, '.gitleaks.toml');
-      const gitleaksConfigExists = await fs.access(gitleaksConfigPath).then(() => true).catch(() => false);
+      const gitleaksConfigExists = await fs
+        .access(gitleaksConfigPath)
+        .then(() => true)
+        .catch(() => false);
       expect(gitleaksConfigExists).toBe(true);
     });
   });
@@ -432,15 +489,18 @@ describe('Infrastructure Integration Tests', () => {
   describe('Logging and Monitoring Integration', () => {
     it('should validate log directories exist or can be created', async () => {
       const logDir = path.join(projectRoot, 'logs');
-      
+
       try {
         await fs.access(logDir);
       } catch (error) {
         // Directory doesn't exist, try to create it
         await fs.mkdir(logDir, { recursive: true });
       }
-      
-      const logDirExists = await fs.access(logDir).then(() => true).catch(() => false);
+
+      const logDirExists = await fs
+        .access(logDir)
+        .then(() => true)
+        .catch(() => false);
       expect(logDirExists).toBe(true);
     });
   });

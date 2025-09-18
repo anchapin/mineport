@@ -88,7 +88,7 @@ export interface ConversionOptions {
   optimizeAssets: boolean;
   /** Custom API mappings to override defaults */
   customMappings?: Record<string, string>;
-  
+
   // Enhanced conversion options
   /** Enable enhanced security scanning */
   enableSecurityScanning?: boolean;
@@ -171,7 +171,7 @@ export interface ConversionResult {
   };
   errors: any[];
   warnings: any[];
-  
+
   // Enhanced result properties
   outputPath?: string;
   downloadUrl?: string;
