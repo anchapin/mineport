@@ -31,7 +31,6 @@
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs/promises';
-import { safeStatFile } from '../utils/pathSecurity.js';
 import {
   ConversionPipeline,
   // ConversionPipelineInput,
@@ -386,7 +385,11 @@ export class ConversionService extends EventEmitter implements IConversionServic
               })();
 
         // Check file size to determine processing method
-        const stats = await safeStatFile(modFilePath);
+        // Validate modFilePath to prevent path traversal
+        if (!modFilePath || modFilePath.includes('..') || modFilePath.includes('\0')) {
+          throw new Error('Invalid mod file path detected');
+        }
+        const stats = await fs.stat(modFilePath);
         const fileSize = stats.size;
 
         if (fileSize > 10 * 1024 * 1024) {
