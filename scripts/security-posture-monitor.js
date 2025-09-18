@@ -964,7 +964,8 @@ class SecurityPostureMonitor {
 }
 
 // CLI interface
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isMainModule = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
+if (isMainModule) {
   const command = process.argv[2];
   const monitor = new SecurityPostureMonitor();
 
