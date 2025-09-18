@@ -70,6 +70,14 @@ export interface LoggingConfig {
   maxLogFiles: number;
 }
 
+export interface JobQueueConfig {
+  persistence: {
+    enabled: boolean;
+    filePath: string;
+    cleanupInterval: number;
+  };
+}
+
 export interface ModPorterAIConfig {
   fileProcessor: FileProcessorConfig;
   javaAnalyzer: JavaAnalyzerConfig;
@@ -78,6 +86,7 @@ export interface ModPorterAIConfig {
   securityScanner: SecurityScannerConfig;
   monitoring: MonitoringConfig;
   logging: LoggingConfig;
+  jobQueue: JobQueueConfig;
 }
 
 export interface ConfigValidationResult {
