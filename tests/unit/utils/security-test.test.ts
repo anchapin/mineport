@@ -9,14 +9,14 @@ import {
   generateSecureToken,
   validateEnvironmentSecurity,
   runSecurityTests,
-  generateSecurityReport
+  generateSecurityReport,
 } from '../../../src/utils/security-test';
 
 describe('Security Testing Utility', () => {
   describe('validateSecureHandling', () => {
     it('should hash valid data successfully', () => {
       const result = validateSecureHandling('test-data');
-      
+
       expect(result.testName).toBe('Secure Data Handling');
       expect(result.passed).toBe(true);
       expect(result.details).toContain('Data successfully hashed');
@@ -26,7 +26,7 @@ describe('Security Testing Utility', () => {
 
     it('should fail with invalid input', () => {
       const result = validateSecureHandling('');
-      
+
       expect(result.testName).toBe('Secure Data Handling');
       expect(result.passed).toBe(false);
       expect(result.details).toBe('Invalid input data provided');
@@ -36,7 +36,7 @@ describe('Security Testing Utility', () => {
   describe('testInputValidation', () => {
     it('should pass safe input validation', () => {
       const result = testInputValidation('safe input text');
-      
+
       expect(result.testName).toBe('Input Validation');
       expect(result.passed).toBe(true);
       expect(result.details).toContain('Input successfully sanitized');
@@ -48,10 +48,10 @@ describe('Security Testing Utility', () => {
         'javascript:alert(1)',
         'onclick="malicious()"',
         '$(document).ready()',
-        'eval("malicious code")'
+        'eval("malicious code")',
       ];
 
-      dangerousInputs.forEach(input => {
+      dangerousInputs.forEach((input) => {
         const result = testInputValidation(input);
         expect(result.testName).toBe('Input Validation');
         expect(result.passed).toBe(false);
@@ -61,7 +61,7 @@ describe('Security Testing Utility', () => {
 
     it('should sanitize HTML entities', () => {
       const result = testInputValidation('<div class="test">content</div>');
-      
+
       expect(result.testName).toBe('Input Validation');
       expect(result.passed).toBe(true);
       expect(result.details).toContain('Input successfully sanitized');
@@ -71,7 +71,7 @@ describe('Security Testing Utility', () => {
   describe('generateSecureToken', () => {
     it('should generate a secure token', () => {
       const token = generateSecureToken();
-      
+
       expect(typeof token).toBe('string');
       expect(token.length).toBe(64); // 32 bytes * 2 (hex)
       expect(/^[a-f0-9]+$/.test(token)).toBe(true);
@@ -80,7 +80,7 @@ describe('Security Testing Utility', () => {
     it('should generate unique tokens', () => {
       const token1 = generateSecureToken();
       const token2 = generateSecureToken();
-      
+
       expect(token1).not.toBe(token2);
     });
   });
@@ -88,7 +88,7 @@ describe('Security Testing Utility', () => {
   describe('validateEnvironmentSecurity', () => {
     it('should validate environment security', () => {
       const result = validateEnvironmentSecurity();
-      
+
       expect(result.testName).toBe('Environment Security');
       expect(result.passed).toBe(true);
       expect(result.details).toBeDefined();
@@ -99,12 +99,12 @@ describe('Security Testing Utility', () => {
   describe('runSecurityTests', () => {
     it('should run all security tests', () => {
       const results = runSecurityTests();
-      
+
       expect(results).toBeInstanceOf(Array);
       expect(results.length).toBeGreaterThan(0);
-      
+
       // Check that all results have required properties
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result).toHaveProperty('testName');
         expect(result).toHaveProperty('passed');
         expect(result).toHaveProperty('details');
@@ -115,8 +115,8 @@ describe('Security Testing Utility', () => {
 
     it('should include expected test types', () => {
       const results = runSecurityTests();
-      const testNames = results.map(r => r.testName);
-      
+      const testNames = results.map((r) => r.testName);
+
       expect(testNames).toContain('Secure Data Handling');
       expect(testNames).toContain('Input Validation');
       expect(testNames).toContain('Environment Security');
@@ -126,7 +126,7 @@ describe('Security Testing Utility', () => {
   describe('generateSecurityReport', () => {
     it('should generate a formatted security report', () => {
       const report = generateSecurityReport();
-      
+
       expect(typeof report).toBe('string');
       expect(report).toContain('# Security Test Report');
       expect(report).toContain('**Generated**:');
@@ -136,7 +136,7 @@ describe('Security Testing Utility', () => {
 
     it('should include all test results in report', () => {
       const report = generateSecurityReport();
-      
+
       expect(report).toContain('Secure Data Handling');
       expect(report).toContain('Input Validation');
       expect(report).toContain('Environment Security');

@@ -1,6 +1,6 @@
 /**
  * Security Testing Utility
- * 
+ *
  * This utility provides functions for testing security workflows
  * and validating the free security scanning tools integration.
  */
@@ -26,7 +26,7 @@ export function validateSecureHandling(data: string): SecurityTestResult {
         testName: 'Secure Data Handling',
         passed: false,
         details: 'Invalid input data provided',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
 
@@ -41,7 +41,7 @@ export function validateSecureHandling(data: string): SecurityTestResult {
         testName: 'Secure Data Handling',
         passed: true,
         details: `Data successfully hashed. Hash length: ${hashedData.length}`,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
 
@@ -49,14 +49,14 @@ export function validateSecureHandling(data: string): SecurityTestResult {
       testName: 'Secure Data Handling',
       passed: false,
       details: 'Hash generation failed',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   } catch (error) {
     return {
       testName: 'Secure Data Handling',
       passed: false,
       details: `Error during secure handling: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 }
@@ -73,17 +73,17 @@ export function testInputValidation(input: string): SecurityTestResult {
       /on\w+\s*=/i,
       /\$\(/,
       /eval\(/i,
-      /exec\(/i
+      /exec\(/i,
     ];
 
-    const isDangerous = dangerousPatterns.some(pattern => pattern.test(input));
+    const isDangerous = dangerousPatterns.some((pattern) => pattern.test(input));
 
     if (isDangerous) {
       return {
         testName: 'Input Validation',
         passed: false,
         details: 'Potentially dangerous input detected and blocked',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
 
@@ -99,14 +99,14 @@ export function testInputValidation(input: string): SecurityTestResult {
       testName: 'Input Validation',
       passed: true,
       details: `Input successfully sanitized. Original length: ${input.length}, Sanitized length: ${sanitizedInput.length}`,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   } catch (error) {
     return {
       testName: 'Input Validation',
       passed: false,
       details: `Error during input validation: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 }
@@ -128,7 +128,7 @@ export function validateEnvironmentSecurity(): SecurityTestResult {
 
     // Check if any sensitive environment variables are exposed
     for (const [key, value] of Object.entries(process.env)) {
-      if (sensitiveEnvVars.some(sensitive => key.toUpperCase().includes(sensitive))) {
+      if (sensitiveEnvVars.some((sensitive) => key.toUpperCase().includes(sensitive))) {
         if (value && value.length > 0) {
           // Don't log the actual value, just note that it exists
           exposedSecrets.push(key);
@@ -141,7 +141,7 @@ export function validateEnvironmentSecurity(): SecurityTestResult {
         testName: 'Environment Security',
         passed: true,
         details: `Found ${exposedSecrets.length} environment variables with potential secrets (this is expected in secure setups)`,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
 
@@ -149,14 +149,14 @@ export function validateEnvironmentSecurity(): SecurityTestResult {
       testName: 'Environment Security',
       passed: true,
       details: 'No sensitive environment variables detected',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   } catch (error) {
     return {
       testName: 'Environment Security',
       passed: false,
       details: `Error during environment validation: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 }
@@ -187,14 +187,14 @@ export function runSecurityTests(): SecurityTestResult[] {
  */
 export function generateSecurityReport(): string {
   const results = runSecurityTests();
-  const passedTests = results.filter(r => r.passed).length;
+  const passedTests = results.filter((r) => r.passed).length;
   const totalTests = results.length;
 
   let report = `# Security Test Report\n\n`;
   report += `**Generated**: ${new Date().toISOString()}\n`;
   report += `**Tests Passed**: ${passedTests}/${totalTests}\n\n`;
 
-  results.forEach(result => {
+  results.forEach((result) => {
     const status = result.passed ? '✅' : '❌';
     report += `${status} **${result.testName}**\n`;
     report += `   ${result.details}\n`;
