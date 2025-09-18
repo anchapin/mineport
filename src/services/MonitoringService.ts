@@ -181,7 +181,7 @@ export class MonitoringService extends EventEmitter {
         operation: 'file_processing',
         duration: metric.duration || 0,
         success: metric.success !== false,
-        details: metric.details || {}
+        details: metric.details || {},
       });
     }
   }

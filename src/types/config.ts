@@ -25,7 +25,6 @@ export interface SecurityConfig {
   securityScanning: SecurityScanningConfig;
 }
 
-
 // Existing configurations (to be refactored or deprecated)
 export interface FileProcessorConfig {
   maxFileSize: number;

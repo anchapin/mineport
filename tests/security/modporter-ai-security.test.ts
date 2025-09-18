@@ -13,18 +13,23 @@ describe('ModPorter-AI Security Tests', () => {
   beforeEach(async () => {
     const mockFileValidationConfig = {
       maxFileSize: 524288000,
-      allowedMimeTypes: ["application/java-archive", "application/zip", "application/octet-stream", "application/x-zip-compressed"],
+      allowedMimeTypes: [
+        'application/java-archive',
+        'application/zip',
+        'application/octet-stream',
+        'application/x-zip-compressed',
+      ],
       enableMagicNumberValidation: true,
       cacheValidationResults: true,
-      cacheTTL: 3600000
+      cacheTTL: 3600000,
     };
     const mockSecurityScanningConfig = {
-        enableZipBombDetection: true,
-        maxCompressionRatio: 100,
-        maxExtractedSize: 1073741824,
-        enablePathTraversalDetection: true,
-        enableMalwarePatternDetection: true,
-        scanTimeout: 30000
+      enableZipBombDetection: true,
+      maxCompressionRatio: 100,
+      maxExtractedSize: 1073741824,
+      enablePathTraversalDetection: true,
+      enableMalwarePatternDetection: true,
+      scanTimeout: 30000,
     };
     securityScanner = new SecurityScanner(mockSecurityScanningConfig);
     fileProcessor = new FileProcessor(mockFileValidationConfig, mockSecurityScanningConfig);

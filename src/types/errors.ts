@@ -355,7 +355,7 @@ export const SECURITY_ERROR_CODES = {
   PATH_TRAVERSAL_DETECTED: 'SEC-005',
   MALWARE_PATTERN_DETECTED: 'SEC-006',
   SCAN_TIMEOUT: 'SEC-007',
-  CORRUPTED_ARCHIVE: 'SEC-008'
+  CORRUPTED_ARCHIVE: 'SEC-008',
 } as const;
 
 export interface SecurityValidationError extends ConversionError {

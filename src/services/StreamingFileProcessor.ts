@@ -60,7 +60,7 @@ export class StreamingFileProcessor {
       maxCompressionRatio: 100,
       maxExtractedSize: 500 * 1024 * 1024,
       enablePathTraversalDetection: true,
-      enableMalwarePatternDetection: true
+      enableMalwarePatternDetection: true,
     };
     this.securityScanner = new SecurityScanner(defaultSecurityConfig);
   }
@@ -102,9 +102,13 @@ export class StreamingFileProcessor {
       }
 
       // Create streaming validation pipeline
-      const pipelineResult = await this.createValidationPipeline(filePath, stats.size, _validationOptions);
+      const pipelineResult = await this.createValidationPipeline(
+        filePath,
+        stats.size,
+        _validationOptions
+      );
       const validationResult = pipelineResult.result;
-      chunksProcessed = pipelineResult.chunksProcessed;
+      chunksProcessed = pipelineResult.chunksProcessed; // Used in return statement
 
       // Track memory usage
       const currentMemory = process.memoryUsage().heapUsed;
@@ -120,7 +124,7 @@ export class StreamingFileProcessor {
       return {
         ...validationResult,
         streamProcessingTime: Date.now() - startTime,
-        chunksProcessed: 0,
+        chunksProcessed,
         peakMemoryUsage: peakMemoryUsage - startMemory,
       };
     } catch (error) {
@@ -135,7 +139,7 @@ export class StreamingFileProcessor {
   private async createValidationPipeline(
     filePath: string,
     fileSize: number,
-    validationOptions: FileValidationOptions
+    _validationOptions: FileValidationOptions
   ): Promise<{ result: ValidationResult; chunksProcessed: number }> {
     const errors: any[] = [];
     const warnings: any[] = [];
@@ -231,10 +235,10 @@ export class StreamingFileProcessor {
           magicNumber: '',
           checksum,
           createdAt: new Date(),
-          modifiedAt: new Date()
-        }
+          modifiedAt: new Date(),
+        },
       },
-      chunksProcessed: chunksProcessed
+      chunksProcessed: chunksProcessed,
     };
   }
 
@@ -276,7 +280,7 @@ export class StreamingFileProcessor {
     // Use existing FileProcessor for small files
     const { FileProcessor } = await import('../modules/ingestion/FileProcessor.js');
 
-    const defaultSecurityConfig = {
+    const _defaultSecurityConfig = {
       enableRealTimeScanning: true,
       scanTimeout: 30000,
       maxFileSize: 100 * 1024 * 1024,
@@ -287,7 +291,7 @@ export class StreamingFileProcessor {
       maxCompressionRatio: 100,
       maxExtractedSize: 500 * 1024 * 1024,
       enablePathTraversalDetection: true,
-      enableMalwarePatternDetection: true
+      enableMalwarePatternDetection: true,
     };
 
     const processor = new FileProcessor(validationOptions);

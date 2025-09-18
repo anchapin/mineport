@@ -97,7 +97,7 @@ export class ModValidator {
       maxExtractedSize: 500 * 1024 * 1024, // 500MB
       enableMagicNumberValidation: true,
       cacheValidationResults: true,
-      cacheTTL: 3600000 // 1 hour
+      cacheTTL: 3600000, // 1 hour
     };
 
     const defaultSecurityScanningConfig = {
@@ -111,12 +111,10 @@ export class ModValidator {
       maxCompressionRatio: 100,
       maxExtractedSize: 500 * 1024 * 1024,
       enablePathTraversalDetection: true,
-      enableMalwarePatternDetection: true
+      enableMalwarePatternDetection: true,
     };
 
-    this.fileProcessor = fileProcessor || new FileProcessor(
-      defaultFileValidationConfig
-    );
+    this.fileProcessor = fileProcessor || new FileProcessor(defaultFileValidationConfig);
     this.javaAnalyzer = javaAnalyzer || new JavaAnalyzer();
     this.securityScanner = securityScanner || new SecurityScanner(defaultSecurityScanningConfig);
   }

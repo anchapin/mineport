@@ -234,7 +234,10 @@ export class ConfigurationService extends EventEmitter {
             'application/zip',
             'application/x-zip-compressed',
           ]),
-          enableMagicNumberValidation: this.getEnvBoolean('MODPORTER_MAGIC_NUMBER_VALIDATION', true),
+          enableMagicNumberValidation: this.getEnvBoolean(
+            'MODPORTER_MAGIC_NUMBER_VALIDATION',
+            true
+          ),
           cacheValidationResults: this.getEnvBoolean('MODPORTER_CACHE_VALIDATION_RESULTS', true),
           cacheTTL: this.getEnvNumber('MODPORTER_CACHE_TTL', 3600000), // 1 hour
         },
@@ -242,8 +245,14 @@ export class ConfigurationService extends EventEmitter {
           enableZipBombDetection: this.getEnvBoolean('MODPORTER_ZIP_BOMB_DETECTION', true),
           maxCompressionRatio: this.getEnvNumber('MODPORTER_MAX_COMPRESSION_RATIO', 100),
           maxExtractedSize: this.getEnvNumber('MODPORTER_MAX_EXTRACTED_SIZE', 1024 * 1024 * 1024), // 1GB
-          enablePathTraversalDetection: this.getEnvBoolean('MODPORTER_PATH_TRAVERSAL_DETECTION', true),
-          enableMalwarePatternDetection: this.getEnvBoolean('MODPORTER_MALWARE_PATTERN_DETECTION', true),
+          enablePathTraversalDetection: this.getEnvBoolean(
+            'MODPORTER_PATH_TRAVERSAL_DETECTION',
+            true
+          ),
+          enableMalwarePatternDetection: this.getEnvBoolean(
+            'MODPORTER_MALWARE_PATTERN_DETECTION',
+            true
+          ),
           scanTimeout: this.getEnvNumber('MODPORTER_SECURITY_SCAN_TIMEOUT', 30000),
         },
       },

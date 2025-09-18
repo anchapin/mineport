@@ -42,7 +42,10 @@ describe('ModPorter-AI Performance Tests', () => {
     it('should process small files quickly', async () => {
       const zip = new AdmZip();
       // Create a proper JAR structure
-      zip.addFile('META-INF/MANIFEST.MF', Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n'));
+      zip.addFile(
+        'META-INF/MANIFEST.MF',
+        Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n')
+      );
       zip.addFile('test.txt', Buffer.from('small content'));
       const buffer = zip.toBuffer();
 
@@ -62,7 +65,10 @@ describe('ModPorter-AI Performance Tests', () => {
       const zip = new AdmZip();
 
       // Create a proper JAR structure
-      zip.addFile('META-INF/MANIFEST.MF', Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n'));
+      zip.addFile(
+        'META-INF/MANIFEST.MF',
+        Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n')
+      );
 
       // Add 100 files with moderate content
       for (let i = 0; i < 100; i++) {
@@ -87,7 +93,10 @@ describe('ModPorter-AI Performance Tests', () => {
       const zip = new AdmZip();
 
       // Create a proper JAR structure
-      zip.addFile('META-INF/MANIFEST.MF', Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n'));
+      zip.addFile(
+        'META-INF/MANIFEST.MF',
+        Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n')
+      );
 
       // Add 1000 files to create a larger archive
       for (let i = 0; i < 1000; i++) {

@@ -103,7 +103,6 @@ export class ResourcePool<T> {
       hitRate: 0,
       averageUsage: 0,
     };
-
   }
 
   /**
@@ -776,8 +775,6 @@ export class ResourceAllocator {
       }
     }
   }
-
-
 
   /**
    * Destroy all pools and cleanup
