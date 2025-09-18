@@ -161,3 +161,97 @@ describe('JobQueue', () => {
     expect(stats.failed).toBe(1);
   });
 });
+
+describe('JobQueue with persistence', () => {
+  const mockDb = new Map<string, string>();
+
+  beforeEach(() => {
+    mockDb.clear();
+    vi.resetAllMocks();
+    vi.doMock('fs/promises', async (importOriginal) => {
+      const mod = (await importOriginal()) as any;
+      return {
+        ...mod,
+        readFile: vi.fn(async (path: string) => {
+          if (mockDb.has(path)) {
+            return mockDb.get(path);
+          }
+          const error = new Error('File not found');
+          (error as any).code = 'ENOENT';
+          throw error;
+        }),
+        writeFile: vi.fn(async (path: string, data: string) => {
+          mockDb.set(path, data);
+        }),
+        rename: vi.fn(async (oldPath: string, newPath: string) => {
+          const data = mockDb.get(oldPath);
+          if (data) {
+            mockDb.set(newPath, data);
+            mockDb.delete(oldPath);
+          }
+        }),
+        unlink: vi.fn(async (path: string) => {
+          mockDb.delete(path);
+        }),
+      };
+    });
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('should persist and recover the queue', async () => {
+    // Ensure we start with a clean state
+    mockDb.clear();
+
+    const persistenceOptions = {
+      enabled: true,
+      filePath: 'test-persist-recover.json',
+    };
+
+    const { JobQueue } = await import('../../../src/services/JobQueue.js');
+    const jobQueue = new JobQueue({ maxConcurrent: 2, persistence: persistenceOptions });
+    await new Promise((resolve) => setTimeout(resolve, 100)); // wait for load
+
+    jobQueue.addJob('test', { data: 'test1' });
+    jobQueue.addJob('test', { data: 'test2' });
+
+    await new Promise((resolve) => setTimeout(resolve, 1100)); // wait for save
+
+    const jobs = jobQueue.getJobs();
+    expect(jobs.length).toBe(2);
+
+    // Create a new queue, which should load from the mock fs
+    const { JobQueue: NewJobQueue } = await import('../../../src/services/JobQueue.js');
+    const newQueue = new NewJobQueue({ maxConcurrent: 2, persistence: persistenceOptions });
+    await new Promise((resolve) => setTimeout(resolve, 100)); // wait for load
+
+    const restoredJobs = newQueue.getJobs();
+    expect(restoredJobs.length).toBe(2);
+    expect(restoredJobs[0].data).toEqual({ data: 'test1' });
+    expect(restoredJobs[1].data).toEqual({ data: 'test2' });
+  });
+
+  it('should handle atomic write failures', async () => {
+    // Ensure we start with a clean state
+    mockDb.clear();
+
+    const persistenceOptions = {
+      enabled: true,
+      filePath: 'test-atomic-failure.json',
+    };
+
+    const fsMock = await vi.importMock('fs/promises');
+    fsMock.rename = vi.fn().mockRejectedValue(new Error('Rename failed'));
+
+    const { JobQueue } = await import('../../../src/services/JobQueue.js');
+    const jobQueue = new JobQueue({ maxConcurrent: 2, persistence: persistenceOptions });
+    jobQueue.addJob('test', { data: 'test-fail' });
+
+    await new Promise((resolve) => setTimeout(resolve, 1100)); // wait for save
+
+    // The original file should not exist, because the rename failed
+    expect(mockDb.has(persistenceOptions.filePath)).toBe(false);
+  });
+});

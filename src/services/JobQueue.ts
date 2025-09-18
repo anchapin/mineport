@@ -1,8 +1,21 @@
 import { EventEmitter } from 'events';
+import { promises as fs } from 'fs';
 import { ConfigurationService } from './ConfigurationService.js';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('JobQueue');
+
+function debounce<T extends (...args: any[]) => any>(fn: T, delay: number) {
+  let timeout: NodeJS.Timeout | null = null;
+  return (...args: Parameters<T>): void => {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+}
 
 /**
  * Job interface representing a conversion request in the queue
@@ -29,6 +42,11 @@ export interface JobQueueOptions {
   maxConcurrent?: number;
   defaultPriority?: number;
   configService?: ConfigurationService;
+  persistence?: {
+    enabled: boolean;
+    filePath: string;
+    cleanupInterval?: number;
+  };
 }
 
 /**
@@ -41,6 +59,8 @@ export class JobQueue extends EventEmitter {
   private maxConcurrent: number;
   private defaultPriority: number;
   private configService?: ConfigurationService;
+  private persistenceOptions?: JobQueueOptions['persistence'];
+  private debouncedSaveQueue: () => void;
 
   /**
    * Creates a new JobQueue instance with the specified options
@@ -54,9 +74,11 @@ export class JobQueue extends EventEmitter {
     // Use configuration service if available, otherwise use provided options or defaults
     if (this.configService) {
       this.maxConcurrent =
-        this.configService.get('processing.maxConcurrent') || options.maxConcurrent || 5;
+        this.configService.get('jobQueue.maxConcurrent') || options.maxConcurrent || 5;
       this.defaultPriority =
-        this.configService.get('processing.defaultPriority') || options.defaultPriority || 1;
+        this.configService.get('jobQueue.defaultPriority') || options.defaultPriority || 1;
+      this.persistenceOptions =
+        this.configService.get('jobQueue.persistence') || options.persistence;
 
       // Listen for configuration changes
       this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
@@ -64,15 +86,24 @@ export class JobQueue extends EventEmitter {
       logger.info('JobQueue initialized with ConfigurationService', {
         maxConcurrent: this.maxConcurrent,
         defaultPriority: this.defaultPriority,
+        persistence: this.persistenceOptions,
       });
     } else {
       this.maxConcurrent = options.maxConcurrent || 5;
       this.defaultPriority = options.defaultPriority || 1;
+      this.persistenceOptions = options.persistence;
 
       logger.info('JobQueue initialized with default options', {
         maxConcurrent: this.maxConcurrent,
         defaultPriority: this.defaultPriority,
+        persistence: this.persistenceOptions,
       });
+    }
+
+    this.debouncedSaveQueue = debounce(this._saveQueue.bind(this), 1000);
+
+    if (this.persistenceOptions?.enabled) {
+      this._loadQueue().then(() => this.processNextJobs());
     }
   }
 
@@ -122,6 +153,8 @@ export class JobQueue extends EventEmitter {
     // Try to process next jobs
     this.processNextJobs();
 
+    this.debouncedSaveQueue();
+
     return job;
   }
 
@@ -165,6 +198,7 @@ export class JobQueue extends EventEmitter {
 
     this.emit('job:completed', job);
     this.processNextJobs();
+    this.debouncedSaveQueue();
   }
 
   /**
@@ -183,6 +217,7 @@ export class JobQueue extends EventEmitter {
 
     this.emit('job:failed', job);
     this.processNextJobs();
+    this.debouncedSaveQueue();
   }
 
   /**
@@ -274,6 +309,8 @@ export class JobQueue extends EventEmitter {
     // Emit event for priority update
     this.emit('job:priority', job);
 
+    this.debouncedSaveQueue();
+
     return true;
   }
 
@@ -297,9 +334,62 @@ export class JobQueue extends EventEmitter {
     // Emit event for job cancellation
     this.emit('job:cancelled', job);
 
+    this.debouncedSaveQueue();
+
     // Process next jobs if we freed up a processing slot
     this.processNextJobs();
 
     return true;
+  }
+
+  private async _saveQueue(): Promise<void> {
+    if (!this.persistenceOptions?.enabled) {
+      return;
+    }
+
+    const filePath = this.persistenceOptions.filePath;
+    const tempFilePath = `${filePath}.${Date.now()}.tmp`;
+
+    try {
+      const data = JSON.stringify(this.queue, null, 2);
+      await fs.writeFile(tempFilePath, data);
+      await fs.rename(tempFilePath, filePath);
+      logger.info(`Job queue saved to ${filePath}`);
+    } catch (error) {
+      logger.error('Failed to save job queue', { error });
+      // Attempt to clean up the temporary file if it exists
+      try {
+        await fs.unlink(tempFilePath);
+      } catch (cleanupError) {
+        // Ignore cleanup errors
+      }
+    }
+  }
+
+  private async _loadQueue(): Promise<void> {
+    if (!this.persistenceOptions?.enabled) {
+      return;
+    }
+
+    const filePath = this.persistenceOptions.filePath;
+
+    try {
+      const data = await fs.readFile(filePath, 'utf-8');
+      const jobs = JSON.parse(data) as Job[];
+      // Reset processing status for all loaded jobs
+      this.queue = jobs.map((job) => ({
+        ...job,
+        status: job.status === 'processing' ? 'pending' : job.status,
+        createdAt: new Date(job.createdAt),
+      }));
+      this.sortQueue();
+      logger.info(`Job queue loaded from ${filePath}`);
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        logger.info('No job queue file found, starting fresh.');
+      } else {
+        logger.error('Failed to load job queue', { error });
+      }
+    }
   }
 }

@@ -57,18 +57,35 @@ export class InMemoryMappingDatabase implements MappingDatabase {
     this.dbPath = dbPath;
   }
 
+  private isWriting: boolean = false;
+  private writeQueue: (() => void)[] = [];
+
   private async withWriteLock<T>(operation: () => Promise<T>): Promise<T> {
-    const previousLock = this.writeLock;
-    let releaseLock!: () => void;
-    this.writeLock = new Promise((resolve) => {
-      releaseLock = resolve;
+    return new Promise((resolve, reject) => {
+      const execute = async () => {
+        if (this.isWriting) {
+          this.writeQueue.push(execute);
+          return;
+        }
+
+        this.isWriting = true;
+        try {
+          const result = await operation();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        } finally {
+          this.isWriting = false;
+          if (this.writeQueue.length > 0) {
+            const next = this.writeQueue.shift();
+            if (next) {
+              next();
+            }
+          }
+        }
+      };
+      execute();
     });
-    await previousLock;
-    try {
-      return await operation();
-    } finally {
-      releaseLock();
-    }
   }
 
   async load(): Promise<void> {
@@ -311,17 +328,162 @@ export class APIMapperServiceImpl implements APIMapperService {
   async getMapping(javaSignature: string): Promise<APIMapping | undefined> {
     if (this.cacheEnabled && this.cache.has(javaSignature)) {
       logger.debug(`Cache hit for signature: ${javaSignature}`);
-      return this.cache.get(javaSignature);
+      return this.cache.get(javaSignature)!;
     }
+
+    const mapping = await this.findMappingWithFallbacks(javaSignature);
+
+    if (mapping && this.cacheEnabled) {
+      this.addToCache(javaSignature, mapping);
+    }
+
+    return mapping;
+  }
+
+  private async findMappingWithFallbacks(javaSignature: string): Promise<APIMapping | undefined> {
     try {
-      const mapping = await this.database.getBySignature(javaSignature);
-      if (mapping && this.cacheEnabled) this.addToCache(javaSignature, mapping);
-      logger.debug(`Retrieved mapping for signature: ${javaSignature}`, { found: !!mapping });
-      return mapping;
+      // Step 1: Exact match
+      const exactMapping = await this.database.getBySignature(javaSignature);
+      if (exactMapping) {
+        logger.info(`Found exact mapping for: ${javaSignature}`);
+        return exactMapping;
+      }
+
+      // Fallback strategies
+      logger.debug(`No exact mapping found for ${javaSignature}, trying fallbacks...`);
+
+      // Step 2: Partial signature matching
+      const partialMatch = await this.findPartialMatch(javaSignature);
+      if (partialMatch) {
+        return partialMatch;
+      }
+
+      // Step 3: Legacy system fallback
+      const legacyMapping = await this.findLegacyMapping(javaSignature);
+      if (legacyMapping) {
+        return legacyMapping;
+      }
+
+      // Step 4: Impossible mapping generation
+      return this.generateImpossibleMapping(javaSignature);
     } catch (error: any) {
       this.handleError(error, 'GET_MAPPING', { javaSignature });
-      return undefined;
+      return this.generateImpossibleMapping(javaSignature, 'An unexpected error occurred.');
     }
+  }
+
+  private async findPartialMatch(javaSignature: string): Promise<APIMapping | null> {
+    const allMappings = await this.database.getAll();
+    if (allMappings.length === 0) {
+      return null;
+    }
+
+    let bestMatch: APIMapping | null = null;
+    let bestScore = 0;
+
+    for (const mapping of allMappings) {
+      const score = this.calculateSignatureSimilarity(javaSignature, mapping.javaSignature);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = mapping;
+      }
+    }
+
+    const similarityThreshold = this.configService.get('apiMapper.partialMatchThreshold', 0.7);
+
+    if (bestMatch && bestScore >= similarityThreshold) {
+      logger.info(
+        `Found partial match for "${javaSignature}" -> "${bestMatch.javaSignature}" with score ${bestScore}`
+      );
+      // Return a copy of the mapping with a note about the partial match
+      return {
+        ...bestMatch,
+        notes: `[PARTIAL MATCH] ${bestMatch.notes || ''}`.trim(),
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Calculates the similarity between two strings using the Levenshtein distance.
+   * Returns a score between 0 and 1, where 1 is an exact match.
+   */
+  private calculateSignatureSimilarity(sig1: string, sig2: string): number {
+    const len1 = sig1.length;
+    const len2 = sig2.length;
+    if (len1 === 0) return len2 === 0 ? 1 : 0;
+    if (len2 === 0) return 0;
+
+    const matrix: number[][] = Array(len1 + 1)
+      .fill(0)
+      .map(() => Array(len2 + 1).fill(0));
+
+    for (let i = 0; i <= len1; i++) {
+      matrix[i][0] = i;
+    }
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = sig1[i - 1] === sig2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1, // deletion
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j - 1] + cost // substitution
+        );
+      }
+    }
+
+    const distance = matrix[len1][len2];
+    const maxLen = Math.max(len1, len2);
+    return (maxLen - distance) / maxLen;
+  }
+
+  private async findLegacyMapping(javaSignature: string): Promise<APIMapping | null> {
+    // In a real application, this might be a separate database or service.
+    // For this example, we'll use a simple in-memory map.
+    const legacyMappings = new Map<string, APIMapping>();
+    legacyMappings.set('net.minecraft.world.World.isRemote', {
+      id: 'legacy-1',
+      javaSignature: 'net.minecraft.world.World.isRemote',
+      bedrockEquivalent: 'system.isClient',
+      conversionType: 'direct',
+      notes: 'Legacy mapping for checking client-side execution.',
+      version: 1,
+      createdAt: new Date('2020-01-01'),
+      lastUpdated: new Date('2020-01-01'),
+      deprecated: true,
+    });
+
+    const legacyMapping = legacyMappings.get(javaSignature);
+    if (legacyMapping) {
+      logger.info(`Found legacy mapping for "${javaSignature}"`);
+      return {
+        ...legacyMapping,
+        notes: `[LEGACY] ${legacyMapping.notes || ''}`.trim(),
+      };
+    }
+    return null;
+  }
+
+  private generateImpossibleMapping(javaSignature: string, reason?: string): APIMapping {
+    logger.warn(`No mapping found for: ${javaSignature}. Generating impossible mapping.`);
+    return {
+      id: uuidv4(),
+      javaSignature,
+      bedrockEquivalent: `// No direct equivalent found for ${javaSignature}`,
+      conversionType: 'impossible',
+      notes:
+        reason ||
+        'This API call has no direct or partial mapping and is considered untranslatable. Manual implementation is required.',
+      version: 1,
+      createdAt: new Date(),
+      lastUpdated: new Date(),
+      deprecated: false,
+    };
   }
 
   async mapJavaToBedrock(javaSignature: string): Promise<string | undefined> {

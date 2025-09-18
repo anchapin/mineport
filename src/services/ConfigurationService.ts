@@ -337,6 +337,19 @@ export class ConfigurationService extends EventEmitter {
         maxLogFileSize: this.getEnvNumber('MODPORTER_MAX_LOG_FILE_SIZE', 10 * 1024 * 1024), // 10MB
         maxLogFiles: this.getEnvNumber('MODPORTER_MAX_LOG_FILES', 5),
       },
+      jobQueue: {
+        persistence: {
+          enabled: this.getEnvBoolean('MODPORTER_JOB_QUEUE_PERSISTENCE_ENABLED', false),
+          filePath: this.getEnvString(
+            'MODPORTER_JOB_QUEUE_PERSISTENCE_FILE_PATH',
+            './job-queue.json'
+          ),
+          cleanupInterval: this.getEnvNumber(
+            'MODPORTER_JOB_QUEUE_PERSISTENCE_CLEANUP_INTERVAL',
+            3600000
+          ), // 1 hour
+        },
+      },
     };
   }
 
