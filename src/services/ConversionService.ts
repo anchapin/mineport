@@ -223,7 +223,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
       this.configService.on('config:updated', this.handleConfigUpdate.bind(this));
 
       // Configuration service successfully initialized
-    logger.info('ConversionService initialized with ConfigurationService', {
+      logger.info('ConversionService initialized with ConfigurationService', {
         statusUpdateInterval: this.statusUpdateInterval,
       });
     } else {
