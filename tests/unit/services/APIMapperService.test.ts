@@ -264,7 +264,9 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
 
     it('should generate an impossible mapping when no other match is found', async () => {
       vi.mocked(uuidv4).mockReturnValue('mock-uuid-impossible');
-      const result = await apiMapperService.getMapping('com.example.mod.NonExistentClass.nonExistentMethod');
+      const result = await apiMapperService.getMapping(
+        'com.example.mod.NonExistentClass.nonExistentMethod'
+      );
       expect(result).toBeDefined();
       expect(result!.conversionType).toBe('impossible');
       expect(result!.id).toBe('mock-uuid-impossible');

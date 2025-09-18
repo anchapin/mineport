@@ -469,10 +469,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     return null;
   }
 
-  private generateImpossibleMapping(
-    javaSignature: string,
-    reason?: string
-  ): APIMapping {
+  private generateImpossibleMapping(javaSignature: string, reason?: string): APIMapping {
     logger.warn(`No mapping found for: ${javaSignature}. Generating impossible mapping.`);
     return {
       id: uuidv4(),
