@@ -1,27 +1,26 @@
 /**
  * Enhanced Conversion API Endpoints
- * 
+ *
  * API endpoints that support enhanced validation and error reporting
  * with ModPorter-AI integration features.
  */
 
 import { Request, Response } from 'express';
-import { ConversionService } from '../services/ConversionService';
-import { FeatureFlagService, MODPORTER_AI_FEATURES } from '../services/FeatureFlagService';
-import { createLogger } from '../utils/logger';
-import { 
-  FILE_PROCESSOR_ERRORS, 
-  JAVA_ANALYZER_ERRORS, 
-  ASSET_CONVERTER_ERRORS,
+import { ConversionService } from '../services/ConversionService.js';
+import { FeatureFlagService, MODPORTER_AI_FEATURES } from '../services/FeatureFlagService.js';
+import { createLogger } from '../utils/logger.js';
+import {
+  FILE_PROCESSOR_ERRORS,
   createConversionError,
   ErrorType,
-  ErrorSeverity
-} from '../types/errors';
+  ErrorSeverity,
+} from '../types/errors.js';
 
 const logger = createLogger('EnhancedConversionAPI');
 
 /**
  * Enhanced conversion request interface
+ * Defines the structure for enhanced conversion requests with additional features
  */
 export interface EnhancedConversionRequest {
   modFile: string;
@@ -42,6 +41,7 @@ export interface EnhancedConversionRequest {
 
 /**
  * Enhanced conversion response interface
+ * Defines the structure for enhanced conversion responses with detailed feedback
  */
 export interface EnhancedConversionResponse {
   success: boolean;
@@ -67,8 +67,14 @@ export interface EnhancedConversionResponse {
 
 /**
  * Enhanced conversion API controller
+ * Provides enhanced conversion endpoints with detailed validation and error reporting
  */
 export class EnhancedConversionController {
+  /**
+   * Creates a new EnhancedConversionController instance
+   * @param conversionService - Service for handling conversion operations
+   * @param featureFlagService - Service for managing feature flags
+   */
   constructor(
     private conversionService: ConversionService,
     private featureFlagService: FeatureFlagService
@@ -76,23 +82,34 @@ export class EnhancedConversionController {
 
   /**
    * Create enhanced conversion job with detailed validation and error reporting
+   * @param req - Express request object containing conversion parameters
+   * @param res - Express response object for sending the response
+   * @returns Promise that resolves when the response is sent
    */
   async createEnhancedConversion(req: Request, res: Response): Promise<void> {
     try {
       const requestData: EnhancedConversionRequest = req.body;
-      
+
       logger.info('Enhanced conversion request received', {
         modFile: requestData.modFile,
         enableEnhancedProcessing: requestData.enableEnhancedProcessing,
-        validationLevel: requestData.validationLevel
+        validationLevel: requestData.validationLevel,
       });
 
       // Check feature flag availability
       const featureFlags = {
-        enhancedFileProcessing: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING),
-        multiStrategyAnalysis: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS),
-        specializedConversionAgents: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.SPECIALIZED_CONVERSION_AGENTS),
-        comprehensiveValidation: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.COMPREHENSIVE_VALIDATION)
+        enhancedFileProcessing: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING
+        ),
+        multiStrategyAnalysis: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS
+        ),
+        specializedConversionAgents: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.SPECIALIZED_CONVERSION_AGENTS
+        ),
+        comprehensiveValidation: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.COMPREHENSIVE_VALIDATION
+        ),
       };
 
       // Validate request
@@ -106,11 +123,11 @@ export class EnhancedConversionController {
             securityScanPassed: false,
             analysisCompleted: false,
             errors: validationErrors,
-            warnings: []
+            warnings: [],
           },
-          featureFlags
+          featureFlags,
         };
-        
+
         res.status(400).json(response);
         return;
       }
@@ -119,7 +136,7 @@ export class EnhancedConversionController {
       const conversionInput = {
         modFile: requestData.modFile,
         outputPath: requestData.outputPath,
-        options: requestData.options
+        options: requestData.options,
       };
 
       const job = await this.conversionService.createConversionJob(conversionInput);
@@ -136,31 +153,31 @@ export class EnhancedConversionController {
           securityScanPassed: featureFlags.enhancedFileProcessing,
           analysisCompleted: featureFlags.multiStrategyAnalysis,
           errors: [],
-          warnings: []
+          warnings: [],
         },
         featureFlags,
         estimatedProcessingTime: estimatedTime,
-        supportedFeatures: this.getSupportedFeatures(featureFlags)
+        supportedFeatures: this.getSupportedFeatures(featureFlags),
       };
 
       logger.info('Enhanced conversion job created', {
         jobId: job.id,
         featureFlags,
-        estimatedTime
+        estimatedTime,
       });
 
       res.status(201).json(response);
-
     } catch (error) {
-      logger.error('Enhanced conversion creation failed', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Enhanced conversion creation failed', { error: errorMessage });
 
       const conversionError = createConversionError({
         code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
         type: ErrorType.VALIDATION,
         severity: ErrorSeverity.ERROR,
-        message: error.message,
+        message: errorMessage,
         moduleOrigin: 'EnhancedConversionAPI',
-        details: { originalError: error.message }
+        details: { originalError: errorMessage },
       });
 
       const response: EnhancedConversionResponse = {
@@ -171,8 +188,8 @@ export class EnhancedConversionController {
           securityScanPassed: false,
           analysisCompleted: false,
           errors: [conversionError],
-          warnings: []
-        }
+          warnings: [],
+        },
       };
 
       res.status(500).json(response);
@@ -181,150 +198,190 @@ export class EnhancedConversionController {
 
   /**
    * Get enhanced job status with detailed progress information
+   * @param req - Express request object containing job ID parameter
+   * @param res - Express response object for sending the response
+   * @returns Promise that resolves when the response is sent
    */
   async getEnhancedJobStatus(req: Request, res: Response): Promise<void> {
     try {
       const { jobId } = req.params;
-      
+
       const status = this.conversionService.getJobStatus(jobId);
-      
+
       if (!status) {
         res.status(404).json({
           success: false,
           message: 'Job not found',
-          jobId
+          jobId,
         });
         return;
       }
 
       // Get feature flags that were active for this job
       const featureFlags = {
-        enhancedFileProcessing: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING),
-        multiStrategyAnalysis: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS),
-        specializedConversionAgents: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.SPECIALIZED_CONVERSION_AGENTS),
-        comprehensiveValidation: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.COMPREHENSIVE_VALIDATION)
+        enhancedFileProcessing: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING
+        ),
+        multiStrategyAnalysis: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS
+        ),
+        specializedConversionAgents: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.SPECIALIZED_CONVERSION_AGENTS
+        ),
+        comprehensiveValidation: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.COMPREHENSIVE_VALIDATION
+        ),
       };
 
       const enhancedStatus = {
         ...status,
         featureFlags,
         enhancedProcessingStages: this.getProcessingStages(status, featureFlags),
-        detailedProgress: this.getDetailedProgress(status, featureFlags)
+        detailedProgress: this.getDetailedProgress(status, featureFlags),
       };
 
       res.json({
         success: true,
-        status: enhancedStatus
+        status: enhancedStatus,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to get enhanced job status', {
+        error: errorMessage,
+        jobId: req.params.jobId,
       });
 
-    } catch (error) {
-      logger.error('Failed to get enhanced job status', { error: error.message, jobId: req.params.jobId });
-      
       res.status(500).json({
         success: false,
         message: 'Failed to get job status',
-        error: error.message
+        error: errorMessage,
       });
     }
   }
 
   /**
    * Get available enhanced features
+   * @param req - Express request object
+   * @param res - Express response object for sending the response
+   * @returns Promise that resolves when the response is sent
    */
   async getAvailableFeatures(req: Request, res: Response): Promise<void> {
     try {
       const featureFlags = {
-        enhancedFileProcessing: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING),
-        multiStrategyAnalysis: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS),
-        specializedConversionAgents: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.SPECIALIZED_CONVERSION_AGENTS),
-        comprehensiveValidation: await this.featureFlagService.isEnabled(MODPORTER_AI_FEATURES.COMPREHENSIVE_VALIDATION)
+        enhancedFileProcessing: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.ENHANCED_FILE_PROCESSING
+        ),
+        multiStrategyAnalysis: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.MULTI_STRATEGY_ANALYSIS
+        ),
+        specializedConversionAgents: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.SPECIALIZED_CONVERSION_AGENTS
+        ),
+        comprehensiveValidation: await this.featureFlagService.isEnabled(
+          MODPORTER_AI_FEATURES.COMPREHENSIVE_VALIDATION
+        ),
       };
 
       const allFlags = await this.featureFlagService.getAllFlags();
-      
+
       res.json({
         success: true,
         features: {
           available: featureFlags,
           supported: this.getSupportedFeatures(featureFlags),
-          configuration: allFlags.filter(flag => 
-            Object.values(MODPORTER_AI_FEATURES).includes(flag.name as any)
-          ).map(flag => ({
-            name: flag.name,
-            description: flag.description,
-            isEnabled: flag.isEnabled,
-            rolloutPercentage: flag.rolloutPercentage
-          }))
-        }
+          configuration: allFlags
+            .filter((flag) => Object.values(MODPORTER_AI_FEATURES).includes(flag.name as any))
+            .map((flag) => ({
+              name: flag.name,
+              description: flag.description,
+              isEnabled: flag.isEnabled,
+              rolloutPercentage: flag.rolloutPercentage,
+            })),
+        },
       });
-
     } catch (error) {
-      logger.error('Failed to get available features', { error: error.message });
-      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to get available features', { error: errorMessage });
+
       res.status(500).json({
         success: false,
         message: 'Failed to get available features',
-        error: error.message
+        error: errorMessage,
       });
     }
   }
 
   /**
    * Validate enhanced conversion request
+   * @param request - The conversion request to validate
+   * @returns Array of validation errors, empty if valid
    */
   private validateRequest(request: EnhancedConversionRequest): any[] {
     const errors: any[] = [];
 
     if (!request.modFile) {
-      errors.push(createConversionError({
-        code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.ERROR,
-        message: 'modFile is required',
-        moduleOrigin: 'EnhancedConversionAPI'
-      }));
+      errors.push(
+        createConversionError({
+          code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.ERROR,
+          message: 'modFile is required',
+          moduleOrigin: 'EnhancedConversionAPI',
+        })
+      );
     }
 
     if (!request.outputPath) {
-      errors.push(createConversionError({
-        code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.ERROR,
-        message: 'outputPath is required',
-        moduleOrigin: 'EnhancedConversionAPI'
-      }));
+      errors.push(
+        createConversionError({
+          code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.ERROR,
+          message: 'outputPath is required',
+          moduleOrigin: 'EnhancedConversionAPI',
+        })
+      );
     }
 
     if (!request.options?.targetMinecraftVersion) {
-      errors.push(createConversionError({
-        code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.ERROR,
-        message: 'targetMinecraftVersion is required',
-        moduleOrigin: 'EnhancedConversionAPI'
-      }));
+      errors.push(
+        createConversionError({
+          code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.ERROR,
+          message: 'targetMinecraftVersion is required',
+          moduleOrigin: 'EnhancedConversionAPI',
+        })
+      );
     }
 
     const validStrategies = ['conservative', 'balanced', 'aggressive'];
-    if (request.options?.compromiseStrategy && !validStrategies.includes(request.options.compromiseStrategy)) {
-      errors.push(createConversionError({
-        code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.ERROR,
-        message: `Invalid compromiseStrategy. Must be one of: ${validStrategies.join(', ')}`,
-        moduleOrigin: 'EnhancedConversionAPI'
-      }));
+    if (
+      request.options?.compromiseStrategy &&
+      !validStrategies.includes(request.options.compromiseStrategy)
+    ) {
+      errors.push(
+        createConversionError({
+          code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.ERROR,
+          message: `Invalid compromiseStrategy. Must be one of: ${validStrategies.join(', ')}`,
+          moduleOrigin: 'EnhancedConversionAPI',
+        })
+      );
     }
 
     const validValidationLevels = ['basic', 'standard', 'comprehensive'];
     if (request.validationLevel && !validValidationLevels.includes(request.validationLevel)) {
-      errors.push(createConversionError({
-        code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.ERROR,
-        message: `Invalid validationLevel. Must be one of: ${validValidationLevels.join(', ')}`,
-        moduleOrigin: 'EnhancedConversionAPI'
-      }));
+      errors.push(
+        createConversionError({
+          code: FILE_PROCESSOR_ERRORS.VALIDATION_FAILED,
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.ERROR,
+          message: `Invalid validationLevel. Must be one of: ${validValidationLevels.join(', ')}`,
+          moduleOrigin: 'EnhancedConversionAPI',
+        })
+      );
     }
 
     return errors;
@@ -332,6 +389,9 @@ export class EnhancedConversionController {
 
   /**
    * Estimate processing time based on enabled features
+   * @param request - The conversion request
+   * @param featureFlags - Current feature flag states
+   * @returns Estimated processing time in milliseconds
    */
   private estimateProcessingTime(request: EnhancedConversionRequest, featureFlags: any): number {
     let baseTime = 30000; // 30 seconds base time
@@ -361,6 +421,8 @@ export class EnhancedConversionController {
 
   /**
    * Get supported features based on enabled flags
+   * @param featureFlags - Current feature flag states
+   * @returns Array of supported feature names
    */
   private getSupportedFeatures(featureFlags: any): string[] {
     const features: string[] = ['basic_conversion'];
@@ -386,6 +448,9 @@ export class EnhancedConversionController {
 
   /**
    * Get processing stages based on enabled features
+   * @param status - Current job status
+   * @param featureFlags - Current feature flag states
+   * @returns Array of processing stage names
    */
   private getProcessingStages(status: any, featureFlags: any): string[] {
     const stages: string[] = ['queued'];
@@ -415,11 +480,14 @@ export class EnhancedConversionController {
 
   /**
    * Get detailed progress information
+   * @param status - Current job status
+   * @param featureFlags - Current feature flag states
+   * @returns Detailed progress information object
    */
   private getDetailedProgress(status: any, featureFlags: any): any {
     const stages = this.getProcessingStages(status, featureFlags);
     const currentStageIndex = stages.indexOf(status.currentStage || 'queued');
-    
+
     return {
       totalStages: stages.length,
       currentStageIndex: Math.max(0, currentStageIndex),
@@ -427,7 +495,7 @@ export class EnhancedConversionController {
       completedStages: Math.max(0, currentStageIndex),
       remainingStages: Math.max(0, stages.length - currentStageIndex - 1),
       stageProgress: status.stageProgress || 0,
-      overallProgress: status.progress || 0
+      overallProgress: status.progress || 0,
     };
   }
 }

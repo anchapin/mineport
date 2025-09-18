@@ -1,0 +1,896 @@
+name: Dependency Management
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC for security patches
+    - cron: '0 2 * * *'
+    # Run weekly on Mondays at 6 AM UTC for regular updates
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of dependency update to perform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'security'
+          - 'major'
+          - 'minor'
+          - 'patch'
+      auto_merge:
+        description: 'Auto-merge low-risk updates'
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: 'Perform dry run without creating PRs'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  CI: true
+
+jobs:
+  # Dependency scanning and analysis
+  dependency-scan:
+    name: Dependency Scan & Analysis
+    runs-on: ubuntu-latest
+    outputs:
+      has_security_updates: ${{ steps.security-check.outputs.has_security_updates }}
+      has_regular_updates: ${{ steps.regular-check.outputs.has_regular_updates }}
+      security_updates: ${{ steps.security-check.outputs.security_updates }}
+      regular_updates: ${{ steps.regular-check.outputs.regular_updates }}
+      update_matrix: ${{ steps.generate-matrix.outputs.update_matrix }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run dependency analysis
+        run: npm run deps:analyze
+        continue-on-error: true
+
+      - name: Check for security vulnerabilities
+        id: security-check
+        run: |
+          echo "Checking for security vulnerabilities..."
+
+          # Run npm audit and capture output
+          if npm audit --audit-level=moderate --json > security-audit.json 2>/dev/null; then
+            echo "No security vulnerabilities found"
+            echo "has_security_updates=false" >> $GITHUB_OUTPUT
+            echo "security_updates=[]" >> $GITHUB_OUTPUT
+          else
+            echo "Security vulnerabilities found"
+            echo "has_security_updates=true" >> $GITHUB_OUTPUT
+            
+            # Parse security vulnerabilities and categorize by severity
+            node -e "
+              const audit = JSON.parse(require('fs').readFileSync('security-audit.json', 'utf8'));
+              const vulnerabilities = [];
+              
+              if (audit.vulnerabilities) {
+                Object.entries(audit.vulnerabilities).forEach(([name, vuln]) => {
+                  vulnerabilities.push({
+                    name: name,
+                    severity: vuln.severity,
+                    via: vuln.via,
+                    range: vuln.range,
+                    fixAvailable: vuln.fixAvailable
+                  });
+                });
+              }
+              
+              console.log('security_updates=' + JSON.stringify(vulnerabilities));
+            " >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for outdated dependencies
+        id: regular-check
+        run: |
+          echo "Checking for outdated dependencies..."
+
+          # Get outdated packages
+          if npm outdated --json > outdated.json 2>/dev/null || true; then
+            if [[ -s outdated.json ]]; then
+              echo "has_regular_updates=true" >> $GITHUB_OUTPUT
+              
+              # Parse outdated dependencies and categorize by update type
+              node -e "
+                const outdated = JSON.parse(require('fs').readFileSync('outdated.json', 'utf8') || '{}');
+                const updates = [];
+                
+                Object.entries(outdated).forEach(([name, info]) => {
+                  const current = info.current;
+                  const wanted = info.wanted;
+                  const latest = info.latest;
+                  
+                  let updateType = 'patch';
+                  if (current && latest) {
+                    const currentParts = current.split('.');
+                    const latestParts = latest.split('.');
+                    
+                    if (currentParts[0] !== latestParts[0]) {
+                      updateType = 'major';
+                    } else if (currentParts[1] !== latestParts[1]) {
+                      updateType = 'minor';
+                    }
+                  }
+                  
+                  updates.push({
+                    name: name,
+                    current: current,
+                    wanted: wanted,
+                    latest: latest,
+                    type: updateType,
+                    location: info.location
+                  });
+                });
+                
+                console.log('regular_updates=' + JSON.stringify(updates));
+              " >> $GITHUB_OUTPUT
+            else
+              echo "has_regular_updates=false" >> $GITHUB_OUTPUT
+              echo "regular_updates=[]" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has_regular_updates=false" >> $GITHUB_OUTPUT
+            echo "regular_updates=[]" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate update matrix
+        id: generate-matrix
+        run: |
+          echo "Generating update matrix..."
+
+          # Create update matrix based on findings and input parameters
+          node -e "
+            const securityUpdates = JSON.parse('${{ steps.security-check.outputs.security_updates }}' || '[]');
+            const regularUpdates = JSON.parse('${{ steps.regular-check.outputs.regular_updates }}' || '[]');
+            const updateType = '${{ github.event.inputs.update_type || 'all' }}';
+            
+            const matrix = [];
+            
+            // Add security updates (always high priority)
+            securityUpdates.forEach(update => {
+              if (updateType === 'all' || updateType === 'security') {
+                matrix.push({
+                  type: 'security',
+                  name: update.name,
+                  severity: update.severity,
+                  priority: update.severity === 'critical' ? 1 : update.severity === 'high' ? 2 : 3,
+                  auto_merge: update.severity === 'low' || update.severity === 'moderate',
+                  fix_available: update.fixAvailable
+                });
+              }
+            });
+            
+            // Add regular updates based on type filter
+            regularUpdates.forEach(update => {
+              if (updateType === 'all' || updateType === update.type) {
+                matrix.push({
+                  type: update.type,
+                  name: update.name,
+                  current: update.current,
+                  wanted: update.wanted,
+                  latest: update.latest,
+                  priority: update.type === 'patch' ? 4 : update.type === 'minor' ? 5 : 6,
+                  auto_merge: update.type === 'patch',
+                  location: update.location
+                });
+              }
+            });
+            
+            // Sort by priority
+            matrix.sort((a, b) => a.priority - b.priority);
+            
+            console.log('update_matrix=' + JSON.stringify(matrix));
+          " >> $GITHUB_OUTPUT
+
+      - name: Upload dependency analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-analysis
+          path: |
+            security-audit.json
+            outdated.json
+          retention-days: 7
+
+  # Security patch automation
+  security-patches:
+    name: Security Patch Automation
+    needs: dependency-scan
+    if: needs.dependency-scan.outputs.has_security_updates == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run enhanced security patch automation
+        run: |
+          echo "Running enhanced security patch automation..."
+
+          # Determine automation options based on inputs
+          AUTOMATION_ARGS=""
+
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            AUTOMATION_ARGS="$AUTOMATION_ARGS --dry-run"
+          fi
+
+          if [[ "${{ github.event.inputs.auto_merge }}" == "false" ]]; then
+            AUTOMATION_ARGS="$AUTOMATION_ARGS --no-auto-merge"
+          fi
+
+          # Set maximum severity based on schedule or input
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            # Daily runs focus on high/critical, weekly runs include all
+            if [[ "${{ github.event.schedule }}" == "0 2 * * *" ]]; then
+              AUTOMATION_ARGS="$AUTOMATION_ARGS --max-severity high"
+            else
+              AUTOMATION_ARGS="$AUTOMATION_ARGS --max-severity moderate"
+            fi
+          fi
+
+          # Run the security patch automation script
+          node scripts/security-patch-automation.js $AUTOMATION_ARGS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Process automation results
+        run: |
+          echo "Processing security patch automation results..."
+
+          if [[ -f "security-patch-report.json" ]]; then
+            # Parse results and create PRs/issues as needed
+            node -e "
+              const report = JSON.parse(require('fs').readFileSync('security-patch-report.json', 'utf8'));
+              const { execSync } = require('child_process');
+              
+              console.log('Processing', report.patchResults.length, 'patch results');
+              
+              report.patchResults.forEach(result => {
+                if (result.success && !result.autoMergeEligible) {
+                  // Create PR for successful patches that need manual review
+                  const branchName = \`security-patch/\${result.vulnerability}-\${Date.now()}\`;
+                  
+                  try {
+                    execSync(\`git checkout -b \${branchName}\`);
+                    execSync(\`git add package.json package-lock.json\`);
+                    execSync(\`git commit -m \"security: fix \${result.severity} vulnerability in \${result.vulnerability}\"\`);
+                    execSync(\`git push origin \${branchName}\`);
+                    
+                    const prBody = \`## Security Patch
+            
+            This PR addresses a **\${result.severity}** severity vulnerability in \\\`\${result.vulnerability}\\\`.
+            
+            ### Changes
+            - Applied automated security patch
+            - Updated package-lock.json with secure versions
+            - Validated with security test suite
+            
+            ### Validation Results
+            \${result.testsRun.map(test => \`- ✅ \${test} tests passed\`).join('\\n')}
+            
+            ### Manual Review Required
+            This patch requires manual review due to:
+            - \${result.severity} severity level
+            - Potential for breaking changes
+            
+            ---
+            *This PR was automatically generated by the security patch automation.*\`;
+                    
+                    execSync(\`gh pr create --title \"🔒 Security: Fix \${result.severity} vulnerability in \${result.vulnerability}\" --body \"\${prBody}\" --label \"security,dependencies,manual-review\" --assignee \"\${{ github.actor }}\"\`);
+                    
+                  } catch (error) {
+                    console.error(\`Failed to create PR for \${result.vulnerability}:\`, error.message);
+                  }
+                  
+                } else if (!result.success) {
+                  // Create issue for failed patches
+                  const issueBody = \`## Manual Security Update Required
+            
+            A **\${result.severity}** severity vulnerability was detected in \\\`\${result.vulnerability}\\\` but automatic patching failed.
+            
+            ### Error Details
+            \${result.error}
+            
+            ### Action Required
+            Please manually review and update this dependency to resolve the security vulnerability.
+            
+            ### Validation Results
+            \${result.testsRun.length > 0 ? result.testsRun.map(test => \`- Tests run: \${test}\`).join('\\n') : 'No tests were run due to patch failure'}
+            
+            ### Resources
+            - [npm audit documentation](https://docs.npmjs.com/cli/v8/commands/npm-audit)
+            - [Security advisory database](https://github.com/advisories)
+            
+            ---
+            *This issue was automatically generated by the security patch automation.*\`;
+                  
+                  try {
+                    execSync(\`gh issue create --title \"🔒 Manual Security Update Required: \${result.vulnerability}\" --body \"\${issueBody}\" --label \"security,dependencies,manual-intervention\" --assignee \"\${{ github.actor }}\"\`);
+                  } catch (error) {
+                    console.error(\`Failed to create issue for \${result.vulnerability}:\`, error.message);
+                  }
+                }
+              });
+              
+              // Handle auto-merge eligible patches
+              const autoMergePatches = report.patchResults.filter(r => r.autoMergeEligible);
+              if (autoMergePatches.length > 0) {
+                console.log(\`\${autoMergePatches.length} patches are eligible for auto-merge\`);
+                
+                autoMergePatches.forEach(result => {
+                  const branchName = \`security-patch/auto-merge/\${result.vulnerability}-\${Date.now()}\`;
+                  
+                  try {
+                    execSync(\`git checkout -b \${branchName}\`);
+                    execSync(\`git add package.json package-lock.json\`);
+                    execSync(\`git commit -m \"security: auto-merge \${result.severity} vulnerability fix in \${result.vulnerability}\"\`);
+                    execSync(\`git push origin \${branchName}\`);
+                    
+                    const prBody = \`## Automated Security Patch
+            
+            This PR addresses a **\${result.severity}** severity vulnerability in \\\`\${result.vulnerability}\\\`.
+            
+            ### Changes
+            - Applied automated security patch
+            - Updated package-lock.json with secure versions
+            - Validated with comprehensive test suite
+            
+            ### Validation Results
+            \${result.testsRun.map(test => \`- ✅ \${test} tests passed\`).join('\\n')}
+            
+            ### Auto-merge Criteria Met
+            - ✅ Low/moderate severity
+            - ✅ All tests passed
+            - ✅ No breaking changes detected
+            - ✅ Patch validation successful
+            
+            This PR will be automatically merged after CI passes.
+            
+            ---
+            *This PR was automatically generated and will be auto-merged by the security patch automation.*\`;
+                    
+                    execSync(\`gh pr create --title \"🔒 Auto-merge: Fix \${result.severity} vulnerability in \${result.vulnerability}\" --body \"\${prBody}\" --label \"security,dependencies,auto-merge\" --assignee \"\${{ github.actor }}\"\`);
+                    
+                    // Enable auto-merge
+                    if ('${{ github.event.inputs.auto_merge }}' !== 'false') {
+                      execSync(\`gh pr merge --auto --squash\`);
+                    }
+                    
+                  } catch (error) {
+                    console.error(\`Failed to create auto-merge PR for \${result.vulnerability}:\`, error.message);
+                  }
+                });
+              }
+            "
+          else
+            echo "No security patch report found"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload security patch results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-patch-results
+          path: |
+            security-patch-report.json
+            security-patch-report.md
+            .security-patch-backup/
+          retention-days: 30
+
+  # Regular dependency updates
+  regular-updates:
+    name: Regular Dependency Updates
+    needs: dependency-scan
+    if: needs.dependency-scan.outputs.has_regular_updates == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.dependency-scan.outputs.update_matrix) }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Process regular update for ${{ matrix.name }}
+        if: matrix.type != 'security'
+        run: |
+          echo "Processing ${{ matrix.type }} update for ${{ matrix.name }}"
+          echo "Current: ${{ matrix.current }}"
+          echo "Latest: ${{ matrix.latest }}"
+
+          # Skip if dry run
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "Dry run mode - skipping actual update"
+            exit 0
+          fi
+
+          # Create branch for update
+          BRANCH_NAME="deps/${{ matrix.type }}-update/${{ matrix.name }}-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH_NAME"
+
+          # Perform update based on type
+          case "${{ matrix.type }}" in
+            "patch")
+              echo "Applying patch update..."
+              npm update "${{ matrix.name }}"
+              ;;
+            "minor")
+              echo "Applying minor update..."
+              npm install "${{ matrix.name }}@${{ matrix.latest }}"
+              ;;
+            "major")
+              echo "Applying major update (requires manual review)..."
+              npm install "${{ matrix.name }}@${{ matrix.latest }}"
+              ;;
+          esac
+
+          # Check if changes were made
+          if git diff --quiet package-lock.json package.json; then
+            echo "No changes made"
+            exit 0
+          fi
+
+          # Run dependency validation
+          echo "Validating dependency update..."
+          npm run deps:validate
+
+          # Run tests to ensure compatibility
+          echo "Running test suite..."
+          npm run test:unit
+          npm run test:integration
+
+          # Commit changes
+          git add package-lock.json package.json
+          git commit -m "deps: update ${{ matrix.name }} from ${{ matrix.current }} to ${{ matrix.latest }}
+
+          - Type: ${{ matrix.type }} update
+          - Auto-generated dependency update
+          - Validated with test suite"
+
+          # Push branch
+          git push origin "$BRANCH_NAME"
+
+          # Create appropriate PR based on update type
+          if [[ "${{ matrix.type }}" == "major" ]]; then
+            # Major updates require manual review
+            gh pr create \
+              --title "⬆️ Major: Update ${{ matrix.name }} to ${{ matrix.latest }}" \
+              --body "## Major Dependency Update
+
+          This PR updates \`${{ matrix.name }}\` from \`${{ matrix.current }}\` to \`${{ matrix.latest }}\`.
+
+          ⚠️ **This is a major version update that may contain breaking changes.**
+
+          ### Changes
+          - Updated ${{ matrix.name }}: ${{ matrix.current }} → ${{ matrix.latest }}
+          - Updated package-lock.json
+
+          ### Validation
+          - ✅ Dependency validation passed
+          - ✅ Unit tests passed
+          - ✅ Integration tests passed
+
+          ### Manual Review Required
+          Please review the changelog and test thoroughly before merging:
+          - Check for breaking changes in the package documentation
+          - Run additional manual tests if needed
+          - Update any affected code or configurations
+
+          ---
+          *This PR was automatically generated by the dependency management workflow.*" \
+              --label "dependencies,major-update,manual-review" \
+              --assignee "${{ github.actor }}"
+          else
+            # Minor and patch updates
+            gh pr create \
+              --title "⬆️ ${{ matrix.type | title }}: Update ${{ matrix.name }} to ${{ matrix.latest }}" \
+              --body "## ${{ matrix.type | title }} Dependency Update
+
+          This PR updates \`${{ matrix.name }}\` from \`${{ matrix.current }}\` to \`${{ matrix.latest }}\`.
+
+          ### Changes
+          - Updated ${{ matrix.name }}: ${{ matrix.current }} → ${{ matrix.latest }}
+          - Updated package-lock.json
+
+          ### Validation
+          - ✅ Dependency validation passed
+          - ✅ Unit tests passed
+          - ✅ Integration tests passed
+
+          ### Auto-merge
+          This PR is eligible for auto-merge: ${{ matrix.auto_merge }}
+
+          ---
+          *This PR was automatically generated by the dependency management workflow.*" \
+              --label "dependencies,${{ matrix.type }}-update,automated" \
+              --assignee "${{ github.actor }}"
+            
+            # Auto-merge if eligible and enabled
+            if [[ "${{ matrix.auto_merge }}" == "true" && "${{ github.event.inputs.auto_merge }}" != "false" ]]; then
+              echo "Auto-merging low-risk ${{ matrix.type }} update..."
+              gh pr merge --auto --squash
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Dependency conflict detection and resolution
+  conflict-detection:
+    name: Dependency Conflict Detection & Resolution
+    needs: [dependency-scan, security-patches, regular-updates]
+    if: always() && (needs.security-patches.result == 'success' || needs.regular-updates.result == 'success' || needs.dependency-scan.outputs.has_regular_updates == 'true')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run comprehensive conflict detection
+        run: |
+          echo "Running comprehensive dependency conflict detection..."
+
+          # Determine conflict resolution options
+          RESOLVER_ARGS=""
+
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            RESOLVER_ARGS="$RESOLVER_ARGS --dry-run"
+          fi
+
+          # Enable auto-fix for scheduled runs
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            RESOLVER_ARGS="$RESOLVER_ARGS --auto-fix"
+          fi
+
+          # Enable verbose logging for manual runs
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            RESOLVER_ARGS="$RESOLVER_ARGS --verbose"
+          fi
+
+          # Run the dependency conflict resolver
+          node scripts/dependency-conflict-resolver.js $RESOLVER_ARGS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for open dependency PRs conflicts
+        run: |
+          echo "Checking for conflicts in open dependency PRs..."
+
+          # Get all open dependency PRs
+          gh pr list --label "dependencies" --state "open" --json number,title,headRefName,labels > open_dependency_prs.json
+
+          if [[ -s open_dependency_prs.json ]]; then
+            # Analyze PR conflicts using the conflict resolver data
+            node -e "
+              const prs = JSON.parse(require('fs').readFileSync('open_dependency_prs.json', 'utf8'));
+              const fs = require('fs');
+              
+              let conflictReport = {};
+              if (fs.existsSync('dependency-conflict-report.json')) {
+                conflictReport = JSON.parse(fs.readFileSync('dependency-conflict-report.json', 'utf8'));
+              }
+              
+              const prConflicts = [];
+              
+              prs.forEach(pr => {
+                console.log(\`Analyzing PR #\${pr.number}: \${pr.title}\`);
+                
+                const conflicts = [];
+                
+                // Check for major version updates
+                if (pr.title.toLowerCase().includes('major')) {
+                  conflicts.push({
+                    type: 'major-version-update',
+                    severity: 'high',
+                    description: 'Major version update may introduce breaking changes'
+                  });
+                }
+                
+                // Check for security updates that might conflict
+                if (pr.labels.some(label => label.name === 'security')) {
+                  conflicts.push({
+                    type: 'security-update-conflict',
+                    severity: 'medium',
+                    description: 'Security update may conflict with existing dependencies'
+                  });
+                }
+                
+                // Check against detected conflicts
+                if (conflictReport.conflicts) {
+                  const packageName = pr.title.match(/update\\s+([\\w-]+)/i);
+                  if (packageName) {
+                    const relatedConflicts = conflictReport.conflicts.filter(c => 
+                      c.package === packageName[1] || 
+                      (c.instances && c.instances.some(i => i.path.includes(packageName[1])))
+                    );
+                    
+                    conflicts.push(...relatedConflicts.map(c => ({
+                      type: c.type,
+                      severity: c.severity,
+                      description: c.description
+                    })));
+                  }
+                }
+                
+                if (conflicts.length > 0) {
+                  prConflicts.push({
+                    pr: pr.number,
+                    title: pr.title,
+                    conflicts: conflicts,
+                    headRef: pr.headRefName
+                  });
+                }
+              });
+              
+              if (prConflicts.length > 0) {
+                console.log('PR conflicts detected:', JSON.stringify(prConflicts, null, 2));
+                fs.writeFileSync('pr-conflicts.json', JSON.stringify(prConflicts, null, 2));
+              } else {
+                console.log('No PR conflicts detected');
+              }
+            "
+          else
+            echo "No open dependency PRs found"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create conflict resolution issues for PRs
+        if: hashFiles('pr-conflicts.json') != ''
+        run: |
+          echo "Creating conflict resolution issues for PRs..."
+
+          node -e "
+            const prConflicts = JSON.parse(require('fs').readFileSync('pr-conflicts.json', 'utf8'));
+            const { execSync } = require('child_process');
+            
+            prConflicts.forEach(prConflict => {
+              const highSeverityConflicts = prConflict.conflicts.filter(c => c.severity === 'high');
+              const mediumSeverityConflicts = prConflict.conflicts.filter(c => c.severity === 'medium');
+              
+              const priority = highSeverityConflicts.length > 0 ? 'high' : 
+                              mediumSeverityConflicts.length > 0 ? 'medium' : 'low';
+              
+              const issueTitle = \`🔧 PR Conflict Resolution: #\${prConflict.pr} (\${priority} priority)\`;
+              
+              const issueBody = \`## Dependency PR Conflict Resolution
+              
+              Potential conflicts detected in PR #\${prConflict.pr}: \${prConflict.title}
+              
+              ### Detected Conflicts
+              
+              \${prConflict.conflicts.map((conflict, index) => \`
+              #### \${index + 1}. \${conflict.type.replace(/[-_]/g, ' ').toUpperCase()}
+              
+              - **Severity**: \${conflict.severity}
+              - **Description**: \${conflict.description}
+              \`).join('\\n')}
+              
+              ### Resolution Steps
+              
+              1. **Review the PR changes** in #\${prConflict.pr}
+              2. **Check dependency compatibility** with existing packages
+              3. **Run comprehensive tests** to identify breaking changes
+              4. **Consider staging deployment** for validation
+              5. **Update related dependencies** if needed
+              
+              ### Validation Commands
+              
+              Before merging PR #\${prConflict.pr}, run:
+              
+              \\\`\\\`\\\`bash
+              # Checkout the PR branch
+              git checkout \${prConflict.headRef}
+              
+              # Install dependencies
+              npm ci
+              
+              # Run conflict detection
+              node scripts/dependency-conflict-resolver.js --verbose
+              
+              # Run comprehensive tests
+              npm run test:comprehensive
+              
+              # Check for peer dependency warnings
+              npm ls --depth=0 2>&1 | grep WARN
+              \\\`\\\`\\\`
+              
+              ### Recommendations
+              
+              \${highSeverityConflicts.length > 0 ? '⚠️ **High priority**: This PR contains high-severity conflicts that require immediate attention before merging.' : ''}
+              \${mediumSeverityConflicts.length > 0 ? '⚠️ **Medium priority**: Review and test thoroughly before merging.' : ''}
+              
+              ---
+              *This issue was automatically generated by the dependency conflict detection workflow.*\`;
+              
+              try {
+                execSync(\`gh issue create --title \"\${issueTitle}\" --body \"\${issueBody}\" --label \"dependencies,pr-conflict,\${priority}-priority\" --assignee \"\${{ github.actor }}\"\`, {
+                  stdio: 'pipe'
+                });
+                console.log(\`✅ Created issue for PR #\${prConflict.pr}\`);
+              } catch (error) {
+                console.error(\`❌ Failed to create issue for PR #\${prConflict.pr}:\`, error.message);
+              }
+            });
+          "
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add PR comments for detected conflicts
+        if: hashFiles('pr-conflicts.json') != ''
+        run: |
+          echo "Adding comments to PRs with detected conflicts..."
+
+          node -e "
+            const prConflicts = JSON.parse(require('fs').readFileSync('pr-conflicts.json', 'utf8'));
+            const { execSync } = require('child_process');
+            
+            prConflicts.forEach(prConflict => {
+              const comment = \`## ⚠️ Dependency Conflicts Detected
+              
+              This PR has been analyzed and potential dependency conflicts have been detected:
+              
+              \${prConflict.conflicts.map((conflict, index) => \`
+              ### \${index + 1}. \${conflict.type.replace(/[-_]/g, ' ').toUpperCase()} (\${conflict.severity} severity)
+              
+              \${conflict.description}
+              \`).join('\\n')}
+              
+              ### Next Steps
+              
+              1. A detailed conflict resolution issue has been created for tracking
+              2. Please review the conflicts and apply necessary fixes
+              3. Run \\\`node scripts/dependency-conflict-resolver.js --verbose\\\` for detailed analysis
+              4. Ensure all tests pass before merging
+              
+              ### Validation
+              
+              Before merging, please confirm:
+              - [ ] All dependency conflicts have been resolved
+              - [ ] Comprehensive tests pass
+              - [ ] No peer dependency warnings remain
+              - [ ] Manual testing completed for affected functionality
+              
+              ---
+              *This comment was automatically generated by the dependency management workflow.*\`;
+              
+              try {
+                execSync(\`gh pr comment \${prConflict.pr} --body \"\${comment}\"\`, {
+                  stdio: 'pipe'
+                });
+                console.log(\`✅ Added comment to PR #\${prConflict.pr}\`);
+              } catch (error) {
+                console.error(\`❌ Failed to comment on PR #\${prConflict.pr}:\`, error.message);
+              }
+            });
+          "
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload conflict analysis results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conflict-analysis
+          path: |
+            dependency-conflict-report.json
+            dependency-conflict-report.md
+            pr-conflicts.json
+            open_dependency_prs.json
+          retention-days: 30
+
+  # Summary and reporting
+  dependency-summary:
+    name: Dependency Management Summary
+    needs: [dependency-scan, security-patches, regular-updates, conflict-detection]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate summary report
+        run: |
+          echo "## Dependency Management Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Updates | ${{ needs.dependency-scan.outputs.has_security_updates == 'true' && '✅ Found' || '✅ None' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Regular Updates | ${{ needs.dependency-scan.outputs.has_regular_updates == 'true' && '✅ Found' || '✅ None' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Patches | ${{ needs.security-patches.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Regular Updates | ${{ needs.regular-updates.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Conflict Detection | ${{ needs.conflict-detection.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.dependency-scan.outputs.has_security_updates }}" == "true" ]]; then
+            echo "- 🔒 Review and merge security update PRs" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.dependency-scan.outputs.has_regular_updates }}" == "true" ]]; then
+            echo "- ⬆️ Review and merge dependency update PRs" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.conflict-detection.result }}" == "success" ]]; then
+            echo "- 🔧 Check for any conflict resolution issues created" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "- 📊 Review dependency analysis artifacts" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on critical security issues
+        if: needs.dependency-scan.outputs.has_security_updates == 'true'
+        run: |
+          echo "Critical security updates detected. Notification would be sent here."
+          # Add Slack/email notification logic for security issues
+
+      - name: Schedule next dependency check
+        run: |
+          echo "Next scheduled dependency check:"
+          echo "- Security patches: Daily at 2 AM UTC"
+          echo "- Regular updates: Weekly on Mondays at 6 AM UTC"
+          echo "- Manual trigger: Available via workflow_dispatch"

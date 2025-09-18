@@ -1,386 +1,625 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LogicTranslationEngine } from '../../../../src/modules/logic/LogicTranslationEngine';
-import { JavaParser } from '../../../../src/modules/logic/JavaParser';
-import { MMIRGenerator } from '../../../../src/modules/logic/MMIRGenerator';
-import { ASTTranspiler } from '../../../../src/modules/logic/ASTTranspiler';
-import { APIMappingDatabase } from '../../../../src/modules/logic/APIMapping';
-import { LLMTranslationService } from '../../../../src/modules/logic/LLMTranslationService';
-import { ProgramStateAlignmentValidator } from '../../../../src/modules/logic/ProgramStateAlignmentValidator';
-import { JavaScriptGenerator } from '../../../../src/modules/logic/JavaScriptGenerator';
-import { CompromiseStrategyEngine } from '../../../../src/modules/compromise/CompromiseStrategyEngine';
-import { APIMapperService } from '../../../../src/types/api';
+/**
+ * Unit tests for LogicTranslationEngine
+ */
 
-// Mock all dependencies
-vi.mock('../../../../src/modules/logic/JavaParser');
-vi.mock('../../../../src/modules/logic/MMIRGenerator');
-vi.mock('../../../../src/modules/logic/ASTTranspiler');
-vi.mock('../../../../src/modules/logic/APIMapping');
-vi.mock('../../../../src/modules/logic/LLMTranslationService');
-vi.mock('../../../../src/modules/logic/ProgramStateAlignmentValidator');
-vi.mock('../../../../src/modules/logic/JavaScriptGenerator');
-vi.mock('../../../../src/modules/compromise/CompromiseStrategyEngine');
-vi.mock('../../../../src/utils/logger', () => ({
-  createLogger: vi.fn(() => ({
-    info: vi.fn(),
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn()
-  }))
-}));
-vi.mock('../../../../src/utils/errorHandler', () => ({
-  ErrorHandler: {
-    logicError: vi.fn(),
-    systemError: vi.fn(),
-    compromiseError: vi.fn()
-  },
-  globalErrorCollector: {
-    addError: vi.fn()
-  }
-}));
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { LogicTranslationEngine } from '../../../../src/modules/logic/LogicTranslationEngine.js';
+import {
+  TranslationContext,
+  MMIRRepresentation,
+  ASTTranspilationResult,
+  LLMTranslationResult,
+  LogicValidationResult,
+} from '../../../../src/types/logic-translation.js';
+
+// Mock dependencies
+vi.mock('../../../../src/modules/logic/ASTTranspiler.js');
+vi.mock('../../../../src/modules/logic/LLMTranslator.js');
+vi.mock('../../../../src/modules/logic/ProgramStateValidator.js');
+vi.mock('../../../../src/modules/logic/MMIRParser.js');
+vi.mock('../../../../src/utils/logger.js', async () => {
+  const actual = await vi.importActual('../../../../src/utils/logger.js');
+  return {
+    ...(actual as any),
+    default: {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    },
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    })),
+    logger: {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      logStructuredEvent: vi.fn(),
+      logSecurityEvent: vi.fn(),
+      logPerformanceEvent: vi.fn(),
+      logBusinessEvent: vi.fn(),
+      logSystemEvent: vi.fn(),
+    },
+  };
+});
 
 describe('LogicTranslationEngine', () => {
   let engine: LogicTranslationEngine;
-  let mockJavaParser: any;
-  let mockMMIRGenerator: any;
   let mockASTTranspiler: any;
-  let mockAPIMapping: any;
-  let mockAPIMapperService: APIMapperService;
-  let mockLLMTranslationService: any;
-  let mockProgramStateAlignmentValidator: any;
-  let mockJavaScriptGenerator: any;
-  let mockCompromiseStrategyEngine: any;
+  let mockLLMTranslator: any;
+  let mockProgramStateValidator: any;
+  let mockMMIRParser: any;
+  let mockContext: TranslationContext;
 
   beforeEach(() => {
-    // Reset mocks
-    vi.resetAllMocks();
+    // Reset all mocks
+    vi.clearAllMocks();
 
-    // Setup mock implementations
-    mockJavaParser = {
-      parse: vi.fn().mockResolvedValue({ type: 'JavaAST' })
-    };
-    (JavaParser as any).mockImplementation(() => mockJavaParser);
-
-    mockMMIRGenerator = {
-      generate: vi.fn().mockResolvedValue({
-        nodes: [],
-        relationships: [],
-        metadata: { modId: 'test-mod', modLoader: 'forge' }
-      })
-    };
-
-    // Mock APIMapperService
-    mockAPIMapperService = {
-      getMapping: vi.fn().mockResolvedValue(undefined),
-      getMappings: vi.fn().mockResolvedValue([]),
-      addMapping: vi.fn().mockResolvedValue(undefined),
-      updateMapping: vi.fn().mockResolvedValue(undefined),
-      importMappings: vi.fn().mockResolvedValue({ added: 0, updated: 0, failed: 0, failures: [] })
-    };
-    (MMIRGenerator as any).mockImplementation(() => mockMMIRGenerator);
-
+    // Create mock instances
     mockASTTranspiler = {
-      transpile: vi.fn().mockResolvedValue({
-        jsASTs: [{ type: 'JSAst' }],
-        unmappableNodes: []
-      })
-    };
-    (ASTTranspiler as any).mockImplementation(() => mockASTTranspiler);
+      transpile: vi.fn(),
+    } as any;
+    mockLLMTranslator = {
+      translate: vi.fn(),
+    } as any;
+    mockProgramStateValidator = {
+      validate: vi.fn(),
+    } as any;
+    mockMMIRParser = {
+      parse: vi.fn(),
+    } as any;
 
-    mockAPIMapping = {
-      getAllMappings: vi.fn().mockReturnValue([]),
-      getMapping: vi.fn().mockReturnValue(undefined)
-    };
-    (APIMappingDatabase as any).mockImplementation(() => mockAPIMapping);
+    // Create engine instance
+    engine = new LogicTranslationEngine(
+      mockASTTranspiler as any,
+      mockLLMTranslator as any,
+      mockProgramStateValidator as any,
+      mockMMIRParser as any
+    );
 
-    mockLLMTranslationService = {
-      translate: vi.fn().mockResolvedValue([]),
-      refineWithFeedback: vi.fn().mockResolvedValue([])
+    // Setup mock context
+    mockContext = {
+      modInfo: {
+        name: 'TestMod',
+        version: '1.0.0',
+        modLoader: 'forge',
+        minecraftVersion: '1.19.2',
+        dependencies: [],
+      },
+      apiMappings: [],
+      targetVersion: '1.20.0',
+      compromiseStrategy: {
+        name: 'default',
+        type: 'stub',
+        description: 'Default compromise strategy',
+        implementation: 'stub',
+      },
+      userPreferences: {
+        compromiseLevel: 'moderate',
+        preserveComments: true,
+        generateDocumentation: true,
+        optimizePerformance: false,
+      },
     };
-    (LLMTranslationService as any).mockImplementation(() => mockLLMTranslationService);
-
-    mockProgramStateAlignmentValidator = {
-      validate: vi.fn().mockResolvedValue({
-        allValid: true,
-        invalidTranslations: [],
-        notes: []
-      })
-    };
-    (ProgramStateAlignmentValidator as any).mockImplementation(() => mockProgramStateAlignmentValidator);
-
-    mockJavaScriptGenerator = {
-      generate: vi.fn().mockResolvedValue([
-        {
-          path: 'output.js',
-          content: 'console.log("Hello World");'
-        }
-      ])
-    };
-    (JavaScriptGenerator as any).mockImplementation(() => mockJavaScriptGenerator);
-
-    mockCompromiseStrategyEngine = {
-      applyStrategy: vi.fn().mockReturnValue(null), // No strategy applied by default
-      registerStrategy: vi.fn(),
-      getCompromiseReport: vi.fn().mockReturnValue({
-        totalCompromisesApplied: 0,
-        appliedStrategies: []
-      })
-    };
-    (CompromiseStrategyEngine as any).mockImplementation(() => mockCompromiseStrategyEngine);
-
-    // Create instance of LogicTranslationEngine
-    engine = new LogicTranslationEngine(mockAPIMapperService);
   });
 
-  describe('translate', () => {
-    it('should successfully translate Java source files to JavaScript', async () => {
-      // Arrange
-      const input = {
-        javaSourceFiles: [
-          {
-            path: 'Test.java',
-            content: 'public class Test {}',
-            modLoader: 'forge' as const
+  describe('translateJavaCode', () => {
+    it('should successfully translate simple Java code', async () => {
+      const javaCode = `
+        public class TestClass {
+          public void testMethod() {
+            System.out.println("Hello World");
           }
-        ]
+        }
+      `;
+
+      // Mock MMIR parsing
+      const mockMMIR: MMIRRepresentation = {
+        ast: [
+          {
+            type: 'ClassDeclaration',
+            value: 'TestClass',
+            children: [],
+            position: { line: 1, column: 1, offset: 0 },
+            metadata: { javaType: 'class', complexity: 1, mappable: true },
+          },
+        ],
+        metadata: {
+          originalLinesOfCode: 6,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 6,
+            nestingDepth: 1,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
+        dependencies: [],
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 6,
+          nestingDepth: 1,
+        },
       };
 
-      // Act
-      const result = await engine.translate(input);
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
 
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.javascriptFiles).toHaveLength(1);
-      expect(result.javascriptFiles[0].path).toBe('output.js');
-      expect(result.stubFunctions).toHaveLength(0);
-      expect(result.conversionNotes).toHaveLength(0);
+      // Mock AST transpilation
+      const mockASTResult: ASTTranspilationResult = {
+        code: 'class TestClass {\n  testMethod() {\n    console.log("Hello World");\n  }\n}',
+        unmappableCode: [],
+        mappedAPIs: [],
+        confidence: 0.9,
+        warnings: [],
+      };
 
-      // Verify all components were called
-      expect(mockJavaParser.parse).toHaveBeenCalledTimes(1);
-      expect(mockMMIRGenerator.generate).toHaveBeenCalledTimes(1);
-      expect(mockAPIMapperService.getMappings).toHaveBeenCalledTimes(1);
-      expect(mockASTTranspiler.transpile).toHaveBeenCalledTimes(1);
-      expect(mockLLMTranslationService.translate).toHaveBeenCalledTimes(1);
-      expect(mockJavaScriptGenerator.generate).toHaveBeenCalledTimes(1);
-      expect(mockProgramStateAlignmentValidator.validate).toHaveBeenCalledTimes(1);
+      mockASTTranspiler.transpile.mockResolvedValue(mockASTResult);
+
+      // Mock LLM translation (no unmappable code)
+      const mockLLMResult: LLMTranslationResult = {
+        code: '',
+        confidence: 1.0,
+        reasoning: 'No unmappable code segments',
+        alternatives: [],
+        warnings: [],
+      };
+
+      mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
+
+      // Mock validation
+      const mockValidation: LogicValidationResult = {
+        isEquivalent: true,
+        confidence: 0.95,
+        differences: [],
+        recommendations: [],
+      };
+
+      mockProgramStateValidator.validate.mockResolvedValue(mockValidation);
+
+      // Execute translation
+      const result = await engine.translateJavaCode(javaCode, mockContext);
+
+      // Verify result
+      expect(result.success).toBe(true);
+      expect(result.code).toContain('class TestClass');
+      expect(result.code).toContain('console.log');
+      expect(result.metadata.originalLinesOfCode).toBe(6);
+      expect(result.metadata.confidenceScore).toBeGreaterThan(0.8);
+      expect(result.compromises).toHaveLength(0);
+      expect(result.errors).toHaveLength(0);
+
+      // Verify method calls
+      expect(mockMMIRParser.parse).toHaveBeenCalledWith(javaCode);
+      expect(mockASTTranspiler.transpile).toHaveBeenCalledWith(mockMMIR, mockContext);
+      // LLM translator should not be called when there's no unmappable code
+      expect(mockLLMTranslator.translate).not.toHaveBeenCalled();
+      expect(mockProgramStateValidator.validate).toHaveBeenCalledWith(
+        javaCode,
+        mockASTResult.code,
+        mockContext
+      );
     });
 
-    it('should handle validation failures and refine translations', async () => {
-      // Arrange
-      const input = {
-        javaSourceFiles: [
-          {
-            path: 'Test.java',
-            content: 'public class Test {}',
-            modLoader: 'forge' as const
+    it('should handle unmappable code with LLM translation', async () => {
+      const javaCode = `
+        public class ComplexClass {
+          public void complexMethod() {
+            // Complex unmappable code
+            CustomAPI.doSomethingComplex();
           }
-        ]
+        }
+      `;
+
+      // Mock MMIR parsing
+      const mockMMIR: MMIRRepresentation = {
+        ast: [
+          {
+            type: 'ClassDeclaration',
+            value: 'ComplexClass',
+            children: [],
+            position: { line: 1, column: 1, offset: 0 },
+            metadata: { javaType: 'class', complexity: 2, mappable: false },
+          },
+        ],
+        metadata: {
+          originalLinesOfCode: 6,
+          complexity: {
+            cyclomaticComplexity: 2,
+            cognitiveComplexity: 2,
+            linesOfCode: 6,
+            nestingDepth: 1,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
+        dependencies: [],
+        complexity: {
+          cyclomaticComplexity: 2,
+          cognitiveComplexity: 2,
+          linesOfCode: 6,
+          nestingDepth: 1,
+        },
       };
+
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
+
+      // Mock AST transpilation with unmappable code
+      const mockASTResult: ASTTranspilationResult = {
+        code: 'class ComplexClass {\n  // Partial transpilation\n}',
+        unmappableCode: [
+          {
+            originalCode: 'CustomAPI.doSomethingComplex();',
+            reason: 'Custom API not mappable',
+            context: {
+              className: 'ComplexClass',
+              methodName: 'complexMethod',
+              lineNumber: 4,
+              dependencies: [],
+            },
+            suggestedApproach: 'Use LLM translation',
+          },
+        ],
+        mappedAPIs: [],
+        confidence: 0.6,
+        warnings: [],
+      };
+
+      mockASTTranspiler.transpile.mockResolvedValue(mockASTResult);
+
+      // Mock LLM translation
+      const mockLLMResult: LLMTranslationResult = {
+        code: '// LLM-translated complex method\nfunction complexMethod() {\n  // Equivalent Bedrock implementation\n}',
+        confidence: 0.7,
+        reasoning: 'Translated using semantic understanding',
+        alternatives: [],
+        warnings: [],
+      };
+
+      mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
+
+      // Mock validation
+      const mockValidation: LogicValidationResult = {
+        isEquivalent: true,
+        confidence: 0.8,
+        differences: [],
+        recommendations: [],
+      };
+
+      mockProgramStateValidator.validate.mockResolvedValue(mockValidation);
+
+      // Execute translation
+      const result = await engine.translateJavaCode(javaCode, mockContext);
+
+      // Verify result
+      expect(result.success).toBe(true);
+      expect(result.code).toContain('class ComplexClass');
+      expect(result.code).toContain('LLM-translated');
+      expect(result.compromises).toHaveLength(1);
+      expect(result.compromises[0].originalFeature.type).toBe('unmappable_code');
+      expect(result.metadata.llmTranslationPercentage).toBeGreaterThan(0);
+
+      // Verify LLM was called with unmappable code
+      expect(mockLLMTranslator.translate).toHaveBeenCalledWith(
+        mockASTResult.unmappableCode,
+        mockContext
+      );
+    });
+
+    it('should handle validation failures and attempt refinement', async () => {
+      const javaCode = 'public class TestClass { }';
+
+      // Mock MMIR parsing
+      const mockMMIR: MMIRRepresentation = {
+        ast: [],
+        metadata: {
+          originalLinesOfCode: 1,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
+        dependencies: [],
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
+      };
+
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
+
+      // Mock AST transpilation
+      const mockASTResult: ASTTranspilationResult = {
+        code: 'class TestClass { }',
+        unmappableCode: [],
+        mappedAPIs: [],
+        confidence: 0.8,
+        warnings: [],
+      };
+
+      mockASTTranspiler.transpile.mockResolvedValue(mockASTResult);
+
+      // Mock LLM translation
+      const mockLLMResult: LLMTranslationResult = {
+        code: '',
+        confidence: 1.0,
+        reasoning: 'No unmappable code',
+        alternatives: [],
+        warnings: [],
+      };
+
+      mockLLMTranslator.translate.mockResolvedValue(mockLLMResult);
 
       // Mock validation failure
-      mockProgramStateAlignmentValidator.validate.mockResolvedValue({
-        allValid: false,
-        invalidTranslations: [
-          { id: 'test', originalCode: 'test', translatedCode: 'test' }
+      const mockValidation: LogicValidationResult = {
+        isEquivalent: false,
+        confidence: 0.5, // Below threshold
+        differences: [
+          {
+            type: 'behavior',
+            description: 'Behavioral difference detected',
+            severity: 'medium',
+            location: { line: 1, column: 1, offset: 0 },
+            suggestion: 'Review implementation',
+          },
         ],
-        notes: [
-          { type: 'warning', message: 'Validation failed for some translations' }
-        ]
-      });
+        recommendations: ['Manual review required'],
+      };
 
-      // Mock refined translations
-      mockLLMTranslationService.refineWithFeedback.mockResolvedValue([
-        { id: 'test', refinedCode: 'refined test' }
-      ]);
+      mockProgramStateValidator.validate.mockResolvedValue(mockValidation);
 
-      // Act
-      const result = await engine.translate(input);
+      // Execute translation
+      const result = await engine.translateJavaCode(javaCode, mockContext);
 
-      // Assert
-      expect(result).toBeDefined();
-      expect(mockLLMTranslationService.refineWithFeedback).toHaveBeenCalledTimes(1);
-      expect(mockJavaScriptGenerator.generate).toHaveBeenCalledTimes(2); // Called twice due to refinement
-      expect(result.conversionNotes).toHaveLength(1);
-      expect(result.conversionNotes[0].type).toBe('warning');
+      // Verify result
+      expect(result.success).toBe(true);
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0].type).toBe('validation_behavior');
+      expect(result.metadata.confidenceScore).toBeLessThan(0.8);
     });
 
-    it('should handle errors during translation', async () => {
-      // Arrange
-      const input = {
-        javaSourceFiles: [
-          {
-            path: 'Test.java',
-            content: 'public class Test {}',
-            modLoader: 'forge' as const
-          }
-        ]
-      };
+    it('should handle translation errors gracefully', async () => {
+      const javaCode = 'invalid java code';
 
-      // Mock an error
-      mockJavaParser.parse.mockRejectedValue(new Error('Parsing failed'));
+      // Mock MMIR parsing failure
+      mockMMIRParser.parse.mockRejectedValue(new Error('Parse error'));
 
-      // Act
-      const result = await engine.translate(input);
+      // Execute translation
+      const result = await engine.translateJavaCode(javaCode, mockContext);
 
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.javascriptFiles).toHaveLength(0);
-      expect(result.conversionNotes).toHaveLength(1);
-      expect(result.conversionNotes[0].type).toBe('error');
-      expect(result.conversionNotes[0].message).toContain('Logic translation failed');
+      // Verify error handling
+      expect(result.success).toBe(false);
+      expect(result.code).toBe('');
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0].type).toBe('translation_failure');
+      expect(result.errors[0].message).toContain('Parse error');
+      expect(result.errors[0].recoverable).toBe(false);
     });
 
-    it('should collect stub functions from LLM translations', async () => {
-      // Arrange
-      const input = {
-        javaSourceFiles: [
-          {
-            path: 'Test.java',
-            content: 'public class Test {}',
-            modLoader: 'forge' as const
-          }
-        ]
+    it('should respect configuration options', async () => {
+      const customOptions = {
+        maxRefinementIterations: 5,
+        confidenceThreshold: 0.9,
+        enableParallelProcessing: false,
+        timeoutMs: 120000,
       };
 
-      // Mock LLM translations with stubs
-      mockLLMTranslationService.translate.mockResolvedValue([
-        {
-          isStub: true,
-          name: 'testFunction',
-          originalCode: 'void test() {}',
-          stubCode: 'function test() { console.warn("Not implemented"); }',
-          stubReason: 'No direct mapping available',
-          alternatives: ['Use alternative approach']
-        }
-      ]);
-
-      // Act
-      const result = await engine.translate(input);
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.stubFunctions).toHaveLength(1);
-      expect(result.stubFunctions[0].name).toBe('testFunction');
-      expect(result.stubFunctions[0].reason).toBe('No direct mapping available');
-    });
-
-    it('should use provided MMIR context and API mappings if available', async () => {
-      // Arrange
-      const mmirContext = {
-        nodes: [{ id: 'test', type: 'test', sourceLocation: { file: '', startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 }, properties: {}, children: [] }],
-        relationships: [],
-        metadata: { modId: 'test', modName: 'test', modVersion: '1.0', modLoader: 'forge' as const, minecraftVersion: '1.16' }
-      };
-      
-      const apiMappings = [
-        { javaSignature: 'custom', bedrockEquivalent: 'custom' }
-      ];
-      
-      const input = {
-        javaSourceFiles: [
-          {
-            path: 'Test.java',
-            content: 'public class Test {}',
-            modLoader: 'forge' as const
-          }
-        ],
-        mmirContext,
-        apiMappingDictionary: apiMappings
-      };
-
-      // Act
-      const result = await engine.translate(input);
-
-      // Assert
-      expect(result).toBeDefined();
-      
-      // Verify MMIR generator was not called since we provided the context
-      expect(mockMMIRGenerator.generate).not.toHaveBeenCalled();
-      
-      // Verify API mappings loader was not called since we provided the mappings
-      expect(mockAPIMapperService.getMappings).not.toHaveBeenCalled();
-      
-      // Verify the transpiler was called with our provided context and mappings
-      expect(mockASTTranspiler.transpile).toHaveBeenCalledWith(mmirContext, apiMappings);
-    });
-
-    it('should apply compromise strategies to unmappable features', async () => {
-      // Arrange
-      const input = {
-        javaSourceFiles: [
-          {
-            path: 'Test.java',
-            content: 'public class Test {}',
-            modLoader: 'forge' as const
-          }
-        ]
-      };
-
-      // Mock unmappable nodes from transpiler
-      mockASTTranspiler.transpile.mockResolvedValue({
-        jsASTs: [{ type: 'JSAst' }],
-        unmappableNodes: [
-          {
-            id: 'unmappable-1',
-            type: 'dimension',
-            name: 'Custom Dimension',
-            complexity: 'complex',
-            sourceLocation: {
-              file: 'Test.java',
-              startLine: 10,
-              endLine: 20
-            }
-          }
-        ]
-      });
-
-      // Mock compromise strategy application
-      mockCompromiseStrategyEngine.applyStrategy.mockReturnValue({
-        type: 'simulation',
-        name: 'Dimension Simulation',
-        description: 'Simulates custom dimension using teleportation',
-        implementationDetails: 'Uses teleportation to isolated areas',
-        limitations: ['Not a true separate dimension']
-      });
-
-      // Act
-      const result = await engine.translate(input);
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(mockCompromiseStrategyEngine.applyStrategy).toHaveBeenCalledTimes(1);
-      expect(result.conversionNotes.length).toBeGreaterThan(0);
-      
-      // Check that compromise strategy note was added
-      const compromiseNote = result.conversionNotes.find(note => 
-        note.message.includes('Applied compromise strategy')
+      const customEngine = new LogicTranslationEngine(
+        mockASTTranspiler as any,
+        mockLLMTranslator as any,
+        mockProgramStateValidator as any,
+        mockMMIRParser as any,
+        customOptions
       );
-      expect(compromiseNote).toBeDefined();
+
+      const javaCode = 'public class TestClass { }';
+
+      // Mock successful flow
+      mockMMIRParser.parse.mockResolvedValue({
+        ast: [],
+        metadata: {
+          originalLinesOfCode: 1,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
+        dependencies: [],
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
+      });
+
+      mockASTTranspiler.transpile.mockResolvedValue({
+        code: 'class TestClass { }',
+        unmappableCode: [],
+        mappedAPIs: [],
+        confidence: 0.95,
+        warnings: [],
+      });
+
+      mockLLMTranslator.translate.mockResolvedValue({
+        code: '',
+        confidence: 1.0,
+        reasoning: 'No unmappable code',
+        alternatives: [],
+        warnings: [],
+      });
+
+      mockProgramStateValidator.validate.mockResolvedValue({
+        isEquivalent: true,
+        confidence: 0.95,
+        differences: [],
+        recommendations: [],
+      });
+
+      const result = await customEngine.translateJavaCode(javaCode, mockContext);
+
+      expect(result.success).toBe(true);
+      expect(result.metadata.confidenceScore).toBeGreaterThan(0.9);
     });
+  });
 
-    it('should provide access to compromise strategy engine', () => {
-      // Act
-      const compromiseEngine = engine.getCompromiseStrategyEngine();
-
-      // Assert
-      expect(compromiseEngine).toBeDefined();
-      expect(compromiseEngine).toBe(mockCompromiseStrategyEngine);
-    });
-
-    it('should allow registering custom compromise strategies', () => {
-      // Arrange
-      const customStrategy = {
-        id: 'custom-strategy',
-        name: 'Custom Strategy',
-        description: 'A custom compromise strategy',
-        applicabilityCheck: vi.fn(),
-        apply: vi.fn()
+  describe('parseToMMIR', () => {
+    it('should delegate to MMIRParser', async () => {
+      const javaCode = 'public class Test { }';
+      const mockMMIR: MMIRRepresentation = {
+        ast: [],
+        metadata: {
+          originalLinesOfCode: 1,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
+        dependencies: [],
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
       };
 
-      // Act
-      engine.registerCompromiseStrategy('dimension', customStrategy);
+      mockMMIRParser.parse.mockResolvedValue(mockMMIR);
 
-      // Assert
-      expect(mockCompromiseStrategyEngine.registerStrategy).toHaveBeenCalledWith('dimension', customStrategy);
+      const result = await engine.parseToMMIR(javaCode);
+
+      expect(result).toBe(mockMMIR);
+      expect(mockMMIRParser.parse).toHaveBeenCalledWith(javaCode);
+    });
+  });
+
+  describe('transpileAST', () => {
+    it('should delegate to ASTTranspiler', async () => {
+      const mockMMIR: MMIRRepresentation = {
+        ast: [],
+        metadata: {
+          originalLinesOfCode: 1,
+          complexity: {
+            cyclomaticComplexity: 1,
+            cognitiveComplexity: 1,
+            linesOfCode: 1,
+            nestingDepth: 0,
+          },
+          imports: [],
+          classes: [],
+          methods: [],
+        },
+        dependencies: [],
+        complexity: {
+          cyclomaticComplexity: 1,
+          cognitiveComplexity: 1,
+          linesOfCode: 1,
+          nestingDepth: 0,
+        },
+      };
+
+      const mockResult: ASTTranspilationResult = {
+        code: 'transpiled code',
+        unmappableCode: [],
+        mappedAPIs: [],
+        confidence: 0.9,
+        warnings: [],
+      };
+
+      mockASTTranspiler.transpile.mockResolvedValue(mockResult);
+
+      const result = await engine.transpileAST(mockMMIR, mockContext);
+
+      expect(result).toBe(mockResult);
+      expect(mockASTTranspiler.transpile).toHaveBeenCalledWith(mockMMIR, mockContext);
+    });
+  });
+
+  describe('translateWithLLM', () => {
+    it('should handle empty unmappable code', async () => {
+      const result = await engine.translateWithLLM([], mockContext);
+
+      expect(result.code).toBe('');
+      expect(result.confidence).toBe(1.0);
+      expect(result.reasoning).toBe('No unmappable code segments');
+      expect(mockLLMTranslator.translate).not.toHaveBeenCalled();
+    });
+
+    it('should delegate to LLMTranslator for unmappable code', async () => {
+      const unmappableCode = [
+        {
+          originalCode: 'CustomAPI.call()',
+          reason: 'Custom API',
+          context: { className: 'Test', methodName: 'test', lineNumber: 1, dependencies: [] },
+          suggestedApproach: 'LLM translation',
+        },
+      ];
+
+      const mockResult: LLMTranslationResult = {
+        code: 'translated code',
+        confidence: 0.8,
+        reasoning: 'LLM translation',
+        alternatives: [],
+        warnings: [],
+      };
+
+      mockLLMTranslator.translate.mockResolvedValue(mockResult);
+
+      const result = await engine.translateWithLLM(unmappableCode, mockContext);
+
+      expect(result).toBe(mockResult);
+      expect(mockLLMTranslator.translate).toHaveBeenCalledWith(unmappableCode, mockContext);
+    });
+  });
+
+  describe('validateTranslation', () => {
+    it('should delegate to ProgramStateValidator', async () => {
+      const originalCode = 'original java code';
+      const translatedCode = 'translated js code';
+
+      const mockResult: LogicValidationResult = {
+        isEquivalent: true,
+        confidence: 0.9,
+        differences: [],
+        recommendations: [],
+      };
+
+      mockProgramStateValidator.validate.mockResolvedValue(mockResult);
+
+      const result = await engine.validateTranslation(originalCode, translatedCode, mockContext);
+
+      expect(result).toBe(mockResult);
+      expect(mockProgramStateValidator.validate).toHaveBeenCalledWith(
+        originalCode,
+        translatedCode,
+        mockContext
+      );
     });
   });
 });

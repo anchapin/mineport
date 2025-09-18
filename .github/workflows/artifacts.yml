@@ -1,0 +1,534 @@
+name: Artifact Management
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Force rebuild artifacts'
+        required: false
+        default: 'false'
+        type: boolean
+      retention_days:
+        description: 'Artifact retention days'
+        required: false
+        default: '30'
+        type: string
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  CI: true
+  REGISTRY_URL: ghcr.io
+  PACKAGE_NAME: minecraft-mod-converter
+
+jobs:
+  # Artifact metadata and versioning
+  metadata:
+    name: Generate Artifact Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build_number: ${{ steps.version.outputs.build_number }}
+      commit_sha: ${{ steps.version.outputs.commit_sha }}
+      branch: ${{ steps.version.outputs.branch }}
+      is_release: ${{ steps.version.outputs.is_release }}
+      artifact_name: ${{ steps.version.outputs.artifact_name }}
+      package_version: ${{ steps.version.outputs.package_version }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version information
+        id: version
+        run: |
+          # Get package version from package.json
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+          # Generate build number from timestamp
+          BUILD_NUMBER=$(date +%Y%m%d%H%M%S)
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+
+          # Get commit information
+          COMMIT_SHA="${{ github.sha }}"
+          SHORT_SHA="${COMMIT_SHA:0:8}"
+          echo "commit_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+          # Get branch information
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH="${{ github.head_ref }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          # Determine if this is a release
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            IS_RELEASE=true
+            VERSION="${{ github.ref_name }}"
+            ARTIFACT_NAME="${{ env.PACKAGE_NAME }}-${VERSION}"
+          else
+            IS_RELEASE=false
+            if [[ "$BRANCH" == "main" ]]; then
+              VERSION="${PACKAGE_VERSION}-${BUILD_NUMBER}"
+            else
+              VERSION="${PACKAGE_VERSION}-${BRANCH}-${BUILD_NUMBER}"
+            fi
+            ARTIFACT_NAME="${{ env.PACKAGE_NAME }}-${VERSION}"
+          fi
+
+          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+
+          echo "Generated version: $VERSION"
+          echo "Artifact name: $ARTIFACT_NAME"
+          echo "Is release: $IS_RELEASE"
+
+      - name: Generate comprehensive metadata
+        id: metadata
+        run: |
+          # Create comprehensive artifact metadata
+          cat > artifact-metadata.json << EOF
+          {
+            "artifact": {
+              "name": "${{ steps.version.outputs.artifact_name }}",
+              "version": "${{ steps.version.outputs.version }}",
+              "package_version": "${{ steps.version.outputs.package_version }}",
+              "build_number": "${{ steps.version.outputs.build_number }}",
+              "is_release": ${{ steps.version.outputs.is_release }}
+            },
+            "source": {
+              "repository": "${{ github.repository }}",
+              "commit_sha": "${{ github.sha }}",
+              "commit_sha_short": "${{ steps.version.outputs.commit_sha }}",
+              "branch": "${{ steps.version.outputs.branch }}",
+              "ref": "${{ github.ref }}",
+              "event": "${{ github.event_name }}"
+            },
+            "build": {
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+              "runner": "${{ runner.os }}",
+              "workflow": "${{ github.workflow }}",
+              "run_id": "${{ github.run_id }}",
+              "run_number": "${{ github.run_number }}",
+              "actor": "${{ github.actor }}"
+            },
+            "environment": {
+              "node_version": "$(node --version)",
+              "npm_version": "$(npm --version)",
+              "os": "${{ runner.os }}",
+              "arch": "${{ runner.arch }}"
+            }
+          }
+          EOF
+
+          # Output metadata as base64 for passing between jobs
+          METADATA_B64=$(base64 -w 0 artifact-metadata.json)
+          echo "metadata=$METADATA_B64" >> $GITHUB_OUTPUT
+
+          # Display metadata for debugging
+          echo "Generated metadata:"
+          cat artifact-metadata.json | jq .
+
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-metadata
+          path: artifact-metadata.json
+          retention-days: 90
+
+  # Build artifacts with versioning
+  build-artifacts:
+    name: Build Artifacts
+    needs: metadata
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Restore metadata
+        run: |
+          echo '${{ needs.metadata.outputs.metadata }}' | base64 -d > artifact-metadata.json
+          echo "Restored metadata:"
+          cat artifact-metadata.json | jq .
+
+      - name: Build application
+        run: |
+          echo "Building application with version: ${{ needs.metadata.outputs.version }}"
+          npm run build
+
+      - name: Create versioned package
+        run: |
+          # Create package directory
+          mkdir -p package
+
+          # Copy built application
+          cp -r dist package/
+          cp package.json package/
+          cp package-lock.json package/
+          cp README.md package/
+          cp LICENSE package/
+
+          # Update package.json with build version
+          cd package
+          npm version ${{ needs.metadata.outputs.version }} --no-git-tag-version
+
+          # Create package tarball
+          npm pack
+
+          # Move tarball to predictable location
+          mv *.tgz ../${{ needs.metadata.outputs.artifact_name }}.tgz
+          cd ..
+
+          # Create additional artifact formats
+          tar -czf ${{ needs.metadata.outputs.artifact_name }}.tar.gz -C package .
+          zip -r ${{ needs.metadata.outputs.artifact_name }}.zip package/
+
+      - name: Generate artifact checksums
+        run: |
+          # Generate checksums for all artifacts
+          echo "Generating checksums..."
+
+          for file in ${{ needs.metadata.outputs.artifact_name }}.*; do
+            if [[ -f "$file" ]]; then
+              sha256sum "$file" >> checksums.txt
+              md5sum "$file" >> checksums.md5
+            fi
+          done
+
+          echo "Generated checksums:"
+          cat checksums.txt
+
+      - name: Create artifact manifest
+        run: |
+          # Create detailed artifact manifest
+          cat > artifact-manifest.json << EOF
+          {
+            "manifest_version": "1.0",
+            "artifact": $(cat artifact-metadata.json),
+            "files": [
+          EOF
+
+          # Add file information
+          first=true
+          for file in ${{ needs.metadata.outputs.artifact_name }}.* checksums.* artifact-metadata.json; do
+            if [[ -f "$file" ]]; then
+              if [[ "$first" == "false" ]]; then
+                echo "," >> artifact-manifest.json
+              fi
+              first=false
+              
+              size=$(stat -c%s "$file")
+              sha256=$(sha256sum "$file" | cut -d' ' -f1)
+              
+              cat >> artifact-manifest.json << EOF
+              {
+                "name": "$file",
+                "size": $size,
+                "sha256": "$sha256",
+                "type": "$(file -b --mime-type "$file")"
+              }
+          EOF
+            fi
+          done
+
+          cat >> artifact-manifest.json << EOF
+            ],
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          echo "Generated artifact manifest:"
+          cat artifact-manifest.json | jq .
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.metadata.outputs.artifact_name }}
+          path: |
+            ${{ needs.metadata.outputs.artifact_name }}.*
+            checksums.*
+            artifact-manifest.json
+            artifact-metadata.json
+          retention-days: ${{ github.event.inputs.retention_days || '30' }}
+
+  # Security scanning and signing
+  artifact-security:
+    name: Artifact Security & Compliance
+    needs: [metadata, build-artifacts]
+    uses: ./.github/workflows/artifact-security.yml
+    with:
+      artifact_name: ${{ needs.metadata.outputs.artifact_name }}
+      version: ${{ needs.metadata.outputs.version }}
+      sign_artifacts: ${{ needs.metadata.outputs.is_release == 'true' }}
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+  # Package publishing
+  publish-packages:
+    name: Publish Packages
+    needs: [metadata, build-artifacts, artifact-security]
+    runs-on: ubuntu-latest
+    if: needs.metadata.outputs.is_release == 'true' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.metadata.outputs.artifact_name }}
+          path: artifacts
+
+      - name: Upload to GitHub Packages (npm)
+        run: |
+          echo "Uploading to GitHub Packages..."
+
+          # Configure npm registry
+          echo "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+
+          # Publish package
+          cd artifacts/package
+          npm publish --registry=https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Container artifact creation
+  build-container:
+    name: Build Container Artifacts
+    needs: [metadata, build-artifacts, artifact-security]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.metadata.outputs.artifact_name }}
+          path: artifacts
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_URL }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Dockerfile
+        run: |
+          cat > Dockerfile << 'EOF'
+          FROM node:20-alpine
+
+          # Set working directory
+          WORKDIR /app
+
+          # Add metadata labels
+          LABEL org.opencontainers.image.title="${{ env.PACKAGE_NAME }}"
+          LABEL org.opencontainers.image.description="Minecraft Mod Converter - Java to Bedrock Edition"
+          LABEL org.opencontainers.image.version="${{ needs.metadata.outputs.version }}"
+          LABEL org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}"
+          LABEL org.opencontainers.image.revision="${{ github.sha }}"
+          LABEL org.opencontainers.image.created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          # Install system dependencies
+          RUN apk add --no-cache \
+              dumb-init \
+              curl \
+              && rm -rf /var/cache/apk/*
+
+          # Create non-root user
+          RUN addgroup -g 1001 -S nodejs && \
+              adduser -S nodejs -u 1001
+
+          # Copy package files
+          COPY artifacts/package/package*.json ./
+
+          # Install production dependencies
+          RUN npm ci --only=production --no-audit --no-fund && \
+              npm cache clean --force
+
+          # Copy application
+          COPY artifacts/package/dist ./dist
+          COPY artifacts/package/README.md ./
+          COPY artifacts/package/LICENSE ./
+
+          # Change ownership
+          RUN chown -R nodejs:nodejs /app
+          USER nodejs
+
+          # Health check
+          HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+            CMD curl -f http://localhost:3000/health || exit 1
+
+          # Expose port
+          EXPOSE 3000
+
+          # Start application
+          ENTRYPOINT ["dumb-init", "--"]
+          CMD ["node", "dist/src/index.js"]
+          EOF
+
+      - name: Build and push container image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ needs.metadata.outputs.is_release == 'true' || github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.REGISTRY_URL }}/${{ github.repository }}:${{ needs.metadata.outputs.version }}
+            ${{ env.REGISTRY_URL }}/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.title=${{ env.PACKAGE_NAME }}
+            org.opencontainers.image.description=Minecraft Mod Converter - Java to Bedrock Edition
+            org.opencontainers.image.version=${{ needs.metadata.outputs.version }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  # Artifact retention and cleanup
+  artifact-cleanup:
+    name: Artifact Cleanup
+    needs: [metadata, build-artifacts, artifact-security, build-container]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup cleanup script
+        run: |
+          cat > cleanup-artifacts.js << 'EOF'
+          const { Octokit } = require('@octokit/rest');
+
+          async function cleanupArtifacts() {
+            const octokit = new Octokit({
+              auth: process.env.GITHUB_TOKEN,
+            });
+            
+            const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+            const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+            
+            try {
+              // Get all artifacts
+              const { data: artifacts } = await octokit.rest.actions.listArtifactsForRepo({
+                owner,
+                repo,
+                per_page: 100,
+              });
+              
+              console.log(`Found ${artifacts.artifacts.length} artifacts`);
+              
+              // Define retention policies
+              const retentionPolicies = {
+                'test-results-': 7,      // Test results: 7 days
+                'build-performance-': 30, // Performance data: 30 days
+                'build-artifacts-': 7,    // Build artifacts: 7 days
+                'comprehensive-test-': 7, // Comprehensive tests: 7 days
+                'aggregated-': 14,       // Aggregated results: 14 days
+              };
+              
+              const now = new Date();
+              let deletedCount = 0;
+              
+              for (const artifact of artifacts.artifacts) {
+                const createdAt = new Date(artifact.created_at);
+                const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+                
+                // Determine retention period
+                let retentionDays = 30; // default
+                for (const [prefix, days] of Object.entries(retentionPolicies)) {
+                  if (artifact.name.startsWith(prefix)) {
+                    retentionDays = days;
+                    break;
+                  }
+                }
+                
+                // Skip if artifact is from a release
+                if (artifact.name.includes('-v') && artifact.name.match(/v\d+\.\d+\.\d+/)) {
+                  console.log(`Skipping release artifact: ${artifact.name}`);
+                  continue;
+                }
+                
+                if (ageInDays > retentionDays) {
+                  console.log(`Deleting artifact: ${artifact.name} (${Math.floor(ageInDays)} days old)`);
+                  
+                  try {
+                    await octokit.rest.actions.deleteArtifact({
+                      owner,
+                      repo,
+                      artifact_id: artifact.id,
+                    });
+                    deletedCount++;
+                  } catch (error) {
+                    console.error(`Failed to delete artifact ${artifact.name}:`, error.message);
+                  }
+                } else {
+                  console.log(`Keeping artifact: ${artifact.name} (${Math.floor(ageInDays)} days old)`);
+                }
+              }
+              
+              console.log(`Cleanup completed. Deleted ${deletedCount} artifacts.`);
+              
+              // Generate cleanup report
+              const report = {
+                timestamp: new Date().toISOString(),
+                total_artifacts: artifacts.artifacts.length,
+                deleted_artifacts: deletedCount,
+                retention_policies: retentionPolicies,
+              };
+              
+              require('fs').writeFileSync('cleanup-report.json', JSON.stringify(report, null, 2));
+              
+            } catch (error) {
+              console.error('Cleanup failed:', error.message);
+              process.exit(1);
+            }
+          }
+
+          cleanupArtifacts();
+          EOF
+
+      - name: Install dependencies for cleanup
+        run: npm install @octokit/rest
+
+      - name: Run artifact cleanup
+        run: node cleanup-artifacts.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Upload cleanup report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-cleanup-report
+          path: cleanup-report.json
+          retention-days: 90

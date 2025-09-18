@@ -2,11 +2,11 @@
  * Unit tests for JavaAnalyzer
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
 import AdmZip from 'adm-zip';
-import { JavaAnalyzer, AnalysisResult, ManifestInfo } from '../../../../src/modules/ingestion/JavaAnalyzer';
+import { JavaAnalyzer } from '../../../../src/modules/ingestion/JavaAnalyzer.js';
 
 describe('JavaAnalyzer', () => {
   let analyzer: JavaAnalyzer;
@@ -32,7 +32,7 @@ describe('JavaAnalyzer', () => {
     it('should analyze a valid Forge mod JAR file', async () => {
       // Create a mock JAR file with Forge structure
       const zip = new AdmZip();
-      
+
       // Add mods.toml
       const modsToml = `
 modLoader="javafml"
@@ -70,8 +70,8 @@ side="BOTH"
       const blockModel = JSON.stringify({
         parent: 'block/cube_all',
         textures: {
-          all: 'testmod:block/test_block'
-        }
+          all: 'testmod:block/test_block',
+        },
       });
       zip.addFile('assets/testmod/models/block/test_block.json', Buffer.from(blockModel));
 
@@ -102,7 +102,7 @@ side="BOTH"
     it('should analyze a valid Fabric mod JAR file', async () => {
       // Create a mock JAR file with Fabric structure
       const zip = new AdmZip();
-      
+
       // Add fabric.mod.json
       const fabricMod = {
         schemaVersion: 1,
@@ -113,13 +113,16 @@ side="BOTH"
         authors: ['Fabric Author'],
         depends: {
           fabricloader: '>=0.14.0',
-          minecraft: '~1.19.2'
-        }
+          minecraft: '~1.19.2',
+        },
       };
       zip.addFile('fabric.mod.json', Buffer.from(JSON.stringify(fabricMod)));
 
       // Add some texture files
-      zip.addFile('assets/fabrictest/textures/block/fabric_block.png', Buffer.from('fake-png-data'));
+      zip.addFile(
+        'assets/fabrictest/textures/block/fabric_block.png',
+        Buffer.from('fake-png-data')
+      );
 
       // Write the JAR file
       zip.writeZip(testJarPath);
@@ -149,7 +152,7 @@ side="BOTH"
       expect(result.manifestInfo.modName).toBe('Unknown Mod');
       expect(result.registryNames).toEqual([]);
       expect(result.texturePaths).toEqual([]);
-      expect(result.analysisNotes.some(note => note.type === 'info')).toBe(true);
+      expect(result.analysisNotes.some((note) => note.type === 'info')).toBe(true);
     });
 
     it('should handle invalid JAR files gracefully', async () => {
@@ -160,7 +163,7 @@ side="BOTH"
 
       expect(result).toBeDefined();
       expect(result.modId).toBe('unknown');
-      expect(result.analysisNotes.some(note => note.type === 'error')).toBe(true);
+      expect(result.analysisNotes.some((note) => note.type === 'error')).toBe(true);
     });
   });
 
@@ -185,15 +188,14 @@ side="BOTH"
   describe('extractFromJsonFiles', () => {
     it('should extract registry names from JSON files', async () => {
       const zip = new AdmZip();
-      
+
       const jsonData = {
-        blocks: {
-          test_block: { hardness: 2.0 },
-          another_block: { hardness: 1.5 }
+        parent: 'minecraft:block/cube_all',
+        textures: {
+          all: 'testmod:block/test_block',
+          side: 'testmod:block/another_block',
+          layer0: 'testmod:item/test_item',
         },
-        items: {
-          test_item: { maxStackSize: 64 }
-        }
       };
       zip.addFile('data/testmod/registry.json', Buffer.from(JSON.stringify(jsonData)));
       zip.writeZip(testJarPath);
@@ -209,12 +211,12 @@ side="BOTH"
   describe('extractFromLangFiles', () => {
     it('should extract registry names from language files', async () => {
       const zip = new AdmZip();
-      
+
       const langData = {
         'block.testmod.copper_block': 'Copper Block',
         'item.testmod.copper_ingot': 'Copper Ingot',
         'entity.testmod.test_entity': 'Test Entity',
-        'gui.testmod.inventory': 'Inventory' // Should not be extracted
+        'gui.testmod.inventory': 'Inventory', // Should not be extracted
       };
       zip.addFile('assets/testmod/lang/en_us.json', Buffer.from(JSON.stringify(langData)));
       zip.writeZip(testJarPath);
@@ -230,23 +232,29 @@ side="BOTH"
   describe('extractFromModelFiles', () => {
     it('should extract registry names from model files', async () => {
       const zip = new AdmZip();
-      
+
       const blockModel = {
         parent: 'block/cube_all',
         textures: {
           all: 'testmod:block/iron_block',
-          side: 'testmod:block/iron_side'
-        }
+          side: 'testmod:block/iron_side',
+        },
       };
-      zip.addFile('assets/testmod/models/block/iron_block.json', Buffer.from(JSON.stringify(blockModel)));
-      
+      zip.addFile(
+        'assets/testmod/models/block/iron_block.json',
+        Buffer.from(JSON.stringify(blockModel))
+      );
+
       const itemModel = {
         parent: 'item/generated',
         textures: {
-          layer0: 'testmod:item/iron_sword'
-        }
+          layer0: 'testmod:item/iron_sword',
+        },
       };
-      zip.addFile('assets/testmod/models/item/iron_sword.json', Buffer.from(JSON.stringify(itemModel)));
+      zip.addFile(
+        'assets/testmod/models/item/iron_sword.json',
+        Buffer.from(JSON.stringify(itemModel))
+      );
       zip.writeZip(testJarPath);
 
       const result = await analyzer.analyzeJarForMVP(testJarPath);
@@ -278,7 +286,7 @@ side="BOTH"
   describe('parseManifestInfo', () => {
     it('should prioritize mods.toml over other manifest files', async () => {
       const zip = new AdmZip();
-      
+
       // Add multiple manifest files
       const modsToml = `
 [[mods]]
@@ -287,14 +295,14 @@ displayName="Priority Test"
 version="1.0.0"
       `;
       zip.addFile('META-INF/mods.toml', Buffer.from(modsToml));
-      
+
       const fabricMod = {
         id: 'fabric_test',
         name: 'Fabric Test',
-        version: '2.0.0'
+        version: '2.0.0',
       };
       zip.addFile('fabric.mod.json', Buffer.from(JSON.stringify(fabricMod)));
-      
+
       zip.writeZip(testJarPath);
 
       const result = await analyzer.analyzeJarForMVP(testJarPath);
@@ -307,14 +315,14 @@ version="1.0.0"
 
     it('should fall back to fabric.mod.json if mods.toml is not present', async () => {
       const zip = new AdmZip();
-      
+
       const fabricMod = {
         id: 'fabric_fallback',
         name: 'Fabric Fallback',
-        version: '3.0.0'
+        version: '3.0.0',
       };
       zip.addFile('fabric.mod.json', Buffer.from(JSON.stringify(fabricMod)));
-      
+
       zip.writeZip(testJarPath);
 
       const result = await analyzer.analyzeJarForMVP(testJarPath);
@@ -326,15 +334,17 @@ version="1.0.0"
 
     it('should fall back to mcmod.info if other manifests are not present', async () => {
       const zip = new AdmZip();
-      
-      const mcmodInfo = [{
-        modid: 'mcmod_fallback',
-        name: 'McmodInfo Fallback',
-        version: '4.0.0',
-        description: 'Test description'
-      }];
+
+      const mcmodInfo = [
+        {
+          modid: 'mcmod_fallback',
+          name: 'McmodInfo Fallback',
+          version: '4.0.0',
+          description: 'Test description',
+        },
+      ];
       zip.addFile('mcmod.info', Buffer.from(JSON.stringify(mcmodInfo)));
-      
+
       zip.writeZip(testJarPath);
 
       const result = await analyzer.analyzeJarForMVP(testJarPath);

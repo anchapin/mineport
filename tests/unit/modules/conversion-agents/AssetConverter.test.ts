@@ -3,8 +3,12 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AssetConverter } from '../../../../src/modules/conversion-agents/AssetConverter';
-import { TextureInfo, SoundInfo, ModelInfo } from '../../../../src/modules/conversion-agents/types';
+import { AssetConverter } from '../../../../src/modules/conversion-agents/AssetConverter.js';
+import {
+  TextureInfo,
+  SoundInfo,
+  ModelInfo,
+} from '../../../../src/modules/conversion-agents/types.js';
 import sharp from 'sharp';
 
 // Mock sharp
@@ -14,9 +18,9 @@ vi.mock('sharp', () => ({
     ensureAlpha: vi.fn().mockReturnThis(),
     resize: vi.fn().mockReturnThis(),
     png: vi.fn().mockReturnValue({
-      toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock-png-data'))
-    })
-  }))
+      toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock-png-data')),
+    }),
+  })),
 }));
 
 describe('AssetConverter', () => {
@@ -37,8 +41,8 @@ describe('AssetConverter', () => {
           buffer: Buffer.from('mock-image-data'),
           width: 16,
           height: 16,
-          format: 'png'
-        }
+          format: 'png',
+        },
       ];
 
       const result = await assetConverter.convertTextures(textures);
@@ -63,8 +67,8 @@ describe('AssetConverter', () => {
           path: 'textures/blocks/invalid.png',
           name: 'invalid.png',
           type: 'block',
-          buffer: Buffer.from('invalid-data')
-        }
+          buffer: Buffer.from('invalid-data'),
+        },
       ];
 
       const result = await assetConverter.convertTextures(textures);
@@ -81,10 +85,10 @@ describe('AssetConverter', () => {
         ensureAlpha: vi.fn().mockReturnThis(),
         resize: vi.fn().mockReturnThis(),
         png: vi.fn().mockReturnValue({
-          toBuffer: vi.fn().mockResolvedValue(Buffer.from('resized-png-data'))
-        })
+          toBuffer: vi.fn().mockResolvedValue(Buffer.from('resized-png-data')),
+        }),
       };
-      
+
       const mockSharp = vi.mocked(sharp);
       mockSharp.mockReturnValue(mockSharpInstance as any);
 
@@ -93,8 +97,8 @@ describe('AssetConverter', () => {
           path: 'textures/blocks/large.png',
           name: 'large.png',
           type: 'block',
-          buffer: Buffer.from('large-image-data')
-        }
+          buffer: Buffer.from('large-image-data'),
+        },
       ];
 
       await assetConverter.convertTextures(textures);
@@ -105,16 +109,16 @@ describe('AssetConverter', () => {
     it('should add compression info for highly compressed textures', async () => {
       const originalSize = 1000;
       const compressedSize = 200;
-      
+
       const mockSharpInstance = {
         metadata: vi.fn().mockResolvedValue({ width: 16, height: 16, channels: 4 }),
         ensureAlpha: vi.fn().mockReturnThis(),
         resize: vi.fn().mockReturnThis(),
         png: vi.fn().mockReturnValue({
-          toBuffer: vi.fn().mockResolvedValue(Buffer.alloc(compressedSize))
-        })
+          toBuffer: vi.fn().mockResolvedValue(Buffer.alloc(compressedSize)),
+        }),
       };
-      
+
       const mockSharp = vi.mocked(sharp);
       mockSharp.mockReturnValue(mockSharpInstance as any);
 
@@ -123,8 +127,8 @@ describe('AssetConverter', () => {
           path: 'textures/blocks/compressible.png',
           name: 'compressible.png',
           type: 'block',
-          buffer: Buffer.alloc(originalSize)
-        }
+          buffer: Buffer.alloc(originalSize),
+        },
       ];
 
       const result = await assetConverter.convertTextures(textures);
@@ -142,8 +146,8 @@ describe('AssetConverter', () => {
           name: 'break.ogg',
           category: 'block',
           buffer: Buffer.from('mock-sound-data'),
-          format: 'ogg'
-        }
+          format: 'ogg',
+        },
       ];
 
       const result = await assetConverter.convertSounds(sounds);
@@ -162,15 +166,15 @@ describe('AssetConverter', () => {
           name: 'break.ogg',
           category: 'block',
           buffer: Buffer.from('mock-sound-data'),
-          format: 'ogg'
-        }
+          format: 'ogg',
+        },
       ];
 
       const result = await assetConverter.convertSounds(sounds);
 
-      const soundsJsonFile = result.outputFiles.find(f => f.path === 'sounds.json');
+      const soundsJsonFile = result.outputFiles.find((f) => f.path === 'sounds.json');
       expect(soundsJsonFile).toBeDefined();
-      
+
       const soundsJson = JSON.parse(soundsJsonFile!.content as string);
       expect(soundsJson.break).toBeDefined();
       expect(soundsJson.break.category).toBe('block');
@@ -193,12 +197,12 @@ describe('AssetConverter', () => {
                 from: [0, 0, 0],
                 to: [16, 16, 16],
                 faces: {
-                  north: { uv: [0, 0] }
-                }
-              }
-            ]
-          }
-        }
+                  north: { uv: [0, 0] },
+                },
+              },
+            ],
+          },
+        },
       ];
 
       const result = await assetConverter.convertModels(models);
@@ -223,19 +227,19 @@ describe('AssetConverter', () => {
                 from: [0, 0, 0],
                 to: [8, 8, 8],
                 faces: {
-                  north: { uv: [0, 0] }
-                }
-              }
-            ]
-          }
-        }
+                  north: { uv: [0, 0] },
+                },
+              },
+            ],
+          },
+        },
       ];
 
       const result = await assetConverter.convertModels(models);
 
       const modelFile = result.outputFiles[0];
       const bedrockModel = JSON.parse(modelFile.content as string);
-      
+
       expect(bedrockModel.format_version).toBe('1.12.0');
       expect(bedrockModel['minecraft:geometry']).toHaveLength(1);
       expect(bedrockModel['minecraft:geometry'][0].description.identifier).toBe('geometry.test');
@@ -259,10 +263,10 @@ describe('AssetConverter', () => {
               gui: {},
               head: {},
               ground: {},
-              fixed: {}
-            }
-          }
-        }
+              fixed: {},
+            },
+          },
+        },
       ];
 
       const result = await assetConverter.convertModels(models);
@@ -279,18 +283,18 @@ describe('AssetConverter', () => {
           type: 'block',
           content: {
             texture_width: 16,
-            texture_height: 16
-          }
-        }
+            texture_height: 16,
+          },
+        },
       ];
 
       const result = await assetConverter.convertModels(models);
 
       expect(result.success).toBe(true);
-      
+
       const modelFile = result.outputFiles[0];
       const bedrockModel = JSON.parse(modelFile.content as string);
-      
+
       expect(bedrockModel['minecraft:geometry'][0].bones).toHaveLength(1);
       expect(bedrockModel['minecraft:geometry'][0].bones[0].name).toBe('main');
     });
@@ -303,7 +307,7 @@ describe('AssetConverter', () => {
         { path: 'test', name: 'item.png', type: 'item', buffer: Buffer.alloc(0) },
         { path: 'test', name: 'entity.png', type: 'entity', buffer: Buffer.alloc(0) },
         { path: 'test', name: 'gui.png', type: 'gui', buffer: Buffer.alloc(0) },
-        { path: 'test', name: 'other.png', type: 'other', buffer: Buffer.alloc(0) }
+        { path: 'test', name: 'other.png', type: 'other', buffer: Buffer.alloc(0) },
       ];
 
       const result = await assetConverter.convertTextures(textures);
@@ -319,7 +323,7 @@ describe('AssetConverter', () => {
       const models: ModelInfo[] = [
         { path: 'test', name: 'block.json', type: 'block', content: {} },
         { path: 'test', name: 'item.json', type: 'item', content: {} },
-        { path: 'test', name: 'entity.json', type: 'entity', content: {} }
+        { path: 'test', name: 'entity.json', type: 'entity', content: {} },
       ];
 
       const result = await assetConverter.convertModels(models);
@@ -334,7 +338,7 @@ describe('AssetConverter', () => {
     it('should handle conversion errors gracefully', async () => {
       const textures: TextureInfo[] = [
         { path: 'valid', name: 'valid.png', type: 'block', buffer: Buffer.alloc(100) },
-        { path: 'invalid', name: 'invalid.png', type: 'block', buffer: Buffer.alloc(0) }
+        { path: 'invalid', name: 'invalid.png', type: 'block', buffer: Buffer.alloc(0) },
       ];
 
       // Mock sharp to fail on the second texture
@@ -350,8 +354,8 @@ describe('AssetConverter', () => {
           ensureAlpha: vi.fn().mockReturnThis(),
           resize: vi.fn().mockReturnThis(),
           png: vi.fn().mockReturnValue({
-            toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock-data'))
-          })
+            toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock-data')),
+          }),
         } as any;
       });
 

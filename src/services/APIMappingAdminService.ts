@@ -1,14 +1,14 @@
 /**
  * API Mapping Admin Service
- * 
+ *
  * Service for administrative management of API mappings.
  * Provides validation, bulk operations, and admin interface support.
  */
 
-import { APIMapping, APIMapperService, MappingFilter, ImportResult } from '../types/api';
-import { createLogger } from '../utils/logger';
-import { ErrorHandler } from '../utils/errorHandler';
-import { ErrorSeverity, createErrorCode } from '../types/errors';
+import { APIMapping, APIMapperService, MappingFilter, ImportResult } from '../types/api.js';
+import { createLogger } from '../utils/logger.js';
+import { ErrorHandler } from '../utils/errorHandler.js';
+import { ErrorSeverity, createErrorCode } from '../types/errors.js';
 
 const logger = createLogger('APIMappingAdminService');
 const MODULE_ID = 'API_MAPPING_ADMIN';
@@ -53,9 +53,9 @@ export class APIMappingAdminService {
 
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -72,7 +72,7 @@ export class APIMappingAdminService {
     const result: MappingValidationResult = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     try {
@@ -91,9 +91,9 @@ export class APIMappingAdminService {
 
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -101,11 +101,13 @@ export class APIMappingAdminService {
       if (!mapping.conversionType) {
         result.errors.push('Conversion type is required');
       } else if (!['direct', 'wrapper', 'complex', 'impossible'].includes(mapping.conversionType)) {
-        result.errors.push('Invalid conversion type. Must be: direct, wrapper, complex, or impossible');
+        result.errors.push(
+          'Invalid conversion type. Must be: direct, wrapper, complex, or impossible'
+        );
       }
 
-      if (!mapping.version || mapping.version.trim() === '') {
-        result.errors.push('Version is required');
+      if (!mapping.version || mapping.version < 1) {
+        result.errors.push('Version is required and must be a positive number');
       }
 
       if (!mapping.notes || mapping.notes.trim() === '') {
@@ -115,9 +117,9 @@ export class APIMappingAdminService {
       // Format validation
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -126,31 +128,22 @@ export class APIMappingAdminService {
         result.warnings.push('Java signature format may be invalid');
       }
 
-      if (mapping.bedrockEquivalent && mapping.bedrockEquivalent !== 'UNSUPPORTED' && 
-          !this.isValidBedrockSignature(mapping.bedrockEquivalent)) {
+      if (
+        mapping.bedrockEquivalent &&
+        mapping.bedrockEquivalent !== 'UNSUPPORTED' &&
+        !this.isValidBedrockSignature(mapping.bedrockEquivalent)
+      ) {
         result.warnings.push('Bedrock equivalent format may be invalid');
       }
 
-      // Version format validation
-      /**
-       * if method.
-       * 
-       * TODO: Add detailed description of the method's purpose and behavior.
-       * 
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
-      if (mapping.version && !this.isValidVersion(mapping.version)) {
-        result.warnings.push('Version format should follow semantic versioning (e.g., 1.0.0)');
-      }
+      // Version is now numeric and validated above
 
       // Example usage validation
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -166,7 +159,9 @@ export class APIMappingAdminService {
 
       // Consistency checks
       if (mapping.conversionType === 'impossible' && mapping.bedrockEquivalent !== 'UNSUPPORTED') {
-        result.warnings.push('Impossible conversions should have "UNSUPPORTED" as bedrock equivalent');
+        result.warnings.push(
+          'Impossible conversions should have "UNSUPPORTED" as bedrock equivalent'
+        );
       }
 
       if (mapping.conversionType === 'direct' && mapping.bedrockEquivalent === 'UNSUPPORTED') {
@@ -178,13 +173,12 @@ export class APIMappingAdminService {
       logger.debug(`Validated mapping ${mapping.id}`, {
         isValid: result.isValid,
         errorCount: result.errors.length,
-        warningCount: result.warnings.length
+        warningCount: result.warnings.length,
       });
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error validating mapping: ${errorMessage}`, { error, mapping });
-      
+
       result.errors.push(`Validation error: ${errorMessage}`);
       result.isValid = false;
     }
@@ -195,15 +189,18 @@ export class APIMappingAdminService {
   /**
    * Validate multiple mappings
    */
-  validateMappings(mappings: APIMapping[]): { valid: APIMapping[]; invalid: { mapping: APIMapping; validation: MappingValidationResult }[] } {
+  validateMappings(mappings: APIMapping[]): {
+    valid: APIMapping[];
+    invalid: { mapping: APIMapping; validation: MappingValidationResult }[];
+  } {
     const valid: APIMapping[] = [];
     const invalid: { mapping: APIMapping; validation: MappingValidationResult }[] = [];
 
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -212,9 +209,9 @@ export class APIMappingAdminService {
       const validation = this.validateMapping(mapping);
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -228,7 +225,7 @@ export class APIMappingAdminService {
 
     logger.info(`Validated ${mappings.length} mappings`, {
       valid: valid.length,
-      invalid: invalid.length
+      invalid: invalid.length,
     });
 
     return { valid, invalid };
@@ -241,16 +238,16 @@ export class APIMappingAdminService {
     const result: BulkOperationResult = {
       successful: 0,
       failed: 0,
-      errors: []
+      errors: [],
     };
 
     logger.info(`Starting bulk add of ${mappings.length} mappings`);
 
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -261,9 +258,9 @@ export class APIMappingAdminService {
         const validation = this.validateMapping(mapping);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -275,13 +272,12 @@ export class APIMappingAdminService {
         // Add mapping
         await this.apiMapperService.addMapping(mapping);
         result.successful++;
-
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         result.failed++;
         result.errors.push({
           mapping,
-          error: errorMessage
+          error: errorMessage,
         });
 
         logger.warn(`Failed to add mapping ${mapping.id}: ${errorMessage}`);
@@ -299,16 +295,16 @@ export class APIMappingAdminService {
     const result: BulkOperationResult = {
       successful: 0,
       failed: 0,
-      errors: []
+      errors: [],
     };
 
     logger.info(`Starting bulk update of ${mappings.length} mappings`);
 
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -319,9 +315,9 @@ export class APIMappingAdminService {
         const validation = this.validateMapping(mapping);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -331,15 +327,14 @@ export class APIMappingAdminService {
         }
 
         // Update mapping
-        await this.apiMapperService.updateMapping(mapping);
+        await this.apiMapperService.updateMapping(mapping.id, mapping);
         result.successful++;
-
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         result.failed++;
         result.errors.push({
           mapping,
-          error: errorMessage
+          error: errorMessage,
         });
 
         logger.warn(`Failed to update mapping ${mapping.id}: ${errorMessage}`);
@@ -356,66 +351,62 @@ export class APIMappingAdminService {
   async getMappingStatistics(): Promise<MappingStatistics> {
     try {
       const allMappings = await this.apiMapperService.getMappings();
-      
+
       const stats: MappingStatistics = {
         totalMappings: allMappings.length,
         byConversionType: {},
         byVersion: {},
         recentlyUpdated: [],
-        mostUsed: []
+        mostUsed: [],
       };
 
       // Count by conversion type
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       for (const mapping of allMappings) {
-        stats.byConversionType[mapping.conversionType] = 
+        stats.byConversionType[mapping.conversionType] =
           (stats.byConversionType[mapping.conversionType] || 0) + 1;
       }
 
       // Count by version
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       for (const mapping of allMappings) {
-        stats.byVersion[mapping.version] = 
-          (stats.byVersion[mapping.version] || 0) + 1;
+        stats.byVersion[mapping.version] = (stats.byVersion[mapping.version] || 0) + 1;
       }
 
       // Recently updated (last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
+
       stats.recentlyUpdated = allMappings
-        .filter(m => m.lastUpdated >= thirtyDaysAgo)
+        .filter((m) => m.lastUpdated >= thirtyDaysAgo)
         .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
         .slice(0, 10);
 
       // Most used (placeholder - would need usage tracking)
-      stats.mostUsed = allMappings
-        .filter(m => m.conversionType === 'direct')
-        .slice(0, 10);
+      stats.mostUsed = allMappings.filter((m) => m.conversionType === 'direct').slice(0, 10);
 
       logger.debug('Generated mapping statistics', stats);
       return stats;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error generating mapping statistics: ${errorMessage}`, { error });
-      
+
       ErrorHandler.systemError(
         `Failed to generate mapping statistics: ${errorMessage}`,
         MODULE_ID,
@@ -423,9 +414,9 @@ export class APIMappingAdminService {
         ErrorSeverity.ERROR,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -439,7 +430,7 @@ export class APIMappingAdminService {
         byConversionType: {},
         byVersion: {},
         recentlyUpdated: [],
-        mostUsed: []
+        mostUsed: [],
       };
     }
   }
@@ -454,17 +445,16 @@ export class APIMappingAdminService {
         exportedAt: new Date().toISOString(),
         version: '1.0.0',
         filter,
-        mappings
+        mappings,
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
       logger.info(`Exported ${mappings.length} mappings to JSON`);
       return jsonString;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error exporting mappings: ${errorMessage}`, { error });
-      
+
       ErrorHandler.systemError(
         `Failed to export mappings: ${errorMessage}`,
         MODULE_ID,
@@ -472,9 +462,9 @@ export class APIMappingAdminService {
         ErrorSeverity.ERROR,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -492,12 +482,12 @@ export class APIMappingAdminService {
   async importMappingsFromJson(jsonString: string): Promise<ImportResult> {
     try {
       const importData = JSON.parse(jsonString);
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -507,15 +497,15 @@ export class APIMappingAdminService {
       }
 
       const mappings: APIMapping[] = importData.mappings;
-      
+
       // Validate all mappings first
       const { valid, invalid } = this.validateMappings(mappings);
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -526,13 +516,13 @@ export class APIMappingAdminService {
 
       // Import valid mappings
       const result = await this.apiMapperService.importMappings(valid);
-      
+
       // Add validation failures to the result
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -541,17 +531,16 @@ export class APIMappingAdminService {
         result.failed++;
         result.failures.push({
           mapping: invalidMapping.mapping,
-          reason: invalidMapping.validation.errors.join(', ')
+          reason: invalidMapping.validation.errors.join(', '),
         });
       }
 
       logger.info(`Import completed`, result);
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error importing mappings: ${errorMessage}`, { error });
-      
+
       ErrorHandler.systemError(
         `Failed to import mappings: ${errorMessage}`,
         MODULE_ID,
@@ -559,9 +548,9 @@ export class APIMappingAdminService {
         ErrorSeverity.ERROR,
         /**
          * createErrorCode method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -590,25 +579,19 @@ export class APIMappingAdminService {
     if (signature === 'UNSUPPORTED') {
       return true;
     }
-    
-    // Basic validation for JavaScript-like signatures
-    const bedrockSignaturePattern = /^[a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*(\(\))?$/;
-    return bedrockSignaturePattern.test(signature);
-  }
 
-  /**
-   * Validate version format
-   */
-  private isValidVersion(version: string): boolean {
-    // Basic semantic versioning pattern
-    const semverPattern = /^\d+\.\d+\.\d+(-[a-zA-Z0-9-]+)?$/;
-    return semverPattern.test(version);
+    // Basic validation for JavaScript-like signatures
+    const bedrockSignaturePattern =
+      /^[a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*(\(\))?$/;
+    return bedrockSignaturePattern.test(signature);
   }
 }
 
 /**
  * Factory function to create an APIMappingAdminService instance
  */
-export function createAPIMappingAdminService(apiMapperService: APIMapperService): APIMappingAdminService {
+export function createAPIMappingAdminService(
+  apiMapperService: APIMapperService
+): APIMappingAdminService {
   return new APIMappingAdminService(apiMapperService);
 }

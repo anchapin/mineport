@@ -1,0 +1,792 @@
+name: CI/CD Pipeline Monitoring
+
+on:
+  workflow_run:
+    workflows:
+      [
+        'Enhanced CI Pipeline',
+        'Security Scanning',
+        'Deployment Pipeline',
+        'Dependency Updates',
+        'Performance Testing',
+      ]
+    types: [completed, requested, in_progress]
+  schedule:
+    # Run metrics collection every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      collect_historical:
+        description: 'Collect historical metrics'
+        required: false
+        default: 'false'
+        type: boolean
+      time_range:
+        description: 'Time range for historical collection (hours)'
+        required: false
+        default: '24'
+        type: string
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=2048'
+  MONITORING_ENABLED: true
+
+jobs:
+  # Collect pipeline execution metrics
+  pipeline-metrics:
+    name: Collect Pipeline Metrics
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Collect workflow execution metrics
+        id: collect-metrics
+        run: |
+          # Create metrics collection script
+          cat > collect-pipeline-metrics.js << 'EOF'
+          const { Octokit } = require('@octokit/rest');
+          const fs = require('fs');
+          const path = require('path');
+
+          async function collectPipelineMetrics() {
+            const octokit = new Octokit({
+              auth: process.env.GITHUB_TOKEN
+            });
+            
+            const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+            const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+            
+            console.log(`Collecting metrics for ${owner}/${repo}`);
+            
+            // Get workflow runs from the last 24 hours (or specified range)
+            const timeRange = parseInt(process.env.TIME_RANGE || '24');
+            const since = new Date(Date.now() - timeRange * 60 * 60 * 1000).toISOString();
+            
+            try {
+              // Get all workflow runs
+              const { data: workflowRuns } = await octokit.rest.actions.listWorkflowRunsForRepo({
+                owner,
+                repo,
+                per_page: 100,
+                created: `>=${since}`
+              });
+              
+              console.log(`Found ${workflowRuns.workflow_runs.length} workflow runs`);
+              
+              const metrics = {
+                timestamp: new Date().toISOString(),
+                collection_period: {
+                  start: since,
+                  end: new Date().toISOString(),
+                  hours: timeRange
+                },
+                repository: `${owner}/${repo}`,
+                commit: process.env.GITHUB_SHA,
+                branch: process.env.GITHUB_REF_NAME,
+                trigger: {
+                  event: process.env.GITHUB_EVENT_NAME,
+                  workflow: process.env.GITHUB_WORKFLOW,
+                  run_id: process.env.GITHUB_RUN_ID
+                },
+                pipeline_metrics: {
+                  total_runs: workflowRuns.workflow_runs.length,
+                  success_rate: 0,
+                  failure_rate: 0,
+                  average_duration: 0,
+                  workflows: {},
+                  build_times: [],
+                  queue_times: [],
+                  resource_usage: {
+                    total_minutes: 0,
+                    cost_estimate: 0
+                  }
+                }
+              };
+              
+              let totalDuration = 0;
+              let totalQueueTime = 0;
+              let successCount = 0;
+              let failureCount = 0;
+              let totalMinutes = 0;
+              
+              // Process each workflow run
+              for (const run of workflowRuns.workflow_runs) {
+                const workflowName = run.name;
+                
+                if (!metrics.pipeline_metrics.workflows[workflowName]) {
+                  metrics.pipeline_metrics.workflows[workflowName] = {
+                    total_runs: 0,
+                    success_count: 0,
+                    failure_count: 0,
+                    average_duration: 0,
+                    success_rate: 0,
+                    durations: [],
+                    queue_times: [],
+                    conclusions: {}
+                  };
+                }
+                
+                const workflowMetrics = metrics.pipeline_metrics.workflows[workflowName];
+                workflowMetrics.total_runs++;
+                
+                // Calculate duration and queue time
+                const createdAt = new Date(run.created_at);
+                const updatedAt = new Date(run.updated_at);
+                const runStartedAt = run.run_started_at ? new Date(run.run_started_at) : createdAt;
+                
+                const duration = updatedAt - runStartedAt;
+                const queueTime = runStartedAt - createdAt;
+                
+                if (duration > 0) {
+                  workflowMetrics.durations.push(duration);
+                  metrics.pipeline_metrics.build_times.push({
+                    workflow: workflowName,
+                    duration: duration,
+                    conclusion: run.conclusion,
+                    created_at: run.created_at
+                  });
+                  totalDuration += duration;
+                }
+                
+                if (queueTime > 0) {
+                  workflowMetrics.queue_times.push(queueTime);
+                  metrics.pipeline_metrics.queue_times.push({
+                    workflow: workflowName,
+                    queue_time: queueTime,
+                    created_at: run.created_at
+                  });
+                  totalQueueTime += queueTime;
+                }
+                
+                // Track conclusions
+                const conclusion = run.conclusion || 'in_progress';
+                workflowMetrics.conclusions[conclusion] = (workflowMetrics.conclusions[conclusion] || 0) + 1;
+                
+                if (conclusion === 'success') {
+                  workflowMetrics.success_count++;
+                  successCount++;
+                } else if (conclusion === 'failure' || conclusion === 'cancelled' || conclusion === 'timed_out') {
+                  workflowMetrics.failure_count++;
+                  failureCount++;
+                }
+                
+                // Estimate resource usage (GitHub Actions pricing)
+                if (duration > 0) {
+                  const minutes = Math.ceil(duration / (1000 * 60));
+                  totalMinutes += minutes;
+                }
+                
+                // Get job details for more granular metrics
+                try {
+                  const { data: jobs } = await octokit.rest.actions.listJobsForWorkflowRun({
+                    owner,
+                    repo,
+                    run_id: run.id
+                  });
+                  
+                  workflowMetrics.jobs = workflowMetrics.jobs || [];
+                  
+                  for (const job of jobs.jobs) {
+                    const jobStartedAt = job.started_at ? new Date(job.started_at) : null;
+                    const jobCompletedAt = job.completed_at ? new Date(job.completed_at) : null;
+                    const jobDuration = jobStartedAt && jobCompletedAt ? jobCompletedAt - jobStartedAt : 0;
+                    
+                    workflowMetrics.jobs.push({
+                      name: job.name,
+                      conclusion: job.conclusion,
+                      duration: jobDuration,
+                      runner_name: job.runner_name,
+                      runner_group_name: job.runner_group_name,
+                      steps_count: job.steps ? job.steps.length : 0
+                    });
+                  }
+                } catch (jobError) {
+                  console.warn(`Error fetching jobs for run ${run.id}:`, jobError.message);
+                }
+              }
+              
+              // Calculate aggregated metrics
+              const totalRuns = workflowRuns.workflow_runs.length;
+              if (totalRuns > 0) {
+                metrics.pipeline_metrics.success_rate = successCount / totalRuns;
+                metrics.pipeline_metrics.failure_rate = failureCount / totalRuns;
+                metrics.pipeline_metrics.average_duration = totalDuration / totalRuns;
+                metrics.pipeline_metrics.average_queue_time = totalQueueTime / totalRuns;
+              }
+              
+              metrics.pipeline_metrics.resource_usage.total_minutes = totalMinutes;
+              // Rough cost estimate: $0.008 per minute for Linux runners
+              metrics.pipeline_metrics.resource_usage.cost_estimate = totalMinutes * 0.008;
+              
+              // Calculate per-workflow averages
+              for (const [workflowName, workflowMetrics] of Object.entries(metrics.pipeline_metrics.workflows)) {
+                if (workflowMetrics.durations.length > 0) {
+                  workflowMetrics.average_duration = workflowMetrics.durations.reduce((a, b) => a + b, 0) / workflowMetrics.durations.length;
+                }
+                if (workflowMetrics.total_runs > 0) {
+                  workflowMetrics.success_rate = workflowMetrics.success_count / workflowMetrics.total_runs;
+                }
+                if (workflowMetrics.queue_times.length > 0) {
+                  workflowMetrics.average_queue_time = workflowMetrics.queue_times.reduce((a, b) => a + b, 0) / workflowMetrics.queue_times.length;
+                }
+              }
+              
+              // Save metrics to file
+              const metricsDir = 'pipeline-metrics';
+              if (!fs.existsSync(metricsDir)) {
+                fs.mkdirSync(metricsDir, { recursive: true });
+              }
+              
+              const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+              const metricsFile = path.join(metricsDir, `pipeline-metrics-${timestamp}.json`);
+              fs.writeFileSync(metricsFile, JSON.stringify(metrics, null, 2));
+              
+              console.log(`Metrics saved to ${metricsFile}`);
+              console.log(`Total runs: ${totalRuns}, Success rate: ${(metrics.pipeline_metrics.success_rate * 100).toFixed(1)}%`);
+              
+              // Set outputs for GitHub Actions
+              console.log(`::set-output name=metrics_file::${metricsFile}`);
+              console.log(`::set-output name=total_runs::${totalRuns}`);
+              console.log(`::set-output name=success_rate::${(metrics.pipeline_metrics.success_rate * 100).toFixed(1)}`);
+              console.log(`::set-output name=average_duration::${Math.round(metrics.pipeline_metrics.average_duration / 1000)}`);
+              console.log(`::set-output name=cost_estimate::${metrics.pipeline_metrics.resource_usage.cost_estimate.toFixed(2)}`);
+              
+              return metrics;
+              
+            } catch (error) {
+              console.error('Error collecting pipeline metrics:', error);
+              throw error;
+            }
+          }
+
+          // Run the collection
+          collectPipelineMetrics().catch(error => {
+            console.error('Failed to collect pipeline metrics:', error);
+            process.exit(1);
+          });
+          EOF
+
+          # Install required dependencies
+          npm install @octokit/rest
+
+          # Run metrics collection
+          node collect-pipeline-metrics.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TIME_RANGE: ${{ github.event.inputs.time_range || '24' }}
+
+      - name: Store metrics in monitoring system
+        run: |
+          # Create script to store metrics in the monitoring system
+          cat > store-metrics.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const { MonitoringService } = require('./src/services/MonitoringService.js');
+          const config = require('./config/monitoring.json');
+
+          async function storeMetrics() {
+            try {
+              // Initialize monitoring service
+              const monitoringService = new MonitoringService({
+                enableHealthChecks: false,
+                alertingEnabled: true,
+                alertingWebhookUrl: process.env.MONITORING_WEBHOOK_URL
+              });
+              
+              // Find the latest metrics file
+              const metricsDir = 'pipeline-metrics';
+              const files = fs.readdirSync(metricsDir)
+                .filter(file => file.startsWith('pipeline-metrics-') && file.endsWith('.json'))
+                .sort()
+                .reverse();
+              
+              if (files.length === 0) {
+                console.log('No metrics files found');
+                return;
+              }
+              
+              const latestFile = path.join(metricsDir, files[0]);
+              const metrics = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
+              
+              console.log(`Processing metrics from ${latestFile}`);
+              
+              // Record pipeline performance metrics
+              monitoringService.recordPerformanceMetric({
+                operation: 'ci_pipeline',
+                duration: metrics.pipeline_metrics.average_duration,
+                success: metrics.pipeline_metrics.success_rate > 0.8,
+                details: {
+                  total_runs: metrics.pipeline_metrics.total_runs,
+                  success_rate: metrics.pipeline_metrics.success_rate,
+                  failure_rate: metrics.pipeline_metrics.failure_rate,
+                  cost_estimate: metrics.pipeline_metrics.resource_usage.cost_estimate,
+                  workflows: Object.keys(metrics.pipeline_metrics.workflows).length
+                }
+              });
+              
+              // Record individual workflow metrics
+              for (const [workflowName, workflowMetrics] of Object.entries(metrics.pipeline_metrics.workflows)) {
+                monitoringService.recordPerformanceMetric({
+                  operation: 'workflow_execution',
+                  duration: workflowMetrics.average_duration,
+                  success: workflowMetrics.success_rate > 0.8,
+                  details: {
+                    workflow_name: workflowName,
+                    total_runs: workflowMetrics.total_runs,
+                    success_rate: workflowMetrics.success_rate,
+                    average_queue_time: workflowMetrics.average_queue_time
+                  }
+                });
+              }
+              
+              // Record system health based on pipeline performance
+              let healthStatus = 'healthy';
+              if (metrics.pipeline_metrics.success_rate < 0.7) {
+                healthStatus = 'unhealthy';
+              } else if (metrics.pipeline_metrics.success_rate < 0.9) {
+                healthStatus = 'degraded';
+              }
+              
+              monitoringService.recordSystemHealthMetric({
+                component: 'ci_pipeline',
+                status: healthStatus,
+                details: {
+                  success_rate: metrics.pipeline_metrics.success_rate,
+                  average_duration: metrics.pipeline_metrics.average_duration,
+                  total_runs: metrics.pipeline_metrics.total_runs,
+                  cost_per_hour: metrics.pipeline_metrics.resource_usage.cost_estimate / metrics.collection_period.hours
+                }
+              });
+              
+              console.log('Metrics stored successfully in monitoring system');
+              
+            } catch (error) {
+              console.error('Error storing metrics:', error);
+              throw error;
+            }
+          }
+
+          storeMetrics();
+          EOF
+
+          # Run the metrics storage
+          node store-metrics.js
+        env:
+          MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
+
+      - name: Generate pipeline performance dashboard
+        run: |
+          # Create dashboard generation script
+          cat > generate-dashboard.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          function generateDashboard() {
+            try {
+              // Find the latest metrics file
+              const metricsDir = 'pipeline-metrics';
+              const files = fs.readdirSync(metricsDir)
+                .filter(file => file.startsWith('pipeline-metrics-') && file.endsWith('.json'))
+                .sort()
+                .reverse();
+              
+              if (files.length === 0) {
+                console.log('No metrics files found for dashboard');
+                return;
+              }
+              
+              const latestFile = path.join(metricsDir, files[0]);
+              const metrics = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
+              
+              // Generate HTML dashboard
+              const dashboard = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>CI/CD Pipeline Metrics Dashboard</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+                  .container { max-width: 1200px; margin: 0 auto; }
+                  .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+                  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+                  .metric-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .metric-value { font-size: 2em; font-weight: bold; color: #3498db; }
+                  .metric-label { color: #7f8c8d; margin-bottom: 10px; }
+                  .success { color: #27ae60; }
+                  .warning { color: #f39c12; }
+                  .danger { color: #e74c3c; }
+                  .workflow-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                  .workflow-table th, .workflow-table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+                  .workflow-table th { background: #ecf0f1; }
+                  .status-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+                  .chart-container { height: 300px; margin-top: 20px; }
+              </style>
+              <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      <h1>CI/CD Pipeline Metrics Dashboard</h1>
+                      <p>Generated: ${metrics.timestamp}</p>
+                      <p>Collection Period: ${metrics.collection_period.hours} hours (${metrics.collection_period.start} to ${metrics.collection_period.end})</p>
+                  </div>
+                  
+                  <div class="metrics-grid">
+                      <div class="metric-card">
+                          <div class="metric-label">Total Pipeline Runs</div>
+                          <div class="metric-value">${metrics.pipeline_metrics.total_runs}</div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Success Rate</div>
+                          <div class="metric-value ${metrics.pipeline_metrics.success_rate >= 0.9 ? 'success' : metrics.pipeline_metrics.success_rate >= 0.7 ? 'warning' : 'danger'}">
+                              ${(metrics.pipeline_metrics.success_rate * 100).toFixed(1)}%
+                          </div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Average Duration</div>
+                          <div class="metric-value">${Math.round(metrics.pipeline_metrics.average_duration / 1000 / 60)} min</div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Estimated Cost</div>
+                          <div class="metric-value">$${metrics.pipeline_metrics.resource_usage.cost_estimate.toFixed(2)}</div>
+                          <small>${metrics.pipeline_metrics.resource_usage.total_minutes} minutes</small>
+                      </div>
+                  </div>
+                  
+                  <div class="metric-card" style="margin-top: 20px;">
+                      <h3>Workflow Performance</h3>
+                      <table class="workflow-table">
+                          <thead>
+                              <tr>
+                                  <th>Workflow</th>
+                                  <th>Runs</th>
+                                  <th>Success Rate</th>
+                                  <th>Avg Duration</th>
+                                  <th>Status</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              ${Object.entries(metrics.pipeline_metrics.workflows).map(([name, wf]) => `
+                                  <tr>
+                                      <td>${name}</td>
+                                      <td>${wf.total_runs}</td>
+                                      <td>${(wf.success_rate * 100).toFixed(1)}%</td>
+                                      <td>${Math.round(wf.average_duration / 1000 / 60)} min</td>
+                                      <td>
+                                          <span class="status-indicator ${wf.success_rate >= 0.9 ? 'success' : wf.success_rate >= 0.7 ? 'warning' : 'danger'}" 
+                                                style="background: ${wf.success_rate >= 0.9 ? '#27ae60' : wf.success_rate >= 0.7 ? '#f39c12' : '#e74c3c'};"></span>
+                                          ${wf.success_rate >= 0.9 ? 'Healthy' : wf.success_rate >= 0.7 ? 'Warning' : 'Critical'}
+                                      </td>
+                                  </tr>
+                              `).join('')}
+                          </tbody>
+                      </table>
+                  </div>
+                  
+                  <div class="metric-card" style="margin-top: 20px;">
+                      <h3>Build Time Trends</h3>
+                      <div class="chart-container">
+                          <canvas id="buildTimeChart"></canvas>
+                      </div>
+                  </div>
+              </div>
+              
+              <script>
+                  // Build time chart
+                  const ctx = document.getElementById('buildTimeChart').getContext('2d');
+                  const buildTimes = ${JSON.stringify(metrics.pipeline_metrics.build_times.slice(-20))};
+                  
+                  new Chart(ctx, {
+                      type: 'line',
+                      data: {
+                          labels: buildTimes.map(bt => new Date(bt.created_at).toLocaleTimeString()),
+                          datasets: [{
+                              label: 'Build Duration (minutes)',
+                              data: buildTimes.map(bt => Math.round(bt.duration / 1000 / 60)),
+                              borderColor: '#3498db',
+                              backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                              tension: 0.4
+                          }]
+                      },
+                      options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                              y: {
+                                  beginAtZero: true,
+                                  title: {
+                                      display: true,
+                                      text: 'Duration (minutes)'
+                                  }
+                              },
+                              x: {
+                                  title: {
+                                      display: true,
+                                      text: 'Time'
+                                  }
+                              }
+                          }
+                      }
+                  });
+              </script>
+          </body>
+          </html>
+              `;
+              
+              // Save dashboard
+              const dashboardDir = 'pipeline-dashboard';
+              if (!fs.existsSync(dashboardDir)) {
+                fs.mkdirSync(dashboardDir, { recursive: true });
+              }
+              
+              const dashboardFile = path.join(dashboardDir, 'index.html');
+              fs.writeFileSync(dashboardFile, dashboard);
+              
+              console.log(`Dashboard generated: ${dashboardFile}`);
+              
+              // Generate summary for GitHub Actions
+              const summary = `
+          ## Pipeline Metrics Summary
+
+          **Collection Period:** ${metrics.collection_period.hours} hours
+
+          | Metric | Value |
+          |--------|-------|
+          | Total Runs | ${metrics.pipeline_metrics.total_runs} |
+          | Success Rate | ${(metrics.pipeline_metrics.success_rate * 100).toFixed(1)}% |
+          | Average Duration | ${Math.round(metrics.pipeline_metrics.average_duration / 1000 / 60)} minutes |
+          | Estimated Cost | $${metrics.pipeline_metrics.resource_usage.cost_estimate.toFixed(2)} |
+
+          ### Workflow Performance
+
+          ${Object.entries(metrics.pipeline_metrics.workflows).map(([name, wf]) => 
+            `- **${name}**: ${wf.total_runs} runs, ${(wf.success_rate * 100).toFixed(1)}% success rate`
+          ).join('\n')}
+          `;
+              
+              fs.writeFileSync(path.join(dashboardDir, 'summary.md'), summary);
+              
+            } catch (error) {
+              console.error('Error generating dashboard:', error);
+              throw error;
+            }
+          }
+
+          generateDashboard();
+          EOF
+
+          # Generate the dashboard
+          node generate-dashboard.js
+
+      - name: Upload pipeline metrics and dashboard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-metrics-${{ github.run_id }}
+          path: |
+            pipeline-metrics/
+            pipeline-dashboard/
+          retention-days: 30
+
+      - name: Add metrics to job summary
+        if: always()
+        run: |
+          if [[ -f "pipeline-dashboard/summary.md" ]]; then
+            cat pipeline-dashboard/summary.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Scheduled metrics collection and cleanup
+  scheduled-metrics:
+    name: Scheduled Metrics Collection
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Collect and aggregate historical metrics
+        run: |
+          # Create historical metrics collection script
+          cat > collect-historical-metrics.js << 'EOF'
+          const { Octokit } = require('@octokit/rest');
+          const fs = require('fs');
+          const path = require('path');
+
+          async function collectHistoricalMetrics() {
+            const octokit = new Octokit({
+              auth: process.env.GITHUB_TOKEN
+            });
+            
+            const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+            const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+            
+            console.log('Collecting historical metrics for trend analysis...');
+            
+            // Collect metrics for the last 7 days
+            const timeRanges = [
+              { hours: 24, label: '24h' },
+              { hours: 72, label: '3d' },
+              { hours: 168, label: '7d' }
+            ];
+            
+            const historicalData = {
+              timestamp: new Date().toISOString(),
+              repository: `${owner}/${repo}`,
+              trends: {}
+            };
+            
+            for (const range of timeRanges) {
+              const since = new Date(Date.now() - range.hours * 60 * 60 * 1000).toISOString();
+              
+              try {
+                const { data: workflowRuns } = await octokit.rest.actions.listWorkflowRunsForRepo({
+                  owner,
+                  repo,
+                  per_page: 100,
+                  created: `>=${since}`
+                });
+                
+                let successCount = 0;
+                let totalDuration = 0;
+                let totalCost = 0;
+                
+                for (const run of workflowRuns.workflow_runs) {
+                  if (run.conclusion === 'success') successCount++;
+                  
+                  const createdAt = new Date(run.created_at);
+                  const updatedAt = new Date(run.updated_at);
+                  const runStartedAt = run.run_started_at ? new Date(run.run_started_at) : createdAt;
+                  const duration = updatedAt - runStartedAt;
+                  
+                  if (duration > 0) {
+                    totalDuration += duration;
+                    const minutes = Math.ceil(duration / (1000 * 60));
+                    totalCost += minutes * 0.008; // Rough cost estimate
+                  }
+                }
+                
+                historicalData.trends[range.label] = {
+                  total_runs: workflowRuns.workflow_runs.length,
+                  success_rate: workflowRuns.workflow_runs.length > 0 ? successCount / workflowRuns.workflow_runs.length : 0,
+                  average_duration: workflowRuns.workflow_runs.length > 0 ? totalDuration / workflowRuns.workflow_runs.length : 0,
+                  total_cost: totalCost,
+                  runs_per_day: workflowRuns.workflow_runs.length / (range.hours / 24)
+                };
+                
+                console.log(`${range.label}: ${workflowRuns.workflow_runs.length} runs, ${(historicalData.trends[range.label].success_rate * 100).toFixed(1)}% success`);
+                
+              } catch (error) {
+                console.error(`Error collecting ${range.label} metrics:`, error.message);
+              }
+            }
+            
+            // Save historical data
+            const historicalDir = 'historical-metrics';
+            if (!fs.existsSync(historicalDir)) {
+              fs.mkdirSync(historicalDir, { recursive: true });
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const historicalFile = path.join(historicalDir, `historical-${timestamp}.json`);
+            fs.writeFileSync(historicalFile, JSON.stringify(historicalData, null, 2));
+            
+            console.log(`Historical metrics saved to ${historicalFile}`);
+            
+            // Generate trend analysis
+            const trends = historicalData.trends;
+            const analysis = {
+              success_rate_trend: trends['7d'].success_rate - trends['24h'].success_rate,
+              duration_trend: trends['7d'].average_duration - trends['24h'].average_duration,
+              cost_trend: trends['7d'].total_cost - trends['24h'].total_cost,
+              activity_trend: trends['7d'].runs_per_day - trends['24h'].runs_per_day
+            };
+            
+            console.log('Trend Analysis:');
+            console.log(`Success Rate: ${analysis.success_rate_trend > 0 ? '↑' : '↓'} ${(Math.abs(analysis.success_rate_trend) * 100).toFixed(1)}%`);
+            console.log(`Duration: ${analysis.duration_trend > 0 ? '↑' : '↓'} ${Math.abs(Math.round(analysis.duration_trend / 1000))}s`);
+            console.log(`Cost: ${analysis.cost_trend > 0 ? '↑' : '↓'} $${Math.abs(analysis.cost_trend).toFixed(2)}`);
+            
+            return historicalData;
+          }
+
+          collectHistoricalMetrics().catch(error => {
+            console.error('Failed to collect historical metrics:', error);
+            process.exit(1);
+          });
+          EOF
+
+          # Install dependencies and run collection
+          npm install @octokit/rest
+          node collect-historical-metrics.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup old metrics
+        run: |
+          # Create cleanup script
+          cat > cleanup-metrics.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          function cleanupOldMetrics() {
+            const directories = ['pipeline-metrics', 'historical-metrics'];
+            const retentionDays = 30;
+            const cutoffTime = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+            
+            for (const dir of directories) {
+              if (!fs.existsSync(dir)) continue;
+              
+              const files = fs.readdirSync(dir);
+              let deletedCount = 0;
+              
+              for (const file of files) {
+                const filePath = path.join(dir, file);
+                const stats = fs.statSync(filePath);
+                
+                if (stats.mtime.getTime() < cutoffTime) {
+                  fs.unlinkSync(filePath);
+                  deletedCount++;
+                }
+              }
+              
+              console.log(`Cleaned up ${deletedCount} old files from ${dir}`);
+            }
+          }
+
+          cleanupOldMetrics();
+          EOF
+
+          node cleanup-metrics.js
+
+      - name: Upload historical metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-metrics-${{ github.run_id }}
+          path: historical-metrics/
+          retention-days: 90

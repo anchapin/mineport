@@ -1,33 +1,40 @@
 /**
  * BlockItemGenerator - Block and item definition generation agent
- * 
+ *
  * Handles generation of Bedrock block and item definitions from Java mod data
  */
 
-import { 
-  BlockInfo, 
-  ItemInfo, 
-  RecipeInfo, 
-  BlockDefinition, 
-  ItemDefinition, 
+import {
+  BlockInfo,
+  ItemInfo,
+  RecipeInfo,
+  BlockDefinition,
+  ItemDefinition,
   RecipeDefinition,
-  ConversionResult,
+  ConversionAgentResult,
   ConversionMetadata,
-  OutputFile
-} from './types';
-import { ConversionError, AssetConversionNote, createConversionError, ErrorType, ErrorSeverity, createErrorCode } from '../../types/errors';
+  OutputFile,
+} from './types.js';
+import {
+  ConversionError,
+  AssetConversionNote,
+  createConversionError,
+  ErrorType,
+  ErrorSeverity,
+  createErrorCode,
+} from '../../types/errors.js';
 
 /**
  * Block and item definition generation agent
  */
 export class BlockItemGenerator {
   private static readonly MODULE_NAME = 'BlockItemGenerator';
-  
+
   // Bedrock format constants
   private static readonly BLOCK_FORMAT_VERSION = '1.20.0';
   private static readonly ITEM_FORMAT_VERSION = '1.20.0';
   private static readonly RECIPE_FORMAT_VERSION = '1.20.0';
-  
+
   // Default component values
   private static readonly DEFAULT_HARDNESS = 1.0;
   private static readonly DEFAULT_RESISTANCE = 1.0;
@@ -36,7 +43,7 @@ export class BlockItemGenerator {
   /**
    * Generate block definitions from block information
    */
-  async generateBlockDefinitions(blocks: BlockInfo[]): Promise<ConversionResult> {
+  async generateBlockDefinitions(blocks: BlockInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -50,33 +57,32 @@ export class BlockItemGenerator {
         if (!block.identifier || block.identifier.trim() === '') {
           throw new Error('Block identifier is empty or invalid');
         }
-        
+
         const definition = this.createBlockDefinition(block);
         const validationResult = this.validateDefinitionSyntax(definition);
-        
+
         if (!validationResult.isValid) {
           // Add validation errors but continue processing
           for (const error of validationResult.errors) {
             warnings.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               message: `Block ${block.identifier} validation warning: ${error}`,
               component: 'model',
-              details: { blockId: block.identifier, validationError: error }
+              details: { blockId: block.identifier, validationError: error },
             });
           }
         }
-        
+
         const content = JSON.stringify(definition, null, 2);
         outputFiles.push({
           path: `blocks/${block.identifier.replace(':', '_')}.json`,
           content,
           type: 'json',
-          originalPath: block.identifier
+          originalPath: block.identifier,
         });
-        
+
         successCount++;
         totalSize += content.length;
-        
       } catch (error) {
         const conversionError = createConversionError({
           code: createErrorCode('BLKGEN', 'BLK', 1),
@@ -84,7 +90,7 @@ export class BlockItemGenerator {
           severity: ErrorSeverity.ERROR,
           message: `Failed to generate block definition for ${block.identifier || 'unknown'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           moduleOrigin: BlockItemGenerator.MODULE_NAME,
-          details: { blockId: block.identifier }
+          details: { blockId: block.identifier },
         });
         errors.push(conversionError);
       }
@@ -95,7 +101,7 @@ export class BlockItemGenerator {
       successCount,
       failureCount: blocks.length - successCount,
       processingTime: Date.now() - startTime,
-      totalSize
+      totalSize,
     };
 
     return {
@@ -103,14 +109,14 @@ export class BlockItemGenerator {
       outputFiles,
       errors,
       warnings,
-      metadata
+      metadata,
     };
   }
 
   /**
    * Generate item definitions from item information
    */
-  async generateItemDefinitions(items: ItemInfo[]): Promise<ConversionResult> {
+  async generateItemDefinitions(items: ItemInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -122,30 +128,29 @@ export class BlockItemGenerator {
       try {
         const definition = this.createItemDefinition(item);
         const validationResult = this.validateDefinitionSyntax(definition);
-        
+
         if (!validationResult.isValid) {
           // Add validation errors but continue processing
           for (const error of validationResult.errors) {
             warnings.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               message: `Item ${item.identifier} validation warning: ${error}`,
               component: 'model',
-              details: { itemId: item.identifier, validationError: error }
+              details: { itemId: item.identifier, validationError: error },
             });
           }
         }
-        
+
         const content = JSON.stringify(definition, null, 2);
         outputFiles.push({
           path: `items/${item.identifier.replace(':', '_')}.json`,
           content,
           type: 'json',
-          originalPath: item.identifier
+          originalPath: item.identifier,
         });
-        
+
         successCount++;
         totalSize += content.length;
-        
       } catch (error) {
         const conversionError = createConversionError({
           code: createErrorCode('BLKGEN', 'ITM', 1),
@@ -153,7 +158,7 @@ export class BlockItemGenerator {
           severity: ErrorSeverity.ERROR,
           message: `Failed to generate item definition for ${item.identifier}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           moduleOrigin: BlockItemGenerator.MODULE_NAME,
-          details: { itemId: item.identifier }
+          details: { itemId: item.identifier },
         });
         errors.push(conversionError);
       }
@@ -164,7 +169,7 @@ export class BlockItemGenerator {
       successCount,
       failureCount: items.length - successCount,
       processingTime: Date.now() - startTime,
-      totalSize
+      totalSize,
     };
 
     return {
@@ -172,14 +177,14 @@ export class BlockItemGenerator {
       outputFiles,
       errors,
       warnings,
-      metadata
+      metadata,
     };
   }
 
   /**
    * Generate recipe definitions from recipe information
    */
-  async createRecipeDefinitions(recipes: RecipeInfo[]): Promise<ConversionResult> {
+  async createRecipeDefinitions(recipes: RecipeInfo[]): Promise<ConversionAgentResult> {
     const startTime = Date.now();
     const outputFiles: OutputFile[] = [];
     const errors: ConversionError[] = [];
@@ -191,30 +196,29 @@ export class BlockItemGenerator {
       try {
         const definition = this.createRecipeDefinition(recipe);
         const validationResult = this.validateDefinitionSyntax(definition);
-        
+
         if (!validationResult.isValid) {
           // Add validation errors but continue processing
           for (const error of validationResult.errors) {
             warnings.push({
-              type: 'warning',
+              type: ErrorSeverity.WARNING,
               message: `Recipe ${recipe.identifier} validation warning: ${error}`,
               component: 'model',
-              details: { recipeId: recipe.identifier, validationError: error }
+              details: { recipeId: recipe.identifier, validationError: error },
             });
           }
         }
-        
+
         const content = JSON.stringify(definition, null, 2);
         outputFiles.push({
           path: `recipes/${recipe.identifier.replace(':', '_')}.json`,
           content,
           type: 'json',
-          originalPath: recipe.identifier
+          originalPath: recipe.identifier,
         });
-        
+
         successCount++;
         totalSize += content.length;
-        
       } catch (error) {
         const conversionError = createConversionError({
           code: createErrorCode('BLKGEN', 'RCP', 1),
@@ -222,7 +226,7 @@ export class BlockItemGenerator {
           severity: ErrorSeverity.ERROR,
           message: `Failed to generate recipe definition for ${recipe.identifier}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           moduleOrigin: BlockItemGenerator.MODULE_NAME,
-          details: { recipeId: recipe.identifier }
+          details: { recipeId: recipe.identifier },
         });
         errors.push(conversionError);
       }
@@ -233,7 +237,7 @@ export class BlockItemGenerator {
       successCount,
       failureCount: recipes.length - successCount,
       processingTime: Date.now() - startTime,
-      totalSize
+      totalSize,
     };
 
     return {
@@ -241,7 +245,7 @@ export class BlockItemGenerator {
       outputFiles,
       errors,
       warnings,
-      metadata
+      metadata,
     };
   }
 
@@ -255,11 +259,11 @@ export class BlockItemGenerator {
         description: {
           identifier: block.identifier,
           properties: block.properties || {},
-          states: this.convertPropertiesToStates(block.properties || {})
+          states: this.convertPropertiesToStates(block.properties || {}),
         },
         components: this.createBlockComponents(block),
-        permutations: block.permutations || []
-      }
+        permutations: block.permutations || [],
+      },
     };
 
     return definition;
@@ -274,10 +278,10 @@ export class BlockItemGenerator {
       'minecraft:item': {
         description: {
           identifier: item.identifier,
-          category: item.category || 'items'
+          category: item.category || 'items',
         },
-        components: this.createItemComponents(item)
-      }
+        components: this.createItemComponents(item),
+      },
     };
 
     return definition;
@@ -288,65 +292,65 @@ export class BlockItemGenerator {
    */
   private createRecipeDefinition(recipe: RecipeInfo): RecipeDefinition {
     const definition: RecipeDefinition = {
-      format_version: BlockItemGenerator.RECIPE_FORMAT_VERSION
+      format_version: BlockItemGenerator.RECIPE_FORMAT_VERSION,
     };
 
     switch (recipe.type) {
       case 'crafting_shaped':
         definition['minecraft:recipe_shaped'] = {
           description: {
-            identifier: recipe.identifier
+            identifier: recipe.identifier,
           },
           tags: recipe.tags || ['crafting_table'],
           pattern: this.convertShapedPattern(recipe.input),
           key: this.convertShapedKey(recipe.input),
-          result: this.convertRecipeOutput(recipe.output)
+          result: this.convertRecipeOutput(recipe.output),
         };
         break;
 
       case 'crafting_shapeless':
         definition['minecraft:recipe_shapeless'] = {
           description: {
-            identifier: recipe.identifier
+            identifier: recipe.identifier,
           },
           tags: recipe.tags || ['crafting_table'],
           ingredients: this.convertShapelessIngredients(recipe.input),
-          result: this.convertRecipeOutput(recipe.output)
+          result: this.convertRecipeOutput(recipe.output),
         };
         break;
 
       case 'furnace':
         definition['minecraft:recipe_furnace'] = {
           description: {
-            identifier: recipe.identifier
+            identifier: recipe.identifier,
           },
           tags: recipe.tags || ['furnace'],
           input: this.convertFurnaceInput(recipe.input),
-          output: this.convertRecipeOutput(recipe.output)
+          output: this.convertRecipeOutput(recipe.output),
         };
         break;
 
       case 'stonecutter':
         definition['minecraft:recipe_stonecutter'] = {
           description: {
-            identifier: recipe.identifier
+            identifier: recipe.identifier,
           },
           tags: recipe.tags || ['stonecutter'],
           input: this.convertStonecutterInput(recipe.input),
-          output: this.convertRecipeOutput(recipe.output)
+          output: this.convertRecipeOutput(recipe.output),
         };
         break;
 
       case 'smithing':
         definition['minecraft:recipe_smithing_transform'] = {
           description: {
-            identifier: recipe.identifier
+            identifier: recipe.identifier,
           },
           tags: recipe.tags || ['smithing_table'],
           template: this.convertSmithingTemplate(recipe.input),
           base: this.convertSmithingBase(recipe.input),
           addition: this.convertSmithingAddition(recipe.input),
-          result: this.convertRecipeOutput(recipe.output)
+          result: this.convertRecipeOutput(recipe.output),
         };
         break;
 
@@ -364,14 +368,14 @@ export class BlockItemGenerator {
     const components: Record<string, any> = {
       'minecraft:material_instances': this.createMaterialInstances(block.textures),
       'minecraft:geometry': {
-        identifier: `geometry.${block.identifier.replace(':', '.')}`
+        identifier: `geometry.${block.identifier.replace(':', '.')}`,
       },
       'minecraft:destructible_by_mining': {
-        seconds_to_destroy: BlockItemGenerator.DEFAULT_HARDNESS
+        seconds_to_destroy: BlockItemGenerator.DEFAULT_HARDNESS,
       },
       'minecraft:destructible_by_explosion': {
-        explosion_resistance: BlockItemGenerator.DEFAULT_RESISTANCE
-      }
+        explosion_resistance: BlockItemGenerator.DEFAULT_RESISTANCE,
+      },
     };
 
     // Add custom components if provided
@@ -382,11 +386,11 @@ export class BlockItemGenerator {
     // Add collision and selection boxes
     components['minecraft:collision_box'] = {
       origin: [-8, 0, -8],
-      size: [16, 16, 16]
+      size: [16, 16, 16],
     };
     components['minecraft:selection_box'] = {
       origin: [-8, 0, -8],
-      size: [16, 16, 16]
+      size: [16, 16, 16],
     };
 
     return components;
@@ -398,11 +402,11 @@ export class BlockItemGenerator {
   private createItemComponents(item: ItemInfo): Record<string, any> {
     const components: Record<string, any> = {
       'minecraft:icon': {
-        texture: item.texture || item.identifier.replace(':', '.')
+        texture: item.texture || item.identifier.replace(':', '.'),
       },
       'minecraft:max_stack_size': item.maxStackSize || BlockItemGenerator.DEFAULT_STACK_SIZE,
       'minecraft:hand_equipped': false,
-      'minecraft:stacked_by_data': true
+      'minecraft:stacked_by_data': true,
     };
 
     // Add custom components if provided
@@ -418,11 +422,11 @@ export class BlockItemGenerator {
    */
   private createMaterialInstances(textures: Record<string, string>): Record<string, any> {
     const instances: Record<string, any> = {};
-    
+
     // Default material instance
     instances['*'] = {
       texture: textures.all || textures.side || Object.values(textures)[0] || 'stone',
-      render_method: 'opaque'
+      render_method: 'opaque',
     };
 
     // Face-specific instances
@@ -432,14 +436,14 @@ export class BlockItemGenerator {
       north: 'north',
       south: 'south',
       east: 'east',
-      west: 'west'
+      west: 'west',
     };
 
     for (const [face, bedrockFace] of Object.entries(faceMap)) {
       if (textures[face]) {
         instances[bedrockFace] = {
           texture: textures[face],
-          render_method: 'opaque'
+          render_method: 'opaque',
         };
       }
     }
@@ -452,7 +456,7 @@ export class BlockItemGenerator {
    */
   private convertPropertiesToStates(properties: Record<string, any>): Record<string, any> {
     const states: Record<string, any> = {};
-    
+
     for (const [key, value] of Object.entries(properties)) {
       if (typeof value === 'boolean') {
         states[key] = [false, true];
@@ -465,7 +469,7 @@ export class BlockItemGenerator {
         states[key] = [value];
       }
     }
-    
+
     return states;
   }
 
@@ -489,7 +493,7 @@ export class BlockItemGenerator {
     if (input.key) {
       return input.key;
     }
-    return { 'A': { item: 'minecraft:stone' } }; // Default key
+    return { A: { item: 'minecraft:stone' } }; // Default key
   }
 
   /**
@@ -497,7 +501,7 @@ export class BlockItemGenerator {
    */
   private convertShapelessIngredients(input: any): any[] {
     if (Array.isArray(input)) {
-      return input.map(ingredient => ({ item: ingredient }));
+      return input.map((ingredient) => ({ item: ingredient }));
     }
     return [{ item: 'minecraft:stone' }]; // Default ingredient
   }
@@ -565,14 +569,14 @@ export class BlockItemGenerator {
     }
 
     // Check for main object
-    const mainKey = Object.keys(definition).find(key => key.startsWith('minecraft:'));
+    const mainKey = Object.keys(definition).find((key) => key.startsWith('minecraft:'));
     if (!mainKey) {
       errors.push('Missing main minecraft: object');
       return { isValid: false, errors };
     }
 
     const mainObject = definition[mainKey];
-    
+
     // Check description
     if (!mainObject.description) {
       errors.push('Missing description object');
@@ -602,7 +606,7 @@ export class BlockItemGenerator {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }

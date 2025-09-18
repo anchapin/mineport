@@ -3,8 +3,12 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { BlockItemGenerator } from '../../../../src/modules/conversion-agents/BlockItemGenerator';
-import { BlockInfo, ItemInfo, RecipeInfo } from '../../../../src/modules/conversion-agents/types';
+import { BlockItemGenerator } from '../../../../src/modules/conversion-agents/BlockItemGenerator.js';
+import {
+  BlockInfo,
+  ItemInfo,
+  RecipeInfo,
+} from '../../../../src/modules/conversion-agents/types.js';
 
 describe('BlockItemGenerator', () => {
   let generator: BlockItemGenerator;
@@ -20,13 +24,13 @@ describe('BlockItemGenerator', () => {
           identifier: 'testmod:stone_block',
           displayName: 'Stone Block',
           textures: {
-            all: 'stone'
+            all: 'stone',
           },
           properties: {
             hardness: 2.0,
-            resistance: 3.0
-          }
-        }
+            resistance: 3.0,
+          },
+        },
       ];
 
       const result = await generator.generateBlockDefinitions(blocks);
@@ -53,9 +57,9 @@ describe('BlockItemGenerator', () => {
             north: 'north_texture',
             south: 'south_texture',
             east: 'east_texture',
-            west: 'west_texture'
-          }
-        }
+            west: 'west_texture',
+          },
+        },
       ];
 
       const result = await generator.generateBlockDefinitions(blocks);
@@ -86,9 +90,9 @@ describe('BlockItemGenerator', () => {
           properties: {
             powered: true,
             level: 3,
-            facing: ['north', 'south', 'east', 'west']
-          }
-        }
+            facing: ['north', 'south', 'east', 'west'],
+          },
+        },
       ];
 
       const result = await generator.generateBlockDefinitions(blocks);
@@ -106,8 +110,8 @@ describe('BlockItemGenerator', () => {
         {
           identifier: '', // Invalid identifier
           displayName: 'Invalid Block',
-          textures: {}
-        }
+          textures: {},
+        },
       ];
 
       const result = await generator.generateBlockDefinitions(blocks);
@@ -122,8 +126,8 @@ describe('BlockItemGenerator', () => {
         {
           identifier: 'invalid identifier with spaces',
           displayName: 'Invalid Block',
-          textures: { all: 'texture' }
-        }
+          textures: { all: 'texture' },
+        },
       ];
 
       const result = await generator.generateBlockDefinitions(blocks);
@@ -141,8 +145,8 @@ describe('BlockItemGenerator', () => {
           displayName: 'Custom Item',
           texture: 'custom_item_texture',
           category: 'tools',
-          maxStackSize: 1
-        }
+          maxStackSize: 1,
+        },
       ];
 
       const result = await generator.generateItemDefinitions(items);
@@ -167,10 +171,10 @@ describe('BlockItemGenerator', () => {
           maxStackSize: 1,
           components: {
             'minecraft:durability': {
-              max_durability: 100
-            }
-          }
-        }
+              max_durability: 100,
+            },
+          },
+        },
       ];
 
       const result = await generator.generateItemDefinitions(items);
@@ -191,8 +195,8 @@ describe('BlockItemGenerator', () => {
       const items: ItemInfo[] = [
         {
           identifier: 'testmod:simple_item',
-          displayName: 'Simple Item'
-        }
+          displayName: 'Simple Item',
+        },
       ];
 
       const result = await generator.generateItemDefinitions(items);
@@ -215,13 +219,13 @@ describe('BlockItemGenerator', () => {
           input: {
             pattern: ['AAA', 'ABA', 'AAA'],
             key: {
-              'A': { item: 'minecraft:stone' },
-              'B': { item: 'minecraft:diamond' }
-            }
+              A: { item: 'minecraft:stone' },
+              B: { item: 'minecraft:diamond' },
+            },
           },
           output: { item: 'testmod:custom_block', count: 1 },
-          tags: ['crafting_table']
-        }
+          tags: ['crafting_table'],
+        },
       ];
 
       const result = await generator.createRecipeDefinitions(recipes);
@@ -242,8 +246,8 @@ describe('BlockItemGenerator', () => {
           identifier: 'testmod:shapeless_recipe',
           type: 'crafting_shapeless',
           input: ['minecraft:stone', 'minecraft:diamond'],
-          output: { item: 'testmod:custom_item', count: 2 }
-        }
+          output: { item: 'testmod:custom_item', count: 2 },
+        },
       ];
 
       const result = await generator.createRecipeDefinitions(recipes);
@@ -261,8 +265,8 @@ describe('BlockItemGenerator', () => {
           identifier: 'testmod:furnace_recipe',
           type: 'furnace',
           input: { item: 'testmod:raw_ore' },
-          output: { item: 'testmod:ingot', count: 1 }
-        }
+          output: { item: 'testmod:ingot', count: 1 },
+        },
       ];
 
       const result = await generator.createRecipeDefinitions(recipes);
@@ -279,8 +283,8 @@ describe('BlockItemGenerator', () => {
           identifier: 'testmod:stonecutter_recipe',
           type: 'stonecutter',
           input: { item: 'minecraft:stone' },
-          output: { item: 'testmod:stone_slab', count: 2 }
-        }
+          output: { item: 'testmod:stone_slab', count: 2 },
+        },
       ];
 
       const result = await generator.createRecipeDefinitions(recipes);
@@ -299,19 +303,25 @@ describe('BlockItemGenerator', () => {
           input: {
             template: { item: 'minecraft:netherite_upgrade_smithing_template' },
             base: { item: 'minecraft:diamond_sword' },
-            addition: { item: 'minecraft:netherite_ingot' }
+            addition: { item: 'minecraft:netherite_ingot' },
           },
-          output: { item: 'minecraft:netherite_sword', count: 1 }
-        }
+          output: { item: 'minecraft:netherite_sword', count: 1 },
+        },
       ];
 
       const result = await generator.createRecipeDefinitions(recipes);
 
       const definition = JSON.parse(result.outputFiles[0].content as string);
       expect(definition['minecraft:recipe_smithing_transform']).toBeDefined();
-      expect(definition['minecraft:recipe_smithing_transform'].template.item).toBe('minecraft:netherite_upgrade_smithing_template');
-      expect(definition['minecraft:recipe_smithing_transform'].base.item).toBe('minecraft:diamond_sword');
-      expect(definition['minecraft:recipe_smithing_transform'].addition.item).toBe('minecraft:netherite_ingot');
+      expect(definition['minecraft:recipe_smithing_transform'].template.item).toBe(
+        'minecraft:netherite_upgrade_smithing_template'
+      );
+      expect(definition['minecraft:recipe_smithing_transform'].base.item).toBe(
+        'minecraft:diamond_sword'
+      );
+      expect(definition['minecraft:recipe_smithing_transform'].addition.item).toBe(
+        'minecraft:netherite_ingot'
+      );
     });
 
     it('should handle unsupported recipe types', async () => {
@@ -320,8 +330,8 @@ describe('BlockItemGenerator', () => {
           identifier: 'testmod:unsupported_recipe',
           type: 'unsupported_type' as any,
           input: {},
-          output: {}
-        }
+          output: {},
+        },
       ];
 
       const result = await generator.createRecipeDefinitions(recipes);
@@ -338,12 +348,12 @@ describe('BlockItemGenerator', () => {
         format_version: '1.20.0',
         'minecraft:block': {
           description: {
-            identifier: 'testmod:valid_block'
+            identifier: 'testmod:valid_block',
           },
           components: {
-            'minecraft:material_instances': {}
-          }
-        }
+            'minecraft:material_instances': {},
+          },
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -356,10 +366,10 @@ describe('BlockItemGenerator', () => {
       const definition = {
         'minecraft:block': {
           description: {
-            identifier: 'testmod:block'
+            identifier: 'testmod:block',
           },
-          components: {}
-        }
+          components: {},
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -370,7 +380,7 @@ describe('BlockItemGenerator', () => {
 
     it('should detect missing main object', () => {
       const definition = {
-        format_version: '1.20.0'
+        format_version: '1.20.0',
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -383,8 +393,8 @@ describe('BlockItemGenerator', () => {
       const definition = {
         format_version: '1.20.0',
         'minecraft:block': {
-          components: {}
-        }
+          components: {},
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -398,8 +408,8 @@ describe('BlockItemGenerator', () => {
         format_version: '1.20.0',
         'minecraft:block': {
           description: {},
-          components: {}
-        }
+          components: {},
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -413,9 +423,9 @@ describe('BlockItemGenerator', () => {
         format_version: '1.20.0',
         'minecraft:block': {
           description: {
-            identifier: 'testmod:block'
-          }
-        }
+            identifier: 'testmod:block',
+          },
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -429,16 +439,18 @@ describe('BlockItemGenerator', () => {
         format_version: '1.20.0',
         'minecraft:block': {
           description: {
-            identifier: 'invalid_identifier_without_namespace'
+            identifier: 'invalid_identifier_without_namespace',
           },
-          components: {}
-        }
+          components: {},
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Identifier should include namespace (e.g., "modid:itemname")');
+      expect(result.errors).toContain(
+        'Identifier should include namespace (e.g., "modid:itemname")'
+      );
     });
 
     it('should detect spaces in identifier', () => {
@@ -446,10 +458,10 @@ describe('BlockItemGenerator', () => {
         format_version: '1.20.0',
         'minecraft:block': {
           description: {
-            identifier: 'testmod:invalid identifier'
+            identifier: 'testmod:invalid identifier',
           },
-          components: {}
-        }
+          components: {},
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -463,9 +475,9 @@ describe('BlockItemGenerator', () => {
         format_version: '1.20.0',
         'minecraft:recipe_shaped': {
           description: {
-            identifier: 'testmod:recipe'
-          }
-        }
+            identifier: 'testmod:recipe',
+          },
+        },
       };
 
       const result = generator.validateDefinitionSyntax(definition);
@@ -478,13 +490,11 @@ describe('BlockItemGenerator', () => {
   describe('path generation', () => {
     it('should generate correct file paths', async () => {
       const blocks: BlockInfo[] = [
-        { identifier: 'testmod:stone_block', displayName: 'Stone', textures: {} }
+        { identifier: 'testmod:stone_block', displayName: 'Stone', textures: {} },
       ];
-      const items: ItemInfo[] = [
-        { identifier: 'testmod:custom_item', displayName: 'Item' }
-      ];
+      const items: ItemInfo[] = [{ identifier: 'testmod:custom_item', displayName: 'Item' }];
       const recipes: RecipeInfo[] = [
-        { identifier: 'testmod:recipe', type: 'crafting_shaped', input: {}, output: {} }
+        { identifier: 'testmod:recipe', type: 'crafting_shaped', input: {}, output: {} },
       ];
 
       const blockResult = await generator.generateBlockDefinitions(blocks);
@@ -501,7 +511,7 @@ describe('BlockItemGenerator', () => {
     it('should track processing metadata correctly', async () => {
       const blocks: BlockInfo[] = [
         { identifier: 'testmod:block1', displayName: 'Block 1', textures: {} },
-        { identifier: 'testmod:block2', displayName: 'Block 2', textures: {} }
+        { identifier: 'testmod:block2', displayName: 'Block 2', textures: {} },
       ];
 
       const result = await generator.generateBlockDefinitions(blocks);

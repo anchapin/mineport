@@ -1,24 +1,24 @@
 /**
  * ManifestGenerator Component
- * 
+ *
  * This component is responsible for extracting mod metadata from Java files
  * and generating valid Bedrock manifest.json files with UUID creation.
  * It also validates the generated manifests against Bedrock specifications.
  */
 
-import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
-import fs from 'fs/promises';
+import { v5 as uuidv5 } from 'uuid';
+import * as fs from 'fs';
 import path from 'path';
-import logger from '../../utils/logger';
+import logger from '../../utils/logger.js';
 
 // UUID namespace for consistent generation based on mod ID
 const UUID_NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 
 /**
  * JavaModMetadata interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface JavaModMetadata {
@@ -33,9 +33,9 @@ export interface JavaModMetadata {
 
 /**
  * BedrockManifest interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface BedrockManifest {
@@ -66,9 +66,9 @@ export interface BedrockManifest {
 
 /**
  * ManifestGenerationResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface ManifestGenerationResult {
@@ -80,9 +80,9 @@ export interface ManifestGenerationResult {
 
 /**
  * ManifestGenerator class.
- * 
+ *
  * TODO: Add detailed description of the class purpose and functionality.
- * 
+ *
  * @since 1.0.0
  */
 export class ManifestGenerator {
@@ -97,19 +97,19 @@ export class ManifestGenerator {
       const modTomlPath = path.join(modPath, 'META-INF', 'mods.toml');
       const fabricModPath = path.join(modPath, 'fabric.mod.json');
       const modInfoPath = path.join(modPath, 'mcmod.info');
-      
+
       let metadata: JavaModMetadata = {
         modId: '',
         modName: '',
         modVersion: '1.0.0',
       };
-      
+
       // Try to extract from mods.toml (Forge)
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -128,13 +128,13 @@ export class ManifestGenerator {
         const modInfoData = await this.extractModInfoMetadata(modInfoPath);
         metadata = { ...metadata, ...modInfoData };
       }
-      
+
       // If we still don't have a mod ID, try to infer from directory structure
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -142,13 +142,13 @@ export class ManifestGenerator {
       if (!metadata.modId) {
         metadata.modId = this.inferModIdFromPath(modPath);
       }
-      
+
       // If we still don't have a mod name, use the mod ID
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -156,7 +156,7 @@ export class ManifestGenerator {
       if (!metadata.modName) {
         metadata.modName = metadata.modId;
       }
-      
+
       logger.info('Extracted mod metadata', { metadata });
       return metadata;
     } catch (error) {
@@ -164,7 +164,7 @@ export class ManifestGenerator {
       throw new Error(`Failed to extract mod metadata: ${(error as Error).message}`);
     }
   }
-  
+
   /**
    * Generates Bedrock manifest.json files for both behavior and resource packs
    * @param metadata Java mod metadata
@@ -176,12 +176,12 @@ export class ManifestGenerator {
         success: false,
         errors: [],
       };
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -190,16 +190,16 @@ export class ManifestGenerator {
         result.errors?.push('Missing mod ID in metadata');
         return result;
       }
-      
+
       // Generate consistent UUIDs based on mod ID
       const behaviorPackUuid = uuidv5(`${metadata.modId}.behavior`, UUID_NAMESPACE);
       const resourcePackUuid = uuidv5(`${metadata.modId}.resource`, UUID_NAMESPACE);
       const behaviorModuleUuid = uuidv5(`${metadata.modId}.behavior.module`, UUID_NAMESPACE);
       const resourceModuleUuid = uuidv5(`${metadata.modId}.resource.module`, UUID_NAMESPACE);
-      
+
       // Parse version into components (e.g., "1.2.3" -> [1, 2, 3])
       const versionComponents = this.parseVersionString(metadata.modVersion);
-      
+
       // Generate behavior pack manifest
       const behaviorPackManifest: BedrockManifest = {
         format_version: 2,
@@ -208,37 +208,37 @@ export class ManifestGenerator {
           description: metadata.description || `Converted from Java mod: ${metadata.modName}`,
           uuid: behaviorPackUuid,
           version: versionComponents,
-          min_engine_version: [1, 19, 0] // Minimum supported Bedrock version
+          min_engine_version: [1, 19, 0], // Minimum supported Bedrock version
         },
         modules: [
           {
             type: 'data',
             uuid: behaviorModuleUuid,
             version: versionComponents,
-            description: `Behavior module for ${metadata.modName}`
+            description: `Behavior module for ${metadata.modName}`,
           },
           {
             type: 'script',
             uuid: uuidv5(`${metadata.modId}.behavior.script`, UUID_NAMESPACE),
             version: versionComponents,
-            description: `Script module for ${metadata.modName}`
-          }
+            description: `Script module for ${metadata.modName}`,
+          },
         ],
         dependencies: [
           {
             uuid: resourcePackUuid,
-            version: versionComponents
-          }
+            version: versionComponents,
+          },
         ],
-        metadata: {}
+        metadata: {},
       };
-      
+
       // Add optional metadata if available
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -246,12 +246,12 @@ export class ManifestGenerator {
       if (metadata.authors && metadata.authors.length > 0) {
         behaviorPackManifest.metadata!.authors = metadata.authors;
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -259,7 +259,7 @@ export class ManifestGenerator {
       if (metadata.website) {
         behaviorPackManifest.metadata!.url = metadata.website;
       }
-      
+
       // Generate resource pack manifest
       const resourcePackManifest: BedrockManifest = {
         format_version: 2,
@@ -268,28 +268,28 @@ export class ManifestGenerator {
           description: metadata.description || `Resources for ${metadata.modName}`,
           uuid: resourcePackUuid,
           version: versionComponents,
-          min_engine_version: [1, 19, 0] // Minimum supported Bedrock version
+          min_engine_version: [1, 19, 0], // Minimum supported Bedrock version
         },
         modules: [
           {
             type: 'resources',
             uuid: resourceModuleUuid,
             version: versionComponents,
-            description: `Resource module for ${metadata.modName}`
-          }
+            description: `Resource module for ${metadata.modName}`,
+          },
         ],
-        metadata: behaviorPackManifest.metadata
+        metadata: behaviorPackManifest.metadata,
       };
-      
+
       // Validate the generated manifests
       const behaviorValidation = this.validateManifest(behaviorPackManifest);
       const resourceValidation = this.validateManifest(resourcePackManifest);
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -297,12 +297,12 @@ export class ManifestGenerator {
       if (!behaviorValidation.valid) {
         result.errors?.push(...behaviorValidation.errors);
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -310,12 +310,12 @@ export class ManifestGenerator {
       if (!resourceValidation.valid) {
         result.errors?.push(...resourceValidation.errors);
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -323,27 +323,27 @@ export class ManifestGenerator {
       if (result.errors && result.errors.length > 0) {
         return result;
       }
-      
+
       // Set the result properties
       result.success = true;
       result.behaviorPackManifest = behaviorPackManifest;
       result.resourcePackManifest = resourcePackManifest;
-      
-      logger.info('Generated Bedrock manifests successfully', { 
+
+      logger.info('Generated Bedrock manifests successfully', {
         behaviorUuid: behaviorPackUuid,
-        resourceUuid: resourcePackUuid
+        resourceUuid: resourcePackUuid,
       });
-      
+
       return result;
     } catch (error) {
       logger.error('Error generating manifests', { error });
       return {
         success: false,
-        errors: [`Failed to generate manifests: ${(error as Error).message}`]
+        errors: [`Failed to generate manifests: ${(error as Error).message}`],
       };
     }
   }
-  
+
   /**
    * Writes the generated manifests to the specified output directories
    * @param result ManifestGenerationResult containing the manifests
@@ -359,9 +359,9 @@ export class ManifestGenerator {
     try {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -370,23 +370,23 @@ export class ManifestGenerator {
         logger.error('Cannot write invalid manifests', { result });
         return false;
       }
-      
+
       // Ensure directories exist
-      await fs.mkdir(behaviorPackDir, { recursive: true });
-      await fs.mkdir(resourcePackDir, { recursive: true });
-      
+      await fs.promises.mkdir(behaviorPackDir, { recursive: true });
+      await fs.promises.mkdir(resourcePackDir, { recursive: true });
+
       // Write behavior pack manifest
-      await fs.writeFile(
+      await fs.promises.writeFile(
         path.join(behaviorPackDir, 'manifest.json'),
         JSON.stringify(result.behaviorPackManifest, null, 2)
       );
-      
+
       // Write resource pack manifest
-      await fs.writeFile(
+      await fs.promises.writeFile(
         path.join(resourcePackDir, 'manifest.json'),
         JSON.stringify(result.resourcePackManifest, null, 2)
       );
-      
+
       logger.info('Manifests written successfully', { behaviorPackDir, resourcePackDir });
       return true;
     } catch (error) {
@@ -394,7 +394,7 @@ export class ManifestGenerator {
       return false;
     }
   }
-  
+
   /**
    * Extracts metadata from mods.toml file (Forge)
    * @param filePath Path to the mods.toml file
@@ -402,8 +402,8 @@ export class ManifestGenerator {
    */
   private async extractModTomlMetadata(filePath: string): Promise<Partial<JavaModMetadata>> {
     try {
-      const content = await fs.readFile(filePath, 'utf-8');
-      
+      const content = await fs.promises.readFile(filePath, 'utf-8');
+
       // Simple TOML parsing for the specific fields we need
       const modIdMatch = content.match(/modId\s*=\s*["']([^"']+)["']/);
       const modNameMatch = content.match(/displayName\s*=\s*["']([^"']+)["']/);
@@ -412,13 +412,13 @@ export class ManifestGenerator {
       const authorsMatch = content.match(/authors\s*=\s*["']([^"']+)["']/);
       const websiteMatch = content.match(/displayURL\s*=\s*["']([^"']+)["']/);
       const logoFileMatch = content.match(/logoFile\s*=\s*["']([^"']+)["']/);
-      
+
       return {
         modId: modIdMatch ? modIdMatch[1] : undefined,
         modName: modNameMatch ? modNameMatch[1] : undefined,
         modVersion: versionMatch ? versionMatch[1] : undefined,
         description: descriptionMatch ? descriptionMatch[1] : undefined,
-        authors: authorsMatch ? authorsMatch[1].split(',').map(a => a.trim()) : undefined,
+        authors: authorsMatch ? authorsMatch[1].split(',').map((a) => a.trim()) : undefined,
         website: websiteMatch ? websiteMatch[1] : undefined,
         logoFile: logoFileMatch ? logoFileMatch[1] : undefined,
       };
@@ -427,7 +427,7 @@ export class ManifestGenerator {
       return {};
     }
   }
-  
+
   /**
    * Extracts metadata from fabric.mod.json file (Fabric)
    * @param filePath Path to the fabric.mod.json file
@@ -435,16 +435,19 @@ export class ManifestGenerator {
    */
   private async extractFabricModMetadata(filePath: string): Promise<Partial<JavaModMetadata>> {
     try {
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await fs.promises.readFile(filePath, 'utf-8');
       const fabricMod = JSON.parse(content);
-      
+
       return {
         modId: fabricMod.id,
         modName: fabricMod.name,
         modVersion: fabricMod.version,
         description: fabricMod.description,
-        authors: Array.isArray(fabricMod.authors) ? fabricMod.authors : 
-                (fabricMod.authors ? [fabricMod.authors] : undefined),
+        authors: Array.isArray(fabricMod.authors)
+          ? fabricMod.authors
+          : fabricMod.authors
+            ? [fabricMod.authors]
+            : undefined,
         website: fabricMod.contact?.homepage || fabricMod.contact?.sources,
         logoFile: fabricMod.icon,
       };
@@ -453,7 +456,7 @@ export class ManifestGenerator {
       return {};
     }
   }
-  
+
   /**
    * Extracts metadata from mcmod.info file (older Forge)
    * @param filePath Path to the mcmod.info file
@@ -461,19 +464,22 @@ export class ManifestGenerator {
    */
   private async extractModInfoMetadata(filePath: string): Promise<Partial<JavaModMetadata>> {
     try {
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await fs.promises.readFile(filePath, 'utf-8');
       const modInfo = JSON.parse(content);
-      
+
       // mcmod.info can be an array or a direct object
       const modData = Array.isArray(modInfo) ? modInfo[0] : modInfo;
-      
+
       return {
         modId: modData.modid,
         modName: modData.name,
         modVersion: modData.version,
         description: modData.description,
-        authors: Array.isArray(modData.authorList) ? modData.authorList : 
-                (modData.authorList ? [modData.authorList] : undefined),
+        authors: Array.isArray(modData.authorList)
+          ? modData.authorList
+          : modData.authorList
+            ? [modData.authorList]
+            : undefined,
         website: modData.url,
         logoFile: modData.logoFile,
       };
@@ -482,7 +488,7 @@ export class ManifestGenerator {
       return {};
     }
   }
-  
+
   /**
    * Attempts to infer a mod ID from the directory structure
    * @param modPath Path to the mod files
@@ -492,12 +498,12 @@ export class ManifestGenerator {
     try {
       // Look for common package patterns in Java source files
       const srcDir = path.join(modPath, 'src', 'main', 'java');
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -505,16 +511,19 @@ export class ManifestGenerator {
       if (fs.existsSync(srcDir)) {
         // This is a simplified approach - in a real implementation,
         // we would scan Java files for package declarations
-        return path.basename(modPath).toLowerCase().replace(/[^a-z0-9]/g, '');
+        return path
+          .basename(modPath)
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '');
       }
-      
+
       return 'unknown';
     } catch (error) {
       logger.error('Error inferring mod ID', { error });
       return 'unknown';
     }
   }
-  
+
   /**
    * Parses a version string into components
    * @param version Version string (e.g., "1.2.3")
@@ -523,16 +532,17 @@ export class ManifestGenerator {
   private parseVersionString(version: string): number[] {
     try {
       // Handle common version formats
-      const components = version.split(/[.-]/)
-        .map(part => parseInt(part.replace(/[^0-9]/g, ''), 10))
-        .filter(num => !isNaN(num));
-      
+      const components = version
+        .split(/[.-]/)
+        .map((part) => parseInt(part.replace(/[^0-9]/g, ''), 10))
+        .filter((num) => !isNaN(num));
+
       // Ensure we have at least three components
       /**
        * while method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -540,7 +550,7 @@ export class ManifestGenerator {
       while (components.length < 3) {
         components.push(0);
       }
-      
+
       // Limit to three components for Bedrock compatibility
       return components.slice(0, 3);
     } catch (error) {
@@ -548,7 +558,7 @@ export class ManifestGenerator {
       return [1, 0, 0]; // Default version
     }
   }
-  
+
   /**
    * Validates a Bedrock manifest against specifications
    * @param manifest BedrockManifest to validate
@@ -556,13 +566,13 @@ export class ManifestGenerator {
    */
   private validateManifest(manifest: BedrockManifest): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     // Check required fields
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -570,12 +580,12 @@ export class ManifestGenerator {
     if (!manifest.format_version) {
       errors.push('Missing format_version');
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -585,9 +595,9 @@ export class ManifestGenerator {
     } else {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -595,12 +605,12 @@ export class ManifestGenerator {
       if (!manifest.header.name) {
         errors.push('Missing header.name');
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -608,12 +618,12 @@ export class ManifestGenerator {
       if (!manifest.header.description) {
         errors.push('Missing header.description');
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -623,12 +633,12 @@ export class ManifestGenerator {
       } else if (!this.isValidUuid(manifest.header.uuid)) {
         errors.push('Invalid header.uuid format');
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -636,30 +646,33 @@ export class ManifestGenerator {
       if (!manifest.header.version || !Array.isArray(manifest.header.version)) {
         errors.push('Missing or invalid header.version');
       }
-      
+
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
-      if (!manifest.header.min_engine_version || !Array.isArray(manifest.header.min_engine_version)) {
+      if (
+        !manifest.header.min_engine_version ||
+        !Array.isArray(manifest.header.min_engine_version)
+      ) {
         errors.push('Missing or invalid header.min_engine_version');
       }
     }
-    
+
     if (!manifest.modules || !Array.isArray(manifest.modules) || manifest.modules.length === 0) {
       errors.push('Missing or empty modules array');
     } else {
       manifest.modules.forEach((module, index) => {
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -667,12 +680,12 @@ export class ManifestGenerator {
         if (!module.type) {
           errors.push(`Missing type in module at index ${index}`);
         }
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -682,12 +695,12 @@ export class ManifestGenerator {
         } else if (!this.isValidUuid(module.uuid)) {
           errors.push(`Invalid uuid format in module at index ${index}`);
         }
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -697,13 +710,13 @@ export class ManifestGenerator {
         }
       });
     }
-    
+
     // Check dependencies if present
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -711,9 +724,9 @@ export class ManifestGenerator {
     if (manifest.dependencies) {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -724,9 +737,9 @@ export class ManifestGenerator {
         manifest.dependencies.forEach((dependency, index) => {
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -736,12 +749,12 @@ export class ManifestGenerator {
           } else if (!this.isValidUuid(dependency.uuid)) {
             errors.push(`Invalid uuid format in dependency at index ${index}`);
           }
-          
+
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -752,13 +765,13 @@ export class ManifestGenerator {
         });
       }
     }
-    
+
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
-  
+
   /**
    * Checks if a string is a valid UUID
    * @param uuid String to check
@@ -768,7 +781,7 @@ export class ManifestGenerator {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(uuid);
   }
-  
+
   /**
    * Checks if a file exists
    * @param filePath Path to the file
@@ -776,7 +789,7 @@ export class ManifestGenerator {
    */
   private async fileExists(filePath: string): Promise<boolean> {
     try {
-      await fs.access(filePath);
+      await fs.promises.access(filePath);
       return true;
     } catch {
       return false;

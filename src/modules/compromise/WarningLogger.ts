@@ -1,31 +1,31 @@
-import { Feature } from '../../types/compromise';
-import { Logger } from '../../utils/logger';
+import { Feature } from '../../types/compromise.js';
+import { createLogger } from '../../utils/logger.js';
 
 /**
  * WarningLogger provides functionality to create console warnings and detailed comments
  * for stubbed features, as well as user notifications for limitations.
  */
 export class WarningLogger {
-  private logger: Logger;
+  private logger: ReturnType<typeof createLogger>;
   private warnings: Map<string, FeatureWarning>;
 
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
    */
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor(logger?: ReturnType<typeof createLogger>) {
+    this.logger = logger || createLogger('WarningLogger');
     this.warnings = new Map<string, FeatureWarning>();
   }
 
   /**
    * Registers a warning for a stubbed feature.
-   * 
+   *
    * @param feature The feature that has been stubbed
    * @param warningType The type of warning
    * @param details Details about the warning
@@ -44,18 +44,18 @@ export class WarningLogger {
       warningType,
       details,
       recommendations,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
+
     this.warnings.set(feature.id, warning);
     this.logger.warn(`Registered warning for feature ${feature.name}: ${details}`);
-    
+
     return warning;
   }
 
   /**
    * Generates console warning code for a stubbed feature.
-   * 
+   *
    * @param feature The feature that has been stubbed
    * @param warningType The type of warning
    * @param details Details about the warning
@@ -68,13 +68,13 @@ export class WarningLogger {
   ): string {
     const warningPrefix = this.getWarningPrefix(warningType);
     const featureName = feature.name.replace(/['"\\]/g, '\\$&'); // Escape special characters
-    
+
     return `console.warn("[${warningPrefix}] ${featureName}: ${details.replace(/['"\\]/g, '\\$&')}");`;
   }
 
   /**
    * Generates detailed commenting for a stub function.
-   * 
+   *
    * @param feature The feature that has been stubbed
    * @param warningType The type of warning
    * @param details Details about the warning
@@ -88,21 +88,21 @@ export class WarningLogger {
     recommendations: string[] = []
   ): string {
     const warningPrefix = this.getWarningPrefix(warningType);
-    
+
     let comment = `/**
  * ${warningPrefix}: ${feature.name}
- * 
+ *
  * ${details}
- * 
+ *
  * Original feature compatibility tier: ${feature.compatibilityTier}
  * Source files: ${feature.sourceFiles.join(', ')}
  *`;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -110,27 +110,27 @@ export class WarningLogger {
     if (recommendations.length > 0) {
       comment += `
  * Recommendations:
-${recommendations.map(rec => ` * - ${rec}`).join('\n')}
+${recommendations.map((rec) => ` * - ${rec}`).join('\n')}
  *`;
     }
-    
+
     comment += `
  * This is a stub implementation with limited functionality.
  * Manual implementation may be required for full feature support.
  */`;
-    
+
     return comment;
   }
 
   /**
    * Generates a user notification system for limitations.
-   * 
+   *
    * @param modName The name of the mod
    * @returns JavaScript code for user notification system
    */
   public generateUserNotificationSystem(modName: string): string {
     const sanitizedModName = modName.replace(/[^a-zA-Z0-9]/g, '');
-    
+
     return `// User Notification System for ${modName}
 // This system displays warnings to users about stubbed features and limitations
 
@@ -141,12 +141,12 @@ ${recommendations.map(rec => ` * - ${rec}`).join('\n')}
 export class ${sanitizedModName}NotificationManager {
   private notifiedFeatures: Set<string>;
   private notificationCooldowns: Map<string, number>;
-  
+
   /**
    * constructor method.
-   * 
+   *
    * TODO: Add detailed description of the method's purpose and behavior.
-   * 
+   *
    * @param param - TODO: Document parameters
    * @returns result - TODO: Document return value
    * @since 1.0.0
@@ -155,20 +155,20 @@ export class ${sanitizedModName}NotificationManager {
     this.notifiedFeatures = new Set<string>();
     this.notificationCooldowns = new Map<string, number>();
   }
-  
+
   /**
    * Initializes the notification system
    */
   initialize() {
     console.log("Initializing ${modName} notification system");
-    
+
     // Display initial notification about limitations
     this.showInitialNotification();
-    
+
     // Set up periodic reminder for critical limitations
     this.setupPeriodicReminders();
   }
-  
+
   /**
    * Shows the initial notification to the user
    */
@@ -177,9 +177,9 @@ export class ${sanitizedModName}NotificationManager {
     system.runTimeout(() => {
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -195,7 +195,7 @@ export class ${sanitizedModName}NotificationManager {
       }
     }, 100);
   }
-  
+
   /**
    * Sets up periodic reminders for critical limitations
    */
@@ -205,17 +205,17 @@ export class ${sanitizedModName}NotificationManager {
       this.checkForCriticalFeatures();
     }, 6000); // 5 minutes = 6000 ticks
   }
-  
+
   /**
    * Checks for critical features that need reminders
    */
   checkForCriticalFeatures() {
     // This would be implemented based on actual feature usage
   }
-  
+
   /**
    * Notifies the user about a stubbed feature
-   * 
+   *
    * @param player The player to notify
    * @param featureId The ID of the stubbed feature
    * @param featureName The name of the stubbed feature
@@ -225,9 +225,9 @@ export class ${sanitizedModName}NotificationManager {
     // Check if we've already notified about this feature
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -235,17 +235,17 @@ export class ${sanitizedModName}NotificationManager {
     if (this.notifiedFeatures.has(featureId + player.id)) {
       return;
     }
-    
+
     // Check cooldown
     const now = Date.now();
     const cooldownKey = featureId + player.id;
     const lastNotification = this.notificationCooldowns.get(cooldownKey) || 0;
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -253,11 +253,11 @@ export class ${sanitizedModName}NotificationManager {
     if (now - lastNotification < 300000) { // 5 minutes cooldown
       return;
     }
-    
+
     // Update cooldown
     this.notificationCooldowns.set(cooldownKey, now);
     this.notifiedFeatures.add(featureId + player.id);
-    
+
     // Show notification
     player.sendMessage({
       rawtext: [
@@ -267,10 +267,10 @@ export class ${sanitizedModName}NotificationManager {
       ]
     });
   }
-  
+
   /**
    * Shows help information to the player
-   * 
+   *
    * @param player The player to show help to
    */
   showHelp(player) {
@@ -288,9 +288,9 @@ ${this.generateLimitationsList(modName)}
 // Export a factory function to create the notification manager
 /**
  * create function.
- * 
+ *
  * TODO: Add detailed description of the function's purpose and behavior.
- * 
+ *
  * @param param - TODO: Document parameters
  * @returns result - TODO: Document return value
  * @since 1.0.0
@@ -302,7 +302,7 @@ export function create${sanitizedModName}NotificationManager() {
 // Register command to show help
 world.beforeEvents.chatSend.subscribe((event) => {
   const message = event.message.toLowerCase();
-  
+
   if (message === "/${sanitizedModName.toLowerCase()} help") {
     event.cancel = true;
     const notificationManager = create${sanitizedModName}NotificationManager();
@@ -313,41 +313,46 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Generates a list of limitations for the user notification system.
-   * 
+   *
    * @param modName The name of the mod
    * @returns JavaScript code for limitations list
    */
-  private generateLimitationsList(modName: string): string {
+  private generateLimitationsList(_modName: string): string {
     const limitations = [
-      { text: "        { text: \"§c1.§r Advanced rendering effects are simplified\\n\" },\n" },
-      { text: "        { text: \"§c2.§r Custom dimensions are simulated using teleportation\\n\" },\n" },
-      { text: "        { text: \"§c3.§r Some UI elements may look different\\n\" },\n" }
+      { text: '        { text: "§c1.§r Advanced rendering effects are simplified\\n" },\n' },
+      {
+        text: '        { text: "§c2.§r Custom dimensions are simulated using teleportation\\n" },\n',
+      },
+      { text: '        { text: "§c3.§r Some UI elements may look different\\n" },\n' },
     ];
-    
+
     // Add specific limitations based on registered warnings
     let index = 4;
     this.warnings.forEach((warning) => {
-      if (index <= 7) { // Limit to a reasonable number of items
-        limitations.push({ text: `        { text: \"§c${index}.§r ${warning.featureName}: ${warning.details}\\n\" },\n` });
+      if (index <= 7) {
+        // Limit to a reasonable number of items
+        limitations.push({
+          text: `        { text: "§c${index}.§r ${warning.featureName}: ${warning.details}\\n" },\n`,
+        });
         index++;
       }
     });
-    
-    return limitations.map(l => l.text).join('');
+
+    return limitations.map((l) => l.text).join('');
   }
 
   /**
    * Gets a warning prefix based on the warning type.
-   * 
+   *
    * @param warningType The type of warning
    * @returns Warning prefix
    */
   private getWarningPrefix(warningType: WarningType): string {
     /**
      * switch method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -370,7 +375,7 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Gets all registered warnings.
-   * 
+   *
    * @returns Array of registered warnings
    */
   public getWarnings(): FeatureWarning[] {
@@ -379,7 +384,7 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Gets warnings for a specific feature.
-   * 
+   *
    * @param featureId The ID of the feature
    * @returns The warning for the feature, or undefined if none exists
    */
@@ -389,34 +394,34 @@ world.beforeEvents.chatSend.subscribe((event) => {
 
   /**
    * Generates a warning report for all registered warnings.
-   * 
+   *
    * @returns Warning report
    */
   public generateWarningReport(): WarningReport {
     const warnings = this.getWarnings();
-    
+
     return {
       totalWarnings: warnings.length,
       warningsByType: this.groupWarningsByType(warnings),
-      warnings
+      warnings,
     };
   }
 
   /**
    * Groups warnings by their type.
-   * 
+   *
    * @param warnings Array of warnings
    * @returns Warnings grouped by type
    */
   private groupWarningsByType(warnings: FeatureWarning[]): Record<string, number> {
     const result: Record<string, number> = {};
-    
-    warnings.forEach(warning => {
+
+    warnings.forEach((warning) => {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -424,10 +429,10 @@ world.beforeEvents.chatSend.subscribe((event) => {
       if (!result[warning.warningType]) {
         result[warning.warningType] = 0;
       }
-      
+
       result[warning.warningType]++;
     });
-    
+
     return result;
   }
 }

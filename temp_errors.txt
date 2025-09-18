@@ -1,0 +1,696 @@
+src/modules/logic/JavaScriptGenerator.ts(220,16): error TS18048: 'node.body' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(251,30): error TS18048: 'node.declarations' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(259,41): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(263,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/modules/logic/JavaScriptGenerator.ts(276,28): error TS18048: 'node.specifiers' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(279,83): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(283,38): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(286,24): error TS18048: 'node.params' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(289,44): error TS2345: Argument of type 'JavaScriptASTNode[] | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(290,66): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(294,28): error TS18048: 'node.body' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(301,57): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(304,22): error TS18048: 'node.arguments' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(307,41): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(311,46): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(313,39): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(314,39): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(319,29): error TS18048: 'node.params' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(322,49): error TS2345: Argument of type 'JavaScriptASTNode[] | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(328,29): error TS18048: 'node.expressions' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(329,21): error TS18048: 'node.quasis' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(330,50): error TS18048: 'node.expressions' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(332,19): error TS18048: 'node.quasis' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(332,31): error TS18048: 'node.quasis' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(338,13): error TS18048: 'node.properties' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(342,28): error TS18048: 'node.properties' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(351,39): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(352,35): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(358,49): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(359,49): error TS2345: Argument of type 'JavaScriptASTNode[] | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(364,13): error TS18048: 'node.body' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(368,25): error TS18048: 'node.body' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(376,49): error TS2345: Argument of type 'JavaScriptASTNode | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/JavaScriptGenerator.ts(383,28): error TS18048: 'node.params' is possibly 'undefined'.
+src/modules/logic/JavaScriptGenerator.ts(386,48): error TS2345: Argument of type 'JavaScriptASTNode[] | undefined' is not assignable to parameter of type 'JavaScriptASTNode'.
+  Type 'undefined' is not assignable to type 'JavaScriptASTNode'.
+src/modules/logic/LogicTranslationEngine.ts(366,11): error TS2322: Type 'ErrorSeverity.WARNING' is not assignable to type '"high" | "low" | "medium" | "critical"'.
+src/modules/logic/MMIRGenerator.ts(513,15): error TS2304: Cannot find name 'sourceFile'.
+src/modules/logic/MMIRGenerator.ts(849,15): error TS2304: Cannot find name 'sourceFile'.
+src/modules/logic/MMIRGenerator.ts(975,7): error TS2561: Object literal may only specify known properties, but 'nodes' does not exist in type 'MMIRContext'. Did you mean to write '_nodes'?
+src/modules/logic/MMIRParser.ts(333,9): error TS2353: Object literal may only specify known properties, and 'returnType' does not exist in type 'NodeMetadata'.
+src/modules/logic/ProgramStateAlignmentValidator.ts(1338,11): error TS2741: Property 'variables' is missing in type '{ timestamp: number; functionName: string; lineNumber: number; returnValue: string; callStack: string[]; }' but required in type 'ProgramStateSnapshot'.
+src/modules/logic/ProgramStateAlignmentValidator.ts(1360,28): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(iterable?: Iterable<readonly [string, string]> | null | undefined): Map<string, string>', gave the following error.
+    Argument of type '([string, string] | [string, number])[]' is not assignable to parameter of type 'Iterable<readonly [string, string]>'.
+      The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types.
+        Type 'IteratorResult<[string, string] | [string, number], undefined>' is not assignable to type 'IteratorResult<readonly [string, string], any>'.
+          Type 'IteratorYieldResult<[string, string] | [string, number]>' is not assignable to type 'IteratorResult<readonly [string, string], any>'.
+            Type 'IteratorYieldResult<[string, string] | [string, number]>' is not assignable to type 'IteratorYieldResult<readonly [string, string]>'.
+              Type '[string, string] | [string, number]' is not assignable to type 'readonly [string, string]'.
+                Type '[string, number]' is not assignable to type 'readonly [string, string]'.
+                  Type at position 1 in source is not compatible with type at position 1 in target.
+                    Type 'number' is not assignable to type 'string'.
+  Overload 2 of 4, '(entries?: readonly (readonly [string, string])[] | null | undefined): Map<string, string>', gave the following error.
+    Type 'number' is not assignable to type 'string'.
+src/modules/logic/ProgramStateAlignmentValidator.ts(1366,11): error TS2741: Property 'variables' is missing in type '{ timestamp: number; functionName: string; lineNumber: number; returnValue: string; callStack: string[]; }' but required in type 'ProgramStateSnapshot'.
+src/modules/logic/ProgramStateAlignmentValidator.ts(1448,9): error TS2353: Object literal may only specify known properties, and 'refinementApplied' does not exist in type '{ tokensUsed: number; processingTime: number; modelVersion: string; }'.
+src/modules/logic/ProgramStateValidator.ts(415,9): error TS2322: Type 'ErrorSeverity.WARNING' is not assignable to type '"high" | "low" | "medium" | "critical"'.
+src/modules/logic/ProgramStateValidator.ts(911,9): error TS2322: Type 'ErrorSeverity.WARNING' is not assignable to type '"high" | "low" | "medium" | "critical"'.
+src/modules/logic/ProgramStateValidator.ts(925,9): error TS2322: Type 'ErrorSeverity.WARNING' is not assignable to type '"high" | "low" | "medium" | "critical"'.
+src/modules/packaging/AddonPackager.ts(452,28): error TS7006: Parameter 'err' implicitly has an 'any' type.
+src/modules/packaging/AddonValidator.ts(1467,66): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(6,52): error TS2307: Cannot find module '@testing-library/react' or its corresponding type declarations.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(15,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(16,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(17,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(18,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(22,9): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(23,10): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(24,21): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(25,24): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(29,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(32,35): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(33,36): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(34,32): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(35,36): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(39,70): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(40,63): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(41,63): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(42,63): error TS2724: 'global.jest' has no exported member named 'Mocked'. Did you mean 'Mock'?
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(45,49): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(53,42): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(60,39): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(62,40): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(64,46): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(83,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(101,59): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(102,51): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(108,61): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(109,61): error TS2339: Property 'toBeDisabled' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(137,31): error TS2339: Property 'toBeDisabled' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(212,27): error TS2352: Conversion of type '{ new (url: string | URL, protocols?: string | string[] | undefined): WebSocket; prototype: WebSocket; readonly CONNECTING: 0; readonly OPEN: 1; readonly CLOSING: 2; readonly CLOSED: 3; }' to type 'Mock<any, any[]>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'mock' is missing in type '{ new (url: string | URL, protocols?: string | string[] | undefined): WebSocket; prototype: WebSocket; readonly CONNECTING: 0; readonly OPEN: 1; readonly CLOSING: 2; readonly CLOSED: 3; }' but required in type 'Mock<any, any[]>'.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(212,56): error TS2339: Property 'instances' does not exist on type '{ calls: any[][]; results: { type: "return" | "throw"; value: any; }[]; }'.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(261,32): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/EnhancedConversionUI.test.tsx(283,27): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(6,32): error TS2307: Cannot find module '@testing-library/react' or its corresponding type declarations.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(44,39): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(55,51): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(64,46): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(74,27): error TS2339: Property 'toHaveStyle' does not exist on type 'Assertion<Element | null>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(86,46): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(87,44): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(88,43): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(89,42): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(90,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(91,43): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(92,44): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(102,27): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<Element | null>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(125,37): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(138,39): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(155,9): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(169,75): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(187,52): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(188,50): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(189,50): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(190,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(227,53): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(243,28): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<Element | null>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(257,32): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<Element | null>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(270,48): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(281,50): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(294,42): error TS2339: Property 'toHaveClass' does not exist on type 'Assertion<HTMLElement | null | undefined>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(306,9): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(318,50): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(328,46): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(343,48): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/EnhancedProgressTracker.test.tsx(353,55): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(6,52): error TS2307: Cannot find module '@testing-library/react' or its corresponding type declarations.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(70,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(71,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(72,31): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(76,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(94,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(95,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(96,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(100,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(101,44): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(102,43): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(121,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(130,45): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(131,45): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(132,39): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(147,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(170,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(190,32): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/components/__tests__/JobMonitoringPanel.test.tsx(203,56): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<any>'.
+src/modules/ui/components/APIMappingManagementPanel.tsx(523,14): error TS2322: Type '{ children: string; jsx: true; }' is not assignable to type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+  Property 'jsx' does not exist on type 'DetailedHTMLProps<StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>'.
+src/modules/ui/components/ConversionConfigPanel.tsx(141,38): error TS2339: Property 'enableSecurityScanning' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(142,57): error TS2345: Argument of type '"enableSecurityScanning"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(158,34): error TS2339: Property 'maxFileSize' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(159,55): error TS2345: Argument of type '"maxFileSize"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(173,38): error TS2339: Property 'enableBytecodeAnalysis' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(174,57): error TS2345: Argument of type '"enableBytecodeAnalysis"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(190,34): error TS2339: Property 'analysisTimeout' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(191,55): error TS2345: Argument of type '"analysisTimeout"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(205,38): error TS2339: Property 'enableAssetConverter' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(206,57): error TS2345: Argument of type '"enableAssetConverter"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(219,38): error TS2339: Property 'enableBedrockArchitect' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(220,57): error TS2345: Argument of type '"enableBedrockArchitect"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(231,38): error TS2339: Property 'enableBlockItemGenerator' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(233,42): error TS2345: Argument of type '"enableBlockItemGenerator"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(253,38): error TS2339: Property 'enableStrictValidation' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(254,57): error TS2345: Argument of type '"enableStrictValidation"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(270,34): error TS2339: Property 'validationTimeout' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(272,40): error TS2345: Argument of type '"validationTimeout"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(286,36): error TS2339: Property 'enableDebugMode' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(287,55): error TS2345: Argument of type '"enableDebugMode"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(298,36): error TS2339: Property 'preserveIntermediateFiles' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(300,40): error TS2345: Argument of type '"preserveIntermediateFiles"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(319,32): error TS2339: Property 'workerThreads' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(320,53): error TS2345: Argument of type '"workerThreads"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(329,36): error TS2339: Property 'enableCaching' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(330,55): error TS2345: Argument of type '"enableCaching"' is not assignable to parameter of type 'keyof ConversionOptions'.
+src/modules/ui/components/ConversionConfigPanel.tsx(357,24): error TS2339: Property 'enableDebugMode' does not exist on type 'ConversionOptions'.
+src/modules/ui/components/EnhancedConversionUI.tsx(213,5): error TS2353: Object literal may only specify known properties, and 'enableDebugMode' does not exist in type 'ConversionOptions | (() => ConversionOptions)'.
+src/modules/ui/components/EnhancedConversionUI.tsx(350,31): error TS2339: Property 'currentTask' does not exist on type 'ConversionStatus'.
+src/modules/ui/components/EnhancedConversionUI.tsx(351,28): error TS2339: Property 'metadata' does not exist on type 'ConversionStatus'.
+src/modules/ui/components/EnhancedConversionUI.tsx(370,28): error TS2339: Property 'outputPath' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(371,29): error TS2339: Property 'downloadUrl' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(373,27): error TS2339: Property 'summary' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(374,31): error TS2339: Property 'compromises' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(376,35): error TS2339: Property 'recommendations' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(379,34): error TS2339: Property 'statistics' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(380,35): error TS2339: Property 'statistics' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(381,34): error TS2339: Property 'statistics' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(382,40): error TS2339: Property 'statistics' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(383,34): error TS2339: Property 'statistics' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(386,26): error TS2339: Property 'validationResults' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(387,26): error TS2339: Property 'validationResults' does not exist on type 'ConversionResult'.
+src/modules/ui/components/EnhancedConversionUI.tsx(651,17): error TS2322: Type 'File | null' is not assignable to type 'File | undefined'.
+  Type 'null' is not assignable to type 'File | undefined'.
+src/modules/ui/hooks/useConversion.ts(8,42): error TS2307: Cannot find module '../services.js' or its corresponding type declarations.
+src/modules/ui/pages/ConversionPage.tsx(2,77): error TS2307: Cannot find module '../components.js' or its corresponding type declarations.
+src/modules/ui/pages/ConversionPage.tsx(89,42): error TS2339: Property 'state' does not exist on type '{ uploadState: UploadState; conversionProgress: ConversionProgress | undefined; conversionJob: ConversionJob | undefined; ... 5 more ...; resetConversion: () => void; }'.
+src/modules/ui/pages/ConversionPage.tsx(90,22): error TS7006: Parameter 'newPreferences' implicitly has an 'any' type.
+src/modules/ui/pages/ResultsDashboard.tsx(81,50): error TS2339: Property 'line' does not exist on type 'SourceLocation'.
+src/modules/ui/pages/ResultsDashboard.tsx(81,86): error TS2339: Property 'column' does not exist on type 'SourceLocation'.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(8,16): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(9,26): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(11,10): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(18,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(28,35): error TS2339: Property 'mockResolvedValueOnce' does not exist on type 'Mock<any, any[]>'.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(58,35): error TS2339: Property 'mockResolvedValueOnce' does not exist on type 'Mock<any, any[]>'.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(75,35): error TS2339: Property 'mockRejectedValueOnce' does not exist on type 'Mock<any, any[]>'.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(90,35): error TS2339: Property 'mockResolvedValueOnce' does not exist on type 'Mock<any, any[]>'.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(135,35): error TS2339: Property 'mockResolvedValueOnce' does not exist on type 'Mock<any, any[]>'.
+src/modules/ui/services/__tests__/ConversionAPIServiceImpl.test.ts(160,35): error TS2339: Property 'mockResolvedValueOnce' does not exist on type 'Mock<any, any[]>'.
+src/modules/ui/services/AdminAPIServiceImpl.ts(640,68): error TS18048: 'filter.createdAfter' is possibly 'undefined'.
+src/modules/ui/services/AdminAPIServiceImpl.ts(653,68): error TS18048: 'filter.createdBefore' is possibly 'undefined'.
+src/modules/ui/services/CompromisePreferencesService.ts(11,77): error TS2307: Cannot find module '../types.js' or its corresponding type declarations.
+src/modules/ui/services/CompromisePreferencesService.ts(603,62): error TS7006: Parameter 'strategy' implicitly has an 'any' type.
+src/modules/ui/services/ConversionAPIService.ts(9,36): error TS2307: Cannot find module '../types.js' or its corresponding type declarations.
+src/modules/ui/services/ConversionAPIServiceImpl.ts(574,13): error TS2353: Object literal may only specify known properties, and 'line' does not exist in type 'SourceLocation'.
+src/modules/ui/services/PipelineStageMapper.ts(8,36): error TS2307: Cannot find module '../types.js' or its corresponding type declarations.
+src/services/AlertingService.ts(476,42): error TS2345: Argument of type '"Alert triggered"' is not assignable to parameter of type 'never'.
+src/services/APIMapperService.ts(307,74): error TS2554: Expected 1 arguments, but got 2.
+src/services/APIMapperService.ts(308,74): error TS2554: Expected 1 arguments, but got 2.
+src/services/APIMapperService.ts(322,9): error TS2416: Property 'getMapping' in type 'APIMapperServiceImpl' is not assignable to the same property in base type 'APIMapperService'.
+  Type '(javaSignature: string) => Promise<APIMapping | undefined>' is not assignable to type '(javaSignature: string) => APIMapping | undefined'.
+    Type 'Promise<APIMapping | undefined>' is missing the following properties from type 'APIMapping': id, javaSignature, bedrockEquivalent, conversionType, and 3 more.
+src/services/APIMapperService.ts(387,9): error TS2416: Property 'getMappings' in type 'APIMapperServiceImpl' is not assignable to the same property in base type 'APIMapperService'.
+  Type '(filter?: MappingFilter | undefined) => Promise<APIMapping[]>' is not assignable to type '(filter?: MappingFilter | undefined) => APIMapping[]'.
+    Type 'Promise<APIMapping[]>' is missing the following properties from type 'APIMapping[]': length, pop, push, concat, and 29 more.
+src/services/APIMapperService.ts(881,3): error TS2322: Type 'APIMapperServiceImpl' is not assignable to type 'APIMapperService'.
+  The types returned by 'getMapping(...)' are incompatible between these types.
+    Type 'Promise<APIMapping | undefined>' is missing the following properties from type 'APIMapping': id, javaSignature, bedrockEquivalent, conversionType, and 3 more.
+src/services/CacheService.ts(136,9): error TS2532: Object is possibly 'undefined'.
+src/services/CacheService.ts(504,11): error TS2393: Duplicate function implementation.
+src/services/CacheService.ts(526,3): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(133,10): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(147,16): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(158,11): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(176,11): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(191,10): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(205,16): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(216,11): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(234,11): error TS2393: Duplicate function implementation.
+src/services/ConfigurationService.ts(285,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/ConfigurationService.ts(312,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/ConfigurationService.ts(332,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/ConfigurationService.ts(354,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/ConversionPipeline.ts(148,21): error TS2304: Cannot find name 'ConfigurationService'.
+src/services/ConversionPipeline.ts(174,45): error TS2304: Cannot find name 'ConfigurationService'.
+src/services/ConversionPipeline.ts(203,51): error TS2339: Property 'validate' does not exist on type 'ModValidator'.
+src/services/ConversionPipeline.ts(218,42): error TS7006: Parameter 'error' implicitly has an 'any' type.
+src/services/ConversionPipeline.ts(245,27): error TS2339: Property 'notes' does not exist on type 'FeatureAnalysisResult'.
+src/services/ConversionPipeline.ts(245,42): error TS7006: Parameter 'note' implicitly has an 'any' type.
+src/services/ConversionPipeline.ts(245,48): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/services/ConversionPipeline.ts(281,54): error TS2339: Property 'generate' does not exist on type 'ManifestGenerator'.
+src/services/ConversionPipeline.ts(313,33): error TS2339: Property 'convert' does not exist on type 'BlockItemDefinitionConverter'.
+src/services/ConversionPipeline.ts(319,29): error TS2339: Property 'convert' does not exist on type 'RecipeConverter'.
+src/services/ConversionPipeline.ts(325,32): error TS2339: Property 'convert' does not exist on type 'LootTableConverter'.
+src/services/ConversionPipeline.ts(331,29): error TS2339: Property 'embed' does not exist on type 'LicenseEmbedder'.
+src/services/ConversionPipeline.ts(339,27): error TS2554: Expected 4-5 arguments, but got 0.
+src/services/ConversionPipeline.ts(340,45): error TS2339: Property 'translate' does not exist on type 'LogicTranslationEngine'.
+src/services/ConversionPipeline.ts(367,58): error TS2339: Property 'validate' does not exist on type 'AddonValidator'.
+src/services/ConversionPipeline.ts(370,45): error TS7006: Parameter 'error' implicitly has an 'any' type.
+src/services/ConversionPipeline.ts(402,52): error TS2339: Property 'generate' does not exist on type 'ConversionReportGenerator'.
+src/services/ConversionPipeline.ts(406,51): error TS2339: Property 'notes' does not exist on type 'FeatureAnalysisResult'.
+src/services/ConversionPipeline.ts(429,53): error TS2339: Property 'package' does not exist on type 'AddonPackager'.
+src/services/ConversionService.ts(186,9): error TS2554: Expected 1 arguments, but got 2.
+src/services/ConversionService.ts(329,16): error TS2416: Property 'createConversionJob' in type 'ConversionService' is not assignable to the same property in base type 'ConversionService'.
+  Type '(input: ConversionInput) => Promise<ConversionJob>' is not assignable to type '(input: ConversionInput) => ConversionJob'.
+    Type 'Promise<ConversionJob>' is missing the following properties from type 'ConversionJob': id, input, status, progress, and 2 more.
+src/services/ConversionService.ts(388,50): error TS2339: Property 'execute' does not exist on type 'WorkerPool'.
+src/services/ConversionService.ts(478,16): error TS18046: 'error' is of type 'unknown'.
+src/services/ConversionService.ts(731,11): error TS2393: Duplicate function implementation.
+src/services/ConversionService.ts(846,11): error TS2393: Duplicate function implementation.
+src/services/ConversionService.ts(925,5): error TS2739: Type '{}' is missing the following properties from type 'ConversionOptions': targetMinecraftVersion, compromiseStrategy, includeDocumentation, optimizeAssets
+src/services/ConversionService.ts(930,32): error TS2339: Property 'outputPath' does not exist on type 'ConversionOptions'.
+src/services/EnhancedErrorCollector.ts(200,38): error TS18046: 'recoveryError' is of type 'unknown'.
+src/services/ErrorMonitoringService.ts(188,30): error TS2339: Property 'recordMetric' does not exist on type 'MonitoringService'.
+src/services/ErrorMonitoringService.ts(189,30): error TS2339: Property 'recordMetric' does not exist on type 'MonitoringService'.
+src/services/ErrorMonitoringService.ts(415,32): error TS2339: Property 'sendAlert' does not exist on type 'AlertingService'.
+src/services/ErrorRecoveryService.ts(226,41): error TS18046: 'retryError' is of type 'unknown'.
+src/services/ErrorRecoveryService.ts(246,44): error TS18046: 'fallbackError' is of type 'unknown'.
+src/services/ErrorRecoveryService.ts(266,46): error TS18046: 'compromiseError' is of type 'unknown'.
+src/services/ErrorRecoveryService.ts(285,40): error TS18046: 'skipError' is of type 'unknown'.
+src/services/HealthCheckService.ts(47,23): error TS2693: 'Logger' only refers to a type, but is being used as a value here.
+src/services/HealthCheckService.ts(176,25): error TS18046: 'error' is of type 'unknown'.
+src/services/HealthCheckService.ts(181,75): error TS18046: 'error' is of type 'unknown'.
+src/services/HealthCheckService.ts(183,28): error TS18046: 'error' is of type 'unknown'.
+src/services/HealthCheckService.ts(260,21): error TS2339: Property 'modporterAI' does not exist on type 'ModPorterAIConfig'.
+src/services/index.ts(48,1): error TS2308: Module './AlertingService.js' has already exported a member named 'Alert'. Consider explicitly re-exporting to resolve the ambiguity.
+src/services/index.ts(48,1): error TS2308: Module './AlertingService.js' has already exported a member named 'AlertRule'. Consider explicitly re-exporting to resolve the ambiguity.
+src/services/infrastructure-example.ts(16,5): error TS2353: Object literal may only specify known properties, and 'jobQueue' does not exist in type 'Partial<WorkerPoolConfig>'.
+src/services/infrastructure-example.ts(23,5): error TS2353: Object literal may only specify known properties, and 'checkInterval' does not exist in type '{ maxMemory?: number | undefined; maxCpu?: number | undefined; maxStorage?: number | undefined; strategy?: ResourceAllocationStrategy | undefined; workerPool?: any; jobQueue?: any; configService?: any; }'.
+src/services/JobQueue.ts(83,9): error TS2554: Expected 1 arguments, but got 2.
+src/services/JobQueue.ts(87,9): error TS2554: Expected 1 arguments, but got 2.
+src/services/JobQueueService.ts(490,5): error TS2322: Type 'unknown' is not assignable to type 'JobProgress'.
+src/services/PerformanceMonitor.ts(278,7): error TS2322: Type '() => void' is not assignable to type 'GCFunction'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+src/services/StreamingFileProcessor.ts(136,37): error TS2339: Property 'detectFileTypeFromMagic' does not exist on type 'Transform'.
+src/services/StreamingFileProcessor.ts(146,20): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | null | undefined'.
+src/services/StreamingFileProcessor.ts(178,51): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+src/services/StreamingFileProcessor.ts(180,41): error TS7006: Parameter 'threat' implicitly has an 'any' type.
+src/services/StreamingFileProcessor.ts(191,43): error TS18046: 'scanError' is of type 'unknown'.
+src/services/UpdateService.ts(85,9): error TS2554: Expected 1 arguments, but got 2.
+src/services/UpdateService.ts(100,83): error TS2554: Expected 1 arguments, but got 2.
+src/services/WorkerPool.ts(130,5): error TS2322: Type '{ id: string; status: "error" | "idle" | "busy" | "terminated"; currentJobId: string | undefined; capabilities: JobType[]; resourceCapacity: { memory: number; cpu: number; disk: number; }; resourceUsage: { ...; }; lastHeartbeat: Date; }[]' is not assignable to type 'WorkerInfo[]'.
+  Type '{ id: string; status: "error" | "idle" | "busy" | "terminated"; currentJobId: string | undefined; capabilities: JobType[]; resourceCapacity: { memory: number; cpu: number; disk: number; }; resourceUsage: { ...; }; lastHeartbeat: Date; }' is not assignable to type 'WorkerInfo'.
+    Types of property 'status' are incompatible.
+      Type '"error" | "idle" | "busy" | "terminated"' is not assignable to type '"error" | "idle" | "busy"'.
+        Type '"terminated"' is not assignable to type '"error" | "idle" | "busy"'.
+src/services/WorkerPool.ts(185,45): error TS2345: Argument of type '{ task: WorkerTask<TInput, TOutput>; resolve: (value: TOutput | PromiseLike<TOutput>) => void; reject: (reason?: any) => void; }' is not assignable to parameter of type '{ task: WorkerTask<unknown, unknown>; resolve: (value: unknown) => void; reject: (reason?: unknown) => void; }'.
+  The types of 'task.execute' are incompatible between these types.
+    Type '(input: TInput) => TOutput | Promise<TOutput>' is not assignable to type '(input: unknown) => unknown'.
+      Types of parameters 'input' and 'input' are incompatible.
+        Type 'unknown' is not assignable to type 'TInput'.
+          'TInput' could be instantiated with an arbitrary type which could be unrelated to 'unknown'.
+src/services/WorkerPool.ts(284,5): error TS2740: Type '{ id: string; type: JobType; }' is missing the following properties from type 'Job': priority, status, payload, progress, and 3 more.
+src/services/WorkerPool.ts(488,34): error TS2532: Object is possibly 'undefined'.
+src/types/errors.ts(636,7): error TS2353: Object literal may only specify known properties, and 'line' does not exist in type 'SourceLocation'.
+src/types/errors.ts(642,7): error TS2353: Object literal may only specify known properties, and 'line' does not exist in type 'SourceLocation'.
+src/types/errors.ts(648,7): error TS2353: Object literal may only specify known properties, and 'line' does not exist in type 'SourceLocation'.
+src/types/index.ts(15,1): error TS2308: Module './base.js' has already exported a member named 'SourceLocation'. Consider explicitly re-exporting to resolve the ambiguity.
+src/types/index.ts(15,1): error TS2308: Module './errors.js' has already exported a member named 'LogicConversionNote'. Consider explicitly re-exporting to resolve the ambiguity.
+src/types/index.ts(27,1): error TS2308: Module './modules.js' has already exported a member named 'ConversionOptions'. Consider explicitly re-exporting to resolve the ambiguity.
+src/types/index.ts(36,1): error TS2308: Module './api.js' has already exported a member named 'APIMapping'. Consider explicitly re-exporting to resolve the ambiguity.
+src/types/index.ts(36,1): error TS2308: Module './compromise.js' has already exported a member named 'CompromiseStrategy'. Consider explicitly re-exporting to resolve the ambiguity.
+src/types/index.ts(36,1): error TS2308: Module './file-processing.js' has already exported a member named 'ValidationResult'. Consider explicitly re-exporting to resolve the ambiguity.
+src/types/index.ts(39,1): error TS2308: Module './services.js' has already exported a member named 'JobStatus'. Consider explicitly re-exporting to resolve the ambiguity.
+src/types/modules.ts(599,13): error TS2304: Cannot find name 'JavaTextureFile'.
+src/types/modules.ts(600,11): error TS2304: Cannot find name 'JavaModelFile'.
+src/types/modules.ts(601,11): error TS2552: Cannot find name 'JavaSoundFile'. Did you mean 'JavaSourceFile'?
+src/types/modules.ts(610,13): error TS2304: Cannot find name 'BedrockTextureFile'.
+src/types/modules.ts(611,11): error TS2304: Cannot find name 'BedrockModelFile'.
+src/types/modules.ts(612,11): error TS2304: Cannot find name 'BedrockSoundFile'.
+src/types/modules.ts(613,14): error TS2304: Cannot find name 'BedrockParticleFile'.
+src/types/modules.ts(614,15): error TS2304: Cannot find name 'BedrockAnimationFile'.
+src/types/modules.ts(623,20): error TS2304: Cannot find name 'AssetConversionNote'.
+src/types/modules.ts(624,11): error TS2304: Cannot find name 'ConversionError'.
+src/utils/index.ts(6,10): error TS2724: '"./errorHandler.js"' has no exported member named 'errorHandler'. Did you mean 'ErrorHandler'?
+tests/benchmark/conversion-benchmark.ts(40,34): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string | ArrayBufferView<ArrayBufferLike>'.
+tests/benchmark/conversion-benchmark.ts(51,34): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string | ArrayBufferView<ArrayBufferLike>'.
+tests/benchmark/conversion-benchmark.ts(77,30): error TS2339: Property 'validate' does not exist on type 'ModValidator'.
+tests/benchmark/conversion-benchmark.ts(91,34): error TS2339: Property 'convert' does not exist on type 'TextureConverter'.
+tests/benchmark/conversion-benchmark.ts(98,32): error TS2339: Property 'convert' does not exist on type 'ModelConverter'.
+tests/benchmark/conversion-benchmark.ts(105,37): error TS2339: Property 'convert' does not exist on type 'BlockItemDefinitionConverter'.
+tests/benchmark/conversion-benchmark.ts(114,33): error TS2339: Property 'convert' does not exist on type 'RecipeConverter'.
+tests/benchmark/conversion-benchmark.ts(131,48): error TS2339: Property 'parse' does not exist on type 'JavaParser'.
+tests/benchmark/conversion-benchmark.ts(136,51): error TS2339: Property 'generate' does not exist on type 'MMIRGenerator'.
+tests/benchmark/conversion-benchmark.ts(137,31): error TS7006: Parameter 'result' implicitly has an 'any' type.
+tests/benchmark/conversion-benchmark.ts(144,13): error TS2353: Object literal may only specify known properties, and 'modId' does not exist in type 'TranslationContext'.
+tests/benchmark/conversion-benchmark.ts(150,38): error TS2339: Property 'generate' does not exist on type 'JavaScriptGenerator'.
+tests/benchmark/conversion-benchmark.ts(222,31): error TS2339: Property 'package' does not exist on type 'AddonPackager'.
+tests/benchmark/modporter-ai-performance.test.ts(253,59): error TS2345: Argument of type '{ path: string; name: string; type: "block"; }[]' is not assignable to parameter of type 'TextureInfo[]'.
+  Property 'buffer' is missing in type '{ path: string; name: string; type: "block"; }' but required in type 'TextureInfo'.
+tests/benchmark/modporter-ai-performance.test.ts(259,21): error TS2339: Property 'convertedFiles' does not exist on type 'ConversionResult'.
+tests/benchmark/modporter-ai-performance.test.ts(279,59): error TS2345: Argument of type '{ path: string; name: string; type: "block" | "item"; }[]' is not assignable to parameter of type 'TextureInfo[]'.
+  Property 'buffer' is missing in type '{ path: string; name: string; type: "block" | "item"; }' but required in type 'TextureInfo'.
+tests/benchmark/modporter-ai-performance.test.ts(284,21): error TS2339: Property 'convertedFiles' does not exist on type 'ConversionResult'.
+tests/benchmark/modporter-ai-performance.test.ts(298,61): error TS2559: Type '{ modId: string; files: string[]; assets: string[]; }' has no properties in common with type 'ValidationInput'.
+tests/benchmark/modporter-ai-performance.test.ts(315,61): error TS2559: Type '{ modId: string; files: string[]; assets: string[]; }' has no properties in common with type 'ValidationInput'.
+tests/benchmark/performance-optimization.test.ts(219,25): error TS2345: Argument of type '{ type: "test"; identifier: string; }' is not assignable to parameter of type 'string | CacheKey'.
+  Type '{ type: "test"; identifier: string; }' is not assignable to type 'CacheKey'.
+    Types of property 'type' are incompatible.
+      Type '"test"' is not assignable to type '"java_analysis" | "asset_conversion" | "file_validation" | "security_scan"'.
+tests/benchmark/performance-optimization.test.ts(227,40): error TS2345: Argument of type '{ type: "test"; identifier: string; }' is not assignable to parameter of type 'string | CacheKey'.
+  Type '{ type: "test"; identifier: string; }' is not assignable to type 'CacheKey'.
+    Types of property 'type' are incompatible.
+      Type '"test"' is not assignable to type '"java_analysis" | "asset_conversion" | "file_validation" | "security_scan"'.
+tests/benchmark/performance-optimization.test.ts(258,13): error TS2322: Type '"test"' is not assignable to type '"java_analysis" | "asset_conversion" | "file_validation" | "security_scan"'.
+tests/benchmark/performance-optimization.test.ts(279,9): error TS2353: Object literal may only specify known properties, and 'taskTimeout' does not exist in type 'Partial<WorkerPoolConfig>'.
+tests/benchmark/performance-optimization.test.ts(288,33): error TS2339: Property 'execute' does not exist on type 'WorkerPool'.
+tests/benchmark/performance-optimization.test.ts(305,34): error TS2339: Property 'getMetrics' does not exist on type 'WorkerPool'.
+tests/benchmark/performance-optimization.test.ts(320,9): error TS2353: Object literal may only specify known properties, and 'taskTimeout' does not exist in type 'Partial<WorkerPoolConfig>'.
+tests/benchmark/performance-optimization.test.ts(334,35): error TS2339: Property 'execute' does not exist on type 'WorkerPool'.
+tests/benchmark/performance-optimization.test.ts(355,34): error TS2339: Property 'getMetrics' does not exist on type 'WorkerPool'.
+tests/benchmark/performance-optimization.test.ts(379,15): error TS2322: Type '"test"' is not assignable to type '"java_analysis" | "asset_conversion" | "file_validation" | "security_scan"'.
+tests/benchmark/performance-optimization.test.ts(524,27): error TS2322: Type '"benchmark"' is not assignable to type '"java_analysis" | "asset_conversion" | "file_validation" | "security_scan"'.
+tests/benchmark/performance-optimization.test.ts(525,27): error TS2322: Type '"benchmark"' is not assignable to type '"java_analysis" | "asset_conversion" | "file_validation" | "security_scan"'.
+tests/benchmark/performance-optimization.test.ts(534,22): error TS2339: Property 'execute' does not exist on type 'WorkerPool'.
+tests/integration/compromise-integration.test.ts(84,19): error TS2554: Expected 4-5 arguments, but got 0.
+tests/integration/compromise-integration.test.ts(85,36): error TS2339: Property 'getCompromiseStrategyEngine' does not exist on type 'LogicTranslationEngine'.
+tests/integration/compromise-integration.test.ts(111,19): error TS2339: Property 'registerCompromiseStrategy' does not exist on type 'LogicTranslationEngine'.
+tests/integration/conversion/conversion-pipeline.test.ts(39,34): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string | ArrayBufferView<ArrayBufferLike>'.
+tests/integration/conversion/conversion-pipeline.test.ts(50,34): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string | ArrayBufferView<ArrayBufferLike>'.
+tests/integration/conversion/conversion-pipeline.test.ts(56,25): error TS2339: Property 'initialize' does not exist on type 'ConfigurationService'.
+tests/integration/conversion/conversion-pipeline.test.ts(104,77): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/conversion/conversion-pipeline.test.ts(108,24): error TS2339: Property 'success' does not exist on type 'AssetTranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(112,24): error TS2339: Property 'assets' does not exist on type 'AssetTranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(113,24): error TS2339: Property 'modId' does not exist on type 'AssetTranslationResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(169,51): error TS2339: Property 'processConfigurationStage' does not exist on type 'ConversionPipeline'.
+tests/integration/conversion/conversion-pipeline.test.ts(211,25): error TS2554: Expected 4-5 arguments, but got 0.
+tests/integration/conversion/conversion-pipeline.test.ts(212,43): error TS2339: Property 'translateLogic' does not exist on type 'LogicTranslationEngine'.
+tests/integration/conversion/conversion-pipeline.test.ts(228,35): error TS7006: Parameter 'error' implicitly has an 'any' type.
+tests/integration/conversion/conversion-pipeline.test.ts(272,61): error TS2345: Argument of type '{ modFile: Buffer<ArrayBuffer>; sourceRepository: { url: string; branch: string; }; preferences: { compromiseStrategies: { allowStubs: boolean; allowWarnings: boolean; allowSimplifications: boolean; }; outputFormat: "addon"; includeSourceCode: boolean; }; metadata: { ...; }; }' is not assignable to parameter of type 'ConversionPipelineInput'.
+  Type '{ modFile: Buffer<ArrayBuffer>; sourceRepository: { url: string; branch: string; }; preferences: { compromiseStrategies: { allowStubs: boolean; allowWarnings: boolean; allowSimplifications: boolean; }; outputFormat: "addon"; includeSourceCode: boolean; }; metadata: { ...; }; }' is missing the following properties from type 'ConversionPipelineInput': inputPath, outputPath, modId, modName, modVersion
+tests/integration/conversion/conversion-pipeline.test.ts(275,27): error TS2339: Property 'modId' does not exist on type 'ConversionPipelineResult'.
+tests/integration/conversion/conversion-pipeline.test.ts(293,26): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'PathLike'.
+  Type 'undefined' is not assignable to type 'PathLike'.
+tests/integration/end-to-end-conversion.test.ts(25,7): error TS2554: Expected 1 arguments, but got 4.
+tests/integration/end-to-end-conversion.test.ts(53,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(56,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(57,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(58,21): error TS2339: Property 'validation' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(61,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(62,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(63,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(64,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(65,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(68,37): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(68,66): error TS7006: Parameter 'note' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(82,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(85,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(86,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(87,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(88,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(91,33): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(91,62): error TS7006: Parameter 'name' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(94,32): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(94,61): error TS7006: Parameter 'name' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(112,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(115,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(116,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(119,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(120,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(121,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(124,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(124,47): error TS7006: Parameter 'path' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(125,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(125,47): error TS7006: Parameter 'path' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(128,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(129,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(144,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(147,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(148,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(151,31): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(151,60): error TS7006: Parameter 'note' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(155,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(164,42): error TS2345: Argument of type 'Buffer<ArrayBuffer>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(182,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(184,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(185,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(185,48): error TS7006: Parameter 'note' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(198,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(203,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(205,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(216,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(221,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(223,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(234,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(239,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(241,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(252,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(254,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(255,21): error TS2339: Property 'validation' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(258,21): error TS2339: Property 'validation' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(259,21): error TS2339: Property 'validation' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(262,21): error TS2339: Property 'validation' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(271,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(273,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(276,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(277,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(281,23): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(284,23): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(288,14): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(288,43): error TS7006: Parameter 'texturePath' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(299,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(301,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(304,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(307,32): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(307,61): error TS7006: Parameter 'note' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(308,33): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(308,62): error TS7006: Parameter 'note' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(315,14): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(315,44): error TS7006: Parameter 'note' implicitly has an 'any' type.
+tests/integration/end-to-end-conversion.test.ts(336,56): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(343,23): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(344,23): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(345,23): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(365,67): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(379,23): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(402,63): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(404,23): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/end-to-end-conversion.test.ts(430,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/end-to-end-conversion.test.ts(431,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/helpers.ts(5,19): error TS2724: '"../../src/types/base.js"' has no exported member named 'ConversionInput'. Did you mean 'ConversionNote'?
+tests/integration/helpers.ts(5,36): error TS2305: Module '"../../src/types/base.js"' has no exported member 'ConversionResult'.
+tests/integration/helpers.ts(37,17): error TS1308: 'await' expressions are only allowed within async functions and at the top levels of modules.
+tests/integration/helpers.ts(37,30): error TS2307: Cannot find module 'jszip' or its corresponding type declarations.
+tests/integration/helpers.ts(283,32): error TS2307: Cannot find module 'jszip' or its corresponding type declarations.
+tests/integration/helpers.ts(289,12): error TS18046: 'file' is of type 'unknown'.
+tests/integration/helpers.ts(290,31): error TS18046: 'file' is of type 'unknown'.
+tests/integration/helpers.ts(365,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'JavaSourceFile'.
+tests/integration/helpers.ts(379,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'ConfigFile'.
+tests/integration/helpers.ts(384,7): error TS2353: Object literal may only specify known properties, and 'author' does not exist in type 'LicenseInfo'.
+tests/integration/helpers.ts(399,7): error TS2820: Type '"validation"' is not assignable to type 'ErrorType | "VALIDATION" | "ASSET" | "CONFIG" | "LOGIC" | "SYSTEM" | "NETWORK" | "RESOURCE" | "SECURITY" | "USER" | "COMPROMISE"'. Did you mean '"VALIDATION"'?
+tests/integration/helpers.ts(400,7): error TS2820: Type '"warning"' is not assignable to type 'ErrorSeverity | "INFO" | "WARNING" | "ERROR" | "CRITICAL"'. Did you mean '"WARNING"'?
+tests/integration/helpers.ts(407,7): error TS2820: Type '"logic"' is not assignable to type 'ErrorType | "VALIDATION" | "ASSET" | "CONFIG" | "LOGIC" | "SYSTEM" | "NETWORK" | "RESOURCE" | "SECURITY" | "USER" | "COMPROMISE"'. Did you mean '"LOGIC"'?
+tests/integration/helpers.ts(408,7): error TS2820: Type '"error"' is not assignable to type 'ErrorSeverity | "INFO" | "WARNING" | "ERROR" | "CRITICAL"'. Did you mean '"ERROR"'?
+tests/integration/helpers.ts(412,9): error TS2353: Object literal may only specify known properties, and 'line' does not exist in type 'SourceLocation'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(40,49): error TS2339: Property 'validate' does not exist on type 'ModValidator'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(47,44): error TS2339: Property 'extractMod' does not exist on type 'ModValidator'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(54,53): error TS2339: Property 'detect' does not exist on type 'ModLoaderDetector'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(106,53): error TS2345: Argument of type '{ githubToken: string; }' is not assignable to parameter of type 'string'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(112,7): error TS2554: Expected 1 arguments, but got 2.
+tests/integration/ingestion/ingestion-pipeline.test.ts(116,24): error TS2339: Property 'fileCount' does not exist on type 'SourceCodeFetchResult'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(138,49): error TS2339: Property 'validate' does not exist on type 'ModValidator'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(145,44): error TS2339: Property 'extractMod' does not exist on type 'ModValidator'.
+tests/integration/ingestion/ingestion-pipeline.test.ts(152,53): error TS2339: Property 'detect' does not exist on type 'ModLoaderDetector'.
+tests/integration/job-queue-integration.test.ts(50,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(100,11): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(135,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "low"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(147,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "urgent"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(178,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(195,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(234,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(250,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(287,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(328,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(356,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(396,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(435,11): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(472,11): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/job-queue-integration.test.ts(508,9): error TS2741: Property 'retryCount' is missing in type '{ timeout: number; maxRetries: number; priority: "normal"; resourceRequirements: { memory: number; cpu: number; disk: number; }; }' but required in type 'JobOptions'.
+tests/integration/modporter-ai-integration.test.ts(34,7): error TS2554: Expected 1 arguments, but got 4.
+tests/integration/modporter-ai-integration.test.ts(94,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/modporter-ai-integration.test.ts(96,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(97,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(98,21): error TS2339: Property 'validation' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(166,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/modporter-ai-integration.test.ts(168,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(169,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(170,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(171,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(224,69): error TS2345: Argument of type '{ path: string; name: string; type: "block" | "item"; }[]' is not assignable to parameter of type 'TextureInfo[]'.
+  Property 'buffer' is missing in type '{ path: string; name: string; type: "block" | "item"; }' but required in type 'TextureInfo'.
+tests/integration/modporter-ai-integration.test.ts(226,31): error TS2339: Property 'convertedFiles' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(239,76): error TS2345: Argument of type '{ modId: string; modName: string; version: string; author: string; }' is not assignable to parameter of type 'ModInfo'.
+  Type '{ modId: string; modName: string; version: string; author: string; }' is missing the following properties from type 'ModInfo': id, name
+tests/integration/modporter-ai-integration.test.ts(255,45): error TS2345: Argument of type '{ path: string; name: string; type: "texture"; }[]' is not assignable to parameter of type 'AssetInfo[]'.
+  Property 'content' is missing in type '{ path: string; name: string; type: "texture"; }' but required in type 'AssetInfo'.
+tests/integration/modporter-ai-integration.test.ts(273,82): error TS2345: Argument of type '{ name: string; displayName: string; material: string; hardness: number; }[]' is not assignable to parameter of type 'BlockInfo[]'.
+  Type '{ name: string; displayName: string; material: string; hardness: number; }' is missing the following properties from type 'BlockInfo': identifier, textures
+tests/integration/modporter-ai-integration.test.ts(275,14): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'ConversionResult'.
+  Property '0' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(284,71): error TS2559: Type '{ modId: string; blockDefinitions: ConversionResult; itemDefinitions: never[]; }' has no properties in common with type 'ValidationInput'.
+tests/integration/modporter-ai-integration.test.ts(306,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/modporter-ai-integration.test.ts(309,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(310,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(311,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(311,48): error TS7006: Parameter 'note' implicitly has an 'any' type.
+tests/integration/modporter-ai-integration.test.ts(320,42): error TS2345: Argument of type 'Buffer<ArrayBuffer>' is not assignable to parameter of type 'string'.
+tests/integration/modporter-ai-integration.test.ts(347,61): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/modporter-ai-integration.test.ts(352,21): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(353,21): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(412,69): error TS2345: Argument of type '{ path: string; name: string; type: "block"; }[]' is not assignable to parameter of type 'TextureInfo[]'.
+  Property 'buffer' is missing in type '{ path: string; name: string; type: "block"; }' but required in type 'TextureInfo'.
+tests/integration/modporter-ai-integration.test.ts(417,9): error TS2345: Argument of type 'ManifestInfo' is not assignable to parameter of type 'ModInfo'.
+  Type 'ManifestInfo' is missing the following properties from type 'ModInfo': id, name
+tests/integration/modporter-ai-integration.test.ts(423,27): error TS7053: Element implicitly has an 'any' type because expression of type '`block.dataflowmod.${string}`' can't be used to index type '{ 'block.dataflowmod.flow_block': string; 'item.dataflowmod.flow_item': string; }'.
+tests/integration/modporter-ai-integration.test.ts(426,24): error TS7053: Element implicitly has an 'any' type because expression of type '`block.dataflowmod.${string}`' can't be used to index type '{ 'block.dataflowmod.flow_block': string; 'item.dataflowmod.flow_item': string; }'.
+tests/integration/modporter-ai-integration.test.ts(431,82): error TS2345: Argument of type '{ name: string; displayName: any; material: string; hardness: number; }[]' is not assignable to parameter of type 'BlockInfo[]'.
+  Type '{ name: string; displayName: any; material: string; hardness: number; }' is missing the following properties from type 'BlockInfo': identifier, textures
+tests/integration/modporter-ai-integration.test.ts(433,14): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'ConversionResult'.
+  Property '0' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(440,34): error TS2339: Property 'convertedFiles' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(443,70): error TS2559: Type '{ modId: string; blockDefinitions: ConversionResult; itemDefinitions: never[]; assets: any; }' has no properties in common with type 'ValidationInput'.
+tests/integration/modporter-ai-integration.test.ts(463,56): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'string'.
+tests/integration/modporter-ai-integration.test.ts(470,23): error TS2339: Property 'success' does not exist on type 'ConversionResult'.
+tests/integration/modporter-ai-integration.test.ts(471,23): error TS2339: Property 'result' does not exist on type 'ConversionResult'.
+tests/integration/module-interactions.test.ts(42,63): error TS2345: Argument of type 'JavaMod' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
+  Type 'JavaMod' is missing the following properties from type 'Buffer<ArrayBufferLike>': slice, subarray, write, toJSON, and 97 more.
+tests/integration/module-interactions.test.ts(44,31): error TS2339: Property 'success' does not exist on type 'ModValidationResult'.
+tests/integration/module-interactions.test.ts(56,52): error TS2554: Expected 2 arguments, but got 1.
+tests/integration/module-interactions.test.ts(56,85): error TS2339: Property 'extractedMod' does not exist on type 'ModValidationResult'.
+tests/integration/module-interactions.test.ts(58,29): error TS2339: Property 'success' does not exist on type 'FeatureAnalysisResult'.
+tests/integration/module-interactions.test.ts(63,28): error TS2339: Property 'extractedMod' does not exist on type 'ModValidationResult'.
+tests/integration/module-interactions.test.ts(72,9): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(76,32): error TS2339: Property 'success' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(87,32): error TS2339: Property 'modId' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(88,32): error TS2339: Property 'assets' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(97,27): error TS2554: Expected 4-5 arguments, but got 0.
+tests/integration/module-interactions.test.ts(120,51): error TS2339: Property 'translateLogic' does not exist on type 'LogicTranslationEngine'.
+tests/integration/module-interactions.test.ts(136,55): error TS2551: Property 'applyStrategies' does not exist on type 'CompromiseStrategyEngine'. Did you mean 'applyStrategy'?
+tests/integration/module-interactions.test.ts(168,27): error TS2554: Expected 4-5 arguments, but got 0.
+tests/integration/module-interactions.test.ts(174,11): error TS2322: Type '{ id: string; type: string; severity: string; message: string; moduleOrigin: string; timestamp: Date; }' is not assignable to type 'string'.
+tests/integration/module-interactions.test.ts(188,9): error TS2353: Object literal may only specify known properties, and 'success' does not exist in type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(204,29): error TS2345: Argument of type '"translateLogic"' is not assignable to parameter of type '"translateJavaCode" | "parseToMMIR" | "transpileAST" | "translateWithLLM" | "validateTranslation"'.
+tests/integration/module-interactions.test.ts(204,65): error TS2345: Argument of type '{ success: boolean; errors: { id: string; type: string; severity: string; message: string; moduleOrigin: string; timestamp: Date; }[]; translatedCode: string; unmappableFeatures: never[]; }' is not assignable to parameter of type 'never'.
+tests/integration/module-interactions.test.ts(221,63): error TS2345: Argument of type 'JavaMod' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
+  Type 'JavaMod' is missing the following properties from type 'Buffer<ArrayBufferLike>': slice, subarray, write, toJSON, and 97 more.
+tests/integration/module-interactions.test.ts(222,32): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'ConversionError[]'.
+  Type 'string' is not assignable to type 'ConversionError'.
+tests/integration/module-interactions.test.ts(224,69): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(227,45): error TS2339: Property 'translateLogic' does not exist on type 'LogicTranslationEngine'.
+tests/integration/module-interactions.test.ts(260,56): error TS2345: Argument of type '"applyStrategies"' is not assignable to parameter of type '"registerStrategy" | "selectStrategy" | "applyStrategy" | "provideFeedback" | "getStrategyMetrics" | "getStrategyFeedback" | "getStrategyPerformanceReport" | "getCompromiseReport"'.
+tests/integration/module-interactions.test.ts(263,49): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(269,30): error TS2551: Property 'applyStrategies' does not exist on type 'CompromiseStrategyEngine'. Did you mean 'applyStrategy'?
+tests/integration/module-interactions.test.ts(318,16): error TS2339: Property 'errors' does not exist on type 'ConversionPipelineResult'.
+tests/integration/module-interactions.test.ts(319,12): error TS7006: Parameter 'error' implicitly has an 'any' type.
+tests/integration/module-interactions.test.ts(324,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'PathLike'.
+  Type 'undefined' is not assignable to type 'PathLike'.
+tests/integration/module-interactions.test.ts(340,63): error TS2345: Argument of type 'JavaMod' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
+  Type 'JavaMod' is missing the following properties from type 'Buffer<ArrayBufferLike>': slice, subarray, write, toJSON, and 97 more.
+tests/integration/module-interactions.test.ts(341,31): error TS2339: Property 'success' does not exist on type 'ModValidationResult'.
+tests/integration/module-interactions.test.ts(343,52): error TS2554: Expected 2 arguments, but got 1.
+tests/integration/module-interactions.test.ts(344,29): error TS2339: Property 'success' does not exist on type 'FeatureAnalysisResult'.
+tests/integration/module-interactions.test.ts(348,27): error TS2554: Expected 4-5 arguments, but got 0.
+tests/integration/module-interactions.test.ts(353,9): error TS2554: Expected 1 arguments, but got 3.
+tests/integration/module-interactions.test.ts(356,26): error TS2339: Property 'success' does not exist on type 'AssetTranslationResult'.
+tests/integration/module-interactions.test.ts(358,45): error TS2339: Property 'translateLogic' does not exist on type 'LogicTranslationEngine'.
+tests/integration/module-interactions.test.ts(365,26): error TS2339: Property 'modId' does not exist on type 'AssetTranslationResult'.
+tests/integration/packaging/packaging-pipeline.test.ts(223,49): error TS2339: Property 'embed' does not exist on type 'LicenseEmbedder'.
+tests/integration/packaging/packaging-pipeline.test.ts(249,53): error TS2341: Property 'validateBehaviorPack' is private and only accessible within class 'AddonValidator'.
+tests/integration/packaging/packaging-pipeline.test.ts(250,31): error TS2339: Property 'valid' does not exist on type 'ValidationError[]'.
+tests/integration/packaging/packaging-pipeline.test.ts(253,53): error TS2341: Property 'validateResourcePack' is private and only accessible within class 'AddonValidator'.
+tests/integration/packaging/packaging-pipeline.test.ts(254,31): error TS2339: Property 'valid' does not exist on type 'ValidationError[]'.
+tests/integration/packaging/packaging-pipeline.test.ts(262,42): error TS2339: Property 'generate' does not exist on type 'ConversionReportGenerator'.
+tests/integration/packaging/packaging-pipeline.test.ts(325,40): error TS2339: Property 'generate' does not exist on type 'ManualPostProcessingGuide'.
+tests/integration/packaging/packaging-pipeline.test.ts(361,47): error TS2339: Property 'package' does not exist on type 'AddonPackager'.
+tests/integration/performance-integration.test.ts(49,7): error TS2353: Object literal may only specify known properties, and 'taskTimeout' does not exist in type 'Partial<WorkerPoolConfig>'.
+tests/integration/performance-integration.test.ts(96,13): error TS2739: Type '{ targetMinecraftVersion: string; includeDocumentation: false; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, optimizeAssets
+tests/integration/performance-integration.test.ts(103,43): error TS18046: 'error' is of type 'unknown'.
+tests/integration/performance-integration.test.ts(136,9): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(145,9): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(176,9): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(208,11): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(219,40): error TS2339: Property 'getMetrics' does not exist on type 'WorkerPool'.
+tests/integration/performance-integration.test.ts(253,13): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(298,9): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(383,11): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(426,9): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/integration/performance-integration.test.ts(442,9): error TS2739: Type '{ targetMinecraftVersion: string; }' is missing the following properties from type 'ConversionOptions': compromiseStrategy, includeDocumentation, optimizeAssets
+tests/security/input-validation.test.ts(27,41): error TS2339: Property 'validate' does not exist on type 'ModValidator'.
+tests/security/input-validation.test.ts(41,41): error TS2339: Property 'validate' does not exist on type 'ModValidator'.
+tests/security/input-validation.test.ts(55,41): error TS2339: Property 'validate' does not exist on type 'ModValidator'.
+tests/security/input-validation.test.ts(69,33): error TS2339: Property 'extractMod' does not exist on type 'ModValidator'.
+tests/security/input-validation.test.ts(75,55): error TS2345: Argument of type '{ githubToken: string; }' is not assignable to parameter of type 'string'.
+tests/security/input-validation.test.ts(79,27): error TS2339: Property 'parseRepositoryUrl' does not exist on type 'SourceCodeFetcher'.
+tests/security/input-validation.test.ts(82,27): error TS2339: Property 'parseRepositoryUrl' does not exist on type 'SourceCodeFetcher'.
+tests/security/input-validation.test.ts(87,27): error TS2339: Property 'parseRepositoryUrl' does not exist on type 'SourceCodeFetcher'.
+tests/security/input-validation.test.ts(89,38): error TS2339: Property 'parseRepositoryUrl' does not exist on type 'SourceCodeFetcher'.
+tests/security/input-validation.test.ts(90,38): error TS2339: Property 'parseRepositoryUrl' does not exist on type 'SourceCodeFetcher'.
+tests/security/input-validation.test.ts(94,55): error TS2345: Argument of type '{ githubToken: string; }' is not assignable to parameter of type 'string'.
+tests/security/input-validation.test.ts(112,9): error TS2554: Expected 1 arguments, but got 2.
+tests/security/modporter-ai-security.test.ts(39,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(62,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(64,35): error TS7006: Parameter 't' implicitly has an 'any' type.
+tests/security/modporter-ai-security.test.ts(77,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(94,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(114,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(116,35): error TS7006: Parameter 't' implicitly has an 'any' type.
+tests/security/modporter-ai-security.test.ts(129,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(132,37): error TS7006: Parameter 't' implicitly has an 'any' type.
+tests/security/modporter-ai-security.test.ts(155,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(188,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(190,35): error TS7006: Parameter 't' implicitly has an 'any' type.
+tests/security/modporter-ai-security.test.ts(215,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(218,37): error TS7006: Parameter 't' implicitly has an 'any' type.
+tests/security/modporter-ai-security.test.ts(287,44): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(305,72): error TS2339: Property 'scanFile' does not exist on type 'SecurityScanner'.
+tests/security/modporter-ai-security.test.ts(312,24): error TS7006: Parameter 'result' implicitly has an 'any' type.
+tests/unit/modules/assets/AssetTranslationModule.test.ts(93,67): error TS2345: Argument of type '{ textures: { path: string; data: Buffer<ArrayBuffer>; }[]; models: { path: string; data: {}; type: "block"; }[]; sounds: { path: string; data: Buffer<ArrayBuffer>; }[]; particles: { ...; }[]; }' is not assignable to parameter of type 'JavaAssetCollection'.
+  Property 'animations' is missing in type '{ textures: { path: string; data: Buffer<ArrayBuffer>; }[]; models: { path: string; data: {}; type: "block"; }[]; sounds: { path: string; data: Buffer<ArrayBuffer>; }[]; particles: { ...; }[]; }' but required in type 'JavaAssetCollection'.
+tests/unit/modules/assets/AssetTranslationModule.test.ts(155,67): error TS2345: Argument of type '{ textures: never[]; models: never[]; sounds: never[]; particles: never[]; }' is not assignable to parameter of type 'JavaAssetCollection'.
+  Property 'animations' is missing in type '{ textures: never[]; models: never[]; sounds: never[]; particles: never[]; }' but required in type 'JavaAssetCollection'.
+tests/unit/modules/assets/AssetTranslationModule.test.ts(186,51): error TS2345: Argument of type '{ textures: { path: string; data: Buffer<ArrayBuffer>; }[]; models: { path: string; data: {}; }[]; sounds: { path: string; data: Buffer<ArrayBuffer>; }[]; particles: { ...; }[]; soundsJson: { ...; }; }' is not assignable to parameter of type 'BedrockAssetCollection'.
+  Property 'animations' is missing in type '{ textures: { path: string; data: Buffer<ArrayBuffer>; }[]; models: { path: string; data: {}; }[]; sounds: { path: string; data: Buffer<ArrayBuffer>; }[]; particles: { ...; }[]; soundsJson: { ...; }; }' but required in type 'BedrockAssetCollection'.
+tests/unit/modules/assets/ModelConverter.test.ts(6,3): error TS2459: Module '"../../../../src/modules/assets/ModelConverter.js"' declares 'JavaModelFile' locally, but it is not exported.
+tests/unit/modules/assets/ModelConverter.test.ts(7,3): error TS2459: Module '"../../../../src/modules/assets/ModelConverter.js"' declares 'BedrockModelFile' locally, but it is not exported.
+tests/unit/modules/assets/ModelConverter.test.ts(460,53): error TS7006: Parameter 'call' implicitly has an 'any' type.
+tests/unit/modules/assets/SoundProcessor.test.ts(6,3): error TS2459: Module '"../../../../src/modules/assets/SoundProcessor.js"' declares 'JavaSoundFile' locally, but it is not exported.
+tests/unit/modules/assets/SoundProcessor.test.ts(7,3): error TS2459: Module '"../../../../src/modules/assets/SoundProcessor.js"' declares 'BedrockSoundFile' locally, but it is not exported.
+tests/unit/modules/assets/TextureConverter.test.ts(6,3): error TS2459: Module '"../../../../src/modules/assets/TextureConverter.js"' declares 'JavaTextureFile' locally, but it is not exported.
+tests/unit/modules/assets/TextureConverter.test.ts(7,3): error TS2459: Module '"../../../../src/modules/assets/TextureConverter.js"' declares 'BedrockTextureFile' locally, but it is not exported.
+tests/unit/modules/assets/TextureConverter.test.ts(196,54): error TS7006: Parameter 'call' implicitly has an 'any' type.
+tests/unit/modules/compromise/UIFlowMapper.test.ts(22,31): error TS2345: Argument of type 'EnhancedLogger' is not assignable to parameter of type '{ info: (message: string, meta?: any) => void; warn: (message: string, meta?: any) => void; error: (message: string, meta?: any) => void; debug: (message: string, meta?: any) => void; verbose: (message: string, meta?: any) => void; }'.
+  Property 'verbose' is missing in type 'EnhancedLogger' but required in type '{ info: (message: string, meta?: any) => void; warn: (message: string, meta?: any) => void; error: (message: string, meta?: any) => void; debug: (message: string, meta?: any) => void; verbose: (message: string, meta?: any) => void; }'.
+tests/unit/modules/compromise/WarningLogger.test.ts(19,32): error TS2345: Argument of type 'EnhancedLogger' is not assignable to parameter of type '{ info: (message: string, meta?: any) => void; warn: (message: string, meta?: any) => void; error: (message: string, meta?: any) => void; debug: (message: string, meta?: any) => void; verbose: (message: string, meta?: any) => void; }'.
+  Property 'verbose' is missing in type 'EnhancedLogger' but required in type '{ info: (message: string, meta?: any) => void; warn: (message: string, meta?: any) => void; error: (message: string, meta?: any) => void; debug: (message: string, meta?: any) => void; verbose: (message: string, meta?: any) => void; }'.

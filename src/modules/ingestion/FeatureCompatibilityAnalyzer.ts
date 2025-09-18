@@ -1,13 +1,13 @@
 /**
  * FeatureCompatibilityAnalyzer Component
- * 
+ *
  * This component is responsible for analyzing Java mod features and classifying them into
  * four tiers of conversion feasibility:
  * - Tier 1: Fully Translatable
  * - Tier 2: Approximation Possible
  * - Tier 3: Natively Impossible
  * - Tier 4: Unanalyzable
- * 
+ *
  * It performs static analysis on the mod's source code and structure to determine
  * which features can be directly translated, which require approximation, which are
  * impossible to translate natively, and which cannot be analyzed.
@@ -15,26 +15,44 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import logger from '../../utils/logger';
-import { Feature, FeatureCompatibilityReport, CompromiseStrategy } from './index';
+import logger from '../../utils/logger.js';
+import {
+  Feature,
+  FeatureCompatibilityReport,
+  CompromiseStrategy,
+  CompatibilityTier,
+  FeatureType,
+} from './index.js';
+
+// Re-export types for convenience
+export { CompatibilityTier, FeatureType };
 
 /**
  * FeatureAnalysisResult interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface FeatureAnalysisResult {
   compatibilityReport: FeatureCompatibilityReport;
+  features: Feature[];
+  success: boolean;
+  summary: {
+    tier1Count: number;
+    tier2Count: number;
+    tier3Count: number;
+    totalFeatures: number;
+    compatibilityScore: number;
+  };
   errors?: string[];
 }
 
 /**
  * FeatureDefinition interface.
- * 
+ *
  * TODO: Add detailed description of what this interface represents.
- * 
+ *
  * @since 1.0.0
  */
 export interface FeatureDefinition {
@@ -52,9 +70,9 @@ export interface FeatureDefinition {
 
 /**
  * FeatureCompatibilityAnalyzer class.
- * 
+ *
  * TODO: Add detailed description of the class purpose and functionality.
- * 
+ *
  * @since 1.0.0
  */
 export class FeatureCompatibilityAnalyzer {
@@ -92,9 +110,7 @@ export class FeatureCompatibilityAnalyzer {
           'registerItem\\(',
           'ITEMS\\.register\\(',
         ],
-        importPatterns: [
-          'net\\.minecraft\\.item\\.Item',
-        ],
+        importPatterns: ['net\\.minecraft\\.item\\.Item'],
       },
       compatibilityTier: 1,
     },
@@ -103,13 +119,8 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Crafting Recipes',
       description: 'Standard crafting recipe registration',
       detectionPatterns: {
-        filePatterns: [
-          'data/.+/recipes/.+\\.json',
-        ],
-        codePatterns: [
-          'ShapedRecipe',
-          'ShapelessRecipe',
-        ],
+        filePatterns: ['data/.+/recipes/.+\\.json'],
+        codePatterns: ['ShapedRecipe', 'ShapelessRecipe'],
       },
       compatibilityTier: 1,
     },
@@ -118,9 +129,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Loot Tables',
       description: 'Standard loot table definitions',
       detectionPatterns: {
-        filePatterns: [
-          'data/.+/loot_tables/.+\\.json',
-        ],
+        filePatterns: ['data/.+/loot_tables/.+\\.json'],
       },
       compatibilityTier: 1,
     },
@@ -129,9 +138,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Block Models',
       description: 'Standard block model definitions',
       detectionPatterns: {
-        filePatterns: [
-          'assets/.+/models/block/.+\\.json',
-        ],
+        filePatterns: ['assets/.+/models/block/.+\\.json'],
       },
       compatibilityTier: 1,
     },
@@ -140,9 +147,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Item Models',
       description: 'Standard item model definitions',
       detectionPatterns: {
-        filePatterns: [
-          'assets/.+/models/item/.+\\.json',
-        ],
+        filePatterns: ['assets/.+/models/item/.+\\.json'],
       },
       compatibilityTier: 1,
     },
@@ -151,9 +156,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Textures',
       description: 'Texture files for blocks and items',
       detectionPatterns: {
-        filePatterns: [
-          'assets/.+/textures/.+\\.png',
-        ],
+        filePatterns: ['assets/.+/textures/.+\\.png'],
       },
       compatibilityTier: 1,
     },
@@ -162,10 +165,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Sound Resources',
       description: 'Sound files and sound definitions',
       detectionPatterns: {
-        filePatterns: [
-          'assets/.+/sounds/.+\\.ogg',
-          'assets/.+/sounds\\.json',
-        ],
+        filePatterns: ['assets/.+/sounds/.+\\.ogg', 'assets/.+/sounds\\.json'],
       },
       compatibilityTier: 1,
     },
@@ -174,24 +174,18 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Language Files',
       description: 'Localization and translation files',
       detectionPatterns: {
-        filePatterns: [
-          'assets/.+/lang/.+\\.json',
-          'assets/.+/lang/.+\\.lang',
-        ],
+        filePatterns: ['assets/.+/lang/.+\\.json', 'assets/.+/lang/.+\\.lang'],
       },
       compatibilityTier: 1,
     },
-    
+
     // Tier 2: Approximation Possible Features
     {
       id: 'custom_block_entities',
       name: 'Custom Block Entities',
       description: 'Block entities with custom data and behavior',
       detectionPatterns: {
-        codePatterns: [
-          'extends\\s+BlockEntity',
-          'implements\\s+BlockEntityProvider',
-        ],
+        codePatterns: ['extends\\s+BlockEntity', 'implements\\s+BlockEntityProvider'],
         importPatterns: [
           'net\\.minecraft\\.block\\.entity\\.BlockEntity',
           'net\\.minecraft\\.tileentity\\.TileEntity',
@@ -213,11 +207,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Custom Entities',
       description: 'Custom entity types and behaviors',
       detectionPatterns: {
-        codePatterns: [
-          'extends\\s+Entity',
-          'extends\\s+LivingEntity',
-          'extends\\s+MobEntity',
-        ],
+        codePatterns: ['extends\\s+Entity', 'extends\\s+LivingEntity', 'extends\\s+MobEntity'],
         importPatterns: [
           'net\\.minecraft\\.entity\\.Entity',
           'net\\.minecraft\\.entity\\.LivingEntity',
@@ -240,10 +230,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Custom Particles',
       description: 'Custom particle effects and behaviors',
       detectionPatterns: {
-        codePatterns: [
-          'extends\\s+ParticleType',
-          'extends\\s+Particle',
-        ],
+        codePatterns: ['extends\\s+ParticleType', 'extends\\s+Particle'],
         importPatterns: [
           'net\\.minecraft\\.particle\\.ParticleType',
           'net\\.minecraft\\.client\\.particle\\.Particle',
@@ -265,10 +252,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Basic GUIs',
       description: 'Simple inventory and container screens',
       detectionPatterns: {
-        codePatterns: [
-          'extends\\s+Screen',
-          'extends\\s+ContainerScreen',
-        ],
+        codePatterns: ['extends\\s+Screen', 'extends\\s+ContainerScreen'],
         importPatterns: [
           'net\\.minecraft\\.client\\.gui\\.screen\\.Screen',
           'net\\.minecraft\\.client\\.gui\\.screen\\.ingame\\.ContainerScreen',
@@ -290,14 +274,8 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Basic World Generation',
       description: 'Simple world generation features like ores and structures',
       detectionPatterns: {
-        filePatterns: [
-          'data/.+/worldgen/.+\\.json',
-        ],
-        codePatterns: [
-          'Feature\\.',
-          'ConfiguredFeature',
-          'Structure',
-        ],
+        filePatterns: ['data/.+/worldgen/.+\\.json'],
+        codePatterns: ['Feature\\.', 'ConfiguredFeature', 'Structure'],
       },
       compatibilityTier: 2,
       defaultCompromiseStrategy: {
@@ -310,27 +288,22 @@ export class FeatureCompatibilityAnalyzer {
         ],
       },
     },
-    
+
     // Tier 3: Natively Impossible Features
     {
       id: 'custom_dimensions',
       name: 'Custom Dimensions',
       description: 'Custom dimension types and generation',
       detectionPatterns: {
-        codePatterns: [
-          'DimensionType',
-          'registerDimension',
-          'createDimension',
-        ],
-        importPatterns: [
-          'net\\.minecraft\\.world\\.dimension',
-        ],
+        codePatterns: ['DimensionType', 'registerDimension', 'createDimension'],
+        importPatterns: ['net\\.minecraft\\.world\\.dimension'],
       },
       compatibilityTier: 3,
       defaultCompromiseStrategy: {
         type: 'simulation',
         description: 'Simulate dimensions using teleportation and visual effects',
-        implementationDetails: 'Create separate areas in existing dimensions with teleportation between them',
+        implementationDetails:
+          'Create separate areas in existing dimensions with teleportation between them',
         limitations: [
           'Not a true separate dimension',
           'Limited sky and environment customization',
@@ -343,12 +316,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Advanced Rendering',
       description: 'Custom rendering pipelines and shaders',
       detectionPatterns: {
-        codePatterns: [
-          'RenderType',
-          'ShaderInstance',
-          'RenderLayer',
-          'VertexFormat',
-        ],
+        codePatterns: ['RenderType', 'ShaderInstance', 'RenderLayer', 'VertexFormat'],
         importPatterns: [
           'net\\.minecraft\\.client\\.renderer',
           'net\\.minecraft\\.client\\.shader',
@@ -370,11 +338,7 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Custom Model Rendering',
       description: 'Custom model loading and rendering systems',
       detectionPatterns: {
-        codePatterns: [
-          'BakedModel',
-          'ModelLoader',
-          'IModelLoader',
-        ],
+        codePatterns: ['BakedModel', 'ModelLoader', 'IModelLoader'],
         importPatterns: [
           'net\\.minecraft\\.client\\.render\\.model',
           'net\\.minecraftforge\\.client\\.model',
@@ -396,15 +360,8 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Complex GUI Systems',
       description: 'Advanced UI systems with custom rendering',
       detectionPatterns: {
-        codePatterns: [
-          'RenderSystem',
-          'GuiGraphics',
-          'PoseStack',
-          'MatrixStack',
-        ],
-        importPatterns: [
-          'com\\.mojang\\.blaze3d',
-        ],
+        codePatterns: ['RenderSystem', 'GuiGraphics', 'PoseStack', 'MatrixStack'],
+        importPatterns: ['com\\.mojang\\.blaze3d'],
       },
       compatibilityTier: 3,
       defaultCompromiseStrategy: {
@@ -422,18 +379,9 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Mixin-based Modifications',
       description: 'Deep game modifications using Mixin framework',
       detectionPatterns: {
-        filePatterns: [
-          '.*\\.mixins\\.json',
-        ],
-        codePatterns: [
-          '@Mixin',
-          '@Inject',
-          '@Redirect',
-          '@Shadow',
-        ],
-        importPatterns: [
-          'org\\.spongepowered\\.asm\\.mixin',
-        ],
+        filePatterns: ['.*\\.mixins\\.json'],
+        codePatterns: ['@Mixin', '@Inject', '@Redirect', '@Shadow'],
+        importPatterns: ['org\\.spongepowered\\.asm\\.mixin'],
       },
       compatibilityTier: 4,
       defaultCompromiseStrategy: {
@@ -446,7 +394,7 @@ export class FeatureCompatibilityAnalyzer {
         ],
       },
     },
-    
+
     // Tier 4: Unanalyzable Features
     {
       id: 'obfuscated_code',
@@ -467,13 +415,8 @@ export class FeatureCompatibilityAnalyzer {
       name: 'Native Code Integration',
       description: 'Integration with native code libraries (JNI)',
       detectionPatterns: {
-        codePatterns: [
-          'System\\.loadLibrary',
-          'native\\s+\\w+\\s*\\(',
-        ],
-        importPatterns: [
-          'java\\.lang\\.native',
-        ],
+        codePatterns: ['System\\.loadLibrary', 'native\\s+\\w+\\s*\\('],
+        importPatterns: ['java\\.lang\\.native'],
       },
       compatibilityTier: 4,
     },
@@ -488,9 +431,7 @@ export class FeatureCompatibilityAnalyzer {
           '\\.getDeclaredField',
           '\\.setAccessible\\(true\\)',
         ],
-        importPatterns: [
-          'java\\.lang\\.reflect',
-        ],
+        importPatterns: ['java\\.lang\\.reflect'],
       },
       compatibilityTier: 4,
     },
@@ -499,14 +440,8 @@ export class FeatureCompatibilityAnalyzer {
       name: 'ASM Bytecode Manipulation',
       description: 'Direct manipulation of Java bytecode',
       detectionPatterns: {
-        codePatterns: [
-          'ClassWriter',
-          'ClassVisitor',
-          'MethodVisitor',
-        ],
-        importPatterns: [
-          'org\\.objectweb\\.asm',
-        ],
+        codePatterns: ['ClassWriter', 'ClassVisitor', 'MethodVisitor'],
+        importPatterns: ['org\\.objectweb\\.asm'],
       },
       compatibilityTier: 4,
     },
@@ -518,13 +453,25 @@ export class FeatureCompatibilityAnalyzer {
    * @param modLoader The detected mod loader type ('forge' or 'fabric')
    * @returns FeatureAnalysisResult with compatibility report
    */
-  async analyzeFeatures(extractedModPath: string, modLoader: 'forge' | 'fabric' | 'unknown'): Promise<FeatureAnalysisResult> {
+  async analyzeFeatures(
+    extractedModPath: string,
+    modLoader: 'forge' | 'fabric' | 'unknown'
+  ): Promise<FeatureAnalysisResult> {
     const result: FeatureAnalysisResult = {
       compatibilityReport: {
         tier1Features: [],
         tier2Features: [],
         tier3Features: [],
         tier4Features: [],
+      },
+      features: [],
+      success: true,
+      summary: {
+        tier1Count: 0,
+        tier2Count: 0,
+        tier3Count: 0,
+        totalFeatures: 0,
+        compatibilityScore: 0,
       },
       errors: [],
     };
@@ -540,9 +487,9 @@ export class FeatureCompatibilityAnalyzer {
       // Analyze each feature definition against the mod files
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -559,20 +506,23 @@ export class FeatureCompatibilityAnalyzer {
 
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         if (detectedFeature) {
+          // Add to all features list
+          result.features.push(detectedFeature);
+
           // Add the feature to the appropriate tier list
           /**
            * switch method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -592,6 +542,23 @@ export class FeatureCompatibilityAnalyzer {
               break;
           }
         }
+      }
+
+      // Calculate summary
+      result.summary.tier1Count = result.compatibilityReport.tier1Features.length;
+      result.summary.tier2Count = result.compatibilityReport.tier2Features.length;
+      result.summary.tier3Count = result.compatibilityReport.tier3Features.length;
+      result.summary.totalFeatures = result.features.length;
+
+      // Calculate compatibility score (weighted by tiers)
+      const totalFeatures = result.summary.totalFeatures;
+      if (totalFeatures > 0) {
+        const score =
+          (result.summary.tier1Count * 1.0 +
+            result.summary.tier2Count * 0.7 +
+            result.compatibilityReport.tier3Features.length * 0.3) /
+          totalFeatures;
+        result.summary.compatibilityScore = Math.round(score * 100) / 100;
       }
 
       // Log summary of analysis
@@ -626,7 +593,7 @@ export class FeatureCompatibilityAnalyzer {
     javaFiles: string[],
     jsonFiles: string[],
     assetFiles: string[],
-    modLoader: 'forge' | 'fabric' | 'unknown'
+    _modLoader: 'forge' | 'fabric' | 'unknown'
   ): Promise<Feature | null> {
     try {
       const { detectionPatterns } = featureDef;
@@ -637,33 +604,33 @@ export class FeatureCompatibilityAnalyzer {
       // Check file patterns (against all files)
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (detectionPatterns.filePatterns && detectionPatterns.filePatterns.length > 0) {
         const allFiles = [...javaFiles, ...jsonFiles, ...assetFiles];
-        
+
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         for (const pattern of detectionPatterns.filePatterns) {
           const regex = new RegExp(pattern);
-          
+
           /**
            * for method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -672,9 +639,9 @@ export class FeatureCompatibilityAnalyzer {
             const relativePath = path.relative(extractedModPath, file);
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
@@ -691,24 +658,25 @@ export class FeatureCompatibilityAnalyzer {
       // Check code patterns and import patterns (against Java files only)
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
-      if ((detectionPatterns.codePatterns && detectionPatterns.codePatterns.length > 0) ||
-          (detectionPatterns.importPatterns && detectionPatterns.importPatterns.length > 0)) {
-        
+      if (
+        (detectionPatterns.codePatterns && detectionPatterns.codePatterns.length > 0) ||
+        (detectionPatterns.importPatterns && detectionPatterns.importPatterns.length > 0)
+      ) {
         // Only check a reasonable number of files to avoid excessive processing
         const filesToCheck = javaFiles.slice(0, 50);
-        
+
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -718,13 +686,13 @@ export class FeatureCompatibilityAnalyzer {
             const content = await fs.readFile(file, 'utf-8');
             const lines = content.split('\n');
             const matchedLines: number[] = [];
-            
+
             // Check code patterns
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
@@ -732,22 +700,22 @@ export class FeatureCompatibilityAnalyzer {
             if (detectionPatterns.codePatterns) {
               /**
                * for method.
-               * 
+               *
                * TODO: Add detailed description of the method's purpose and behavior.
-               * 
+               *
                * @param param - TODO: Document parameters
                * @returns result - TODO: Document return value
                * @since 1.0.0
                */
               for (const pattern of detectionPatterns.codePatterns) {
                 const regex = new RegExp(pattern);
-                
+
                 for (let i = 0; i < lines.length; i++) {
                   /**
                    * if method.
-                   * 
+                   *
                    * TODO: Add detailed description of the method's purpose and behavior.
-                   * 
+                   *
                    * @param param - TODO: Document parameters
                    * @returns result - TODO: Document return value
                    * @since 1.0.0
@@ -758,13 +726,13 @@ export class FeatureCompatibilityAnalyzer {
                 }
               }
             }
-            
+
             // Check import patterns
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
@@ -772,22 +740,22 @@ export class FeatureCompatibilityAnalyzer {
             if (detectionPatterns.importPatterns) {
               /**
                * for method.
-               * 
+               *
                * TODO: Add detailed description of the method's purpose and behavior.
-               * 
+               *
                * @param param - TODO: Document parameters
                * @returns result - TODO: Document return value
                * @since 1.0.0
                */
               for (const pattern of detectionPatterns.importPatterns) {
                 const regex = new RegExp(`import\\s+${pattern}`);
-                
+
                 for (let i = 0; i < lines.length; i++) {
                   /**
                    * if method.
-                   * 
+                   *
                    * TODO: Add detailed description of the method's purpose and behavior.
-                   * 
+                   *
                    * @param param - TODO: Document parameters
                    * @returns result - TODO: Document return value
                    * @since 1.0.0
@@ -798,13 +766,13 @@ export class FeatureCompatibilityAnalyzer {
                 }
               }
             }
-            
+
             // If we found matches in this file, add it to the sources
             /**
              * if method.
-             * 
+             *
              * TODO: Add detailed description of the method's purpose and behavior.
-             * 
+             *
              * @param param - TODO: Document parameters
              * @returns result - TODO: Document return value
              * @since 1.0.0
@@ -826,9 +794,9 @@ export class FeatureCompatibilityAnalyzer {
       // If the feature was detected, create a Feature object
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -846,9 +814,9 @@ export class FeatureCompatibilityAnalyzer {
         // Add compromise strategy if available
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -875,40 +843,42 @@ export class FeatureCompatibilityAnalyzer {
    */
   private async findFiles(dirPath: string, extensions: string[]): Promise<string[]> {
     const result: string[] = [];
-    
+
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
-      
+
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
-        
+
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
          */
         if (entry.isDirectory()) {
           // Skip certain directories that are unlikely to contain relevant files
-          if (entry.name === 'node_modules' || 
-              entry.name === '.git' || 
-              entry.name === 'build' || 
-              entry.name === 'target') {
+          if (
+            entry.name === 'node_modules' ||
+            entry.name === '.git' ||
+            entry.name === 'build' ||
+            entry.name === 'target'
+          ) {
             continue;
           }
-          
+
           // Recursively search subdirectories
           const subDirFiles = await this.findFiles(fullPath, extensions);
           result.push(...subDirFiles);
@@ -917,9 +887,9 @@ export class FeatureCompatibilityAnalyzer {
           const ext = path.extname(entry.name).toLowerCase();
           /**
            * if method.
-           * 
+           *
            * TODO: Add detailed description of the method's purpose and behavior.
-           * 
+           *
            * @param param - TODO: Document parameters
            * @returns result - TODO: Document return value
            * @since 1.0.0
@@ -932,7 +902,7 @@ export class FeatureCompatibilityAnalyzer {
     } catch (error) {
       logger.error('Error finding files', { error, dirPath });
     }
-    
+
     return result;
   }
 
@@ -942,48 +912,49 @@ export class FeatureCompatibilityAnalyzer {
    * @returns A formatted summary string
    */
   generateSummaryReport(report: FeatureCompatibilityReport): string {
-    const totalFeatures = 
-      report.tier1Features.length + 
-      report.tier2Features.length + 
-      report.tier3Features.length + 
+    const totalFeatures =
+      report.tier1Features.length +
+      report.tier2Features.length +
+      report.tier3Features.length +
       report.tier4Features.length;
-    
+
     if (totalFeatures === 0) {
       return 'No features were detected in the mod.';
     }
-    
+
     const tier1Percent = Math.round((report.tier1Features.length / totalFeatures) * 100);
     const tier2Percent = Math.round((report.tier2Features.length / totalFeatures) * 100);
     const tier3Percent = Math.round((report.tier3Features.length / totalFeatures) * 100);
     const tier4Percent = Math.round((report.tier4Features.length / totalFeatures) * 100);
-    
+
     let summary = `Feature Compatibility Summary:\n\n`;
     summary += `Total Features Detected: ${totalFeatures}\n\n`;
     summary += `Tier 1 (Fully Translatable): ${report.tier1Features.length} (${tier1Percent}%)\n`;
     summary += `Tier 2 (Approximation Possible): ${report.tier2Features.length} (${tier2Percent}%)\n`;
     summary += `Tier 3 (Natively Impossible): ${report.tier3Features.length} (${tier3Percent}%)\n`;
     summary += `Tier 4 (Unanalyzable): ${report.tier4Features.length} (${tier4Percent}%)\n\n`;
-    
+
     // Calculate overall conversion feasibility
     let feasibilityScore = 0;
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (totalFeatures > 0) {
       feasibilityScore = Math.round(
-        ((report.tier1Features.length * 1.0) + 
-         (report.tier2Features.length * 0.6) + 
-         (report.tier3Features.length * 0.3)) / 
-        totalFeatures * 100
+        ((report.tier1Features.length * 1.0 +
+          report.tier2Features.length * 0.6 +
+          report.tier3Features.length * 0.3) /
+          totalFeatures) *
+          100
       );
     }
-    
+
     let feasibilityRating = '';
     if (feasibilityScore >= 80) {
       feasibilityRating = 'Excellent';
@@ -996,9 +967,18 @@ export class FeatureCompatibilityAnalyzer {
     } else {
       feasibilityRating = 'Very Poor';
     }
-    
+
     summary += `Overall Conversion Feasibility: ${feasibilityRating} (${feasibilityScore}%)\n`;
-    
+
     return summary;
+  }
+
+  /**
+   * Alias for analyzeFeatures method for backward compatibility
+   * @param extractedModPath Path to the extracted mod files
+   * @returns FeatureAnalysisResult with compatibility report
+   */
+  async analyze(extractedModPath: string): Promise<FeatureAnalysisResult> {
+    return this.analyzeFeatures(extractedModPath, 'unknown');
   }
 }

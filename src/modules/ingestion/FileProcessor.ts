@@ -1,6 +1,6 @@
 /**
  * Enhanced file processor with security scanning capabilities
- * 
+ *
  * This module provides comprehensive file processing including:
  * - MIME type validation
  * - Magic number verification
@@ -9,115 +9,124 @@
  * - Comprehensive error reporting
  */
 
-import * as fs from 'fs/promises';
+// import * as fs from 'fs/promises';
 import * as crypto from 'crypto';
 import * as path from 'path';
-import { 
-  ValidationResult, 
-  ValidationError, 
+import {
+  FileValidationOptions,
+  ValidationResult,
+  ValidationError,
   ValidationWarning,
   FileMetadata,
-  SecurityScanResult
-} from '../../types/file-processing';
-import { SecurityScanner } from './SecurityScanner';
-import { CacheService } from '../../services/CacheService';
-import { PerformanceMonitor } from '../../services/PerformanceMonitor';
-import { MonitoringService } from '../../services/MonitoringService';
-import { FileValidationConfig, SecurityScanningConfig } from '../../types/config.js';
+  SecurityScanResult,
+} from '../../types/file-processing.js';
+import { ErrorSeverity } from '../../types/errors.js';
+import { SecurityScanner } from './SecurityScanner.js';
+import { CacheService } from '../../services/CacheService.js';
+import { PerformanceMonitor } from '../../services/PerformanceMonitor.js';
 
 export class FileProcessor {
-  private static readonly MAGIC_NUMBERS = {
-    ZIP: Buffer.from([0x50, 0x4B, 0x03, 0x04]),
-    JAR: Buffer.from([0x50, 0x4B, 0x03, 0x04]), // JAR files are ZIP files
+  private static readonly ALLOWED_MIME_TYPES = {
+    'application/java-archive': 'jar',
+    'application/zip': 'zip',
+    'application/x-zip-compressed': 'zip',
+    'application/octet-stream': 'jar', // Some systems report JAR as octet-stream
   };
 
-  private fileValidationConfig: FileValidationConfig;
-  private securityScanningConfig: SecurityScanningConfig;
+  private static readonly MAGIC_NUMBERS = {
+    ZIP: Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+    JAR: Buffer.from([0x50, 0x4b, 0x03, 0x04]), // JAR files are ZIP files
+  };
+
+  private static readonly DEFAULT_OPTIONS: FileValidationOptions = {
+    maxFileSize: 500 * 1024 * 1024, // 500MB
+    allowedMimeTypes: Object.keys(FileProcessor.ALLOWED_MIME_TYPES),
+    enableMalwareScanning: true,
+    tempDirectory: process.env.TEMP_DIR || '/tmp',
+  };
+
+  private options: FileValidationOptions;
   private securityScanner: SecurityScanner;
   private cache?: CacheService;
   private performanceMonitor?: PerformanceMonitor;
-  private monitoringService?: MonitoringService;
 
   constructor(
-    fileValidationConfig: FileValidationConfig,
-    securityScanningConfig: SecurityScanningConfig,
+    options: Partial<FileValidationOptions> = {},
     cache?: CacheService,
-    performanceMonitor?: PerformanceMonitor,
-    monitoringService?: MonitoringService
+    performanceMonitor?: PerformanceMonitor
   ) {
-    this.fileValidationConfig = fileValidationConfig;
-    this.securityScanningConfig = securityScanningConfig;
-    this.securityScanner = new SecurityScanner(securityScanningConfig);
+    this.options = { ...FileProcessor.DEFAULT_OPTIONS, ...options };
+    this.securityScanner = new SecurityScanner();
     this.cache = cache;
     this.performanceMonitor = performanceMonitor;
-    this.monitoringService = monitoringService;
   }
 
   /**
    * Validate an uploaded file with comprehensive security checks
    */
   async validateUpload(file: Buffer, filename: string): Promise<ValidationResult> {
-    const startTime = Date.now();
-    const profileId = this.performanceMonitor?.startProfile('file-validation', { filename, size: file.length });
+    const profileId = this.performanceMonitor?.startProfile('file-validation', {
+      filename,
+      size: file.length,
+    });
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
-    
+
     try {
       // Check cache first if available
       if (this.cache) {
         const fileHash = crypto.createHash('sha256').update(file).digest('hex');
         const cacheKey = { type: 'file_validation' as const, identifier: fileHash };
         const cachedResult = await this.cache.get<ValidationResult>(cacheKey);
-        
+
         if (cachedResult) {
-          this.performanceMonitor?.endProfile(profileId);
+          if (profileId) {
+            this.performanceMonitor?.endProfile(profileId);
+          }
           return cachedResult;
         }
       }
-      // Perform basic validation and security scanning in parallel
-      const [basicValidation, securityScanResult] = await Promise.all([
-        this.performBasicValidation(file, filename),
-        this.securityScanningConfig.enableMalwarePatternDetection
-          ? this.securityScanner.scanBuffer(file, filename).catch(e => {
-              warnings.push({ code: 'SECURITY_SCAN_FAILED', message: `Security scan failed: ${e.message}`, details: { error: e.message }});
-              return null;
-            })
-          : Promise.resolve(null),
-      ]);
-
+      // Basic file validation
+      const basicValidation = await this.performBasicValidation(file, filename);
       errors.push(...basicValidation.errors);
       warnings.push(...basicValidation.warnings);
 
-      // If basic validation fails critically, we can still report security issues found in parallel
-      const hasCriticalErrors = errors.some(error => error.severity === 'critical');
+      // If basic validation fails critically, don't proceed with security scanning
+      const hasCriticalErrors = errors.some((error) => error.severity === 'critical');
       if (hasCriticalErrors) {
         return {
           isValid: false,
           fileType: this.detectFileType(file, filename),
           size: file.length,
           errors,
-          warnings
+          warnings,
         };
       }
 
-      // Process security scan results
-      if (securityScanResult && !securityScanResult.isSafe) {
-        for (const threat of securityScanResult.threats) {
-          errors.push({
-            code: `SECURITY_${threat.type.toUpperCase()}`,
-            message: threat.description,
-            severity: threat.severity === 'high' ? 'critical' : 'error',
-            details: { threat, scanId: securityScanResult.scanId }
-          });
+      // Security scanning
+      let securityResult: SecurityScanResult | null = null;
+      if (this.options.enableMalwareScanning) {
+        try {
+          securityResult = await this.securityScanner.scanBuffer(file, filename);
 
-          this.monitoringService?.recordSecurityMetric({
-            event: 'threat_detected',
-            severity: threat.severity,
-            details: {
-                threatType: threat.type,
-                fileName: filename,
-                fileSize: file.length
+          if (!securityResult.isSafe) {
+            for (const threat of securityResult.threats) {
+              errors.push({
+                code: `SECURITY_${threat.type.toUpperCase()}`,
+                message: threat.description,
+                severity:
+                  threat.severity === ErrorSeverity.CRITICAL
+                    ? ErrorSeverity.CRITICAL
+                    : ErrorSeverity.ERROR,
+                details: { threat, scanId: securityResult.scanId },
+              });
             }
+          }
+        } catch (scanError) {
+          warnings.push({
+            code: 'SECURITY_SCAN_FAILED',
+            message: `Security scan failed: ${scanError instanceof Error ? scanError.message : 'Unknown error'}`,
+            details: { error: scanError instanceof Error ? scanError.message : String(scanError) },
           });
         }
       }
@@ -131,7 +140,7 @@ export class FileProcessor {
         size: file.length,
         errors,
         warnings,
-        metadata
+        metadata,
       };
 
       // Cache the result if available
@@ -141,35 +150,27 @@ export class FileProcessor {
         await this.cache.set(cacheKey, result, 3600000); // Cache for 1 hour
       }
 
-      this.performanceMonitor?.endProfile(profileId);
-
-      this.monitoringService?.recordPerformanceMetric({
-        operation: 'file_processing',
-        duration: Date.now() - startTime,
-        success: result.isValid,
-        details: {
-            fileSize: file.length,
-            errorCode: result.isValid ? undefined : errors[0]?.code
-        }
-      });
-
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       return result;
-
     } catch (error) {
       errors.push({
         code: 'VALIDATION_FAILED',
-        message: `File validation failed: ${error.message}`,
-        severity: 'critical',
-        details: { error: error.message }
+        message: `File validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        severity: ErrorSeverity.CRITICAL,
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
 
-      this.performanceMonitor?.endProfile(profileId);
+      if (profileId) {
+        this.performanceMonitor?.endProfile(profileId);
+      }
       return {
         isValid: false,
         fileType: 'unknown',
         size: file.length,
         errors,
-        warnings
+        warnings,
       };
     }
   }
@@ -177,7 +178,10 @@ export class FileProcessor {
   /**
    * Perform basic file validation checks
    */
-  private async performBasicValidation(file: Buffer, filename: string): Promise<{
+  private async performBasicValidation(
+    file: Buffer,
+    filename: string
+  ): Promise<{
     errors: ValidationError[];
     warnings: ValidationWarning[];
   }> {
@@ -185,15 +189,15 @@ export class FileProcessor {
     const warnings: ValidationWarning[] = [];
 
     // File size validation
-    if (file.length > this.fileValidationConfig.maxFileSize) {
+    if (file.length > this.options.maxFileSize) {
       errors.push({
         code: 'FILE_TOO_LARGE',
-        message: `File size ${file.length} bytes exceeds maximum allowed size of ${this.fileValidationConfig.maxFileSize} bytes`,
+        message: `File size ${file.length} bytes exceeds maximum allowed size of ${this.options.maxFileSize} bytes`,
         severity: 'critical',
-        details: { 
-          actualSize: file.length, 
-          maxSize: this.fileValidationConfig.maxFileSize
-        }
+        details: {
+          actualSize: file.length,
+          maxSize: this.options.maxFileSize,
+        },
       });
     }
 
@@ -202,7 +206,7 @@ export class FileProcessor {
       errors.push({
         code: 'EMPTY_FILE',
         message: 'File is empty',
-        severity: 'critical'
+        severity: 'critical',
       });
       return { errors, warnings };
     }
@@ -214,7 +218,7 @@ export class FileProcessor {
         code: 'INVALID_MAGIC_NUMBER',
         message: magicValidation.message,
         severity: 'error',
-        details: magicValidation.details
+        details: magicValidation.details,
       });
     }
 
@@ -226,13 +230,13 @@ export class FileProcessor {
           code: 'INVALID_MIME_TYPE',
           message: mimeValidation.message,
           severity: 'critical',
-          details: mimeValidation.details
+          details: mimeValidation.details,
         });
       } else {
         warnings.push({
           code: 'MIME_TYPE_WARNING',
           message: mimeValidation.message,
-          details: mimeValidation.details
+          details: mimeValidation.details,
         });
       }
     }
@@ -243,7 +247,7 @@ export class FileProcessor {
       warnings.push({
         code: 'UNEXPECTED_EXTENSION',
         message: extensionValidation.message,
-        details: extensionValidation.details
+        details: extensionValidation.details,
       });
     }
 
@@ -253,22 +257,19 @@ export class FileProcessor {
   /**
    * Validate file magic number
    */
-  private validateMagicNumber(file: Buffer, filename: string): {
+  private validateMagicNumber(
+    file: Buffer,
+    filename: string
+  ): {
     isValid: boolean;
     message: string;
     details?: any;
   } {
-    if (!this.fileValidationConfig.enableMagicNumberValidation) {
-      return {
-        isValid: true,
-        message: 'Magic number validation is disabled'
-      };
-    }
     if (file.length < 4) {
       return {
         isValid: false,
         message: 'File too small to contain valid magic number',
-        details: { fileSize: file.length }
+        details: { fileSize: file.length },
       };
     }
 
@@ -284,22 +285,25 @@ export class FileProcessor {
           details: {
             expected: Array.from(FileProcessor.MAGIC_NUMBERS.ZIP),
             actual: Array.from(fileHeader),
-            expectedExtension
-          }
+            expectedExtension,
+          },
         };
       }
     }
 
     return {
       isValid: true,
-      message: 'Magic number validation passed'
+      message: 'Magic number validation passed',
     };
   }
 
   /**
    * Validate MIME type (basic heuristic validation)
    */
-  private validateMimeType(file: Buffer, filename: string): {
+  private validateMimeType(
+    file: Buffer,
+    filename: string
+  ): {
     isValid: boolean;
     message: string;
     severity: 'critical' | 'warning';
@@ -311,31 +315,32 @@ export class FileProcessor {
     // For JAR/ZIP files, ensure they have the correct magic number
     if (extension === '.jar' || extension === '.zip') {
       const hasZipMagic = file.subarray(0, 4).equals(FileProcessor.MAGIC_NUMBERS.ZIP);
-      
+
       if (!hasZipMagic) {
         return {
           isValid: false,
           message: `File with ${extension} extension does not have valid ZIP/JAR structure`,
           severity: 'critical',
-          details: { extension, detectedType }
+          details: { extension, detectedType },
         };
       }
     }
 
     // Check if detected type is in allowed types
-    if (!this.fileValidationConfig.allowedMimeTypes.includes(detectedType)) {
+    const allowedTypes = Object.keys(FileProcessor.ALLOWED_MIME_TYPES);
+    if (!allowedTypes.includes(detectedType)) {
       return {
         isValid: false,
-        message: `File type '${detectedType}' is not allowed. Allowed types: ${this.fileValidationConfig.allowedMimeTypes.join(', ')}`,
+        message: `File type '${detectedType}' is not allowed. Allowed types: ${allowedTypes.join(', ')}`,
         severity: 'critical',
-        details: { detectedType, allowedTypes: this.fileValidationConfig.allowedMimeTypes }
+        details: { detectedType, allowedTypes },
       };
     }
 
     return {
       isValid: true,
       message: 'MIME type validation passed',
-      severity: 'warning'
+      severity: 'warning',
     };
   }
 
@@ -354,13 +359,13 @@ export class FileProcessor {
       return {
         isValid: false,
         message: `File extension '${extension}' is not typically expected. Expected: ${allowedExtensions.join(', ')}`,
-        details: { extension, allowedExtensions }
+        details: { extension, allowedExtensions },
       };
     }
 
     return {
       isValid: true,
-      message: 'File extension validation passed'
+      message: 'File extension validation passed',
     };
   }
 
@@ -369,11 +374,11 @@ export class FileProcessor {
    */
   private detectFileType(file: Buffer, filename: string): string {
     const extension = path.extname(filename).toLowerCase();
-    
+
     // Check magic number first
     if (file.length >= 4) {
       const header = file.subarray(0, 4);
-      
+
       if (header.equals(FileProcessor.MAGIC_NUMBERS.ZIP)) {
         // Distinguish between ZIP and JAR based on extension or content
         if (extension === '.jar') {
@@ -400,16 +405,14 @@ export class FileProcessor {
   private async generateFileMetadata(file: Buffer, filename: string): Promise<FileMetadata> {
     const fileType = this.detectFileType(file, filename);
     const extension = path.extname(filename).toLowerCase();
-    
+
     // Generate checksum
     const hash = crypto.createHash('sha256');
     hash.update(file);
     const checksum = hash.digest('hex');
 
     // Extract magic number as hex string
-    const magicNumber = file.length >= 4 
-      ? file.subarray(0, 4).toString('hex').toUpperCase()
-      : '';
+    const magicNumber = file.length >= 4 ? file.subarray(0, 4).toString('hex').toUpperCase() : '';
 
     return {
       mimeType: fileType,
@@ -417,7 +420,7 @@ export class FileProcessor {
       magicNumber,
       checksum,
       createdAt: new Date(),
-      modifiedAt: new Date()
+      modifiedAt: new Date(),
     };
   }
 
@@ -426,5 +429,19 @@ export class FileProcessor {
    */
   getSecurityScanner(): SecurityScanner {
     return this.securityScanner;
+  }
+
+  /**
+   * Update validation options
+   */
+  updateOptions(newOptions: Partial<FileValidationOptions>): void {
+    this.options = { ...this.options, ...newOptions };
+  }
+
+  /**
+   * Get current validation options
+   */
+  getOptions(): FileValidationOptions {
+    return { ...this.options };
   }
 }

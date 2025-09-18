@@ -1,13 +1,14 @@
 /**
  * ProgramStateAlignmentValidator.ts
- * 
+ *
  * This module validates the functional equivalence of translated code by comparing
  * the execution traces of Java and JavaScript code. It injects instrumentation into
  * both languages to capture program state and provides feedback for translation refinement.
  */
 
-import { MMIRNode, MMIRContext } from './MMIRGenerator';
-import { LLMTranslationResult } from './LLMTranslationService';
+// import type { MMIRNode, MMIRContext } from './MMIRGenerator.js';
+import { LLMTranslationResult } from './LLMTranslationService.js';
+import { ErrorSeverity } from '../../types/errors.js';
 
 /**
  * Represents a program state snapshot at a specific point in execution
@@ -53,7 +54,7 @@ export interface DivergencePoint {
   javascriptSnapshot: ProgramStateSnapshot;
   divergenceType: 'variable_value' | 'control_flow' | 'return_value' | 'missing_state';
   description: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: ErrorSeverity;
 }
 
 /**
@@ -76,7 +77,7 @@ export class ProgramStateAlignmentValidator {
     captureReturnValues: true,
     captureCallStack: true,
     samplingRate: 1.0, // Instrument all statements by default
-    excludedFunctions: ['toString', 'hashCode', 'equals']
+    excludedFunctions: ['toString', 'hashCode', 'equals'],
   };
 
   /**
@@ -95,7 +96,7 @@ export class ProgramStateAlignmentValidator {
   public instrumentJavaCode(javaCode: string): string {
     // This is a simplified implementation
     // In a real implementation, we would use a Java parser to properly instrument the code
-    
+
     // Add imports for instrumentation
     let instrumentedCode = `
 import java.util.HashMap;
@@ -111,19 +112,19 @@ import org.json.JSONArray;
 class StateTracker {
     private static final List<JSONObject> snapshots = new ArrayList<>();
     private static final long startTime = System.currentTimeMillis();
-    
+
     public static void captureState(String functionName, int lineNumber, Map<String, Object> variables) {
         JSONObject snapshot = new JSONObject();
         snapshot.put("timestamp", System.currentTimeMillis() - startTime);
         snapshot.put("functionName", functionName);
         snapshot.put("lineNumber", lineNumber);
-        
+
         JSONObject vars = new JSONObject();
         /**
          * for method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -132,7 +133,7 @@ class StateTracker {
             vars.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         snapshot.put("variables", vars);
-        
+
         // Capture call stack
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         JSONArray callStack = new JSONArray();
@@ -140,16 +141,16 @@ class StateTracker {
             callStack.put(stackTrace[i].toString());
         }
         snapshot.put("callStack", callStack);
-        
+
         snapshots.add(snapshot);
     }
-    
+
     public static void captureReturnValue(String functionName, Object returnValue) {
         JSONObject snapshot = new JSONObject();
         snapshot.put("timestamp", System.currentTimeMillis() - startTime);
         snapshot.put("functionName", functionName);
         snapshot.put("returnValue", String.valueOf(returnValue));
-        
+
         // Capture call stack
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         JSONArray callStack = new JSONArray();
@@ -157,22 +158,22 @@ class StateTracker {
             callStack.put(stackTrace[i].toString());
         }
         snapshot.put("callStack", callStack);
-        
+
         snapshots.add(snapshot);
     }
-    
+
     public static void writeSnapshots(String filename) {
         try (FileWriter file = new FileWriter(filename)) {
             JSONObject trace = new JSONObject();
             trace.put("language", "java");
             trace.put("snapshots", new JSONArray(snapshots));
-            
+
             JSONObject metadata = new JSONObject();
             metadata.put("sourceFile", filename.replace(".trace.json", ".java"));
             metadata.put("executionTime", System.currentTimeMillis() - startTime);
             metadata.put("snapshotCount", snapshots.size());
             trace.put("metadata", metadata);
-            
+
             file.write(trace.toString(2));
         } catch (IOException e) {
             e.printStackTrace();
@@ -192,7 +193,7 @@ static {
 
     // Insert state capture calls at key points in the code
     // This is a simplified approach - a real implementation would use AST parsing
-    
+
     // Instrument method entries
     instrumentedCode = instrumentedCode.replace(
       /(\s*)(public|private|protected)?\s*\w+\s+(\w+)\s*\((.*?)\)\s*\{/g,
@@ -200,9 +201,9 @@ static {
         // Skip excluded functions
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -210,7 +211,7 @@ static {
         if (this.config.excludedFunctions.includes(methodName)) {
           return match;
         }
-        
+
         return `${match}
 ${space}    // Instrumentation: Capture initial state
 ${space}    Map<String, Object> _stateVars = new HashMap<>();
@@ -219,20 +220,20 @@ ${space}    StateTracker.captureState("${methodName}", ${this.getLineNumber(matc
 `;
       }
     );
-    
+
     // Instrument return statements
     instrumentedCode = instrumentedCode.replace(
       /(\s*return\s+)(.+?);/g,
       (match, returnKeyword, returnValue) => {
         // Extract method name from context (simplified)
-        const methodName = this.extractMethodNameFromContext(match, javaCode) || "unknownMethod";
-        
+        const methodName = this.extractMethodNameFromContext(match, javaCode) || 'unknownMethod';
+
         // Skip excluded functions
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -240,7 +241,7 @@ ${space}    StateTracker.captureState("${methodName}", ${this.getLineNumber(matc
         if (this.config.excludedFunctions.includes(methodName)) {
           return match;
         }
-        
+
         return `
     // Instrumentation: Capture return value
     {
@@ -250,7 +251,7 @@ ${space}    StateTracker.captureState("${methodName}", ${this.getLineNumber(matc
     }`;
       }
     );
-    
+
     return instrumentedCode;
   }
 
@@ -262,14 +263,14 @@ ${space}    StateTracker.captureState("${methodName}", ${this.getLineNumber(matc
   public instrumentJavaScriptCode(jsCode: string): string {
     // This is a simplified implementation
     // In a real implementation, we would use a JavaScript parser to properly instrument the code
-    
+
     // Add imports and helper functions for instrumentation
     let instrumentedCode = `
 // Instrumentation helper functions
 const StateTracker = {
   snapshots: [],
   startTime: Date.now(),
-  
+
   captureState: function(functionName, lineNumber, variables) {
     const snapshot = {
       timestamp: Date.now() - this.startTime,
@@ -278,10 +279,10 @@ const StateTracker = {
       variables: { ...variables },
       callStack: new Error().stack.split('\\n').slice(2).map(line => line.trim())
     };
-    
+
     this.snapshots.push(snapshot);
   },
-  
+
   captureReturnValue: function(functionName, returnValue) {
     const snapshot = {
       timestamp: Date.now() - this.startTime,
@@ -289,13 +290,13 @@ const StateTracker = {
       returnValue: typeof returnValue === 'object' ? JSON.stringify(returnValue) : returnValue,
       callStack: new Error().stack.split('\\n').slice(2).map(line => line.trim())
     };
-    
+
     this.snapshots.push(snapshot);
   },
-  
+
   writeSnapshots: function() {
     const fs = require('fs');
-    
+
     const trace = {
       language: 'javascript',
       snapshots: this.snapshots,
@@ -305,7 +306,7 @@ const StateTracker = {
         snapshotCount: this.snapshots.length
       }
     };
-    
+
     fs.writeFileSync('javascript_execution.trace.json', JSON.stringify(trace, null, 2));
   }
 };
@@ -321,13 +322,13 @@ ${jsCode}
     // Instrument function declarations
     instrumentedCode = instrumentedCode.replace(
       /(function\s+)(\w+)(\s*\()(.*?)(\)\s*\{)/g,
-      (match, funcKeyword, funcName, openParen, params, closeParen) => {
+      (match, funcKeyword, funcName, openParen, params, _closeParen) => {
         // Skip excluded functions
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -335,7 +336,7 @@ ${jsCode}
         if (this.config.excludedFunctions.includes(funcName)) {
           return match;
         }
-        
+
         return `${match}
   // Instrumentation: Capture initial state
   const _stateVars = {};
@@ -344,17 +345,17 @@ ${jsCode}
 `;
       }
     );
-    
+
     // Instrument arrow functions
     instrumentedCode = instrumentedCode.replace(
       /(\s*const\s+)(\w+)(\s*=\s*\()(.*?)(\)\s*=>\s*\{)/g,
-      (match, constKeyword, funcName, openParen, params, closeParen) => {
+      (match, constKeyword, funcName, openParen, params, _closeParen) => {
         // Skip excluded functions
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -362,7 +363,7 @@ ${jsCode}
         if (this.config.excludedFunctions.includes(funcName)) {
           return match;
         }
-        
+
         return `${match}
   // Instrumentation: Capture initial state
   const _stateVars = {};
@@ -371,20 +372,20 @@ ${jsCode}
 `;
       }
     );
-    
+
     // Instrument return statements
     instrumentedCode = instrumentedCode.replace(
       /(\s*return\s+)(.+?);/g,
       (match, returnKeyword, returnValue) => {
         // Extract function name from context (simplified)
-        const funcName = this.extractFunctionNameFromContext(match, jsCode) || "unknownFunction";
-        
+        const funcName = this.extractFunctionNameFromContext(match, jsCode) || 'unknownFunction';
+
         // Skip excluded functions
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -392,7 +393,7 @@ ${jsCode}
         if (this.config.excludedFunctions.includes(funcName)) {
           return match;
         }
-        
+
         return `
   // Instrumentation: Capture return value
   {
@@ -402,7 +403,7 @@ ${jsCode}
   }`;
       }
     );
-    
+
     return instrumentedCode;
   }
 
@@ -414,9 +415,9 @@ ${jsCode}
   private generateJavaVariableCapture(params: string): string {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -424,9 +425,9 @@ ${jsCode}
     if (!params.trim()) {
       return '';
     }
-    
-    const paramList = params.split(',').map(param => param.trim().split(' ').pop());
-    return paramList.map(param => `_stateVars.put("${param}", ${param});`).join('\n    ');
+
+    const paramList = params.split(',').map((param) => param.trim().split(' ').pop());
+    return paramList.map((param) => `_stateVars.put("${param}", ${param});`).join('\n    ');
   }
 
   /**
@@ -437,9 +438,9 @@ ${jsCode}
   private generateJsVariableCapture(params: string): string {
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -447,9 +448,9 @@ ${jsCode}
     if (!params.trim()) {
       return '';
     }
-    
-    const paramList = params.split(',').map(param => param.trim());
-    return paramList.map(param => `_stateVars["${param}"] = ${param};`).join('\n  ');
+
+    const paramList = params.split(',').map((param) => param.trim());
+    return paramList.map((param) => `_stateVars["${param}"] = ${param};`).join('\n  ');
   }
 
   /**
@@ -463,7 +464,7 @@ ${jsCode}
     if (index === -1) {
       return 0;
     }
-    
+
     return sourceCode.substring(0, index).split('\n').length;
   }
 
@@ -476,16 +477,16 @@ ${jsCode}
   private extractMethodNameFromContext(match: string, sourceCode: string): string | undefined {
     // This is a simplified implementation
     // In a real implementation, we would use proper AST parsing
-    
+
     const index = sourceCode.indexOf(match);
     if (index === -1) {
       return undefined;
     }
-    
+
     // Look for the method declaration before this point
     const codeBefore = sourceCode.substring(0, index);
     const methodMatch = /\s(\w+)\s*\([^)]*\)\s*\{[^{]*$/g.exec(codeBefore);
-    
+
     return methodMatch ? methodMatch[1] : undefined;
   }
 
@@ -498,22 +499,22 @@ ${jsCode}
   private extractFunctionNameFromContext(match: string, sourceCode: string): string | undefined {
     // This is a simplified implementation
     // In a real implementation, we would use proper AST parsing
-    
+
     const index = sourceCode.indexOf(match);
     if (index === -1) {
       return undefined;
     }
-    
+
     // Look for the function declaration before this point
     const codeBefore = sourceCode.substring(0, index);
-    
+
     // Try to match function declaration
     let funcMatch = /function\s+(\w+)\s*\([^)]*\)\s*\{[^{]*$/g.exec(codeBefore);
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -521,14 +522,14 @@ ${jsCode}
     if (funcMatch) {
       return funcMatch[1];
     }
-    
+
     // Try to match arrow function
     funcMatch = /const\s+(\w+)\s*=\s*\([^)]*\)\s*=>\s*\{[^{]*$/g.exec(codeBefore);
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -536,7 +537,7 @@ ${jsCode}
     if (funcMatch) {
       return funcMatch[1];
     }
-    
+
     return undefined;
   }
 
@@ -548,13 +549,13 @@ ${jsCode}
   public parseExecutionTrace(traceJson: string): ExecutionTrace {
     try {
       const trace = JSON.parse(traceJson);
-      
+
       // Validate the trace structure
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -562,7 +563,7 @@ ${jsCode}
       if (!trace.language || !Array.isArray(trace.snapshots) || !trace.metadata) {
         throw new Error('Invalid trace format');
       }
-      
+
       // Convert snapshots to ProgramStateSnapshot objects
       const snapshots: ProgramStateSnapshot[] = trace.snapshots.map((snapshot: any) => {
         return {
@@ -571,21 +572,23 @@ ${jsCode}
           lineNumber: snapshot.lineNumber,
           variables: new Map(Object.entries(snapshot.variables || {})),
           returnValue: snapshot.returnValue,
-          callStack: Array.isArray(snapshot.callStack) ? snapshot.callStack : []
+          callStack: Array.isArray(snapshot.callStack) ? snapshot.callStack : [],
         };
       });
-      
+
       return {
         language: trace.language,
         snapshots,
         metadata: {
           sourceFile: trace.metadata.sourceFile,
           executionTime: trace.metadata.executionTime,
-          snapshotCount: trace.metadata.snapshotCount
-        }
+          snapshotCount: trace.metadata.snapshotCount,
+        },
       };
     } catch (error) {
-      throw new Error(`Failed to parse execution trace: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to parse execution trace: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -598,39 +601,51 @@ ${jsCode}
   public compareTraces(javaTrace: ExecutionTrace, jsTrace: ExecutionTrace): ValidationResult {
     const divergencePoints: DivergencePoint[] = [];
     let alignmentScore = 1.0; // Start with perfect alignment
-    
+
     // Check if the traces have snapshots
     if (javaTrace.snapshots.length === 0 || jsTrace.snapshots.length === 0) {
       return {
         isAligned: false,
         divergencePoints: [
           {
-            javaSnapshot: javaTrace.snapshots[0] || { timestamp: 0, functionName: '', lineNumber: 0, variables: new Map(), callStack: [] },
-            javascriptSnapshot: jsTrace.snapshots[0] || { timestamp: 0, functionName: '', lineNumber: 0, variables: new Map(), callStack: [] },
+            javaSnapshot: javaTrace.snapshots[0] || {
+              timestamp: 0,
+              functionName: '',
+              lineNumber: 0,
+              variables: new Map(),
+              callStack: [],
+            },
+            javascriptSnapshot: jsTrace.snapshots[0] || {
+              timestamp: 0,
+              functionName: '',
+              lineNumber: 0,
+              variables: new Map(),
+              callStack: [],
+            },
             divergenceType: 'missing_state',
             description: 'One or both execution traces have no snapshots',
-            severity: 'high'
-          }
+            severity: ErrorSeverity.ERROR,
+          },
         ],
         alignmentScore: 0,
-        recommendations: ['Ensure both Java and JavaScript code are properly instrumented']
+        recommendations: ['Ensure both Java and JavaScript code are properly instrumented'],
       };
     }
-    
+
     // Map Java functions to JavaScript functions
     const functionMap = this.mapFunctions(javaTrace, jsTrace);
-    
+
     // Group snapshots by function
     const javaSnapshotsByFunction = this.groupSnapshotsByFunction(javaTrace.snapshots);
     const jsSnapshotsByFunction = this.groupSnapshotsByFunction(jsTrace.snapshots);
-    
+
     // Check for Java functions that don't have a mapping
-    const javaFunctions = new Set(javaTrace.snapshots.map(snapshot => snapshot.functionName));
+    const javaFunctions = new Set(javaTrace.snapshots.map((snapshot) => snapshot.functionName));
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -638,31 +653,43 @@ ${jsCode}
     for (const javaFunc of javaFunctions) {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
        */
       if (!functionMap.has(javaFunc)) {
         divergencePoints.push({
-          javaSnapshot: javaSnapshotsByFunction.get(javaFunc)?.[0] || { timestamp: 0, functionName: javaFunc, lineNumber: 0, variables: new Map(), callStack: [] },
-          javascriptSnapshot: { timestamp: 0, functionName: '', lineNumber: 0, variables: new Map(), callStack: [] },
+          javaSnapshot: javaSnapshotsByFunction.get(javaFunc)?.[0] || {
+            timestamp: 0,
+            functionName: javaFunc,
+            lineNumber: 0,
+            variables: new Map(),
+            callStack: [],
+          },
+          javascriptSnapshot: {
+            timestamp: 0,
+            functionName: '',
+            lineNumber: 0,
+            variables: new Map(),
+            callStack: [],
+          },
           divergenceType: 'missing_state',
           description: `Function ${javaFunc} exists in Java but not in JavaScript`,
-          severity: 'high'
+          severity: ErrorSeverity.ERROR,
         });
         alignmentScore -= 0.2;
       }
     }
-    
+
     // Compare function by function
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -670,42 +697,54 @@ ${jsCode}
     for (const [javaFunc, jsFunc] of functionMap.entries()) {
       const javaSnapshots = javaSnapshotsByFunction.get(javaFunc) || [];
       const jsSnapshots = jsSnapshotsByFunction.get(jsFunc) || [];
-      
+
       // Check if function exists in both traces
       if (javaSnapshots.length === 0 || jsSnapshots.length === 0) {
         divergencePoints.push({
-          javaSnapshot: javaSnapshots[0] || { timestamp: 0, functionName: javaFunc, lineNumber: 0, variables: new Map(), callStack: [] },
-          javascriptSnapshot: jsSnapshots[0] || { timestamp: 0, functionName: jsFunc, lineNumber: 0, variables: new Map(), callStack: [] },
+          javaSnapshot: javaSnapshots[0] || {
+            timestamp: 0,
+            functionName: javaFunc,
+            lineNumber: 0,
+            variables: new Map(),
+            callStack: [],
+          },
+          javascriptSnapshot: jsSnapshots[0] || {
+            timestamp: 0,
+            functionName: jsFunc,
+            lineNumber: 0,
+            variables: new Map(),
+            callStack: [],
+          },
           divergenceType: 'missing_state',
           description: `Function ${javaFunc} -> ${jsFunc} is missing in one of the traces`,
-          severity: 'high'
+          severity: ErrorSeverity.ERROR,
         });
-        
+
         alignmentScore -= 0.2; // Significant penalty for missing function
         continue;
       }
-      
+
       // Compare variable values at each snapshot
       this.compareVariableValues(javaSnapshots, jsSnapshots, divergencePoints);
-      
+
       // Compare return values
       this.compareReturnValues(javaSnapshots, jsSnapshots, divergencePoints);
-      
+
       // Compare control flow
       this.compareControlFlow(javaSnapshots, jsSnapshots, divergencePoints);
     }
-    
+
     // Calculate final alignment score
-    alignmentScore = Math.max(0, alignmentScore - (divergencePoints.length * 0.05));
-    
+    alignmentScore = Math.max(0, alignmentScore - divergencePoints.length * 0.05);
+
     // Generate recommendations based on divergence points
     const recommendations = this.generateRecommendations(divergencePoints);
-    
+
     return {
       isAligned: divergencePoints.length === 0,
       divergencePoints,
       alignmentScore,
-      recommendations
+      recommendations,
     };
   }
 
@@ -717,17 +756,17 @@ ${jsCode}
    */
   private mapFunctions(javaTrace: ExecutionTrace, jsTrace: ExecutionTrace): Map<string, string> {
     const functionMap = new Map<string, string>();
-    
+
     // Extract unique function names from both traces
-    const javaFunctions = new Set(javaTrace.snapshots.map(snapshot => snapshot.functionName));
-    const jsFunctions = new Set(jsTrace.snapshots.map(snapshot => snapshot.functionName));
-    
+    const javaFunctions = new Set(javaTrace.snapshots.map((snapshot) => snapshot.functionName));
+    const jsFunctions = new Set(jsTrace.snapshots.map((snapshot) => snapshot.functionName));
+
     // Simple mapping based on name similarity
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -736,9 +775,9 @@ ${jsCode}
       // Try exact match first
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -747,14 +786,14 @@ ${jsCode}
         functionMap.set(javaFunc, javaFunc);
         continue;
       }
-      
+
       // Try camelCase to camelCase conversion
       const javaFuncCamelCase = javaFunc.charAt(0).toLowerCase() + javaFunc.slice(1);
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -763,16 +802,16 @@ ${jsCode}
         functionMap.set(javaFunc, javaFuncCamelCase);
         continue;
       }
-      
+
       // Try closest match based on string similarity
       let bestMatch = '';
       let bestScore = 0;
-      
+
       /**
        * for method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -781,9 +820,9 @@ ${jsCode}
         const score = this.calculateStringSimilarity(javaFunc, jsFunc);
         /**
          * if method.
-         * 
+         *
          * TODO: Add detailed description of the method's purpose and behavior.
-         * 
+         *
          * @param param - TODO: Document parameters
          * @returns result - TODO: Document return value
          * @since 1.0.0
@@ -793,13 +832,13 @@ ${jsCode}
           bestMatch = jsFunc;
         }
       }
-      
+
       // Only use the match if it's reasonably similar
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -810,7 +849,7 @@ ${jsCode}
       // If no match is found, the function is missing in JavaScript
       // We don't add it to the map, which will cause it to be detected as missing
     }
-    
+
     return functionMap;
   }
 
@@ -823,19 +862,19 @@ ${jsCode}
   private calculateStringSimilarity(str1: string, str2: string): number {
     const len1 = str1.length;
     const len2 = str2.length;
-    
+
     // Create a matrix of distances
     const matrix: number[][] = [];
-    
+
     // Initialize the matrix
     for (let i = 0; i <= len1; i++) {
       matrix[i] = [i];
     }
-    
+
     for (let j = 0; j <= len2; j++) {
       matrix[0][j] = j;
     }
-    
+
     // Fill the matrix
     for (let i = 1; i <= len1; i++) {
       for (let j = 1; j <= len2; j++) {
@@ -847,7 +886,7 @@ ${jsCode}
         );
       }
     }
-    
+
     // Calculate similarity score
     const maxLen = Math.max(len1, len2);
     return 1 - matrix[len1][len2] / maxLen;
@@ -858,14 +897,16 @@ ${jsCode}
    * @param snapshots Array of program state snapshots
    * @returns A map of function names to arrays of snapshots
    */
-  private groupSnapshotsByFunction(snapshots: ProgramStateSnapshot[]): Map<string, ProgramStateSnapshot[]> {
+  private groupSnapshotsByFunction(
+    snapshots: ProgramStateSnapshot[]
+  ): Map<string, ProgramStateSnapshot[]> {
     const result = new Map<string, ProgramStateSnapshot[]>();
-    
+
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -873,9 +914,9 @@ ${jsCode}
     for (const snapshot of snapshots) {
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -883,10 +924,10 @@ ${jsCode}
       if (!result.has(snapshot.functionName)) {
         result.set(snapshot.functionName, []);
       }
-      
+
       result.get(snapshot.functionName)!.push(snapshot);
     }
-    
+
     return result;
   }
 
@@ -903,16 +944,16 @@ ${jsCode}
   ): void {
     // This is a simplified implementation
     // In a real implementation, we would use more sophisticated matching of snapshots
-    
+
     // Compare the first snapshot (function entry)
-    const javaEntrySnapshot = javaSnapshots.find(s => s.returnValue === undefined);
-    const jsEntrySnapshot = jsSnapshots.find(s => s.returnValue === undefined);
-    
+    const javaEntrySnapshot = javaSnapshots.find((s) => s.returnValue === undefined);
+    const jsEntrySnapshot = jsSnapshots.find((s) => s.returnValue === undefined);
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -920,13 +961,13 @@ ${jsCode}
     if (!javaEntrySnapshot || !jsEntrySnapshot) {
       return;
     }
-    
+
     // Compare variables
     /**
      * for method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -934,13 +975,13 @@ ${jsCode}
     for (const [javaVarName, javaVarValue] of javaEntrySnapshot.variables.entries()) {
       // Find corresponding JavaScript variable
       let jsVarName = javaVarName;
-      
+
       // Try camelCase conversion if not found
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -948,13 +989,13 @@ ${jsCode}
       if (!jsEntrySnapshot.variables.has(jsVarName)) {
         jsVarName = javaVarName.charAt(0).toLowerCase() + javaVarName.slice(1);
       }
-      
+
       // Check if variable exists in JavaScript
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -965,18 +1006,18 @@ ${jsCode}
           javascriptSnapshot: jsEntrySnapshot,
           divergenceType: 'variable_value',
           description: `Variable ${javaVarName} exists in Java but not in JavaScript`,
-          severity: 'medium'
+          severity: ErrorSeverity.WARNING,
         });
         continue;
       }
-      
+
       // Compare values
       const jsVarValue = jsEntrySnapshot.variables.get(jsVarName);
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -987,7 +1028,7 @@ ${jsCode}
           javascriptSnapshot: jsEntrySnapshot,
           divergenceType: 'variable_value',
           description: `Variable ${javaVarName} has different values: Java=${javaVarValue}, JS=${jsVarValue}`,
-          severity: 'medium'
+          severity: ErrorSeverity.WARNING,
         });
       }
     }
@@ -1005,34 +1046,34 @@ ${jsCode}
     divergencePoints: DivergencePoint[]
   ): void {
     // Find snapshots with return values
-    const javaReturnSnapshots = javaSnapshots.filter(s => s.returnValue !== undefined);
-    const jsReturnSnapshots = jsSnapshots.filter(s => s.returnValue !== undefined);
-    
+    const javaReturnSnapshots = javaSnapshots.filter((s) => s.returnValue !== undefined);
+    const jsReturnSnapshots = jsSnapshots.filter((s) => s.returnValue !== undefined);
+
     // Check if both have return values
     if (javaReturnSnapshots.length === 0 && jsReturnSnapshots.length === 0) {
       return; // No return values to compare
     }
-    
+
     if (javaReturnSnapshots.length === 0 || jsReturnSnapshots.length === 0) {
       divergencePoints.push({
         javaSnapshot: javaReturnSnapshots[0] || javaSnapshots[0],
         javascriptSnapshot: jsReturnSnapshots[0] || jsSnapshots[0],
         divergenceType: 'return_value',
         description: 'Return value missing in one language',
-        severity: 'high'
+        severity: ErrorSeverity.ERROR,
       });
       return;
     }
-    
+
     // Compare the last return value in each trace
     const javaLastReturn = javaReturnSnapshots[javaReturnSnapshots.length - 1];
     const jsLastReturn = jsReturnSnapshots[jsReturnSnapshots.length - 1];
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1043,7 +1084,7 @@ ${jsCode}
         javascriptSnapshot: jsLastReturn,
         divergenceType: 'return_value',
         description: `Return values differ: Java=${javaLastReturn.returnValue}, JS=${jsLastReturn.returnValue}`,
-        severity: 'high'
+        severity: ErrorSeverity.ERROR,
       });
     }
   }
@@ -1061,17 +1102,17 @@ ${jsCode}
   ): void {
     // This is a simplified implementation
     // In a real implementation, we would use more sophisticated control flow analysis
-    
+
     // Compare the number of snapshots as a rough indicator of control flow
     const javaCalls = javaSnapshots.length;
     const jsCalls = jsSnapshots.length;
-    
+
     // If the difference is significant, add a divergence point
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1082,16 +1123,16 @@ ${jsCode}
         javascriptSnapshot: jsSnapshots[0],
         divergenceType: 'control_flow',
         description: `Control flow differs significantly: Java has ${javaCalls} snapshots, JS has ${jsCalls} snapshots`,
-        severity: 'medium'
+        severity: ErrorSeverity.WARNING,
       });
     }
-    
+
     // Compare call stacks
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1099,13 +1140,13 @@ ${jsCode}
     if (javaSnapshots.length > 0 && jsSnapshots.length > 0) {
       const javaCallStack = javaSnapshots[0].callStack;
       const jsCallStack = jsSnapshots[0].callStack;
-      
+
       // Compare stack depths
       /**
        * if method.
-       * 
+       *
        * TODO: Add detailed description of the method's purpose and behavior.
-       * 
+       *
        * @param param - TODO: Document parameters
        * @returns result - TODO: Document return value
        * @since 1.0.0
@@ -1116,7 +1157,7 @@ ${jsCode}
           javascriptSnapshot: jsSnapshots[0],
           divergenceType: 'control_flow',
           description: `Call stack depths differ: Java=${javaCallStack.length}, JS=${jsCallStack.length}`,
-          severity: 'low'
+          severity: ErrorSeverity.INFO,
         });
       }
     }
@@ -1131,15 +1172,17 @@ ${jsCode}
   private areValuesEquivalent(javaValue: any, jsValue: any): boolean {
     // Handle null/undefined
     if (javaValue === null || javaValue === 'null') {
-      return jsValue === null || jsValue === undefined || jsValue === 'null' || jsValue === 'undefined';
+      return (
+        jsValue === null || jsValue === undefined || jsValue === 'null' || jsValue === 'undefined'
+      );
     }
-    
+
     // Handle numbers
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1147,12 +1190,12 @@ ${jsCode}
     if (!isNaN(Number(javaValue)) && !isNaN(Number(jsValue))) {
       return Math.abs(Number(javaValue) - Number(jsValue)) < 0.0001;
     }
-    
+
     // Handle booleans
     if (javaValue === 'true' || javaValue === 'false') {
       return String(jsValue).toLowerCase() === javaValue;
     }
-    
+
     // Handle strings
     return String(javaValue) === String(jsValue);
   }
@@ -1164,81 +1207,99 @@ ${jsCode}
    */
   private generateRecommendations(divergencePoints: DivergencePoint[]): string[] {
     const recommendations: string[] = [];
-    
+
     // Count divergence types
-    const variableValueCount = divergencePoints.filter(d => d.divergenceType === 'variable_value').length;
-    const controlFlowCount = divergencePoints.filter(d => d.divergenceType === 'control_flow').length;
-    const returnValueCount = divergencePoints.filter(d => d.divergenceType === 'return_value').length;
-    const missingStateCount = divergencePoints.filter(d => d.divergenceType === 'missing_state').length;
-    
+    const variableValueCount = divergencePoints.filter(
+      (d) => d.divergenceType === 'variable_value'
+    ).length;
+    const controlFlowCount = divergencePoints.filter(
+      (d) => d.divergenceType === 'control_flow'
+    ).length;
+    const returnValueCount = divergencePoints.filter(
+      (d) => d.divergenceType === 'return_value'
+    ).length;
+    const missingStateCount = divergencePoints.filter(
+      (d) => d.divergenceType === 'missing_state'
+    ).length;
+
     // Generate recommendations based on the most common issues
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (missingStateCount > 0) {
-      recommendations.push('Ensure all functions are properly translated and instrumented in both languages');
+      recommendations.push(
+        'Ensure all functions are properly translated and instrumented in both languages'
+      );
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (returnValueCount > 0) {
-      recommendations.push('Focus on ensuring return values match between Java and JavaScript implementations');
+      recommendations.push(
+        'Focus on ensuring return values match between Java and JavaScript implementations'
+      );
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (variableValueCount > 0) {
-      recommendations.push('Check variable types and values for consistency between Java and JavaScript');
+      recommendations.push(
+        'Check variable types and values for consistency between Java and JavaScript'
+      );
     }
-    
+
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (controlFlowCount > 0) {
-      recommendations.push('Review control flow structures to ensure they match between Java and JavaScript');
+      recommendations.push(
+        'Review control flow structures to ensure they match between Java and JavaScript'
+      );
     }
-    
+
     // Add general recommendations
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
     if (divergencePoints.length > 0) {
       recommendations.push('Consider using more explicit type conversions in the JavaScript code');
-      recommendations.push('Add comments explaining any intentional differences between Java and JavaScript implementations');
+      recommendations.push(
+        'Add comments explaining any intentional differences between Java and JavaScript implementations'
+      );
     }
-    
+
     return recommendations;
   }
 
@@ -1248,18 +1309,18 @@ ${jsCode}
    * @param jsCode The translated JavaScript code
    * @returns A promise that resolves to the validation result
    */
-  public async validateTranslation(javaCode: string, jsCode: string): Promise<ValidationResult> {
+  public async validateTranslation(_javaCode: string, _jsCode: string): Promise<ValidationResult> {
     try {
       // Instrument the code
-      const instrumentedJavaCode = this.instrumentJavaCode(javaCode);
-      const instrumentedJsCode = this.instrumentJavaScriptCode(jsCode);
-      
+      // const _instrumentedJavaCode = this.instrumentJavaCode(javaCode);
+      // const _instrumentedJsCode = this.instrumentJavaScriptCode(jsCode);
+
       // In a real implementation, we would:
       // 1. Compile and run the instrumented Java code
       // 2. Run the instrumented JavaScript code
       // 3. Parse the execution traces
       // 4. Compare the traces
-      
+
       // For this implementation, we'll simulate the process
       const javaTrace: ExecutionTrace = {
         language: 'java',
@@ -1268,24 +1329,28 @@ ${jsCode}
             timestamp: 0,
             functionName: 'exampleMethod',
             lineNumber: 10,
-            variables: new Map([['param1', '42'], ['param2', 'test']]),
-            callStack: ['exampleMethod', 'main']
+            variables: new Map([
+              ['param1', '42'],
+              ['param2', 'test'],
+            ]),
+            callStack: ['exampleMethod', 'main'],
           },
           {
             timestamp: 5,
             functionName: 'exampleMethod',
             lineNumber: 15,
+            variables: new Map([['returnValue', 'result']]),
             returnValue: 'result',
-            callStack: ['exampleMethod', 'main']
-          }
+            callStack: ['exampleMethod', 'main'],
+          },
         ],
         metadata: {
           sourceFile: 'Example.java',
           executionTime: 10,
-          snapshotCount: 2
-        }
+          snapshotCount: 2,
+        },
       };
-      
+
       const jsTrace: ExecutionTrace = {
         language: 'javascript',
         snapshots: [
@@ -1293,24 +1358,28 @@ ${jsCode}
             timestamp: 0,
             functionName: 'exampleMethod',
             lineNumber: 5,
-            variables: new Map([['param1', 42], ['param2', 'test']]),
-            callStack: ['exampleMethod', 'global']
+            variables: new Map([
+              ['param1', '42'],
+              ['param2', 'test'],
+            ]),
+            callStack: ['exampleMethod', 'global'],
           },
           {
             timestamp: 3,
             functionName: 'exampleMethod',
             lineNumber: 8,
+            variables: new Map([['returnValue', 'result']]),
             returnValue: 'result',
-            callStack: ['exampleMethod', 'global']
-          }
+            callStack: ['exampleMethod', 'global'],
+          },
         ],
         metadata: {
           sourceFile: 'example.js',
           executionTime: 5,
-          snapshotCount: 2
-        }
+          snapshotCount: 2,
+        },
       };
-      
+
       // Compare the traces
       return this.compareTraces(javaTrace, jsTrace);
     } catch (error) {
@@ -1319,7 +1388,9 @@ ${jsCode}
         isAligned: false,
         divergencePoints: [],
         alignmentScore: 0,
-        recommendations: [`Error during validation: ${error instanceof Error ? error.message : String(error)}`]
+        recommendations: [
+          `Error during validation: ${error instanceof Error ? error.message : String(error)}`,
+        ],
       };
     }
   }
@@ -1336,13 +1407,13 @@ ${jsCode}
   ): Promise<LLMTranslationResult> {
     // In a real implementation, we would use the LLM to refine the translation
     // based on the validation results
-    
+
     // For this implementation, we'll simulate the process
     /**
      * if method.
-     * 
+     *
      * TODO: Add detailed description of the method's purpose and behavior.
-     * 
+     *
      * @param param - TODO: Document parameters
      * @returns result - TODO: Document return value
      * @since 1.0.0
@@ -1351,33 +1422,32 @@ ${jsCode}
       // No refinement needed
       return originalTranslation;
     }
-    
+
     // Create a refined translation with comments about the issues
     let refinedCode = originalTranslation.translatedCode;
-    
+
     // Add comments about the issues
     refinedCode = `
 // REFINED TRANSLATION
 // The following issues were detected and addressed:
-${validationResult.divergencePoints.map(dp => `// - ${dp.description}`).join('\n')}
-// 
+${validationResult.divergencePoints.map((dp) => `// - ${dp.description}`).join('\n')}
+//
 // Recommendations:
-${validationResult.recommendations.map(rec => `// - ${rec}`).join('\n')}
+${validationResult.recommendations.map((rec) => `// - ${rec}`).join('\n')}
 
 ${refinedCode}
 `;
-    
+
     return {
       translatedCode: refinedCode,
       confidence: originalTranslation.confidence * 0.9, // Slightly lower confidence
       warnings: [
         ...originalTranslation.warnings,
-        ...validationResult.divergencePoints.map(dp => dp.description)
+        ...validationResult.divergencePoints.map((dp) => dp.description),
       ],
       metadata: {
         ...originalTranslation.metadata,
-        refinementApplied: true
-      }
+      },
     };
   }
 }

@@ -14,32 +14,32 @@ const TEST_SUITES = {
     name: 'Unit Tests',
     command: 'vitest run tests/unit --coverage',
     timeout: 300000, // 5 minutes
-    required: true
+    required: true,
   },
   integration: {
     name: 'Integration Tests',
     command: 'vitest run tests/integration',
     timeout: 600000, // 10 minutes
-    required: true
+    required: true,
   },
   security: {
     name: 'Security Tests',
     command: 'vitest run tests/security',
     timeout: 300000, // 5 minutes
-    required: true
+    required: true,
   },
   performance: {
     name: 'Performance Tests',
     command: 'vitest run tests/benchmark',
     timeout: 900000, // 15 minutes
-    required: false
+    required: false,
   },
   e2e: {
     name: 'End-to-End Tests',
     command: 'vitest run tests/integration/end-to-end-conversion.test.ts',
     timeout: 1200000, // 20 minutes
-    required: true
-  }
+    required: true,
+  },
 };
 
 class TestRunner {
@@ -75,7 +75,7 @@ class TestRunner {
       const output = execSync(suite.command, {
         encoding: 'utf8',
         timeout: suite.timeout,
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       const endTime = Date.now();
@@ -86,11 +86,10 @@ class TestRunner {
         status: 'passed',
         duration,
         output,
-        required: suite.required
+        required: suite.required,
       };
 
       console.log(`✅ ${suite.name} passed (${this.formatDuration(duration)})\n`);
-
     } catch (error) {
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -101,7 +100,7 @@ class TestRunner {
         duration,
         output: error.stdout || '',
         error: error.stderr || error.message,
-        required: suite.required
+        required: suite.required,
       };
 
       if (suite.required) {
@@ -124,7 +123,7 @@ class TestRunner {
       suites: this.results,
       coverage: await this.extractCoverageData(),
       performance: this.extractPerformanceMetrics(),
-      security: this.extractSecurityMetrics()
+      security: this.extractSecurityMetrics(),
     };
 
     // Write JSON report
@@ -142,16 +141,18 @@ class TestRunner {
 
   generateSummary() {
     const total = Object.keys(this.results).length;
-    const passed = Object.values(this.results).filter(r => r.status === 'passed').length;
-    const failed = Object.values(this.results).filter(r => r.status === 'failed').length;
-    const requiredFailed = Object.values(this.results).filter(r => r.status === 'failed' && r.required).length;
+    const passed = Object.values(this.results).filter((r) => r.status === 'passed').length;
+    const failed = Object.values(this.results).filter((r) => r.status === 'failed').length;
+    const requiredFailed = Object.values(this.results).filter(
+      (r) => r.status === 'failed' && r.required
+    ).length;
 
     return {
       total,
       passed,
       failed,
       requiredFailed,
-      passRate: (passed / total * 100).toFixed(1)
+      passRate: ((passed / total) * 100).toFixed(1),
     };
   }
 
@@ -160,7 +161,7 @@ class TestRunner {
       const coveragePath = path.join(process.cwd(), 'coverage', 'coverage-final.json');
       if (fs.existsSync(coveragePath)) {
         const coverageData = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
-        
+
         // Calculate overall coverage
         let totalLines = 0;
         let coveredLines = 0;
@@ -171,37 +172,43 @@ class TestRunner {
 
         for (const file of Object.values(coverageData)) {
           totalLines += file.s ? Object.keys(file.s).length : 0;
-          coveredLines += file.s ? Object.values(file.s).filter(count => count > 0).length : 0;
-          
+          coveredLines += file.s ? Object.values(file.s).filter((count) => count > 0).length : 0;
+
           totalFunctions += file.f ? Object.keys(file.f).length : 0;
-          coveredFunctions += file.f ? Object.values(file.f).filter(count => count > 0).length : 0;
-          
+          coveredFunctions += file.f
+            ? Object.values(file.f).filter((count) => count > 0).length
+            : 0;
+
           totalBranches += file.b ? Object.keys(file.b).length : 0;
-          coveredBranches += file.b ? Object.values(file.b).filter(branches => branches.some(count => count > 0)).length : 0;
+          coveredBranches += file.b
+            ? Object.values(file.b).filter((branches) => branches.some((count) => count > 0)).length
+            : 0;
         }
 
         return {
           lines: {
             total: totalLines,
             covered: coveredLines,
-            percentage: totalLines > 0 ? (coveredLines / totalLines * 100).toFixed(1) : 0
+            percentage: totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(1) : 0,
           },
           functions: {
             total: totalFunctions,
             covered: coveredFunctions,
-            percentage: totalFunctions > 0 ? (coveredFunctions / totalFunctions * 100).toFixed(1) : 0
+            percentage:
+              totalFunctions > 0 ? ((coveredFunctions / totalFunctions) * 100).toFixed(1) : 0,
           },
           branches: {
             total: totalBranches,
             covered: coveredBranches,
-            percentage: totalBranches > 0 ? (coveredBranches / totalBranches * 100).toFixed(1) : 0
-          }
+            percentage:
+              totalBranches > 0 ? ((coveredBranches / totalBranches) * 100).toFixed(1) : 0,
+          },
         };
       }
     } catch (error) {
       console.warn('Could not extract coverage data:', error.message);
     }
-    
+
     return null;
   }
 
@@ -237,7 +244,7 @@ class TestRunner {
       zipBombDetection: output.includes('ZIP bomb') ? 'passed' : 'unknown',
       pathTraversalPrevention: output.includes('path traversal') ? 'passed' : 'unknown',
       malwareDetection: output.includes('malware') ? 'passed' : 'unknown',
-      fileValidation: output.includes('file validation') ? 'passed' : 'unknown'
+      fileValidation: output.includes('file validation') ? 'passed' : 'unknown',
     };
 
     return metrics;
@@ -302,7 +309,9 @@ class TestRunner {
             </div>
         </div>
 
-        ${report.coverage ? `
+        ${
+          report.coverage
+            ? `
         <div class="summary">
             <div class="summary-card">
                 <h3>Line Coverage</h3>
@@ -326,10 +335,14 @@ class TestRunner {
                 </div>
             </div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <h2>Test Suites</h2>
-        ${Object.entries(report.suites).map(([key, suite]) => `
+        ${Object.entries(report.suites)
+          .map(
+            ([key, suite]) => `
         <div class="suite">
             <div class="suite-header">
                 <span class="suite-name">${suite.name}</span>
@@ -338,16 +351,24 @@ class TestRunner {
                     <span class="duration">${this.formatDuration(suite.duration)}</span>
                 </div>
             </div>
-            ${suite.error ? `
+            ${
+              suite.error
+                ? `
             <div class="error-details">
                 <strong>Error:</strong>
                 <pre>${suite.error}</pre>
             </div>
-            ` : ''}
+            `
+                : ''
+            }
         </div>
-        `).join('')}
+        `
+          )
+          .join('')}
 
-        ${report.security ? `
+        ${
+          report.security
+            ? `
         <h2>Security Test Results</h2>
         <div class="summary">
             <div class="summary-card">
@@ -367,7 +388,9 @@ class TestRunner {
                 <div class="value ${report.security.fileValidation === 'passed' ? 'passed' : 'warning'}">${report.security.fileValidation}</div>
             </div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
     </div>
 </body>
 </html>
@@ -403,7 +426,7 @@ class TestRunner {
 
 // Run the tests
 const runner = new TestRunner();
-runner.runAllTests().catch(error => {
+runner.runAllTests().catch((error) => {
   console.error('❌ Test runner failed:', error);
   process.exit(1);
 });

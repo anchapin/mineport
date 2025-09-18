@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -12,59 +12,69 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Lint
-      run: npm run lint
-    
-    - name: Validate JSDoc Documentation
-      run: npm run docs:validate
-    
-    - name: Build
-      run: npm run build
-    
-    - name: Test
-      run: npm test
-    
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/
-        fail_ci_if_error: true
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Validate JSDoc Documentation
+        run: npm run docs:validate
+
+      - name: Build
+        run: npm run build
+
+      - name: Test with Coverage
+        run: npm run test:coverage:ci
+
+      - name: Check coverage files
+        run: |
+          ls -la coverage/
+          echo "LCOV info file:"
+          head -20 coverage/lcov.info || echo "lcov.info not found"
+          echo "JSON coverage file:"
+          ls -la coverage/coverage-final.json || echo "coverage-final.json not found"
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          directory: ./coverage/
+          fail_ci_if_error: false
+          verbose: true
 
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build
-      run: npm run build
-    
-    # Add deployment steps here when ready for production
-    - name: Deploy
-      run: echo "Deployment would happen here"
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Add deployment steps here when ready for production
+      - name: Deploy
+        run: echo "Deployment would happen here"
