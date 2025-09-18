@@ -2,10 +2,10 @@ name: Artifact Management
 
 on:
   push:
-    branches: [ main, develop ]
-    tags: [ 'v*' ]
+    branches: [main, develop]
+    tags: ['v*']
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -39,7 +39,7 @@ jobs:
       artifact_name: ${{ steps.version.outputs.artifact_name }}
       package_version: ${{ steps.version.outputs.package_version }}
       metadata: ${{ steps.metadata.outputs.metadata }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,16 +52,16 @@ jobs:
           # Get package version from package.json
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
-          
+
           # Generate build number from timestamp
           BUILD_NUMBER=$(date +%Y%m%d%H%M%S)
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
-          
+
           # Get commit information
           COMMIT_SHA="${{ github.sha }}"
           SHORT_SHA="${COMMIT_SHA:0:8}"
           echo "commit_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
-          
+
           # Get branch information
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BRANCH="${{ github.head_ref }}"
@@ -69,7 +69,7 @@ jobs:
             BRANCH="${{ github.ref_name }}"
           fi
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-          
+
           # Determine if this is a release
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             IS_RELEASE=true
@@ -84,11 +84,11 @@ jobs:
             fi
             ARTIFACT_NAME="${{ env.PACKAGE_NAME }}-${VERSION}"
           fi
-          
+
           echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-          
+
           echo "Generated version: $VERSION"
           echo "Artifact name: $ARTIFACT_NAME"
           echo "Is release: $IS_RELEASE"
@@ -130,11 +130,11 @@ jobs:
             }
           }
           EOF
-          
+
           # Output metadata as base64 for passing between jobs
           METADATA_B64=$(base64 -w 0 artifact-metadata.json)
           echo "metadata=$METADATA_B64" >> $GITHUB_OUTPUT
-          
+
           # Display metadata for debugging
           echo "Generated metadata:"
           cat artifact-metadata.json | jq .
@@ -151,7 +151,7 @@ jobs:
     name: Build Artifacts
     needs: metadata
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -180,25 +180,25 @@ jobs:
         run: |
           # Create package directory
           mkdir -p package
-          
+
           # Copy built application
           cp -r dist package/
           cp package.json package/
           cp package-lock.json package/
           cp README.md package/
           cp LICENSE package/
-          
+
           # Update package.json with build version
           cd package
           npm version ${{ needs.metadata.outputs.version }} --no-git-tag-version
-          
+
           # Create package tarball
           npm pack
-          
+
           # Move tarball to predictable location
           mv *.tgz ../${{ needs.metadata.outputs.artifact_name }}.tgz
           cd ..
-          
+
           # Create additional artifact formats
           tar -czf ${{ needs.metadata.outputs.artifact_name }}.tar.gz -C package .
           zip -r ${{ needs.metadata.outputs.artifact_name }}.zip package/
@@ -207,14 +207,14 @@ jobs:
         run: |
           # Generate checksums for all artifacts
           echo "Generating checksums..."
-          
+
           for file in ${{ needs.metadata.outputs.artifact_name }}.*; do
             if [[ -f "$file" ]]; then
               sha256sum "$file" >> checksums.txt
               md5sum "$file" >> checksums.md5
             fi
           done
-          
+
           echo "Generated checksums:"
           cat checksums.txt
 
@@ -227,7 +227,7 @@ jobs:
             "artifact": $(cat artifact-metadata.json),
             "files": [
           EOF
-          
+
           # Add file information
           first=true
           for file in ${{ needs.metadata.outputs.artifact_name }}.* checksums.* artifact-metadata.json; do
@@ -250,13 +250,13 @@ jobs:
           EOF
             fi
           done
-          
+
           cat >> artifact-manifest.json << EOF
             ],
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           }
           EOF
-          
+
           echo "Generated artifact manifest:"
           cat artifact-manifest.json | jq .
 
@@ -286,17 +286,29 @@ jobs:
       COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
       COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
+  # Package publishing
+  publish-packages:
+    name: Publish Packages
+    needs: [metadata, build-artifacts, artifact-security]
+    runs-on: ubuntu-latest
+    if: needs.metadata.outputs.is_release == 'true' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.metadata.outputs.artifact_name }}
+          path: artifacts
+
       - name: Upload to GitHub Packages (npm)
-        if: needs.metadata.outputs.is_release == 'true' || github.ref == 'refs/heads/main'
         run: |
           echo "Uploading to GitHub Packages..."
-          
+
           # Configure npm registry
           echo "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
-          
+
           # Publish package
-          cd package
+          cd artifacts/package
           npm publish --registry=https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -306,7 +318,7 @@ jobs:
     name: Build Container Artifacts
     needs: [metadata, build-artifacts, artifact-security]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -331,10 +343,10 @@ jobs:
         run: |
           cat > Dockerfile << 'EOF'
           FROM node:20-alpine
-          
+
           # Set working directory
           WORKDIR /app
-          
+
           # Add metadata labels
           LABEL org.opencontainers.image.title="${{ env.PACKAGE_NAME }}"
           LABEL org.opencontainers.image.description="Minecraft Mod Converter - Java to Bedrock Edition"
@@ -342,40 +354,40 @@ jobs:
           LABEL org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}"
           LABEL org.opencontainers.image.revision="${{ github.sha }}"
           LABEL org.opencontainers.image.created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          
+
           # Install system dependencies
           RUN apk add --no-cache \
               dumb-init \
               curl \
               && rm -rf /var/cache/apk/*
-          
+
           # Create non-root user
           RUN addgroup -g 1001 -S nodejs && \
               adduser -S nodejs -u 1001
-          
+
           # Copy package files
           COPY artifacts/package/package*.json ./
-          
+
           # Install production dependencies
           RUN npm ci --only=production --no-audit --no-fund && \
               npm cache clean --force
-          
+
           # Copy application
           COPY artifacts/package/dist ./dist
           COPY artifacts/package/README.md ./
           COPY artifacts/package/LICENSE ./
-          
+
           # Change ownership
           RUN chown -R nodejs:nodejs /app
           USER nodejs
-          
+
           # Health check
           HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
             CMD curl -f http://localhost:3000/health || exit 1
-          
+
           # Expose port
           EXPOSE 3000
-          
+
           # Start application
           ENTRYPOINT ["dumb-init", "--"]
           CMD ["node", "dist/src/index.js"]
@@ -406,7 +418,7 @@ jobs:
     needs: [metadata, build-artifacts, artifact-security, build-container]
     if: always()
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -415,7 +427,7 @@ jobs:
         run: |
           cat > cleanup-artifacts.js << 'EOF'
           const { Octokit } = require('@octokit/rest');
-          
+
           async function cleanupArtifacts() {
             const octokit = new Octokit({
               auth: process.env.GITHUB_TOKEN,
@@ -500,7 +512,7 @@ jobs:
               process.exit(1);
             }
           }
-          
+
           cleanupArtifacts();
           EOF
 

@@ -2,14 +2,14 @@ name: Enhanced CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths-ignore:
       - '*.md'
       - 'docs/**'
       - '.gitignore'
       - 'LICENSE'
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths-ignore:
       - '*.md'
       - 'docs/**'
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Log workflow start
         run: |
           echo "Starting Enhanced CI Pipeline"
@@ -78,15 +78,15 @@ jobs:
           # Cache version for invalidation
           CACHE_VERSION="v2"
           echo "cache_version=$CACHE_VERSION" >> $GITHUB_OUTPUT
-          
+
           # Dependencies cache key
           DEPS_HASH="${{ hashFiles('package-lock.json', 'package.json', '.nvmrc') }}"
           echo "deps_key=deps-$CACHE_VERSION-$DEPS_HASH" >> $GITHUB_OUTPUT
-          
+
           # Build cache key (includes source files)
           BUILD_HASH="${{ hashFiles('src/**/*.ts', 'tsconfig.json', 'package.json') }}"
           echo "build_key=build-$CACHE_VERSION-$BUILD_HASH" >> $GITHUB_OUTPUT
-          
+
           # Test cache key (includes test files and config)
           TEST_HASH="${{ hashFiles('tests/**/*.ts', 'vitest.config.ts', 'package.json') }}"
           echo "test_key=test-$CACHE_VERSION-$TEST_HASH" >> $GITHUB_OUTPUT
@@ -97,16 +97,16 @@ jobs:
           # Check if we need to invalidate caches based on time
           CACHE_MAX_AGE=604800  # 7 days in seconds
           CURRENT_TIME=$(date +%s)
-          
+
           # Create cache timestamp file if it doesn't exist
           mkdir -p .cache-meta
           if [[ ! -f .cache-meta/timestamp ]]; then
             echo $CURRENT_TIME > .cache-meta/timestamp
           fi
-          
+
           CACHE_TIME=$(cat .cache-meta/timestamp 2>/dev/null || echo 0)
           AGE=$((CURRENT_TIME - CACHE_TIME))
-          
+
           if [[ $AGE -gt $CACHE_MAX_AGE ]]; then
             echo "Cache is stale (${AGE}s old), will invalidate"
             echo "invalidate_cache=true" >> $GITHUB_OUTPUT
@@ -122,28 +122,30 @@ jobs:
     needs: preflight
     if: needs.preflight.outputs.should_run_tests == 'true'
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: ['18.x', '20.x', '22.x']
+        node-version: ['20.x', '22.x']
         include:
           # Add specific configurations for different combinations
           - os: ubuntu-latest
             node-version: '20.x'
             primary: true
-          - os: windows-latest
-            node-version: '18.x'
-            experimental: true
         exclude:
           # Exclude some combinations to reduce CI time if needed
           - os: macos-latest
-            node-version: '18.x'
+            node-version: '22.x'
 
     continue-on-error: ${{ matrix.experimental == true }}
 
     steps:
+      - name: Configure Git line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -181,7 +183,7 @@ jobs:
         run: |
           # Start monitoring dependency installation
           node scripts/build-performance-monitor.js start dependency-install
-          
+
           if [[ "${{ steps.deps-cache.outputs.cache-hit }}" == "true" ]]; then
             echo "Using cached dependencies"
             node scripts/build-performance-monitor.js cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" true
@@ -191,10 +193,10 @@ jobs:
             node scripts/build-performance-monitor.js cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" false
             npm ci --prefer-offline --no-audit
           fi
-          
+
           # Monitor dependency installation performance
           node scripts/build-performance-monitor.js dependencies npm
-          
+
           # End monitoring dependency installation
           node scripts/build-performance-monitor.js end dependency-install
 
@@ -247,9 +249,9 @@ jobs:
         run: |
           # Start monitoring lint phase
           node scripts/build-performance-monitor.js start lint
-          
+
           npm run lint
-          
+
           # End monitoring lint phase
           node scripts/build-performance-monitor.js end lint
 
@@ -281,10 +283,10 @@ jobs:
       - name: Run tests in parallel
         run: |
           echo "Starting parallel test execution..."
-          
+
           # Create test results directory
           mkdir -p test-results
-          
+
           # Function to run tests with retry logic
           run_test_with_retry() {
             local test_type=$1
@@ -313,71 +315,71 @@ jobs:
             echo "$test_type:failed" >> test-results/results.txt
             return 1
           }
-          
+
           # Run tests in parallel with background processes
           run_test_with_retry "unit" "npm run test:unit" &
           UNIT_PID=$!
-          
+
           run_test_with_retry "integration" "npm run test:integration" &
           INTEGRATION_PID=$!
-          
+
           run_test_with_retry "security" "npm run test:security" &
           SECURITY_PID=$!
-          
+
           # Performance tests only on primary matrix
           if [[ "${{ matrix.primary }}" == "true" ]]; then
             run_test_with_retry "performance" "npm run test:performance" &
             PERFORMANCE_PID=$!
           fi
-          
+
           # Wait for all test processes and collect results
           FAILED_TESTS=()
-          
+
           wait $UNIT_PID
           if [ $? -ne 0 ]; then
             FAILED_TESTS+=("unit")
           fi
-          
+
           wait $INTEGRATION_PID
           if [ $? -ne 0 ]; then
             FAILED_TESTS+=("integration")
           fi
-          
+
           wait $SECURITY_PID
           if [ $? -ne 0 ]; then
             FAILED_TESTS+=("security")
           fi
-          
+
           if [[ "${{ matrix.primary }}" == "true" ]]; then
             wait $PERFORMANCE_PID
             if [ $? -ne 0 ]; then
               FAILED_TESTS+=("performance")
             fi
           fi
-          
+
           # Generate test summary
           echo "## Test Results Summary" >> test-results/summary.md
           echo "| Test Suite | Status | Matrix: ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
           echo "|------------|--------|------------|" >> test-results/summary.md
-          
+
           if grep -q "unit:success" test-results/results.txt; then
             echo "| Unit | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
           else
             echo "| Unit | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
           fi
-          
+
           if grep -q "integration:success" test-results/results.txt; then
             echo "| Integration | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
           else
             echo "| Integration | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
           fi
-          
+
           if grep -q "security:success" test-results/results.txt; then
             echo "| Security | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
           else
             echo "| Security | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
           fi
-          
+
           if [[ "${{ matrix.primary }}" == "true" ]]; then
             if grep -q "performance:success" test-results/results.txt; then
               echo "| Performance | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
@@ -385,7 +387,7 @@ jobs:
               echo "| Performance | ⚠️ Failed (Non-blocking) | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
             fi
           fi
-          
+
           # Handle test failures
           if [ ${#FAILED_TESTS[@]} -gt 0 ]; then
             echo "Failed test suites: ${FAILED_TESTS[*]}"
@@ -434,10 +436,10 @@ jobs:
         run: |
           # Monitor final resource usage
           node scripts/build-performance-monitor.js resource
-          
+
           # Generate comprehensive build performance report
           node scripts/build-performance-monitor.js report
-          
+
           # Check for performance regressions
           if node scripts/build-performance-monitor.js regressions 0.2; then
             echo "✅ No performance regressions detected"
@@ -472,7 +474,7 @@ jobs:
     needs: [preflight, build]
     if: always() && needs.preflight.outputs.should_run_tests == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -487,15 +489,15 @@ jobs:
       - name: Aggregate test results
         run: |
           echo "Aggregating test results from all matrix builds..."
-          
+
           # Create aggregated results directory
           mkdir -p final-results
-          
+
           # Initialize counters
           TOTAL_BUILDS=0
           PASSED_BUILDS=0
           FAILED_BUILDS=0
-          
+
           # Process each matrix result
           for result_dir in aggregated-results/test-results-*; do
             if [[ -d "$result_dir" ]]; then
@@ -521,7 +523,7 @@ jobs:
               fi
             fi
           done
-          
+
           # Generate final summary
           echo "## Matrix Build Test Results" > final-results/final-summary.md
           echo "| Metric | Count |" >> final-results/final-summary.md
@@ -530,21 +532,21 @@ jobs:
           echo "| Passed Builds | $PASSED_BUILDS |" >> final-results/final-summary.md
           echo "| Failed Builds | $FAILED_BUILDS |" >> final-results/final-summary.md
           echo "| Success Rate | $(( PASSED_BUILDS * 100 / TOTAL_BUILDS ))% |" >> final-results/final-summary.md
-          
+
           echo "" >> final-results/final-summary.md
           echo "### Individual Matrix Results" >> final-results/final-summary.md
-          
+
           if [[ -f "final-results/matrix-summary.txt" ]]; then
             while IFS= read -r line; do
               echo "- $line" >> final-results/final-summary.md
             done < final-results/matrix-summary.txt
           fi
-          
+
           # Set outputs for downstream jobs
           echo "TOTAL_BUILDS=$TOTAL_BUILDS" >> $GITHUB_ENV
           echo "PASSED_BUILDS=$PASSED_BUILDS" >> $GITHUB_ENV
           echo "FAILED_BUILDS=$FAILED_BUILDS" >> $GITHUB_ENV
-          
+
           # Fail if any critical builds failed
           if [[ $FAILED_BUILDS -gt 0 ]]; then
             echo "❌ $FAILED_BUILDS out of $TOTAL_BUILDS matrix builds failed"
@@ -574,7 +576,7 @@ jobs:
     needs: [preflight, build]
     if: needs.preflight.outputs.should_run_tests == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -633,7 +635,7 @@ jobs:
     needs: [build, test-aggregation, comprehensive-tests]
     if: always() && needs.preflight.outputs.should_run_tests == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -647,30 +649,30 @@ jobs:
       - name: Evaluate quality gate
         run: |
           echo "Evaluating quality gate..."
-          
+
           # Check if any critical jobs failed
           if [[ "${{ needs.build.result }}" != "success" ]]; then
             echo "❌ Build matrix failed"
             exit 1
           fi
-          
+
           if [[ "${{ needs.test-aggregation.result }}" != "success" ]]; then
             echo "❌ Test aggregation failed"
             exit 1
           fi
-          
+
           if [[ "${{ needs.comprehensive-tests.result }}" != "success" ]]; then
             echo "❌ Comprehensive tests failed"
             exit 1
           fi
-          
+
           # Check for performance warnings
           if [[ -f "quality-gate-results/matrix-summary.txt" ]]; then
             if grep -q "performance.*failed" quality-gate-results/matrix-summary.txt; then
               echo "⚠️ Performance tests failed but not blocking"
             fi
           fi
-          
+
           echo "✅ All quality gates passed"
 
       - name: Post quality gate results
@@ -682,7 +684,7 @@ jobs:
           echo "| Build Matrix | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Test Aggregation | ${{ needs.test-aggregation.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Comprehensive Tests | ${{ needs.comprehensive-tests.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          
+
           # Add detailed test results if available
           if [[ -f "quality-gate-results/final-summary.md" ]]; then
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -695,7 +697,7 @@ jobs:
     needs: [build, test-aggregation]
     if: always()
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -719,15 +721,15 @@ jobs:
       - name: Aggregate build performance data
         run: |
           echo "Aggregating build performance data from all matrix builds..."
-          
+
           # Create aggregated performance directory
           mkdir -p aggregated-performance
-          
+
           # Initialize aggregation data
           cat > aggregate-performance.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           function aggregatePerformanceData() {
             const artifactsDir = 'build-performance-artifacts';
             const outputDir = 'aggregated-performance';
@@ -822,20 +824,20 @@ jobs:
             console.log(`Aggregated performance data from ${aggregatedData.builds.length} builds`);
             return aggregatedData;
           }
-          
+
           aggregatePerformanceData();
           EOF
-          
+
           node aggregate-performance.js
 
       - name: Generate build optimization dashboard
         run: |
           echo "Generating build optimization dashboard..."
-          
+
           cat > generate-dashboard.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           function generateDashboard() {
             const dataPath = 'aggregated-performance/aggregated-performance.json';
             
@@ -939,25 +941,25 @@ jobs:
             fs.writeFileSync('aggregated-performance/build-optimization-dashboard.md', dashboard);
             console.log('Build optimization dashboard generated');
           }
-          
+
           function formatDuration(ms) {
             if (ms < 1000) return `${ms}ms`;
             if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
             return `${(ms / 60000).toFixed(1)}m`;
           }
-          
+
           generateDashboard();
           EOF
-          
+
           node generate-dashboard.js
 
       - name: Check build performance budgets
         run: |
           echo "Checking build performance budgets..."
-          
+
           cat > check-budgets.js << 'EOF'
           const fs = require('fs');
-          
+
           function checkBudgets() {
             const dataPath = 'aggregated-performance/aggregated-performance.json';
             
@@ -1030,16 +1032,16 @@ jobs:
               console.log('✅ All performance budgets met');
             }
           }
-          
+
           function formatDuration(ms) {
             if (ms < 1000) return `${ms}ms`;
             if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
             return `${(ms / 60000).toFixed(1)}m`;
           }
-          
+
           checkBudgets();
           EOF
-          
+
           node check-budgets.js
 
       - name: Upload build optimization reports
@@ -1057,7 +1059,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
+
             const dashboardPath = 'aggregated-performance/build-optimization-dashboard.md';
             if (fs.existsSync(dashboardPath)) {
               const dashboard = fs.readFileSync(dashboardPath, 'utf8');
@@ -1082,7 +1084,7 @@ jobs:
     needs: [preflight, quality-gate, build-optimization]
     if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -1102,7 +1104,7 @@ jobs:
           echo "| Build | ${{ needs.preflight.outputs.build_cache_key }} | TBD | Generated |" >> $GITHUB_STEP_SUMMARY
           echo "| Test | ${{ needs.preflight.outputs.test_cache_key }} | TBD | Generated |" >> $GITHUB_STEP_SUMMARY
           echo "| Version | ${{ needs.preflight.outputs.cache_version }} | N/A | Current |" >> $GITHUB_STEP_SUMMARY
-          
+
           # Add cache performance data if available
           if [[ -f "build-optimization/aggregated-performance.json" ]]; then
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -1137,14 +1139,14 @@ jobs:
     needs: [build, test-aggregation, comprehensive-tests, quality-gate, cache-management]
     if: always() && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Notify on failure
         if: failure()
         run: |
           echo "CI pipeline failed. Notification would be sent here."
           # Add Slack/email notification logic here
-          
+
       - name: Notify on success
         if: success()
         run: |
@@ -1170,14 +1172,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Calculate workflow duration
         id: duration
         run: |
           # Calculate workflow duration from start time
           START_TIME="${{ github.event.head_commit.timestamp }}"
           END_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          
+
           if [[ -n "$START_TIME" ]]; then
             START_EPOCH=$(date -d "$START_TIME" +%s)
             END_EPOCH=$(date -d "$END_TIME" +%s)
@@ -1186,7 +1188,7 @@ jobs:
           else
             echo "duration=0" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Determine workflow status
         id: status
         run: |
@@ -1199,7 +1201,7 @@ jobs:
           else
             echo "status=failed" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Log workflow completion
         run: |
           echo "Workflow completion audit log:"

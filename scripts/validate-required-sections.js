@@ -27,7 +27,7 @@ const CONFIG = {
         'usage', // Basic usage examples
         'documentation', // Links to detailed docs
         'contributing', // Contributing guidelines
-        'license' // License information
+        'license', // License information
       ],
       optionalSections: [
         'badges', // Status badges
@@ -36,7 +36,7 @@ const CONFIG = {
         'api', // API reference
         'troubleshooting', // Common issues
         'changelog', // Version history
-        'acknowledgments' // Credits
+        'acknowledgments', // Credits
       ],
       patterns: {
         title: /^#\s+.+$/m,
@@ -52,8 +52,8 @@ const CONFIG = {
         api: /(?:api|reference)/i,
         troubleshooting: /(?:troubleshooting|faq|issues)/i,
         changelog: /(?:changelog|changes|history)/i,
-        acknowledgments: /(?:acknowledgments|credits|thanks)/i
-      }
+        acknowledgments: /(?:acknowledgments|credits|thanks)/i,
+      },
     },
 
     'CHANGELOG.md': {
@@ -61,11 +61,11 @@ const CONFIG = {
         'title', // H1 header
         'format-info', // Keep a Changelog format info
         'unreleased', // Unreleased section
-        'version-entries' // At least one version entry
+        'version-entries', // At least one version entry
       ],
       optionalSections: [
         'guiding-principles', // Changelog principles
-        'types-of-changes' // Change type definitions
+        'types-of-changes', // Change type definitions
       ],
       patterns: {
         title: /^#\s+(?:changelog|change.*log)/im,
@@ -73,8 +73,8 @@ const CONFIG = {
         unreleased: /##\s+\[?unreleased\]?/im,
         'version-entries': /##\s+\[[0-9]+\.[0-9]+\.[0-9]+\]/im,
         'guiding-principles': /(?:principles|guidelines)/i,
-        'types-of-changes': /(?:types.*of.*changes|change.*types)/i
-      }
+        'types-of-changes': /(?:types.*of.*changes|change.*types)/i,
+      },
     },
 
     'SECURITY.md': {
@@ -82,12 +82,12 @@ const CONFIG = {
         'title', // H1 header
         'supported-versions', // Supported versions table
         'reporting', // How to report vulnerabilities
-        'response-process' // Response timeline
+        'response-process', // Response timeline
       ],
       optionalSections: [
         'security-policy', // General security policy
         'disclosure-policy', // Responsible disclosure
-        'contact-info' // Security contact
+        'contact-info', // Security contact
       ],
       patterns: {
         title: /^#\s+(?:security|security.*policy)/im,
@@ -96,8 +96,8 @@ const CONFIG = {
         'response-process': /(?:response|timeline|process)/i,
         'security-policy': /(?:policy|policies)/i,
         'disclosure-policy': /(?:disclosure|responsible)/i,
-        'contact-info': /(?:contact|email|security@)/i
-      }
+        'contact-info': /(?:contact|email|security@)/i,
+      },
     },
 
     'docs/API.md': {
@@ -106,13 +106,13 @@ const CONFIG = {
         'overview', // API overview
         'authentication', // Auth requirements
         'endpoints', // API endpoints
-        'examples' // Usage examples
+        'examples', // Usage examples
       ],
       optionalSections: [
         'rate-limiting', // Rate limits
         'errors', // Error handling
         'versioning', // API versioning
-        'sdk' // SDK information
+        'sdk', // SDK information
       ],
       patterns: {
         title: /^#\s+(?:api|api.*reference|api.*documentation)/im,
@@ -123,8 +123,8 @@ const CONFIG = {
         'rate-limiting': /(?:rate.*limit|throttling|limits)/i,
         errors: /(?:errors|error.*handling|error.*codes)/i,
         versioning: /(?:versioning|versions)/i,
-        sdk: /(?:sdk|client.*library|libraries)/i
-      }
+        sdk: /(?:sdk|client.*library|libraries)/i,
+      },
     },
 
     'docs/TROUBLESHOOTING.md': {
@@ -132,12 +132,12 @@ const CONFIG = {
         'title', // H1 header
         'common-issues', // Common problems
         'debugging', // Debugging guide
-        'support' // Getting help
+        'support', // Getting help
       ],
       optionalSections: [
         'faq', // Frequently asked questions
         'known-issues', // Known limitations
-        'performance' // Performance issues
+        'performance', // Performance issues
       ],
       patterns: {
         title: /^#\s+(?:troubleshooting|trouble.*shooting)/im,
@@ -146,20 +146,20 @@ const CONFIG = {
         support: /(?:support|help|assistance|contact)/i,
         faq: /(?:faq|frequently.*asked|questions)/i,
         'known-issues': /(?:known.*issues|limitations|caveats)/i,
-        performance: /(?:performance|slow|optimization)/i
-      }
+        performance: /(?:performance|slow|optimization)/i,
+      },
     },
 
     'docs/EXAMPLES.md': {
       requiredSections: [
         'title', // H1 header
         'basic-usage', // Basic examples
-        'advanced-usage' // Advanced examples
+        'advanced-usage', // Advanced examples
       ],
       optionalSections: [
         'tutorials', // Step-by-step tutorials
         'recipes', // Common patterns
-        'integration' // Integration examples
+        'integration', // Integration examples
       ],
       patterns: {
         title: /^#\s+(?:examples|usage.*examples)/im,
@@ -167,10 +167,10 @@ const CONFIG = {
         'advanced-usage': /(?:advanced|complex|detailed)/i,
         tutorials: /(?:tutorials|walkthrough|step.*by.*step)/i,
         recipes: /(?:recipes|patterns|common.*use)/i,
-        integration: /(?:integration|integrating|third.*party)/i
-      }
-    }
-  }
+        integration: /(?:integration|integrating|third.*party)/i,
+      },
+    },
+  },
 };
 
 // Validation results
@@ -180,7 +180,7 @@ const results = {
   missingSections: [],
   presentSections: [],
   warnings: [],
-  errors: []
+  errors: [],
 };
 
 /**
@@ -200,7 +200,7 @@ async function validateRequiredSections() {
       } else {
         results.warnings.push({
           file: filePath,
-          message: 'File not found (skipping validation)'
+          message: 'File not found (skipping validation)',
         });
       }
     }
@@ -211,7 +211,6 @@ async function validateRequiredSections() {
     if (results.missingSections.length > 0 || results.errors.length > 0) {
       process.exit(1);
     }
-
   } catch (error) {
     console.error('❌ Required sections validation failed:', error.message);
     process.exit(1);
@@ -249,7 +248,7 @@ async function validateDocumentationFile(filePath) {
     if (!requirements) {
       results.warnings.push({
         file: relativePath,
-        message: 'No validation requirements defined for this file'
+        message: 'No validation requirements defined for this file',
       });
       return;
     }
@@ -262,14 +261,14 @@ async function validateDocumentationFile(filePath) {
         results.presentSections.push({
           file: relativePath,
           section,
-          required: true
+          required: true,
         });
       } else {
         results.missingSections.push({
           file: relativePath,
           section,
           required: true,
-          message: `Required section "${section}" is missing`
+          message: `Required section "${section}" is missing`,
         });
       }
     }
@@ -283,7 +282,7 @@ async function validateDocumentationFile(filePath) {
           results.presentSections.push({
             file: relativePath,
             section,
-            required: false
+            required: false,
           });
         }
       }
@@ -291,11 +290,10 @@ async function validateDocumentationFile(filePath) {
 
     // Perform file-specific validations
     performSpecificValidations(content, filePath, relativePath);
-
   } catch (error) {
     results.errors.push({
       file: filePath,
-      message: `Failed to process file: ${error.message}`
+      message: `Failed to process file: ${error.message}`,
     });
   }
 }
@@ -362,7 +360,7 @@ function validateReadmeSpecifics(content, filePath) {
       results.warnings.push({
         file: filePath,
         section: 'title',
-        message: 'Title should clearly indicate this is a Minecraft mod converter'
+        message: 'Title should clearly indicate this is a Minecraft mod converter',
       });
     }
   }
@@ -372,7 +370,7 @@ function validateReadmeSpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'installation',
-      message: 'Installation section should include npm/yarn install commands'
+      message: 'Installation section should include npm/yarn install commands',
     });
   }
 
@@ -381,7 +379,7 @@ function validateReadmeSpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'usage',
-      message: 'Usage section should include code examples'
+      message: 'Usage section should include code examples',
     });
   }
 }
@@ -399,13 +397,13 @@ function validateChangelogSpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'version-entries',
-      message: 'No properly formatted version entries found'
+      message: 'No properly formatted version entries found',
     });
   }
 
   // Check for change categories
   const changeCategories = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'];
-  const hasCategories = changeCategories.some(category =>
+  const hasCategories = changeCategories.some((category) =>
     new RegExp(`###\\s+${category}`, 'i').test(content)
   );
 
@@ -413,7 +411,7 @@ function validateChangelogSpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'version-entries',
-      message: 'Version entries should use standard change categories (Added, Changed, etc.)'
+      message: 'Version entries should use standard change categories (Added, Changed, etc.)',
     });
   }
 }
@@ -430,7 +428,7 @@ function validateSecuritySpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'supported-versions',
-      message: 'Supported versions should be presented in a table format'
+      message: 'Supported versions should be presented in a table format',
     });
   }
 
@@ -439,7 +437,7 @@ function validateSecuritySpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'reporting',
-      message: 'Should include security contact information'
+      message: 'Should include security contact information',
     });
   }
 }
@@ -453,7 +451,7 @@ function validateSecuritySpecifics(content, filePath) {
 function validateApiSpecifics(content, filePath) {
   // Check for HTTP methods
   const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
-  const hasHttpMethods = httpMethods.some(method =>
+  const hasHttpMethods = httpMethods.some((method) =>
     new RegExp(`\\b${method}\\b`, 'i').test(content)
   );
 
@@ -461,7 +459,7 @@ function validateApiSpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'endpoints',
-      message: 'API documentation should include HTTP methods'
+      message: 'API documentation should include HTTP methods',
     });
   }
 
@@ -470,7 +468,7 @@ function validateApiSpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'examples',
-      message: 'Should include response examples'
+      message: 'Should include response examples',
     });
   }
 }
@@ -490,7 +488,7 @@ function validateTroubleshootingSpecifics(content, filePath) {
     results.warnings.push({
       file: filePath,
       section: 'common-issues',
-      message: 'Should use Q&A or Problem/Solution format for clarity'
+      message: 'Should use Q&A or Problem/Solution format for clarity',
     });
   }
 }
@@ -504,25 +502,24 @@ function validateTroubleshootingSpecifics(content, filePath) {
 function validateExamplesSpecifics(content, filePath) {
   // Check for code blocks
   const codeBlocks = content.match(/```/g);
-  if (!codeBlocks || codeBlocks.length < 4) { // At least 2 code blocks (open/close pairs)
+  if (!codeBlocks || codeBlocks.length < 4) {
+    // At least 2 code blocks (open/close pairs)
     results.warnings.push({
       file: filePath,
       section: 'basic-usage',
-      message: 'Should include multiple code examples'
+      message: 'Should include multiple code examples',
     });
   }
 
   // Check for different example types
   const exampleTypes = ['basic', 'advanced', 'complete', 'simple'];
-  const hasVariedExamples = exampleTypes.some(type =>
-    new RegExp(type, 'i').test(content)
-  );
+  const hasVariedExamples = exampleTypes.some((type) => new RegExp(type, 'i').test(content));
 
   if (!hasVariedExamples) {
     results.warnings.push({
       file: filePath,
       section: 'advanced-usage',
-      message: 'Should include examples of varying complexity'
+      message: 'Should include examples of varying complexity',
     });
   }
 }
@@ -532,16 +529,18 @@ function validateExamplesSpecifics(content, filePath) {
  */
 function generateReport() {
   console.log('\n📊 Required Documentation Sections Report');
-  console.log('=' .repeat(50));
+  console.log('='.repeat(50));
   console.log(`Files checked: ${results.processedFiles}/${results.totalFiles}`);
-  console.log(`Missing required sections: ${results.missingSections.filter(s => s.required).length}`);
+  console.log(
+    `Missing required sections: ${results.missingSections.filter((s) => s.required).length}`
+  );
   console.log(`Present sections: ${results.presentSections.length}`);
   console.log('');
 
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
-    results.warnings.forEach(warning => {
+    results.warnings.forEach((warning) => {
       if (warning.section) {
         console.log(`  ${warning.file} [${warning.section}]: ${warning.message}`);
       } else {
@@ -552,7 +551,7 @@ function generateReport() {
   }
 
   // Missing required sections
-  const missingRequired = results.missingSections.filter(s => s.required);
+  const missingRequired = results.missingSections.filter((s) => s.required);
   if (missingRequired.length > 0) {
     console.log(`❌ Missing Required Sections (${missingRequired.length}):`);
 
@@ -560,7 +559,7 @@ function generateReport() {
     const missingByFile = groupByFile(missingRequired);
     Object.entries(missingByFile).forEach(([file, sections]) => {
       console.log(`\n  ${file}:`);
-      sections.forEach(section => {
+      sections.forEach((section) => {
         console.log(`    ❌ ${section.section} - ${section.message}`);
       });
     });
@@ -573,8 +572,8 @@ function generateReport() {
 
     const presentByFile = groupByFile(results.presentSections);
     Object.entries(presentByFile).forEach(([file, sections]) => {
-      const requiredCount = sections.filter(s => s.required).length;
-      const optionalCount = sections.filter(s => !s.required).length;
+      const requiredCount = sections.filter((s) => s.required).length;
+      const optionalCount = sections.filter((s) => !s.required).length;
 
       console.log(`  ${file}: ${requiredCount} required, ${optionalCount} optional`);
     });
@@ -584,7 +583,7 @@ function generateReport() {
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Processing Errors (${results.errors.length}):`);
-    results.errors.forEach(error => {
+    results.errors.forEach((error) => {
       console.log(`  ${error.file}: ${error.message}`);
     });
     console.log('');
@@ -604,12 +603,16 @@ function generateReport() {
   }
 
   // Completion percentage
-  const totalRequired = Object.values(CONFIG.documentationRequirements)
-    .reduce((sum, req) => sum + req.requiredSections.length, 0);
-  const presentRequired = results.presentSections.filter(s => s.required).length;
+  const totalRequired = Object.values(CONFIG.documentationRequirements).reduce(
+    (sum, req) => sum + req.requiredSections.length,
+    0
+  );
+  const presentRequired = results.presentSections.filter((s) => s.required).length;
   const completionPercent = Math.round((presentRequired / totalRequired) * 100);
 
-  console.log(`\n📈 Documentation Completion: ${completionPercent}% (${presentRequired}/${totalRequired} required sections)`);
+  console.log(
+    `\n📈 Documentation Completion: ${completionPercent}% (${presentRequired}/${totalRequired} required sections)`
+  );
 }
 
 /**
@@ -631,7 +634,7 @@ function groupByFile(items) {
 
 // Run validation if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  validateRequiredSections().catch(error => {
+  validateRequiredSections().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

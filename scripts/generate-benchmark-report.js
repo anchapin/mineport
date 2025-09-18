@@ -7,7 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Import benchmark utilities
-import { generateBenchmarkReport, detectRegressions } from '../dist/tests/benchmark/benchmark-utils.js';
+import {
+  generateBenchmarkReport,
+  detectRegressions,
+} from '../dist/tests/benchmark/benchmark-utils.js';
 
 // Path to benchmark history
 const historyPath = path.join(__dirname, '../benchmark-results/benchmark-history.json');
@@ -32,8 +35,10 @@ try {
 
   if (regressions.length > 0) {
     console.log('\nPerformance regressions detected:');
-    regressions.forEach(regression => {
-      console.log(`- ${regression.name}: ${(regression.regression * 100).toFixed(2)}% slower than baseline`);
+    regressions.forEach((regression) => {
+      console.log(
+        `- ${regression.name}: ${(regression.regression * 100).toFixed(2)}% slower than baseline`
+      );
     });
   } else {
     console.log('\nNo performance regressions detected.');

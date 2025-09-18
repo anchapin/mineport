@@ -2,7 +2,7 @@ name: Deployment Monitoring
 
 on:
   workflow_run:
-    workflows: ["Deployment Pipeline"]
+    workflows: ['Deployment Pipeline']
     types: [completed, requested, in_progress]
   schedule:
     # Monitor deployments every 5 minutes
@@ -40,7 +40,7 @@ jobs:
     name: Monitor Deployment Health
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    
+
     strategy:
       matrix:
         environment: [staging, production]
@@ -53,7 +53,7 @@ jobs:
             base_url: ${{ secrets.PRODUCTION_BASE_URL || 'https://mineport.com' }}
             health_threshold: 0.95
             response_threshold: 2000
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
           const axios = require('axios');
           const fs = require('fs');
           const path = require('path');
-          
+
           class DeploymentMonitor {
             constructor(environment, baseUrl, thresholds) {
               this.environment = environment;
@@ -512,7 +512,7 @@ jobs:
               console.log('');
             }
           }
-          
+
           // Main execution
           async function main() {
             const environment = process.env.ENVIRONMENT;
@@ -552,10 +552,10 @@ jobs:
               process.exit(1);
             }
           }
-          
+
           main();
           EOF
-          
+
           # Install axios for HTTP requests
           npm install axios
 
@@ -577,7 +577,7 @@ jobs:
           const fs = require('fs');
           const path = require('path');
           const { MonitoringService } = require('./src/services/MonitoringService.js');
-          
+
           async function storeDeploymentMetrics() {
             try {
               // Initialize monitoring service
@@ -664,10 +664,10 @@ jobs:
               throw error;
             }
           }
-          
+
           storeDeploymentMetrics();
           EOF
-          
+
           # Run the metrics storage
           node store-deployment-metrics.js
         env:
@@ -699,9 +699,9 @@ jobs:
               # Generate summary
               cat >> $GITHUB_STEP_SUMMARY << EOF
           ## Deployment Monitoring Results - ${{ matrix.environment }}
-          
+
           **Overall Status:** ${OVERALL_STATUS^^}
-          
+
           | Metric | Value |
           |--------|-------|
           | Environment | ${{ matrix.environment }} |
@@ -709,7 +709,7 @@ jobs:
           | Healthy Checks | ${HEALTHY_CHECKS}/${TOTAL_CHECKS} |
           | Critical Alerts | ${CRITICAL_ALERTS} |
           | Warning Alerts | ${WARNING_ALERTS} |
-          
+
           EOF
               
               # Add alerts if any
@@ -726,7 +726,7 @@ jobs:
     needs: deployment-health-monitoring
     if: always()
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -744,7 +744,7 @@ jobs:
           cat > aggregate-monitoring.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           function aggregateMonitoringResults() {
             const aggregatedDir = 'aggregated-monitoring';
             const outputDir = 'monitoring-summary';
@@ -842,7 +842,7 @@ jobs:
             
             return summary;
           }
-          
+
           function generateMarkdownReport(summary) {
             let report = `# Deployment Monitoring Report\n\n`;
             report += `**Generated:** ${summary.timestamp}\n\n`;
@@ -892,10 +892,10 @@ jobs:
             
             return report;
           }
-          
+
           aggregateMonitoringResults();
           EOF
-          
+
           # Run aggregation
           node aggregate-monitoring.js
 

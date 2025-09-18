@@ -2,7 +2,14 @@ name: Alerting and Notification System
 
 on:
   workflow_run:
-    workflows: ["Enhanced CI Pipeline", "Security Scanning", "Deployment Pipeline", "Deployment Monitoring", "Performance Testing"]
+    workflows:
+      [
+        'Enhanced CI Pipeline',
+        'Security Scanning',
+        'Deployment Pipeline',
+        'Deployment Monitoring',
+        'Performance Testing',
+      ]
     types: [completed]
   schedule:
     # Check for SLA breaches every 10 minutes
@@ -50,7 +57,7 @@ jobs:
     name: Process Workflow Completion Alerts
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_run'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -71,7 +78,7 @@ jobs:
           const { Octokit } = require('@octokit/rest');
           const fs = require('fs');
           const path = require('path');
-          
+
           class WorkflowCompletionProcessor {
             constructor() {
               this.octokit = new Octokit({
@@ -647,22 +654,22 @@ jobs:
               return `${minutes}m ${seconds}s`;
             }
           }
-          
+
           // Main execution
           async function main() {
             const processor = new WorkflowCompletionProcessor();
             await processor.processWorkflowRun();
           }
-          
+
           main().catch(error => {
             console.error('Failed to process workflow completion:', error);
             process.exit(1);
           });
           EOF
-          
+
           # Install required dependencies
           npm install @octokit/rest
-          
+
           # Run the processor
           node process-workflow-completion.js
         env:
@@ -689,7 +696,7 @@ jobs:
     name: SLA Breach Monitoring
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -710,7 +717,7 @@ jobs:
           const { Octokit } = require('@octokit/rest');
           const fs = require('fs');
           const path = require('path');
-          
+
           class SLAMonitor {
             constructor() {
               this.octokit = new Octokit({
@@ -1037,19 +1044,19 @@ jobs:
               }
             }
           }
-          
+
           // Main execution
           async function main() {
             const monitor = new SLAMonitor();
             await monitor.checkSLABreaches();
           }
-          
+
           main().catch(error => {
             console.error('SLA monitoring failed:', error);
             process.exit(1);
           });
           EOF
-          
+
           # Install dependencies and run monitoring
           npm install @octokit/rest
           node sla-monitor.js
@@ -1071,7 +1078,7 @@ jobs:
     name: Test Alert System
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -1167,13 +1174,13 @@ jobs:
             
             console.log('🧪 Test alert completed');
           }
-          
+
           sendTestAlert().catch(error => {
             console.error('Test alert failed:', error);
             process.exit(1);
           });
           EOF
-          
+
           node test-alert.js
         env:
           ALERT_TYPE: ${{ github.event.inputs.alert_type }}
@@ -1186,16 +1193,16 @@ jobs:
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## Alert System Test Results
-          
+
           **Test Configuration:**
           - Alert Type: ${{ github.event.inputs.alert_type }}
           - Severity: ${{ github.event.inputs.severity }}
           - Environment: ${{ github.event.inputs.environment }}
-          
+
           **Channels Tested:**
           - Slack: ${SLACK_WEBHOOK_URL:+✅ Configured}${SLACK_WEBHOOK_URL:-❌ Not configured}
           - Monitoring System: ${MONITORING_WEBHOOK_URL:+✅ Configured}${MONITORING_WEBHOOK_URL:-❌ Not configured}
-          
+
           Check the job logs for detailed results.
           EOF
         env:

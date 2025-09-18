@@ -27,7 +27,9 @@ class DependencyValidator {
 
     // Check for circular dependencies
     if (this.analyzer.circularDependencies.length > 0) {
-      console.error(`❌ VALIDATION FAILED: ${this.analyzer.circularDependencies.length} circular dependencies detected\n`);
+      console.error(
+        `❌ VALIDATION FAILED: ${this.analyzer.circularDependencies.length} circular dependencies detected\n`
+      );
 
       this.analyzer.circularDependencies.forEach((cycle, i) => {
         console.error(`  ${i + 1}. ${cycle.join(' → ')}`);
@@ -47,13 +49,16 @@ class DependencyValidator {
     // Check for high coupling
     const highCouplingModules = [];
     for (const [module, deps] of this.analyzer.dependencies) {
-      if (deps.size > 6) { // Threshold for high coupling
+      if (deps.size > 6) {
+        // Threshold for high coupling
         highCouplingModules.push({ module, count: deps.size });
       }
     }
 
     if (highCouplingModules.length > 0) {
-      console.warn(`⚠️  WARNING: High coupling detected in ${highCouplingModules.length} modules:\n`);
+      console.warn(
+        `⚠️  WARNING: High coupling detected in ${highCouplingModules.length} modules:\n`
+      );
 
       highCouplingModules.forEach(({ module, count }) => {
         console.warn(`  - ${module}: ${count} dependencies`);
@@ -65,7 +70,9 @@ class DependencyValidator {
     // Summary
     console.log(`📊 Dependency Analysis Summary:`);
     console.log(`  - Total Modules: ${this.analyzer.modules.size}`);
-    console.log(`  - Total Dependencies: ${Array.from(this.analyzer.dependencies.values()).reduce((sum, deps) => sum + deps.size, 0)}`);
+    console.log(
+      `  - Total Dependencies: ${Array.from(this.analyzer.dependencies.values()).reduce((sum, deps) => sum + deps.size, 0)}`
+    );
     console.log(`  - Circular Dependencies: ${this.analyzer.circularDependencies.length}`);
     console.log(`  - High Coupling Modules: ${highCouplingModules.length}\n`);
 

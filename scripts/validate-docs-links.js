@@ -24,13 +24,9 @@ const CONFIG = {
     '**/dist/**',
     '**/temp/**',
     '**/coverage/**',
-    'node_modules/**'
+    'node_modules/**',
   ],
-  externalLinkPatterns: [
-    /^https?:\/\//,
-    /^mailto:/,
-    /^ftp:/
-  ]
+  externalLinkPatterns: [/^https?:\/\//, /^mailto:/, /^ftp:/],
 };
 
 // Validation results
@@ -40,7 +36,7 @@ const results = {
   validLinks: 0,
   brokenLinks: [],
   warnings: [],
-  errors: []
+  errors: [],
 };
 
 /**
@@ -65,11 +61,11 @@ async function fileExists(filePath) {
  * @returns {boolean} True if file should be processed
  */
 function shouldProcessFile(filePath) {
-  return !CONFIG.excludePatterns.some(pattern => {
+  return !CONFIG.excludePatterns.some((pattern) => {
     const regex = new RegExp(pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'));
     return regex.test(filePath);
   });
-}/**
+} /**
  * Ge
 t all markdown files in a directory recursively
  *
@@ -88,14 +84,17 @@ async function getMarkdownFilesInDirectory(dir) {
 
         if (entry.isDirectory()) {
           await traverse(fullPath);
-        } else if (entry.isFile() && CONFIG.markdownExtensions.some(ext => entry.name.endsWith(ext))) {
+        } else if (
+          entry.isFile() &&
+          CONFIG.markdownExtensions.some((ext) => entry.name.endsWith(ext))
+        ) {
           files.push(fullPath);
         }
       }
     } catch (error) {
       // Skip directories we can't read
       results.warnings.push({
-        message: `Could not read directory: ${currentDir} - ${error.message}`
+        message: `Could not read directory: ${currentDir} - ${error.message}`,
       });
     }
   }
@@ -119,7 +118,7 @@ async function getMarkdownFiles() {
     }
   }
 
-  return files.filter(file => shouldProcessFile(file));
+  return files.filter((file) => shouldProcessFile(file));
 }
 
 /**
@@ -142,7 +141,7 @@ function extractLinks(content) {
     // HTML links: <a href="url">
     /<a\s+[^>]*href\s*=\s*["']([^"']+)["'][^>]*>/gi,
     // Auto links: <url>
-    /<(https?:\/\/[^>]+)>/g
+    /<(https?:\/\/[^>]+)>/g,
   ];
 
   const lines = content.split('\n');
@@ -164,7 +163,7 @@ function extractLinks(content) {
             text: linkText,
             url: linkUrl.trim(),
             line: lineNumber,
-            column: match.index + 1
+            column: match.index + 1,
           });
         }
       }
@@ -172,7 +171,7 @@ function extractLinks(content) {
   }
 
   return links;
-}/**
+} /**
  * Chec
 k if a URL is external
  *
@@ -180,7 +179,7 @@ k if a URL is external
  * @returns {boolean} True if URL is external
  */
 function isExternalLink(url) {
-  return CONFIG.externalLinkPatterns.some(pattern => pattern.test(url));
+  return CONFIG.externalLinkPatterns.some((pattern) => pattern.test(url));
 }
 
 /**
@@ -222,17 +221,21 @@ async function validateAnchorLink(anchor, filePath) {
       new RegExp(`^#+\\s+.*${escapeRegex(anchorName)}.*$`, 'im'),
       new RegExp(`^#+\\s+${escapeRegex(anchorName)}\\s*$`, 'im'),
       // GitHub-style anchor generation (lowercase, spaces to hyphens)
-      new RegExp(`^#+\\s+${escapeRegex(anchorName.replace(/-/g, ' '))}\\s*$`, 'im')
+      new RegExp(`^#+\\s+${escapeRegex(anchorName.replace(/-/g, ' '))}\\s*$`, 'im'),
     ];
 
     // Also check for HTML anchors
-    const htmlAnchorPattern = new RegExp(`<a\\s+[^>]*(?:name|id)\\s*=\\s*["']${escapeRegex(anchorName)}["'][^>]*>`, 'i');
+    const htmlAnchorPattern = new RegExp(
+      `<a\\s+[^>]*(?:name|id)\\s*=\\s*["']${escapeRegex(anchorName)}["'][^>]*>`,
+      'i'
+    );
 
-    return headerPatterns.some(pattern => pattern.test(content)) ||
-           htmlAnchorPattern.test(content) ||
-           content.includes(`id="${anchorName}"`) ||
-           content.includes(`name="${anchorName}"`);
-
+    return (
+      headerPatterns.some((pattern) => pattern.test(content)) ||
+      htmlAnchorPattern.test(content) ||
+      content.includes(`id="${anchorName}"`) ||
+      content.includes(`name="${anchorName}"`)
+    );
   } catch (error) {
     return false;
   }
@@ -257,7 +260,7 @@ async function validateLink(link, filePath, relativePath) {
   }
 
   // Skip mailto and other special protocols
-  if (CONFIG.externalLinkPatterns.some(pattern => pattern.test(url))) {
+  if (CONFIG.externalLinkPatterns.some((pattern) => pattern.test(url))) {
     results.validLinks++;
     return;
   }
@@ -275,7 +278,7 @@ async function validateLink(link, filePath, relativePath) {
         url,
         text,
         type: 'anchor',
-        message: `Anchor "${url}" not found in file`
+        message: `Anchor "${url}" not found in file`,
       });
     }
     return;
@@ -295,7 +298,7 @@ async function validateLink(link, filePath, relativePath) {
       url,
       text,
       type: 'file',
-      message: `File not found: ${path.relative(process.cwd(), filePart)}`
+      message: `File not found: ${path.relative(process.cwd(), filePart)}`,
     });
     return;
   }
@@ -311,14 +314,14 @@ async function validateLink(link, filePath, relativePath) {
         url,
         text,
         type: 'anchor',
-        message: `Anchor "#${anchorPart}" not found in ${path.relative(process.cwd(), filePart)}`
+        message: `Anchor "#${anchorPart}" not found in ${path.relative(process.cwd(), filePart)}`,
       });
       return;
     }
   }
 
   results.validLinks++;
-}/**
+} /**
 
  * Validate all links in a single markdown file
  *
@@ -336,11 +339,10 @@ async function validateFileLinks(filePath) {
     for (const link of links) {
       await validateLink(link, filePath, relativePath);
     }
-
   } catch (error) {
     results.errors.push({
       file: filePath,
-      message: `Failed to process file: ${error.message}`
+      message: `Failed to process file: ${error.message}`,
     });
   }
 }
@@ -350,7 +352,7 @@ async function validateFileLinks(filePath) {
  */
 function generateReport() {
   console.log('\n📊 Documentation Link Validation Report');
-  console.log('=' .repeat(50));
+  console.log('='.repeat(50));
   console.log(`Files processed: ${results.totalFiles}`);
   console.log(`Total links checked: ${results.totalLinks}`);
   console.log(`Valid links: ${results.validLinks}`);
@@ -360,7 +362,7 @@ function generateReport() {
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
-    results.warnings.forEach(warning => {
+    results.warnings.forEach((warning) => {
       console.log(`  ${warning.message}`);
     });
     console.log('');
@@ -369,7 +371,7 @@ function generateReport() {
   // Broken links
   if (results.brokenLinks.length > 0) {
     console.log(`❌ Broken Links (${results.brokenLinks.length}):`);
-    results.brokenLinks.forEach(link => {
+    results.brokenLinks.forEach((link) => {
       console.log(`  ${link.file}:${link.line}:${link.column}`);
       console.log(`    Link: ${link.url}`);
       console.log(`    Text: "${link.text}"`);
@@ -381,7 +383,7 @@ function generateReport() {
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Processing Errors (${results.errors.length}):`);
-    results.errors.forEach(error => {
+    results.errors.forEach((error) => {
       console.log(`  ${error.file}: ${error.message}`);
     });
     console.log('');
@@ -423,7 +425,6 @@ async function validateDocumentationLinks() {
     if (results.brokenLinks.length > 0 || results.errors.length > 0) {
       process.exit(1);
     }
-
   } catch (error) {
     console.error('❌ Link validation failed:', error.message);
     process.exit(1);
@@ -432,7 +433,7 @@ async function validateDocumentationLinks() {
 
 // Run validation if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  validateDocumentationLinks().catch(error => {
+  validateDocumentationLinks().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

@@ -39,7 +39,7 @@ jobs:
     outputs:
       deployment-environment: ${{ steps.determine-env.outputs.environment }}
       should-deploy: ${{ steps.validation.outputs.should-deploy }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -68,30 +68,30 @@ jobs:
         id: validation
         run: |
           echo "Validating deployment prerequisites..."
-          
+
           # Check if required secrets are available
           if [ -z "${{ secrets.DB_PASSWORD }}" ]; then
             echo "Missing required secret: DB_PASSWORD"
             exit 1
           fi
-          
+
           # Validate configuration files
           if [ ! -f "config/deployment.json" ]; then
             echo "Missing deployment configuration"
             exit 1
           fi
-          
+
           if [ ! -f "config/feature-flags.json" ]; then
             echo "Missing feature flags configuration"
             exit 1
           fi
-          
+
           # Check deployment scripts
           if [ ! -f "scripts/deploy-modporter-ai.sh" ]; then
             echo "Missing deployment script"
             exit 1
           fi
-          
+
           echo "should-deploy=true" >> $GITHUB_OUTPUT
           echo "Pre-deployment validation passed"
 
@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: pre-deployment
     if: needs.pre-deployment.outputs.should-deploy == 'true'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -128,7 +128,7 @@ jobs:
         run: |
           echo "Building application for ${{ needs.pre-deployment.outputs.deployment-environment }}..."
           npm run build
-          
+
           # Verify build artifacts
           if [ ! -d "dist" ]; then
             echo "Build failed - dist directory not found"
@@ -168,7 +168,7 @@ jobs:
     outputs:
       deployment-id: ${{ steps.deploy.outputs.deployment-id }}
       health-status: ${{ steps.health-check.outputs.status }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -189,7 +189,7 @@ jobs:
       - name: Pre-deployment health check
         run: |
           echo "Checking staging environment health before deployment..."
-          
+
           # Check if staging is accessible
           if curl -f -s https://staging.mineport.com/health > /dev/null; then
             echo "Staging environment is accessible"
@@ -208,7 +208,7 @@ jobs:
       - name: Configure staging environment
         run: |
           echo "Configuring staging environment..."
-          
+
           # Set environment variables
           echo "DEPLOYMENT_ENV=staging" >> $GITHUB_ENV
           echo "DB_HOST=${{ secrets.STAGING_DB_HOST }}" >> $GITHUB_ENV
@@ -216,7 +216,7 @@ jobs:
           echo "DB_NAME=${{ secrets.STAGING_DB_NAME }}" >> $GITHUB_ENV
           echo "DB_USER=${{ secrets.STAGING_DB_USER }}" >> $GITHUB_ENV
           echo "DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}" >> $GITHUB_ENV
-          
+
           # Generate deployment ID
           deployment_id="staging-$(date +%Y%m%d-%H%M%S)-${{ github.run_number }}"
           echo "DEPLOYMENT_ID=$deployment_id" >> $GITHUB_ENV
@@ -226,10 +226,10 @@ jobs:
         if: ${{ !github.event.inputs.skip_tests }}
         run: |
           echo "Running pre-deployment validation tests..."
-          
+
           # Run configuration validation
           npm run test:config
-          
+
           # Run database migration dry-run
           npm run db:migrate:dry-run
 
@@ -239,14 +239,14 @@ jobs:
         run: |
           echo "Starting staging deployment with ID: $DEPLOYMENT_ID..."
           chmod +x scripts/deploy-modporter-ai.sh
-          
+
           # Deploy with staging-specific configuration
           if [ "${{ github.event.inputs.skip_tests }}" = "true" ]; then
             ./scripts/deploy-modporter-ai.sh --env staging --skip-tests
           else
             ./scripts/deploy-modporter-ai.sh --env staging
           fi
-          
+
           echo "deployment-id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
           echo "Staging deployment completed"
 
@@ -254,10 +254,10 @@ jobs:
         timeout-minutes: 5
         run: |
           echo "Waiting for staging service to start..."
-          
+
           max_attempts=30
           attempt=1
-          
+
           while [ $attempt -le $max_attempts ]; do
             echo "Startup check attempt $attempt/$max_attempts..."
             
@@ -280,10 +280,10 @@ jobs:
         run: |
           echo "Running comprehensive staging smoke tests..."
           export TEST_BASE_URL=https://staging.mineport.com
-          
+
           # Run smoke tests with detailed reporting
           npm run test:smoke -- --reporter=verbose --coverage
-          
+
           # Run staging-specific integration tests
           npm run test:integration:staging
 
@@ -293,32 +293,32 @@ jobs:
         run: |
           echo "Validating staging deployment..."
           export TEST_BASE_URL=https://staging.mineport.com
-          
+
           # Run deployment validation
           node scripts/validate-deployment.js
-          
+
           # Get final health status
           health_status=$(curl -s https://staging.mineport.com/health | jq -r '.status // "unknown"')
           echo "status=$health_status" >> $GITHUB_OUTPUT
           echo "Final staging health status: $health_status"
-          
+
           # Validate ModPorter-AI specific features
           echo "Validating ModPorter-AI features..."
-          
+
           # Check feature flags are properly configured
           feature_status=$(curl -s https://staging.mineport.com/config/validate | jq -r '.valid // false')
           if [ "$feature_status" != "true" ]; then
             echo "❌ Feature flag validation failed"
             exit 1
           fi
-          
+
           # Check ModPorter-AI components health
           modporter_status=$(curl -s https://staging.mineport.com/health | jq -r '.checks[] | select(.name=="modporter-ai-components") | .status // "unknown"')
           if [ "$modporter_status" != "healthy" ]; then
             echo "❌ ModPorter-AI components are not healthy: $modporter_status"
             exit 1
           fi
-          
+
           echo "✅ All staging validations passed"
 
       - name: Run staging performance tests
@@ -326,10 +326,10 @@ jobs:
         run: |
           echo "Running staging performance validation..."
           export TEST_BASE_URL=https://staging.mineport.com
-          
+
           # Run performance tests
           npm run test:performance:staging
-          
+
           # Check response times
           echo "Checking response times..."
           for i in {1..5}; do
@@ -348,11 +348,11 @@ jobs:
         if: always()
         run: |
           echo "Generating staging deployment report..."
-          
+
           # Collect deployment metrics
           health_response=$(curl -s https://staging.mineport.com/health || echo '{"status":"unavailable"}')
           metrics_response=$(curl -s https://staging.mineport.com/metrics || echo '{"error":"unavailable"}')
-          
+
           cat > staging-deployment-report.json << EOF
           {
             "deployment_id": "$DEPLOYMENT_ID",
@@ -371,7 +371,7 @@ jobs:
             }
           }
           EOF
-          
+
           echo "Staging deployment report generated"
 
       - name: Upload staging deployment artifacts
@@ -388,11 +388,11 @@ jobs:
         if: success()
         run: |
           echo "Staging deployment completed successfully"
-          
+
           # Prepare detailed notification
           health_status=$(curl -s https://staging.mineport.com/health | jq -r '.status // "unknown"')
           uptime=$(curl -s https://staging.mineport.com/health | jq -r '.uptime // 0')
-          
+
           notification_payload=$(cat << EOF
           {
             "text": "✅ ModPorter-AI Staging Deployment Successful",
@@ -411,7 +411,7 @@ jobs:
           }
           EOF
           )
-          
+
           if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
             curl -X POST -H 'Content-type: application/json' \
               --data "$notification_payload" \
@@ -422,7 +422,7 @@ jobs:
         if: failure()
         run: |
           echo "Staging deployment failed - initiating recovery..."
-          
+
           # Attempt to rollback if previous version exists
           if [ -n "$PREVIOUS_VERSION" ] && [ "$PREVIOUS_VERSION" != "unknown" ]; then
             echo "Attempting rollback to previous version: $PREVIOUS_VERSION"
@@ -431,7 +431,7 @@ jobs:
             export ROLLBACK_REASON="staging-deployment-failure"
             ./scripts/rollback-deployment.sh --type standard --reason "staging-deployment-failure"
           fi
-          
+
           # Send failure notification
           if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
             curl -X POST -H 'Content-type: application/json' \
@@ -449,7 +449,7 @@ jobs:
       needs.deploy-staging.result == 'success'
     environment:
       name: production-approval
-    
+
     steps:
       - name: Request production deployment approval
         run: |
@@ -469,7 +469,7 @@ jobs:
     environment:
       name: production
       url: https://mineport.com
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -499,14 +499,14 @@ jobs:
         run: |
           echo "Starting production deployment..."
           chmod +x scripts/deploy-modporter-ai.sh
-          
+
           export DEPLOYMENT_ENV=production
           export DB_HOST=${{ secrets.PROD_DB_HOST }}
           export DB_PORT=${{ secrets.PROD_DB_PORT }}
           export DB_NAME=${{ secrets.PROD_DB_NAME }}
           export DB_USER=${{ secrets.PROD_DB_USER }}
           export DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
-          
+
           if [ "${{ github.event.inputs.skip_tests }}" = "true" ]; then
             ./scripts/deploy-modporter-ai.sh --env production --skip-tests
           else
@@ -542,12 +542,12 @@ jobs:
         run: |
           echo "Production deployment failed - initiating rollback..."
           chmod +x scripts/rollback-deployment.sh
-          
+
           export DEPLOYMENT_ENV=production
           export ROLLBACK_REASON="deployment-failure"
-          
+
           ./scripts/rollback-deployment.sh --type standard --reason "deployment-failure"
-          
+
           if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
             curl -X POST -H 'Content-type: application/json' \
               --data '{"text":"⚠️ ModPorter-AI production deployment failed and rolled back - ${{ github.sha }}"}' \
@@ -568,7 +568,7 @@ jobs:
     outputs:
       canary-status: ${{ steps.canary-result.outputs.status }}
       rollout-percentage: ${{ steps.canary-result.outputs.percentage }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -595,7 +595,7 @@ jobs:
       - name: Pre-canary health check
         run: |
           echo "Checking production environment health before canary..."
-          
+
           # Check if production is healthy before starting canary
           if curl -f -s https://mineport.com/health > /dev/null; then
             prod_status=$(curl -s https://mineport.com/health | jq -r '.status // "unknown"')
@@ -612,7 +612,7 @@ jobs:
       - name: Configure canary environment
         run: |
           echo "Configuring canary environment..."
-          
+
           # Set environment variables
           echo "DEPLOYMENT_ENV=canary" >> $GITHUB_ENV
           echo "DB_HOST=${{ secrets.CANARY_DB_HOST }}" >> $GITHUB_ENV
@@ -621,13 +621,13 @@ jobs:
           echo "DB_USER=${{ secrets.CANARY_DB_USER }}" >> $GITHUB_ENV
           echo "DB_PASSWORD=${{ secrets.CANARY_DB_PASSWORD }}" >> $GITHUB_ENV
           echo "WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" >> $GITHUB_ENV
-          
+
           # Configure canary-specific parameters
           echo "CANARY_PERCENTAGE=5" >> $GITHUB_ENV
           echo "MONITORING_DURATION=300" >> $GITHUB_ENV
           echo "ERROR_THRESHOLD=0.02" >> $GITHUB_ENV
           echo "RESPONSE_TIME_THRESHOLD=3000" >> $GITHUB_ENV
-          
+
           # Generate canary deployment ID
           canary_id="canary-$(date +%Y%m%d-%H%M%S)-${{ github.run_number }}"
           echo "CANARY_ID=$canary_id" >> $GITHUB_ENV
@@ -635,10 +635,10 @@ jobs:
       - name: Initialize canary monitoring
         run: |
           echo "Initializing canary monitoring baseline..."
-          
+
           # Create monitoring directory
           mkdir -p canary-monitoring
-          
+
           # Collect baseline metrics from production
           if curl -f -s https://mineport.com/metrics > /dev/null; then
             curl -s https://mineport.com/metrics > canary-monitoring/baseline-metrics.json
@@ -647,7 +647,7 @@ jobs:
             echo "⚠️ Could not collect baseline metrics"
             echo '{"error":"baseline_unavailable"}' > canary-monitoring/baseline-metrics.json
           fi
-          
+
           # Initialize canary tracking
           cat > canary-monitoring/canary-config.json << EOF
           {
@@ -667,21 +667,21 @@ jobs:
         run: |
           echo "Starting canary deployment with progressive rollout..."
           chmod +x scripts/canary-deployment.sh
-          
+
           # Run canary deployment with enhanced monitoring
           ./scripts/canary-deployment.sh \
             --percentage $CANARY_PERCENTAGE \
             --duration $MONITORING_DURATION \
             --error-threshold $ERROR_THRESHOLD \
             --response-threshold $RESPONSE_TIME_THRESHOLD
-          
+
           echo "Canary deployment script completed"
 
       - name: Collect canary metrics
         if: always()
         run: |
           echo "Collecting canary deployment metrics..."
-          
+
           # Collect final metrics
           if curl -f -s https://canary.mineport.com/metrics > /dev/null; then
             curl -s https://canary.mineport.com/metrics > canary-monitoring/final-metrics.json
@@ -699,7 +699,7 @@ jobs:
             echo "⚠️ Could not collect final metrics"
             echo "ERROR_RATE=unknown" >> $GITHUB_ENV
           fi
-          
+
           # Collect canary-specific health status
           if curl -f -s https://canary.mineport.com/health > /dev/null; then
             canary_health=$(curl -s https://canary.mineport.com/health | jq -r '.status // "unknown"')
@@ -713,41 +713,41 @@ jobs:
         run: |
           echo "Validating canary deployment..."
           export TEST_BASE_URL=https://canary.mineport.com
-          
+
           # Run comprehensive validation
           node scripts/validate-deployment.js
-          
+
           # Run canary-specific tests
           echo "Running canary-specific validation tests..."
-          
+
           # Test feature flag responsiveness
           feature_response=$(curl -s https://canary.mineport.com/config/validate)
           feature_valid=$(echo "$feature_response" | jq -r '.valid // false')
-          
+
           if [ "$feature_valid" != "true" ]; then
             echo "❌ Feature flag validation failed"
             exit 1
           fi
-          
+
           # Test ModPorter-AI canary features
           health_response=$(curl -s https://canary.mineport.com/health)
           modporter_status=$(echo "$health_response" | jq -r '.checks[] | select(.name=="modporter-ai-components") | .status // "unknown"')
-          
+
           if [ "$modporter_status" != "healthy" ]; then
             echo "❌ ModPorter-AI components not healthy in canary: $modporter_status"
             exit 1
           fi
-          
+
           echo "✅ Canary validation completed successfully"
 
       - name: Monitor canary performance
         timeout-minutes: 15
         run: |
           echo "Monitoring canary performance for 15 minutes..."
-          
+
           end_time=$(($(date +%s) + 900)) # 15 minutes from now
           check_interval=60 # Check every minute
-          
+
           while [ $(date +%s) -lt $end_time ]; do
             current_time=$(date)
             echo "[$current_time] Monitoring canary performance..."
@@ -787,7 +787,7 @@ jobs:
             
             sleep $check_interval
           done
-          
+
           echo "✅ Canary performance monitoring completed successfully"
 
       - name: Determine canary result
@@ -795,7 +795,7 @@ jobs:
         if: always()
         run: |
           echo "Determining final canary deployment result..."
-          
+
           # Check if all previous steps succeeded
           if [ "${{ job.status }}" = "success" ]; then
             echo "status=success" >> $GITHUB_OUTPUT
@@ -806,7 +806,7 @@ jobs:
             echo "percentage=0" >> $GITHUB_OUTPUT
             echo "❌ Canary deployment failed"
           fi
-          
+
           # Generate canary report
           cat > canary-monitoring/canary-report.json << EOF
           {
@@ -836,7 +836,7 @@ jobs:
         if: success()
         run: |
           echo "Canary deployment completed successfully"
-          
+
           # Prepare detailed success notification
           notification_payload=$(cat << EOF
           {
@@ -856,7 +856,7 @@ jobs:
           }
           EOF
           )
-          
+
           if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
             curl -X POST -H 'Content-type: application/json' \
               --data "$notification_payload" \
@@ -868,12 +868,12 @@ jobs:
         run: |
           echo "Canary deployment failed - initiating automatic rollback..."
           chmod +x scripts/rollback-deployment.sh
-          
+
           export ROLLBACK_REASON="canary-failure"
-          
+
           # Perform emergency rollback
           ./scripts/rollback-deployment.sh --type emergency --reason "canary-failure"
-          
+
           # Send detailed failure notification
           notification_payload=$(cat << EOF
           {
@@ -893,7 +893,7 @@ jobs:
           }
           EOF
           )
-          
+
           if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
             curl -X POST -H 'Content-type: application/json' \
               --data "$notification_payload" \
@@ -910,7 +910,7 @@ jobs:
       (needs.deploy-staging.result == 'success' || 
        needs.deploy-production.result == 'success' || 
        needs.deploy-canary.result == 'success')
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -926,7 +926,7 @@ jobs:
       - name: Setup monitoring environment
         run: |
           echo "Setting up post-deployment monitoring..."
-          
+
           # Determine which environment was deployed
           if [ "${{ needs.deploy-production.result }}" = "success" ]; then
             echo "DEPLOYED_ENV=production" >> $GITHUB_ENV
@@ -944,10 +944,10 @@ jobs:
             echo "MONITORING_DURATION=600" >> $GITHUB_ENV   # 10 minutes for staging
             echo "ALERT_THRESHOLD=0.05" >> $GITHUB_ENV
           fi
-          
+
           # Create monitoring directory
           mkdir -p monitoring-data
-          
+
           # Initialize monitoring session
           monitoring_id="monitor-$(date +%Y%m%d-%H%M%S)-${{ github.run_number }}"
           echo "MONITORING_ID=$monitoring_id" >> $GITHUB_ENV
@@ -957,11 +957,11 @@ jobs:
         run: |
           echo "Running comprehensive deployment validation for $DEPLOYED_ENV..."
           export TEST_BASE_URL=$MONITOR_URL
-          
+
           # Run the deployment validation script
           node scripts/validate-deployment.js > monitoring-data/validation-report.txt 2>&1
           validation_exit_code=$?
-          
+
           if [ $validation_exit_code -eq 0 ]; then
             echo "✅ Deployment validation passed"
             echo "VALIDATION_STATUS=passed" >> $GITHUB_ENV
@@ -981,16 +981,16 @@ jobs:
         timeout-minutes: 35
         run: |
           echo "Monitoring $DEPLOYED_ENV deployment for $MONITORING_DURATION seconds..."
-          
+
           start_time=$(date +%s)
           end_time=$((start_time + MONITORING_DURATION))
           check_interval=60
-          
+
           # Initialize monitoring metrics
           total_checks=0
           failed_checks=0
           response_times=()
-          
+
           while [ $(date +%s) -lt $end_time ]; do
             current_time=$(date)
             elapsed=$(($(date +%s) - start_time))
@@ -1056,18 +1056,18 @@ jobs:
             
             sleep $check_interval
           done
-          
+
           # Calculate final statistics
           echo "TOTAL_CHECKS=$total_checks" >> $GITHUB_ENV
           echo "FAILED_CHECKS=$failed_checks" >> $GITHUB_ENV
-          
+
           if [ $total_checks -gt 0 ]; then
             final_error_rate=$(echo "scale=4; $failed_checks / $total_checks" | bc)
             echo "FINAL_ERROR_RATE=$final_error_rate" >> $GITHUB_ENV
           else
             echo "FINAL_ERROR_RATE=0" >> $GITHUB_ENV
           fi
-          
+
           # Calculate average response time
           if [ ${#response_times[@]} -gt 0 ]; then
             total_time=0
@@ -1079,14 +1079,14 @@ jobs:
           else
             echo "AVG_RESPONSE_TIME=0" >> $GITHUB_ENV
           fi
-          
+
           echo "✅ Post-deployment monitoring completed"
 
       - name: Validate ModPorter-AI specific features
         timeout-minutes: 5
         run: |
           echo "Validating ModPorter-AI specific features..."
-          
+
           # Check feature flags configuration
           if feature_response=$(curl -s "$MONITOR_URL/config/validate" 2>/dev/null); then
             feature_valid=$(echo "$feature_response" | jq -r '.valid // false')
@@ -1101,7 +1101,7 @@ jobs:
             echo "⚠️ Could not validate feature flags"
             echo "FEATURE_FLAGS_STATUS=unknown" >> $GITHUB_ENV
           fi
-          
+
           # Check ModPorter-AI components health
           if health_response=$(curl -s "$MONITOR_URL/health" 2>/dev/null); then
             modporter_status=$(echo "$health_response" | jq -r '.checks[] | select(.name=="modporter-ai-components") | .status // "unknown"')
@@ -1122,22 +1122,22 @@ jobs:
         if: always()
         run: |
           echo "Generating comprehensive deployment report..."
-          
+
           # Collect final system state
           if final_health=$(curl -s "$MONITOR_URL/health" 2>/dev/null); then
             final_status=$(echo "$final_health" | jq -r '.status // "unknown"')
           else
             final_status="unavailable"
           fi
-          
+
           if final_metrics=$(curl -s "$MONITOR_URL/metrics" 2>/dev/null); then
             echo "$final_metrics" > monitoring-data/final-metrics.json
           fi
-          
+
           # Generate markdown report
           cat > monitoring-data/deployment-report.md << EOF
           # ModPorter-AI Deployment Report
-          
+
           ## Deployment Information
           - **Commit SHA:** ${{ github.sha }}
           - **Environment:** $DEPLOYED_ENV
@@ -1145,57 +1145,57 @@ jobs:
           - **Triggered by:** ${{ github.actor }}
           - **Monitoring ID:** $MONITORING_ID
           - **Monitoring Duration:** ${MONITORING_DURATION}s
-          
+
           ## Deployment Pipeline Status
           - **Pre-deployment:** ${{ needs.pre-deployment.result }}
           - **Build and Test:** ${{ needs.build-and-test.result }}
           - **Staging Deployment:** ${{ needs.deploy-staging.result }}
           - **Production Deployment:** ${{ needs.deploy-production.result }}
           - **Canary Deployment:** ${{ needs.deploy-canary.result }}
-          
+
           ## Post-deployment Validation
           - **Validation Status:** $VALIDATION_STATUS
           - **Final Health Status:** $final_status
           - **Feature Flags Status:** $FEATURE_FLAGS_STATUS
           - **ModPorter-AI Status:** $MODPORTER_STATUS
-          
+
           ## Monitoring Statistics
           - **Total Health Checks:** $TOTAL_CHECKS
           - **Failed Checks:** $FAILED_CHECKS
           - **Final Error Rate:** $FINAL_ERROR_RATE
           - **Average Response Time:** ${AVG_RESPONSE_TIME}ms
           - **Alert Threshold:** $ALERT_THRESHOLD
-          
+
           ## Service Endpoints
           - **Health:** $MONITOR_URL/health
           - **Metrics:** $MONITOR_URL/metrics
           - **Config Validation:** $MONITOR_URL/config/validate
-          
+
           ## Recommendations
           EOF
-          
+
           # Add recommendations based on monitoring results
           if [ "$VALIDATION_STATUS" = "failed" ]; then
             echo "- ⚠️ **Action Required:** Deployment validation failed - investigate immediately" >> monitoring-data/deployment-report.md
           fi
-          
+
           if [ "$final_status" != "healthy" ]; then
             echo "- ⚠️ **Action Required:** Service is not in healthy state - monitor closely" >> monitoring-data/deployment-report.md
           fi
-          
+
           threshold_check=$(echo "$FINAL_ERROR_RATE > $ALERT_THRESHOLD" | bc 2>/dev/null || echo "0")
           if [ "$threshold_check" -eq 1 ]; then
             echo "- ⚠️ **Action Required:** Error rate exceeds threshold - consider rollback" >> monitoring-data/deployment-report.md
           fi
-          
+
           if [ $AVG_RESPONSE_TIME -gt 3000 ]; then
             echo "- ⚠️ **Performance Issue:** Average response time is high - investigate performance" >> monitoring-data/deployment-report.md
           fi
-          
+
           if [ "$MODPORTER_STATUS" != "healthy" ]; then
             echo "- ⚠️ **Feature Issue:** ModPorter-AI components not fully healthy - check feature flags" >> monitoring-data/deployment-report.md
           fi
-          
+
           # Generate JSON report for programmatic access
           cat > monitoring-data/deployment-report.json << EOF
           {
@@ -1229,7 +1229,7 @@ jobs:
             }
           }
           EOF
-          
+
           echo "Comprehensive deployment report generated"
 
       - name: Upload monitoring artifacts
@@ -1245,7 +1245,7 @@ jobs:
         if: always()
         run: |
           echo "Sending final deployment notification..."
-          
+
           # Determine overall status
           if [ "$VALIDATION_STATUS" = "passed" ] && [ "$FINAL_ERROR_RATE" != "unknown" ]; then
             threshold_check=$(echo "$FINAL_ERROR_RATE <= $ALERT_THRESHOLD" | bc 2>/dev/null || echo "1")
@@ -1263,7 +1263,7 @@ jobs:
             status_emoji="❌"
             status_color="danger"
           fi
-          
+
           # Prepare comprehensive notification
           notification_payload=$(cat << EOF
           {
@@ -1286,11 +1286,11 @@ jobs:
           }
           EOF
           )
-          
+
           if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
             curl -X POST -H 'Content-type: application/json' \
               --data "$notification_payload" \
               ${{ secrets.SLACK_WEBHOOK_URL }}
           fi
-          
+
           echo "Final deployment notification sent"

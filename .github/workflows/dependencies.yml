@@ -45,7 +45,7 @@ jobs:
       security_updates: ${{ steps.security-check.outputs.security_updates }}
       regular_updates: ${{ steps.regular-check.outputs.regular_updates }}
       update_matrix: ${{ steps.generate-matrix.outputs.update_matrix }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
         id: security-check
         run: |
           echo "Checking for security vulnerabilities..."
-          
+
           # Run npm audit and capture output
           if npm audit --audit-level=moderate --json > security-audit.json 2>/dev/null; then
             echo "No security vulnerabilities found"
@@ -105,7 +105,7 @@ jobs:
         id: regular-check
         run: |
           echo "Checking for outdated dependencies..."
-          
+
           # Get outdated packages
           if npm outdated --json > outdated.json 2>/dev/null || true; then
             if [[ -s outdated.json ]]; then
@@ -158,7 +158,7 @@ jobs:
         id: generate-matrix
         run: |
           echo "Generating update matrix..."
-          
+
           # Create update matrix based on findings and input parameters
           node -e "
             const securityUpdates = JSON.parse('${{ steps.security-check.outputs.security_updates }}' || '[]');
@@ -218,7 +218,7 @@ jobs:
     needs: dependency-scan
     if: needs.dependency-scan.outputs.has_security_updates == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -243,18 +243,18 @@ jobs:
       - name: Run enhanced security patch automation
         run: |
           echo "Running enhanced security patch automation..."
-          
+
           # Determine automation options based on inputs
           AUTOMATION_ARGS=""
-          
+
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
             AUTOMATION_ARGS="$AUTOMATION_ARGS --dry-run"
           fi
-          
+
           if [[ "${{ github.event.inputs.auto_merge }}" == "false" ]]; then
             AUTOMATION_ARGS="$AUTOMATION_ARGS --no-auto-merge"
           fi
-          
+
           # Set maximum severity based on schedule or input
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             # Daily runs focus on high/critical, weekly runs include all
@@ -264,7 +264,7 @@ jobs:
               AUTOMATION_ARGS="$AUTOMATION_ARGS --max-severity moderate"
             fi
           fi
-          
+
           # Run the security patch automation script
           node scripts/security-patch-automation.js $AUTOMATION_ARGS
         env:
@@ -273,7 +273,7 @@ jobs:
       - name: Process automation results
         run: |
           echo "Processing security patch automation results..."
-          
+
           if [[ -f "security-patch-report.json" ]]; then
             # Parse results and create PRs/issues as needed
             node -e "
@@ -426,7 +426,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.dependency-scan.outputs.update_matrix) }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -454,17 +454,17 @@ jobs:
           echo "Processing ${{ matrix.type }} update for ${{ matrix.name }}"
           echo "Current: ${{ matrix.current }}"
           echo "Latest: ${{ matrix.latest }}"
-          
+
           # Skip if dry run
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
             echo "Dry run mode - skipping actual update"
             exit 0
           fi
-          
+
           # Create branch for update
           BRANCH_NAME="deps/${{ matrix.type }}-update/${{ matrix.name }}-$(date +%Y%m%d-%H%M%S)"
           git checkout -b "$BRANCH_NAME"
-          
+
           # Perform update based on type
           case "${{ matrix.type }}" in
             "patch")
@@ -480,59 +480,59 @@ jobs:
               npm install "${{ matrix.name }}@${{ matrix.latest }}"
               ;;
           esac
-          
+
           # Check if changes were made
           if git diff --quiet package-lock.json package.json; then
             echo "No changes made"
             exit 0
           fi
-          
+
           # Run dependency validation
           echo "Validating dependency update..."
           npm run deps:validate
-          
+
           # Run tests to ensure compatibility
           echo "Running test suite..."
           npm run test:unit
           npm run test:integration
-          
+
           # Commit changes
           git add package-lock.json package.json
           git commit -m "deps: update ${{ matrix.name }} from ${{ matrix.current }} to ${{ matrix.latest }}
-          
+
           - Type: ${{ matrix.type }} update
           - Auto-generated dependency update
           - Validated with test suite"
-          
+
           # Push branch
           git push origin "$BRANCH_NAME"
-          
+
           # Create appropriate PR based on update type
           if [[ "${{ matrix.type }}" == "major" ]]; then
             # Major updates require manual review
             gh pr create \
               --title "⬆️ Major: Update ${{ matrix.name }} to ${{ matrix.latest }}" \
               --body "## Major Dependency Update
-          
+
           This PR updates \`${{ matrix.name }}\` from \`${{ matrix.current }}\` to \`${{ matrix.latest }}\`.
-          
+
           ⚠️ **This is a major version update that may contain breaking changes.**
-          
+
           ### Changes
           - Updated ${{ matrix.name }}: ${{ matrix.current }} → ${{ matrix.latest }}
           - Updated package-lock.json
-          
+
           ### Validation
           - ✅ Dependency validation passed
           - ✅ Unit tests passed
           - ✅ Integration tests passed
-          
+
           ### Manual Review Required
           Please review the changelog and test thoroughly before merging:
           - Check for breaking changes in the package documentation
           - Run additional manual tests if needed
           - Update any affected code or configurations
-          
+
           ---
           *This PR was automatically generated by the dependency management workflow.*" \
               --label "dependencies,major-update,manual-review" \
@@ -542,21 +542,21 @@ jobs:
             gh pr create \
               --title "⬆️ ${{ matrix.type | title }}: Update ${{ matrix.name }} to ${{ matrix.latest }}" \
               --body "## ${{ matrix.type | title }} Dependency Update
-          
+
           This PR updates \`${{ matrix.name }}\` from \`${{ matrix.current }}\` to \`${{ matrix.latest }}\`.
-          
+
           ### Changes
           - Updated ${{ matrix.name }}: ${{ matrix.current }} → ${{ matrix.latest }}
           - Updated package-lock.json
-          
+
           ### Validation
           - ✅ Dependency validation passed
           - ✅ Unit tests passed
           - ✅ Integration tests passed
-          
+
           ### Auto-merge
           This PR is eligible for auto-merge: ${{ matrix.auto_merge }}
-          
+
           ---
           *This PR was automatically generated by the dependency management workflow.*" \
               --label "dependencies,${{ matrix.type }}-update,automated" \
@@ -577,7 +577,7 @@ jobs:
     needs: [dependency-scan, security-patches, regular-updates]
     if: always() && (needs.security-patches.result == 'success' || needs.regular-updates.result == 'success' || needs.dependency-scan.outputs.has_regular_updates == 'true')
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -596,24 +596,24 @@ jobs:
       - name: Run comprehensive conflict detection
         run: |
           echo "Running comprehensive dependency conflict detection..."
-          
+
           # Determine conflict resolution options
           RESOLVER_ARGS=""
-          
+
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
             RESOLVER_ARGS="$RESOLVER_ARGS --dry-run"
           fi
-          
+
           # Enable auto-fix for scheduled runs
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             RESOLVER_ARGS="$RESOLVER_ARGS --auto-fix"
           fi
-          
+
           # Enable verbose logging for manual runs
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             RESOLVER_ARGS="$RESOLVER_ARGS --verbose"
           fi
-          
+
           # Run the dependency conflict resolver
           node scripts/dependency-conflict-resolver.js $RESOLVER_ARGS
         env:
@@ -622,10 +622,10 @@ jobs:
       - name: Check for open dependency PRs conflicts
         run: |
           echo "Checking for conflicts in open dependency PRs..."
-          
+
           # Get all open dependency PRs
           gh pr list --label "dependencies" --state "open" --json number,title,headRefName,labels > open_dependency_prs.json
-          
+
           if [[ -s open_dependency_prs.json ]]; then
             # Analyze PR conflicts using the conflict resolver data
             node -e "
@@ -706,7 +706,7 @@ jobs:
         if: hashFiles('pr-conflicts.json') != ''
         run: |
           echo "Creating conflict resolution issues for PRs..."
-          
+
           node -e "
             const prConflicts = JSON.parse(require('fs').readFileSync('pr-conflicts.json', 'utf8'));
             const { execSync } = require('child_process');
@@ -787,7 +787,7 @@ jobs:
         if: hashFiles('pr-conflicts.json') != ''
         run: |
           echo "Adding comments to PRs with detected conflicts..."
-          
+
           node -e "
             const prConflicts = JSON.parse(require('fs').readFileSync('pr-conflicts.json', 'utf8'));
             const { execSync } = require('child_process');
@@ -852,7 +852,7 @@ jobs:
     needs: [dependency-scan, security-patches, regular-updates, conflict-detection]
     if: always()
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Generate summary report
         run: |
@@ -864,22 +864,22 @@ jobs:
           echo "| Security Patches | ${{ needs.security-patches.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Regular Updates | ${{ needs.regular-updates.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Conflict Detection | ${{ needs.conflict-detection.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ needs.dependency-scan.outputs.has_security_updates }}" == "true" ]]; then
             echo "- 🔒 Review and merge security update PRs" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [[ "${{ needs.dependency-scan.outputs.has_regular_updates }}" == "true" ]]; then
             echo "- ⬆️ Review and merge dependency update PRs" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [[ "${{ needs.conflict-detection.result }}" == "success" ]]; then
             echo "- 🔧 Check for any conflict resolution issues created" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "- 📊 Review dependency analysis artifacts" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify on critical security issues

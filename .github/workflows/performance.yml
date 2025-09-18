@@ -2,9 +2,9 @@ name: Performance Testing
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
     # Run performance tests daily at 2 AM UTC
     - cron: '0 2 * * *'
@@ -36,84 +36,84 @@ jobs:
     name: Performance Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
         test-suite: [benchmark, modporter-ai, optimization]
       fail-fast: false
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Need full history for regression detection
-      
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: |
           npm ci
           npm run build
-      
+
       - name: Setup performance test environment
         run: |
           # Create benchmark results directory
           mkdir -p benchmark-results
           mkdir -p test-reports/performance
-          
+
           # Set up memory monitoring
           echo "Initial memory usage:"
           free -h
-          
+
           # Configure Node.js for performance testing
           export NODE_OPTIONS="--max-old-space-size=4096 --expose-gc"
           echo "NODE_OPTIONS=$NODE_OPTIONS" >> $GITHUB_ENV
-      
+
       - name: Run benchmark tests
         if: matrix.test-suite == 'benchmark' && (github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'benchmark')
         run: |
           echo "Running benchmark tests..."
           npm run test:performance -- --reporter=json --outputFile=test-reports/performance/benchmark-${{ matrix.node-version }}.json
-          
+
           # Generate benchmark report
           npm run benchmark:report
         continue-on-error: true
-      
+
       - name: Run ModPorter-AI performance tests
         if: matrix.test-suite == 'modporter-ai' && (github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'benchmark')
         run: |
           echo "Running ModPorter-AI specific performance tests..."
           npm run test:modporter-ai -- --reporter=json --outputFile=test-reports/performance/modporter-ai-${{ matrix.node-version }}.json
         continue-on-error: true
-      
+
       - name: Run optimization performance tests
         if: matrix.test-suite == 'optimization' && (github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'benchmark')
         run: |
           echo "Running optimization performance tests..."
           npx vitest run tests/benchmark/performance-optimization.test.ts --reporter=json --outputFile=test-reports/performance/optimization-${{ matrix.node-version }}.json
         continue-on-error: true
-      
+
       - name: Collect performance metrics
         run: |
           echo "Collecting system performance metrics..."
-          
+
           # Memory usage
           echo "Memory usage after tests:"
           free -h
-          
+
           # CPU usage
           echo "CPU information:"
           lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('
-          
+
           # Disk usage
           echo "Disk usage:"
           df -h
-          
+
           # Node.js heap statistics
           node -e "
             if (global.gc) global.gc();
@@ -123,15 +123,15 @@ jobs:
               console.log(\`\${key}: \${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB\`);
             }
           "
-      
+
       - name: Performance regression detection
         if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'regression'
         run: |
           echo "Checking for performance regressions..."
-          
+
           # Compare with baseline branch if specified
           BASELINE_BRANCH="${{ github.event.inputs.baseline_branch || 'main' }}"
-          
+
           if [ "$GITHUB_REF_NAME" != "$BASELINE_BRANCH" ]; then
             echo "Comparing performance against $BASELINE_BRANCH branch..."
             
@@ -173,7 +173,7 @@ jobs:
             echo "Skipping regression detection on baseline branch"
           fi
         continue-on-error: true
-      
+
       - name: Upload performance results
         uses: actions/upload-artifact@v4
         if: always()
@@ -183,20 +183,20 @@ jobs:
             test-reports/performance/
             benchmark-results/
           retention-days: 30
-      
+
       - name: Performance budget check
         run: |
           echo "Checking performance budgets..."
-          
+
           # Define performance budgets (in milliseconds)
           MAX_FILE_PROCESSING_TIME=5000
           MAX_JAVA_ANALYSIS_TIME=10000
           MAX_ASSET_CONVERSION_TIME=15000
           MAX_MEMORY_USAGE_MB=512
-          
+
           # Check if performance results exist
           RESULTS_FILE="test-reports/performance/benchmark-${{ matrix.node-version }}.json"
-          
+
           if [ -f "$RESULTS_FILE" ]; then
             echo "Analyzing performance results..."
             
@@ -239,33 +239,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'load'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: |
           npm ci
           npm run build
-      
+
       - name: Run load tests
         run: |
           echo "Running load tests..."
-          
+
           # Create load test script
           cat > load-test.js << 'EOF'
           const { FileProcessor } = require('./dist/src/modules/ingestion/FileProcessor.js');
           const AdmZip = require('adm-zip');
           const fs = require('fs');
           const path = require('path');
-          
+
           async function runLoadTest() {
             const fileProcessor = new FileProcessor();
             const concurrentRequests = 20;
@@ -333,15 +333,15 @@ jobs:
             
             console.log('✅ Load test passed');
           }
-          
+
           runLoadTest().catch(error => {
             console.error('Load test failed:', error);
             process.exit(1);
           });
           EOF
-          
+
           node load-test.js
-      
+
       - name: Upload load test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -355,34 +355,34 @@ jobs:
     runs-on: ubuntu-latest
     needs: [performance-test, load-testing]
     if: always()
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Download performance results
         uses: actions/download-artifact@v4
         with:
           path: performance-artifacts
-      
+
       - name: Generate comprehensive performance report
         run: |
           echo "Generating comprehensive performance report..."
-          
+
           # Create performance report script
           cat > generate-performance-report.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           function generateReport() {
             const artifactsDir = 'performance-artifacts';
             const reportPath = 'performance-report.md';
@@ -467,26 +467,26 @@ jobs:
             fs.writeFileSync(reportPath, report);
             console.log(`Performance report generated: ${reportPath}`);
           }
-          
+
           generateReport();
           EOF
-          
+
           node generate-performance-report.js
-      
+
       - name: Upload performance report
         uses: actions/upload-artifact@v4
         with:
           name: performance-report
           path: performance-report.md
           retention-days: 90
-      
+
       - name: Comment performance report on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            
+
             if (fs.existsSync('performance-report.md')) {
               const report = fs.readFileSync('performance-report.md', 'utf8');
               
@@ -509,19 +509,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [performance-test]
     if: failure() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-    
+
     steps:
       - name: Send performance alert
         run: |
           echo "🚨 Performance tests failed on ${{ github.ref_name }} branch"
           echo "This would trigger alerts to the development team"
-          
+
           # In a real implementation, this would send notifications via:
           # - Slack webhook
           # - Email notifications
           # - PagerDuty alerts
           # - GitHub issue creation
-          
+
           echo "Performance alert would be sent to:"
           echo "- Development team Slack channel"
           echo "- Performance monitoring dashboard"

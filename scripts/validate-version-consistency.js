@@ -23,7 +23,7 @@ const CONFIG = {
     'CHANGELOG.md',
     'docs/API.md',
     'docs/EXAMPLES.md',
-    'docs/TROUBLESHOOTING.md'
+    'docs/TROUBLESHOOTING.md',
   ],
   versionPatterns: [
     // NPM version badges
@@ -35,7 +35,7 @@ const CONFIG = {
     // Changelog version headers
     /^##\s+\[([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.-]+)?)\]/gm,
     // GitHub release links
-    /\/releases\/tag\/v?([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.-]+)?)/g
+    /\/releases\/tag\/v?([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.-]+)?)/g,
   ],
   excludePatterns: [
     // Node.js version requirements
@@ -43,8 +43,8 @@ const CONFIG = {
     // NPM version requirements
     /npm.*>=?\s*([0-9]+\.[0-9]+\.[0-9]+)/gi,
     // Dependency versions (these should not match package version)
-    /"[^"]+"\s*:\s*"[^"]*([0-9]+\.[0-9]+\.[0-9]+)/g
-  ]
+    /"[^"]+"\s*:\s*"[^"]*([0-9]+\.[0-9]+\.[0-9]+)/g,
+  ],
 };
 
 // Validation results
@@ -55,7 +55,7 @@ const results = {
   versionReferences: [],
   inconsistencies: [],
   warnings: [],
-  errors: []
+  errors: [],
 };
 
 /**
@@ -79,7 +79,7 @@ async function validateVersionConsistency() {
       } else {
         results.warnings.push({
           file: filePath,
-          message: 'File not found (skipping)'
+          message: 'File not found (skipping)',
         });
       }
     }
@@ -90,7 +90,6 @@ async function validateVersionConsistency() {
     if (results.inconsistencies.length > 0 || results.errors.length > 0) {
       process.exit(1);
     }
-
   } catch (error) {
     console.error('❌ Version consistency validation failed:', error.message);
     process.exit(1);
@@ -115,7 +114,6 @@ async function loadPackageInfo() {
     if (!results.packageName) {
       throw new Error('No name found in package.json');
     }
-
   } catch (error) {
     throw new Error(`Failed to load package.json: ${error.message}`);
   }
@@ -153,11 +151,10 @@ async function validateFileVersions(filePath) {
     for (const ref of versionRefs) {
       validateVersionReference(ref, relativePath);
     }
-
   } catch (error) {
     results.errors.push({
       file: filePath,
-      message: `Failed to process file: ${error.message}`
+      message: `Failed to process file: ${error.message}`,
     });
   }
 }
@@ -188,7 +185,7 @@ function extractVersionReferences(content, filePath) {
 
         if (versionMatch && isValidVersion(versionMatch)) {
           // Check if this should be excluded
-          const shouldExclude = CONFIG.excludePatterns.some(excludePattern => {
+          const shouldExclude = CONFIG.excludePatterns.some((excludePattern) => {
             excludePattern.lastIndex = 0;
             return excludePattern.test(fullMatch);
           });
@@ -199,7 +196,7 @@ function extractVersionReferences(content, filePath) {
               context: fullMatch,
               line: lineNumber,
               column: match.index + 1,
-              file: filePath
+              file: filePath,
             });
           }
         }
@@ -246,7 +243,7 @@ function validateVersionReference(ref, relativePath) {
           found: version,
           context,
           type: 'version_mismatch',
-          message: `Version mismatch: expected ${results.packageVersion}, found ${version}`
+          message: `Version mismatch: expected ${results.packageVersion}, found ${version}`,
         });
       }
     } else {
@@ -258,7 +255,7 @@ function validateVersionReference(ref, relativePath) {
         found: version,
         context,
         type: 'version_mismatch',
-        message: `Version mismatch: expected ${results.packageVersion}, found ${version}`
+        message: `Version mismatch: expected ${results.packageVersion}, found ${version}`,
       });
     }
   }
@@ -275,12 +272,12 @@ function isCurrentVersionReference(context) {
     /latest/i,
     /current/i,
     /unreleased/i,
-    /^##\s+\[/,  // Changelog header
+    /^##\s+\[/, // Changelog header
     /badge/i,
-    /install/i
+    /install/i,
   ];
 
-  return currentVersionIndicators.some(indicator => indicator.test(context));
+  return currentVersionIndicators.some((indicator) => indicator.test(context));
 }
 
 /**
@@ -288,7 +285,7 @@ function isCurrentVersionReference(context) {
  */
 function generateReport() {
   console.log('\n📊 Version Consistency Validation Report');
-  console.log('=' .repeat(50));
+  console.log('='.repeat(50));
   console.log(`Package: ${results.packageName}`);
   console.log(`Current version: ${results.packageVersion}`);
   console.log(`Files checked: ${results.filesChecked}`);
@@ -299,7 +296,7 @@ function generateReport() {
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
-    results.warnings.forEach(warning => {
+    results.warnings.forEach((warning) => {
       console.log(`  ${warning.file}: ${warning.message}`);
     });
     console.log('');
@@ -314,9 +311,11 @@ function generateReport() {
       const status = version === results.packageVersion ? '✅' : '❌';
       console.log(`  ${status} ${version} (${refs.length} references)`);
 
-      refs.forEach(ref => {
+      refs.forEach((ref) => {
         const relativePath = path.relative(process.cwd(), ref.file);
-        console.log(`    ${relativePath}:${ref.line} - ${ref.context.substring(0, 60)}${ref.context.length > 60 ? '...' : ''}`);
+        console.log(
+          `    ${relativePath}:${ref.line} - ${ref.context.substring(0, 60)}${ref.context.length > 60 ? '...' : ''}`
+        );
       });
     });
     console.log('');
@@ -325,7 +324,7 @@ function generateReport() {
   // Inconsistencies
   if (results.inconsistencies.length > 0) {
     console.log(`❌ Version Inconsistencies (${results.inconsistencies.length}):`);
-    results.inconsistencies.forEach(inconsistency => {
+    results.inconsistencies.forEach((inconsistency) => {
       console.log(`  ${inconsistency.file}:${inconsistency.line}:${inconsistency.column}`);
       console.log(`    Expected: ${inconsistency.expected}`);
       console.log(`    Found: ${inconsistency.found}`);
@@ -337,7 +336,7 @@ function generateReport() {
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Processing Errors (${results.errors.length}):`);
-    results.errors.forEach(error => {
+    results.errors.forEach((error) => {
       console.log(`  ${error.file}: ${error.message}`);
     });
     console.log('');
@@ -384,7 +383,7 @@ function groupVersionReferences(references) {
 
 // Run validation if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  validateVersionConsistency().catch(error => {
+  validateVersionConsistency().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

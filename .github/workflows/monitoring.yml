@@ -2,7 +2,14 @@ name: CI/CD Pipeline Monitoring
 
 on:
   workflow_run:
-    workflows: ["Enhanced CI Pipeline", "Security Scanning", "Deployment Pipeline", "Dependency Updates", "Performance Testing"]
+    workflows:
+      [
+        'Enhanced CI Pipeline',
+        'Security Scanning',
+        'Deployment Pipeline',
+        'Dependency Updates',
+        'Performance Testing',
+      ]
     types: [completed, requested, in_progress]
   schedule:
     # Run metrics collection every 15 minutes
@@ -30,7 +37,7 @@ jobs:
     name: Collect Pipeline Metrics
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,7 +59,7 @@ jobs:
           const { Octokit } = require('@octokit/rest');
           const fs = require('fs');
           const path = require('path');
-          
+
           async function collectPipelineMetrics() {
             const octokit = new Octokit({
               auth: process.env.GITHUB_TOKEN
@@ -263,17 +270,17 @@ jobs:
               throw error;
             }
           }
-          
+
           // Run the collection
           collectPipelineMetrics().catch(error => {
             console.error('Failed to collect pipeline metrics:', error);
             process.exit(1);
           });
           EOF
-          
+
           # Install required dependencies
           npm install @octokit/rest
-          
+
           # Run metrics collection
           node collect-pipeline-metrics.js
         env:
@@ -288,7 +295,7 @@ jobs:
           const path = require('path');
           const { MonitoringService } = require('./src/services/MonitoringService.js');
           const config = require('./config/monitoring.json');
-          
+
           async function storeMetrics() {
             try {
               // Initialize monitoring service
@@ -370,10 +377,10 @@ jobs:
               throw error;
             }
           }
-          
+
           storeMetrics();
           EOF
-          
+
           # Run the metrics storage
           node store-metrics.js
         env:
@@ -385,7 +392,7 @@ jobs:
           cat > generate-dashboard.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           function generateDashboard() {
             try {
               // Find the latest metrics file
@@ -555,18 +562,18 @@ jobs:
               // Generate summary for GitHub Actions
               const summary = `
           ## Pipeline Metrics Summary
-          
+
           **Collection Period:** ${metrics.collection_period.hours} hours
-          
+
           | Metric | Value |
           |--------|-------|
           | Total Runs | ${metrics.pipeline_metrics.total_runs} |
           | Success Rate | ${(metrics.pipeline_metrics.success_rate * 100).toFixed(1)}% |
           | Average Duration | ${Math.round(metrics.pipeline_metrics.average_duration / 1000 / 60)} minutes |
           | Estimated Cost | $${metrics.pipeline_metrics.resource_usage.cost_estimate.toFixed(2)} |
-          
+
           ### Workflow Performance
-          
+
           ${Object.entries(metrics.pipeline_metrics.workflows).map(([name, wf]) => 
             `- **${name}**: ${wf.total_runs} runs, ${(wf.success_rate * 100).toFixed(1)}% success rate`
           ).join('\n')}
@@ -579,10 +586,10 @@ jobs:
               throw error;
             }
           }
-          
+
           generateDashboard();
           EOF
-          
+
           # Generate the dashboard
           node generate-dashboard.js
 
@@ -608,7 +615,7 @@ jobs:
     name: Scheduled Metrics Collection
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -629,7 +636,7 @@ jobs:
           const { Octokit } = require('@octokit/rest');
           const fs = require('fs');
           const path = require('path');
-          
+
           async function collectHistoricalMetrics() {
             const octokit = new Octokit({
               auth: process.env.GITHUB_TOKEN
@@ -726,13 +733,13 @@ jobs:
             
             return historicalData;
           }
-          
+
           collectHistoricalMetrics().catch(error => {
             console.error('Failed to collect historical metrics:', error);
             process.exit(1);
           });
           EOF
-          
+
           # Install dependencies and run collection
           npm install @octokit/rest
           node collect-historical-metrics.js
@@ -745,7 +752,7 @@ jobs:
           cat > cleanup-metrics.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           function cleanupOldMetrics() {
             const directories = ['pipeline-metrics', 'historical-metrics'];
             const retentionDays = 30;
@@ -770,10 +777,10 @@ jobs:
               console.log(`Cleaned up ${deletedCount} old files from ${dir}`);
             }
           }
-          
+
           cleanupOldMetrics();
           EOF
-          
+
           node cleanup-metrics.js
 
       - name: Upload historical metrics

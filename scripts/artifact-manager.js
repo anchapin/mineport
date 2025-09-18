@@ -16,14 +16,14 @@ class ArtifactManager {
       outputDir: options.outputDir || 'artifacts',
       packageName: options.packageName || 'minecraft-mod-converter',
       registryUrl: options.registryUrl || 'ghcr.io',
-      ...options
+      ...options,
     };
-    
+
     this.metadata = null;
     this.manifest = {
       manifest_version: '1.0',
       artifacts: [],
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   }
 
@@ -34,14 +34,14 @@ class ArtifactManager {
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     const gitCommit = this.getGitCommit();
     const gitBranch = this.getGitBranch();
-    
+
     this.metadata = {
       artifact: {
         name: this.options.packageName,
         version: this.generateVersion(packageJson.version, gitBranch),
         package_version: packageJson.version,
         build_number: this.generateBuildNumber(),
-        is_release: this.isRelease()
+        is_release: this.isRelease(),
       },
       source: {
         repository: this.getRepositoryUrl(),
@@ -49,7 +49,7 @@ class ArtifactManager {
         commit_sha_short: gitCommit.substring(0, 8),
         branch: gitBranch,
         ref: process.env.GITHUB_REF || `refs/heads/${gitBranch}`,
-        event: process.env.GITHUB_EVENT_NAME || 'manual'
+        event: process.env.GITHUB_EVENT_NAME || 'manual',
       },
       build: {
         timestamp: new Date().toISOString(),
@@ -57,14 +57,14 @@ class ArtifactManager {
         workflow: process.env.GITHUB_WORKFLOW || 'local',
         run_id: process.env.GITHUB_RUN_ID || 'local',
         run_number: process.env.GITHUB_RUN_NUMBER || '1',
-        actor: process.env.GITHUB_ACTOR || process.env.USER || 'unknown'
+        actor: process.env.GITHUB_ACTOR || process.env.USER || 'unknown',
       },
       environment: {
         node_version: process.version,
         npm_version: this.getNpmVersion(),
         os: process.platform,
-        arch: process.arch
-      }
+        arch: process.arch,
+      },
     };
 
     return this.metadata;
@@ -75,15 +75,15 @@ class ArtifactManager {
    */
   generateVersion(packageVersion, branch) {
     const buildNumber = this.generateBuildNumber();
-    
+
     if (this.isRelease()) {
       return process.env.GITHUB_REF_NAME || packageVersion;
     }
-    
+
     if (branch === 'main') {
       return `${packageVersion}-${buildNumber}`;
     }
-    
+
     return `${packageVersion}-${branch}-${buildNumber}`;
   }
 
@@ -91,7 +91,10 @@ class ArtifactManager {
    * Generate build number from timestamp
    */
   generateBuildNumber() {
-    return new Date().toISOString().replace(/[-:T.]/g, '').substring(0, 14);
+    return new Date()
+      .toISOString()
+      .replace(/[-:T.]/g, '')
+      .substring(0, 14);
   }
 
   /**
@@ -162,7 +165,7 @@ class ArtifactManager {
     }
 
     console.log('Creating build artifacts...');
-    
+
     // Build the application
     console.log('Building application...');
     execSync('npm run build', { stdio: 'inherit' });
@@ -180,7 +183,7 @@ class ArtifactManager {
       { src: 'package.json', dest: path.join(packageDir, 'package.json') },
       { src: 'package-lock.json', dest: path.join(packageDir, 'package-lock.json') },
       { src: 'README.md', dest: path.join(packageDir, 'README.md') },
-      { src: 'LICENSE', dest: path.join(packageDir, 'LICENSE') }
+      { src: 'LICENSE', dest: path.join(packageDir, 'LICENSE') },
     ]);
 
     // Update package.json with build version
@@ -200,7 +203,7 @@ class ArtifactManager {
     this.createManifest(artifacts);
 
     console.log(`Created ${artifacts.length} artifacts:`);
-    artifacts.forEach(artifact => console.log(`  - ${artifact.name}`));
+    artifacts.forEach((artifact) => console.log(`  - ${artifact.name}`));
 
     return artifacts;
   }
@@ -212,7 +215,7 @@ class ArtifactManager {
     fileMappings.forEach(({ src, dest }) => {
       if (fs.existsSync(src)) {
         const srcStat = fs.statSync(src);
-        
+
         if (srcStat.isDirectory()) {
           this.copyDirectory(src, dest);
         } else {
@@ -235,11 +238,11 @@ class ArtifactManager {
     }
 
     const entries = fs.readdirSync(src, { withFileTypes: true });
-    
-    entries.forEach(entry => {
+
+    entries.forEach((entry) => {
       const srcPath = path.join(src, entry.name);
       const destPath = path.join(dest, entry.name);
-      
+
       if (entry.isDirectory()) {
         this.copyDirectory(srcPath, destPath);
       } else {
@@ -257,45 +260,46 @@ class ArtifactManager {
     // Create npm package tarball
     console.log('Creating npm package...');
     const tarballPath = path.join(this.options.outputDir, `${artifactName}.tgz`);
-    execSync(`cd ${packageDir} && npm pack --pack-destination ${path.resolve(this.options.outputDir)}`, { stdio: 'inherit' });
-    
+    execSync(
+      `cd ${packageDir} && npm pack --pack-destination ${path.resolve(this.options.outputDir)}`,
+      { stdio: 'inherit' }
+    );
+
     // Rename the generated tarball to our naming convention
-    const generatedTarball = fs.readdirSync(this.options.outputDir)
-      .find(file => file.endsWith('.tgz') && file !== path.basename(tarballPath));
-    
+    const generatedTarball = fs
+      .readdirSync(this.options.outputDir)
+      .find((file) => file.endsWith('.tgz') && file !== path.basename(tarballPath));
+
     if (generatedTarball) {
-      fs.renameSync(
-        path.join(this.options.outputDir, generatedTarball),
-        tarballPath
-      );
+      fs.renameSync(path.join(this.options.outputDir, generatedTarball), tarballPath);
     }
 
     artifacts.push({
       name: `${artifactName}.tgz`,
       path: tarballPath,
-      type: 'npm-package'
+      type: 'npm-package',
     });
 
     // Create tar.gz archive
     console.log('Creating tar.gz archive...');
     const tarGzPath = path.join(this.options.outputDir, `${artifactName}.tar.gz`);
     execSync(`tar -czf ${tarGzPath} -C ${packageDir} .`, { stdio: 'inherit' });
-    
+
     artifacts.push({
       name: `${artifactName}.tar.gz`,
       path: tarGzPath,
-      type: 'tar-archive'
+      type: 'tar-archive',
     });
 
     // Create zip archive
     console.log('Creating zip archive...');
     const zipPath = path.join(this.options.outputDir, `${artifactName}.zip`);
     execSync(`cd ${packageDir} && zip -r ${path.resolve(zipPath)} .`, { stdio: 'inherit' });
-    
+
     artifacts.push({
       name: `${artifactName}.zip`,
       path: zipPath,
-      type: 'zip-archive'
+      type: 'zip-archive',
     });
 
     return artifacts;
@@ -306,24 +310,24 @@ class ArtifactManager {
    */
   generateChecksums(artifacts) {
     console.log('Generating checksums...');
-    
+
     const checksumFile = path.join(this.options.outputDir, 'checksums.txt');
     const md5File = path.join(this.options.outputDir, 'checksums.md5');
-    
+
     const checksums = [];
     const md5sums = [];
 
-    artifacts.forEach(artifact => {
+    artifacts.forEach((artifact) => {
       const data = fs.readFileSync(artifact.path);
-      
+
       // SHA256
       const sha256 = crypto.createHash('sha256').update(data).digest('hex');
       checksums.push(`${sha256}  ${artifact.name}`);
-      
+
       // MD5
       const md5 = crypto.createHash('md5').update(data).digest('hex');
       md5sums.push(`${md5}  ${artifact.name}`);
-      
+
       // Add to artifact metadata
       artifact.sha256 = sha256;
       artifact.md5 = md5;
@@ -341,20 +345,20 @@ class ArtifactManager {
    */
   createManifest(artifacts) {
     console.log('Creating artifact manifest...');
-    
+
     this.manifest.artifact = this.metadata;
-    this.manifest.files = artifacts.map(artifact => ({
+    this.manifest.files = artifacts.map((artifact) => ({
       name: artifact.name,
       type: artifact.type,
       size: artifact.size,
       sha256: artifact.sha256,
       md5: artifact.md5,
-      mime_type: this.getMimeType(artifact.path)
+      mime_type: this.getMimeType(artifact.path),
     }));
 
     // Add checksum files to manifest
     const checksumFiles = ['checksums.txt', 'checksums.md5'];
-    checksumFiles.forEach(filename => {
+    checksumFiles.forEach((filename) => {
       const filePath = path.join(this.options.outputDir, filename);
       if (fs.existsSync(filePath)) {
         const data = fs.readFileSync(filePath);
@@ -364,7 +368,7 @@ class ArtifactManager {
           size: data.length,
           sha256: crypto.createHash('sha256').update(data).digest('hex'),
           md5: crypto.createHash('md5').update(data).digest('hex'),
-          mime_type: 'text/plain'
+          mime_type: 'text/plain',
         });
       }
     });
@@ -390,9 +394,9 @@ class ArtifactManager {
       '.tar.gz': 'application/gzip',
       '.zip': 'application/zip',
       '.json': 'application/json',
-      '.txt': 'text/plain'
+      '.txt': 'text/plain',
     };
-    
+
     return mimeTypes[ext] || 'application/octet-stream';
   }
 
@@ -405,18 +409,18 @@ class ArtifactManager {
     }
 
     console.log('Uploading artifacts to registry...');
-    
+
     // Upload npm package
     const packageDir = path.join(this.options.outputDir, 'package');
     if (fs.existsSync(packageDir)) {
       try {
         console.log('Publishing to npm registry...');
-        execSync(`cd ${packageDir} && npm publish --registry=https://npm.pkg.github.com`, { 
+        execSync(`cd ${packageDir} && npm publish --registry=https://npm.pkg.github.com`, {
           stdio: 'inherit',
           env: {
             ...process.env,
-            NODE_AUTH_TOKEN: process.env.GITHUB_TOKEN || process.env.NPM_TOKEN
-          }
+            NODE_AUTH_TOKEN: process.env.GITHUB_TOKEN || process.env.NPM_TOKEN,
+          },
         });
         console.log('Successfully published to npm registry');
       } catch (error) {
@@ -430,7 +434,7 @@ class ArtifactManager {
    */
   validateArtifacts() {
     console.log('Validating artifacts...');
-    
+
     const manifestPath = path.join(this.options.outputDir, 'artifact-manifest.json');
     if (!fs.existsSync(manifestPath)) {
       throw new Error('Artifact manifest not found');
@@ -439,9 +443,9 @@ class ArtifactManager {
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
     let validationErrors = [];
 
-    manifest.files.forEach(file => {
+    manifest.files.forEach((file) => {
       const filePath = path.join(this.options.outputDir, file.name);
-      
+
       if (!fs.existsSync(filePath)) {
         validationErrors.push(`File not found: ${file.name}`);
         return;
@@ -449,19 +453,23 @@ class ArtifactManager {
 
       const data = fs.readFileSync(filePath);
       const actualSha256 = crypto.createHash('sha256').update(data).digest('hex');
-      
+
       if (actualSha256 !== file.sha256) {
-        validationErrors.push(`SHA256 mismatch for ${file.name}: expected ${file.sha256}, got ${actualSha256}`);
+        validationErrors.push(
+          `SHA256 mismatch for ${file.name}: expected ${file.sha256}, got ${actualSha256}`
+        );
       }
 
       if (data.length !== file.size) {
-        validationErrors.push(`Size mismatch for ${file.name}: expected ${file.size}, got ${data.length}`);
+        validationErrors.push(
+          `Size mismatch for ${file.name}: expected ${file.size}, got ${data.length}`
+        );
       }
     });
 
     if (validationErrors.length > 0) {
       console.error('Validation errors:');
-      validationErrors.forEach(error => console.error(`  - ${error}`));
+      validationErrors.forEach((error) => console.error(`  - ${error}`));
       throw new Error(`Artifact validation failed with ${validationErrors.length} errors`);
     }
 
@@ -481,20 +489,20 @@ if (require.main === module) {
         case 'create':
           await manager.createArtifacts();
           break;
-        
+
         case 'validate':
           manager.validateArtifacts();
           break;
-        
+
         case 'upload':
           await manager.uploadToRegistry();
           break;
-        
+
         case 'metadata':
           const metadata = manager.generateMetadata();
           console.log(JSON.stringify(metadata, null, 2));
           break;
-        
+
         case 'all':
           await manager.createArtifacts();
           manager.validateArtifacts();
@@ -502,7 +510,7 @@ if (require.main === module) {
             await manager.uploadToRegistry();
           }
           break;
-        
+
         default:
           console.log('Usage: node artifact-manager.js <command>');
           console.log('Commands:');

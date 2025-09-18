@@ -53,10 +53,10 @@ class SecurityAdvisoryCreator {
    */
   parseNpmAudit(auditResults) {
     const vulnerabilities = [];
-    
+
     if (auditResults.vulnerabilities) {
       Object.entries(auditResults.vulnerabilities).forEach(([packageName, vulnData]) => {
-        vulnData.via.forEach(via => {
+        vulnData.via.forEach((via) => {
           if (typeof via === 'object' && via.title) {
             vulnerabilities.push({
               source: 'npm-audit',
@@ -66,7 +66,7 @@ class SecurityAdvisoryCreator {
               cve: via.cve || null,
               url: via.url || null,
               range: via.range || null,
-              description: `Vulnerability in ${packageName}: ${via.title}`
+              description: `Vulnerability in ${packageName}: ${via.title}`,
             });
           }
         });
@@ -83,7 +83,7 @@ class SecurityAdvisoryCreator {
     const vulnerabilities = [];
 
     if (snykResults.vulnerabilities) {
-      snykResults.vulnerabilities.forEach(vuln => {
+      snykResults.vulnerabilities.forEach((vuln) => {
         vulnerabilities.push({
           source: 'snyk',
           package: vuln.packageName,
@@ -92,7 +92,7 @@ class SecurityAdvisoryCreator {
           cve: vuln.identifiers?.CVE?.[0] || null,
           url: vuln.url || null,
           range: vuln.version || null,
-          description: vuln.description || `Vulnerability in ${vuln.packageName}: ${vuln.title}`
+          description: vuln.description || `Vulnerability in ${vuln.packageName}: ${vuln.title}`,
         });
       });
     }
@@ -107,7 +107,7 @@ class SecurityAdvisoryCreator {
     const severityLevels = { low: 1, medium: 2, high: 3, critical: 4 };
     const threshold = severityLevels[this.severityThreshold] || 3;
 
-    return vulnerabilities.filter(vuln => {
+    return vulnerabilities.filter((vuln) => {
       const vulnLevel = severityLevels[vuln.severity] || 0;
       return vulnLevel >= threshold;
     });
@@ -122,14 +122,16 @@ class SecurityAdvisoryCreator {
       description: vulnerability.description,
       severity: vulnerability.severity.toUpperCase(),
       cve_id: vulnerability.cve,
-      vulnerabilities: [{
-        package: {
-          ecosystem: 'npm',
-          name: vulnerability.package
+      vulnerabilities: [
+        {
+          package: {
+            ecosystem: 'npm',
+            name: vulnerability.package,
+          },
+          vulnerable_version_range: vulnerability.range || '< 0.0.0',
+          patched_versions: 'See advisory for details',
         },
-        vulnerable_version_range: vulnerability.range || '< 0.0.0',
-        patched_versions: 'See advisory for details'
-      }]
+      ],
     };
 
     console.log(`Creating security advisory for ${vulnerability.package}:`);
@@ -176,13 +178,13 @@ Workflow run: ${process.env.GITHUB_RUN_ID || 'Unknown'}
     try {
       // Create the issue using GitHub CLI if available
       const command = `gh issue create --title "Security: ${vulnerability.severity} vulnerability in ${vulnerability.package}" --body "${issueBody.replace(/"/g, '\\"')}" --label "security,vulnerability,${vulnerability.severity}"`;
-      
+
       console.log('Creating security issue...');
       execSync(command, { stdio: 'inherit' });
       return true;
     } catch (error) {
       console.error('Failed to create security issue:', error.message);
-      
+
       // Fallback: write to file for manual processing
       const issueFile = `security-issue-${vulnerability.package}-${Date.now()}.md`;
       fs.writeFileSync(issueFile, `# Security Issue\n\n${issueBody}`);
@@ -196,16 +198,16 @@ Workflow run: ${process.env.GITHUB_RUN_ID || 'Unknown'}
    */
   async processVulnerabilities() {
     console.log('🔍 Processing security vulnerabilities...');
-    
+
     const vulnerabilities = this.parseVulnerabilities();
-    
+
     if (vulnerabilities.length === 0) {
       console.log('✅ No high-severity vulnerabilities found');
       return { created: 0, total: 0 };
     }
 
     console.log(`⚠️  Found ${vulnerabilities.length} high-severity vulnerabilities`);
-    
+
     let created = 0;
     for (const vulnerability of vulnerabilities) {
       try {
@@ -216,7 +218,9 @@ Workflow run: ${process.env.GITHUB_RUN_ID || 'Unknown'}
       }
     }
 
-    console.log(`📋 Created ${created} security advisories out of ${vulnerabilities.length} vulnerabilities`);
+    console.log(
+      `📋 Created ${created} security advisories out of ${vulnerabilities.length} vulnerabilities`
+    );
     return { created, total: vulnerabilities.length };
   }
 }
@@ -226,17 +230,17 @@ async function main() {
   try {
     const creator = new SecurityAdvisoryCreator();
     const result = await creator.processVulnerabilities();
-    
+
     // Set GitHub Actions outputs
     console.log(`::set-output name=advisories_created::${result.created}`);
     console.log(`::set-output name=vulnerabilities_total::${result.total}`);
-    
+
     // Exit with error code if vulnerabilities were found but not all advisories were created
     if (result.total > 0 && result.created < result.total) {
       console.error('❌ Some security advisories could not be created');
       process.exit(1);
     }
-    
+
     console.log('✅ Security advisory processing completed');
   } catch (error) {
     console.error('❌ Security advisory processing failed:', error.message);
