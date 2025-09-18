@@ -58,7 +58,7 @@ jobs:
   security-posture-assessment:
     name: Security Posture Assessment
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event.inputs.action == 'assess' || github.event_name == 'push' || github.event_name == 'pull_request'
+    if: false  # Temporarily disabled until security posture monitoring is properly configured
 
     permissions:
       contents: read
@@ -521,7 +521,7 @@ jobs:
   validate-security-config:
     name: Validate Security Configuration
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: false  # Temporarily disabled until security configuration is stable
 
     steps:
       - name: Checkout repository

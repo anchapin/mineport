@@ -369,10 +369,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Download performance results
+      - name: Create artifacts directory
+        run: |
+          mkdir -p performance-artifacts
+          echo "Created performance-artifacts directory"
+
+      - name: Download performance results (if available)
         uses: actions/download-artifact@v4
         with:
           path: performance-artifacts
+        continue-on-error: true
 
       - name: Generate comprehensive performance report
         run: |
@@ -394,11 +400,13 @@ jobs:
             
             // Process performance test results
             if (fs.existsSync(artifactsDir)) {
-              const artifacts = fs.readdirSync(artifactsDir);
-              
-              report += '## Performance Test Results\n\n';
-              
-              artifacts.forEach(artifactDir => {
+              try {
+                const artifacts = fs.readdirSync(artifactsDir);
+                
+                if (artifacts.length > 0) {
+                  report += '## Performance Test Results\n\n';
+                  
+                  artifacts.forEach(artifactDir => {
                 const artifactPath = path.join(artifactsDir, artifactDir);
                 if (fs.statSync(artifactPath).isDirectory()) {
                   report += `### ${artifactDir}\n\n`;
@@ -429,7 +437,18 @@ jobs:
                     }
                   });
                 }
-              });
+                  });
+                } else {
+                  report += '## Performance Test Results\n\n';
+                  report += 'No performance test artifacts found. This may be expected if performance tests were skipped.\n\n';
+                }
+              } catch (error) {
+                report += '## Performance Test Results\n\n';
+                report += `Error reading performance artifacts: ${error.message}\n\n`;
+              }
+            } else {
+              report += '## Performance Test Results\n\n';
+              report += 'No performance test artifacts directory found.\n\n';
             }
             
             // Process load test results
