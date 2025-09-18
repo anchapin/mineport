@@ -176,29 +176,31 @@ jobs:
         if: steps.deps-cache.outputs.cache-hit != 'true'
         run: |
           echo "Dependencies cache miss, will install fresh"
-          # Clean any partial installations
-          rm -rf node_modules/.cache 2>/dev/null || true
+          # Clean any partial installations (cross-platform)
+          if (Test-Path "node_modules/.cache") { Remove-Item "node_modules/.cache" -Recurse -Force -ErrorAction SilentlyContinue }
+        shell: pwsh
 
       - name: Install dependencies
         run: |
           # Start monitoring dependency installation
           node scripts/build-performance-monitor.js start dependency-install
 
-          if [[ "${{ steps.deps-cache.outputs.cache-hit }}" == "true" ]]; then
-            echo "Using cached dependencies"
+          if ("${{ steps.deps-cache.outputs.cache-hit }}" -eq "true") {
+            Write-Host "Using cached dependencies"
             node scripts/build-performance-monitor.js cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" true
             npm ci --prefer-offline --no-audit --ignore-scripts
-          else
-            echo "Installing fresh dependencies"
+          } else {
+            Write-Host "Installing fresh dependencies"
             node scripts/build-performance-monitor.js cache dependencies "${{ needs.preflight.outputs.deps_cache_key }}" false
             npm ci --prefer-offline --no-audit
-          fi
+          }
 
           # Monitor dependency installation performance
           node scripts/build-performance-monitor.js dependencies npm
 
           # End monitoring dependency installation
           node scripts/build-performance-monitor.js end dependency-install
+        shell: pwsh
 
       - name: Cache TypeScript build artifacts
         uses: actions/cache@v4
@@ -230,20 +232,21 @@ jobs:
 
       - name: Validate build cache
         run: |
-          if [[ "${{ steps.build-cache.outputs.cache-hit }}" == "true" ]]; then
-            echo "Build cache hit, validating artifacts..."
-            if [[ -d "dist" && -f "dist/src/index.js" ]]; then
-              echo "✅ Build cache is valid"
-              echo "SKIP_BUILD=true" >> $GITHUB_ENV
-            else
-              echo "⚠️ Build cache is invalid, will rebuild"
-              rm -rf dist tsconfig.tsbuildinfo .tsbuildinfo 2>/dev/null || true
-              echo "SKIP_BUILD=false" >> $GITHUB_ENV
-            fi
-          else
-            echo "Build cache miss, will build from scratch"
-            echo "SKIP_BUILD=false" >> $GITHUB_ENV
-          fi
+          if ("${{ steps.build-cache.outputs.cache-hit }}" -eq "true") {
+            Write-Host "Build cache hit, validating artifacts..."
+            if ((Test-Path "dist") -and (Test-Path "dist/src/index.js")) {
+              Write-Host "✅ Build cache is valid"
+              echo "SKIP_BUILD=true" >> $env:GITHUB_ENV
+            } else {
+              Write-Host "⚠️ Build cache is invalid, will rebuild"
+              @("dist", "tsconfig.tsbuildinfo", ".tsbuildinfo") | ForEach-Object { if (Test-Path $_) { Remove-Item $_ -Recurse -Force -ErrorAction SilentlyContinue } }
+              echo "SKIP_BUILD=false" >> $env:GITHUB_ENV
+            }
+          } else {
+            Write-Host "Build cache miss, will build from scratch"
+            echo "SKIP_BUILD=false" >> $env:GITHUB_ENV
+          }
+        shell: pwsh
 
       - name: Lint code
         run: |
@@ -263,11 +266,11 @@ jobs:
 
       - name: Build application
         run: |
-          if [[ "$SKIP_BUILD" == "true" ]]; then
-            echo "✅ Using cached build artifacts"
+          if ($env:SKIP_BUILD -eq "true") {
+            Write-Host "✅ Using cached build artifacts"
             node scripts/build-performance-monitor.js cache build "${{ needs.preflight.outputs.build_cache_key }}" true
-          else
-            echo "🔨 Building application from source"
+          } else {
+            Write-Host "🔨 Building application from source"
             node scripts/build-performance-monitor.js cache build "${{ needs.preflight.outputs.build_cache_key }}" false
             
             # Start monitoring TypeScript build
@@ -278,131 +281,34 @@ jobs:
             
             # End monitoring TypeScript build
             node scripts/build-performance-monitor.js end typescript-build
-          fi
-
-      - name: Run tests in parallel
-        run: |
-          echo "Starting parallel test execution..."
-
-          # Create test results directory
-          mkdir -p test-results
-
-          # Function to run tests with retry logic
-          run_test_with_retry() {
-            local test_type=$1
-            local test_command=$2
-            local max_retries=2
-            local retry_count=0
-            
-            while [ $retry_count -le $max_retries ]; do
-              echo "Running $test_type tests (attempt $((retry_count + 1)))"
-              
-              if eval "$test_command"; then
-                echo "✅ $test_type tests passed"
-                echo "$test_type:success" >> test-results/results.txt
-                return 0
-              else
-                echo "❌ $test_type tests failed (attempt $((retry_count + 1)))"
-                retry_count=$((retry_count + 1))
-                
-                if [ $retry_count -le $max_retries ]; then
-                  echo "Retrying $test_type tests in 5 seconds..."
-                  sleep 5
-                fi
-              fi
-            done
-            
-            echo "$test_type:failed" >> test-results/results.txt
-            return 1
           }
+        shell: pwsh
 
-          # Run tests in parallel with background processes
-          run_test_with_retry "unit" "npm run test:unit" &
-          UNIT_PID=$!
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+          CI: true
 
-          run_test_with_retry "integration" "npm run test:integration" &
-          INTEGRATION_PID=$!
+      - name: Run integration tests  
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+          CI: true
 
-          run_test_with_retry "security" "npm run test:security" &
-          SECURITY_PID=$!
+      - name: Run security tests
+        run: npm run test:security
+        env:
+          NODE_ENV: test
+          CI: true
 
-          # Performance tests only on primary matrix
-          if [[ "${{ matrix.primary }}" == "true" ]]; then
-            run_test_with_retry "performance" "npm run test:performance" &
-            PERFORMANCE_PID=$!
-          fi
-
-          # Wait for all test processes and collect results
-          FAILED_TESTS=()
-
-          wait $UNIT_PID
-          if [ $? -ne 0 ]; then
-            FAILED_TESTS+=("unit")
-          fi
-
-          wait $INTEGRATION_PID
-          if [ $? -ne 0 ]; then
-            FAILED_TESTS+=("integration")
-          fi
-
-          wait $SECURITY_PID
-          if [ $? -ne 0 ]; then
-            FAILED_TESTS+=("security")
-          fi
-
-          if [[ "${{ matrix.primary }}" == "true" ]]; then
-            wait $PERFORMANCE_PID
-            if [ $? -ne 0 ]; then
-              FAILED_TESTS+=("performance")
-            fi
-          fi
-
-          # Generate test summary
-          echo "## Test Results Summary" >> test-results/summary.md
-          echo "| Test Suite | Status | Matrix: ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-          echo "|------------|--------|------------|" >> test-results/summary.md
-
-          if grep -q "unit:success" test-results/results.txt; then
-            echo "| Unit | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-          else
-            echo "| Unit | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-          fi
-
-          if grep -q "integration:success" test-results/results.txt; then
-            echo "| Integration | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-          else
-            echo "| Integration | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-          fi
-
-          if grep -q "security:success" test-results/results.txt; then
-            echo "| Security | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-          else
-            echo "| Security | ❌ Failed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-          fi
-
-          if [[ "${{ matrix.primary }}" == "true" ]]; then
-            if grep -q "performance:success" test-results/results.txt; then
-              echo "| Performance | ✅ Passed | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-            else
-              echo "| Performance | ⚠️ Failed (Non-blocking) | ${{ matrix.os }}-${{ matrix.node-version }} |" >> test-results/summary.md
-            fi
-          fi
-
-          # Handle test failures
-          if [ ${#FAILED_TESTS[@]} -gt 0 ]; then
-            echo "Failed test suites: ${FAILED_TESTS[*]}"
-            
-            # Performance test failures are non-blocking
-            if [[ "${FAILED_TESTS[*]}" == "performance" ]]; then
-              echo "⚠️ Only performance tests failed - continuing with warning"
-              echo "PERFORMANCE_WARNING=true" >> $GITHUB_ENV
-            else
-              echo "❌ Critical tests failed - blocking pipeline"
-              exit 1
-            fi
-          else
-            echo "✅ All tests passed successfully"
-          fi
+      - name: Run performance tests
+        if: matrix.primary == true
+        run: npm run test:performance
+        continue-on-error: true
+        env:
+          NODE_ENV: test
+          CI: true
         env:
           NODE_ENV: test
           CI: true
