@@ -18,6 +18,44 @@ import { promisify } from 'util';
 
 const _execAsync = promisify(exec);
 
+/**
+ * Validates and normalizes a file path to prevent path traversal attacks
+ * @param filePath - The file path to validate
+ * @param allowedDirectory - Optional base directory to restrict access to
+ * @returns The normalized, safe file path
+ * @throws Error if the path is invalid or contains traversal attempts
+ */
+function validateAndNormalizePath(filePath: string, allowedDirectory?: string): string {
+  if (!filePath || typeof filePath !== 'string') {
+    throw new Error('Invalid file path: path must be a non-empty string');
+  }
+
+  // Check for null bytes and other dangerous characters
+  if (filePath.includes('\0') || filePath.includes('\x00')) {
+    throw new Error('Invalid file path: contains null bytes');
+  }
+
+  // Normalize the path to resolve any .. or . components
+  const normalizedPath = _path.normalize(filePath);
+
+  // Check for path traversal attempts after normalization
+  if (normalizedPath.includes('..') || normalizedPath !== _path.resolve(normalizedPath)) {
+    throw new Error('Invalid file path: path traversal detected');
+  }
+
+  // If an allowed directory is specified, ensure the path is within it
+  if (allowedDirectory) {
+    const resolvedPath = _path.resolve(normalizedPath);
+    const resolvedAllowedDir = _path.resolve(allowedDirectory);
+
+    if (!resolvedPath.startsWith(resolvedAllowedDir + _path.sep) && resolvedPath !== resolvedAllowedDir) {
+      throw new Error('Invalid file path: path outside allowed directory');
+    }
+  }
+
+  return normalizedPath;
+}
+
 export interface ExtractedFiles {
   assets: Map<string, Buffer>;
   configs: Map<string, Buffer>;
@@ -135,11 +173,9 @@ export class JavaAnalyzer {
       // Check cache first if available
       if (this.cache && typeof this.cache.get === 'function') {
         try {
-          // Validate jarPath to prevent path traversal
-          if (!jarPath || jarPath.includes('..') || jarPath.includes('\0')) {
-            throw new Error('Invalid jar path detected');
-          }
-          const fileBuffer = await fs.readFile(jarPath);
+          // Validate and normalize jarPath to prevent path traversal
+          const safePath = validateAndNormalizePath(jarPath);
+          const fileBuffer = await fs.readFile(safePath);
           const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
           const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
           const cachedResult = await this.cache.get<AnalysisResult>(cacheKey);
@@ -194,11 +230,9 @@ export class JavaAnalyzer {
       // Cache the result if available
       if (this.cache && typeof this.cache.set === 'function') {
         try {
-          // Validate jarPath to prevent path traversal
-          if (!jarPath || jarPath.includes('..') || jarPath.includes('\0')) {
-            throw new Error('Invalid jar path detected');
-          }
-          const fileBuffer = await fs.readFile(jarPath);
+          // Validate and normalize jarPath to prevent path traversal
+          const safePath = validateAndNormalizePath(jarPath);
+          const fileBuffer = await fs.readFile(safePath);
           const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
           const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
           await this.cache.set(cacheKey, result, 7200000); // Cache for 2 hours

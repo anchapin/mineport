@@ -31,6 +31,44 @@
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs/promises';
+
+/**
+ * Validates and normalizes a file path to prevent path traversal attacks
+ * @param filePath - The file path to validate
+ * @param allowedDirectory - Optional base directory to restrict access to
+ * @returns The normalized, safe file path
+ * @throws Error if the path is invalid or contains traversal attempts
+ */
+function validateAndNormalizePath(filePath: string, allowedDirectory?: string): string {
+  if (!filePath || typeof filePath !== 'string') {
+    throw new Error('Invalid file path: path must be a non-empty string');
+  }
+
+  // Check for null bytes and other dangerous characters
+  if (filePath.includes('\0') || filePath.includes('\x00')) {
+    throw new Error('Invalid file path: contains null bytes');
+  }
+
+  // Normalize the path to resolve any .. or . components
+  const normalizedPath = path.normalize(filePath);
+
+  // Check for path traversal attempts after normalization
+  if (normalizedPath.includes('..') || normalizedPath !== path.resolve(normalizedPath)) {
+    throw new Error('Invalid file path: path traversal detected');
+  }
+
+  // If an allowed directory is specified, ensure the path is within it
+  if (allowedDirectory) {
+    const resolvedPath = path.resolve(normalizedPath);
+    const resolvedAllowedDir = path.resolve(allowedDirectory);
+
+    if (!resolvedPath.startsWith(resolvedAllowedDir + path.sep) && resolvedPath !== resolvedAllowedDir) {
+      throw new Error('Invalid file path: path outside allowed directory');
+    }
+  }
+
+  return normalizedPath;
+}
 import {
   ConversionPipeline,
   // ConversionPipelineInput,
@@ -386,20 +424,18 @@ export class ConversionService extends EventEmitter implements IConversionServic
               })();
 
         // Check file size to determine processing method
-        // Validate modFilePath to prevent path traversal
-        if (!modFilePath || modFilePath.includes('..') || modFilePath.includes('\0')) {
-          throw new Error('Invalid mod file path detected');
-        }
-        const stats = await fs.stat(modFilePath);
+        // Validate and normalize modFilePath to prevent path traversal
+        const safeModFilePath = validateAndNormalizePath(modFilePath);
+        const stats = await fs.stat(safeModFilePath);
         const fileSize = stats.size;
 
         if (fileSize > 10 * 1024 * 1024) {
           // Use streaming for files > 10MB
           logger.info('Using streaming file processor for large file', {
-            modFile: modFilePath,
+            modFile: safeModFilePath,
             size: fileSize,
           });
-          validationResult = await this.streamingFileProcessor.processLargeFile(modFilePath, {
+          validationResult = await this.streamingFileProcessor.processLargeFile(safeModFilePath, {
             maxFileSize: 500 * 1024 * 1024, // 500MB limit
             allowedMimeTypes: ['application/java-archive', 'application/zip'],
             enableMalwareScanning: true,
@@ -407,8 +443,8 @@ export class ConversionService extends EventEmitter implements IConversionServic
           });
         } else {
           // Use regular processing for smaller files
-          const fileBuffer = await this.readFileBuffer(modFilePath);
-          validationResult = await this.fileProcessor.validateUpload(fileBuffer, modFilePath);
+          const fileBuffer = await this.readFileBuffer(safeModFilePath);
+          validationResult = await this.fileProcessor.validateUpload(fileBuffer, safeModFilePath);
         }
 
         if (!validationResult.isValid) {

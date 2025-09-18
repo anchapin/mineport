@@ -13,7 +13,7 @@ import { ConversionError } from '../../src/types/errors.js';
 export function createTempDirectory(): string {
   const tempDir = tmp.dirSync({
     prefix: 'minecraft-mod-converter-test-',
-    unsafeCleanup: true
+    unsafeCleanup: true,
   });
   return tempDir.name;
 }
