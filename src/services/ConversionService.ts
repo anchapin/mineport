@@ -151,8 +151,40 @@ export class ConversionService extends EventEmitter implements IConversionServic
     this.workerPool = options.workerPool || new WorkerPool();
     
     // Initialize ModPorter-AI components with performance optimizations
-    this.fileProcessor = options.fileProcessor || new FileProcessor({}, this.cacheService, this.performanceMonitor);
-    this.javaAnalyzer = options.javaAnalyzer || new JavaAnalyzer(this.cacheService, this.performanceMonitor);
+    const defaultFileValidationConfig = {
+      maxFileSize: 100 * 1024 * 1024, // 100MB
+      allowedMimeTypes: ['application/java-archive', 'application/zip'],
+      enableMalwareScanning: true,
+      tempDirectory: path.join(process.cwd(), 'temp'),
+      scanTimeout: 30000,
+      maxCompressionRatio: 100,
+      maxExtractedSize: 500 * 1024 * 1024, // 500MB
+      enableMagicNumberValidation: true,
+      cacheValidationResults: true,
+      cacheTTL: 3600000 // 1 hour
+    };
+
+    const defaultSecurityScanningConfig = {
+      enableRealTimeScanning: true,
+      scanTimeout: 30000,
+      maxFileSize: 100 * 1024 * 1024,
+      quarantineDirectory: path.join(process.cwd(), 'temp', 'quarantine'),
+      allowedFileTypes: ['.jar', '.zip'],
+      blockedPatterns: ['eval(', 'exec(', 'system('],
+      enableZipBombDetection: true,
+      maxCompressionRatio: 100,
+      maxExtractedSize: 500 * 1024 * 1024,
+      enablePathTraversalDetection: true,
+      enableMalwarePatternDetection: true
+    };
+
+    this.fileProcessor = options.fileProcessor || new FileProcessor(
+      defaultFileValidationConfig,
+      defaultSecurityScanningConfig,
+      this.cacheService,
+      this.performanceMonitor
+    );
+    this.javaAnalyzer = options.javaAnalyzer || new JavaAnalyzer();
     this.assetConverter = options.assetConverter || new AssetConverter();
     this.bedrockArchitect = options.bedrockArchitect || new BedrockArchitect();
     this.blockItemGenerator = options.blockItemGenerator || new BlockItemGenerator();

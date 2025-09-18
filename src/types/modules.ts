@@ -373,8 +373,7 @@ export abstract class BaseModule implements Module {
   protected abstract onDestroy(): Promise<void>;
   protected abstract getMetrics(): Record<string, any>;
 }
-//
- Logic Translation Module Types
+// Logic Translation Module Types
 
 import { JavaSourceFile } from './base';
 import { APIMapping } from './api';

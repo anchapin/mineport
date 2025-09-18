@@ -103,15 +103,19 @@ export class JavaAnalyzer {
     
     try {
       // Check cache first if available
-      if (this.cache) {
-        const fileBuffer = await fs.readFile(jarPath);
-        const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
-        const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
-        const cachedResult = await this.cache.get<AnalysisResult>(cacheKey);
-        
-        if (cachedResult) {
-          this.performanceMonitor?.endProfile(profileId);
-          return cachedResult;
+      if (this.cache && typeof this.cache.get === 'function') {
+        try {
+          const fileBuffer = await fs.readFile(jarPath);
+          const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+          const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
+          const cachedResult = await this.cache.get<AnalysisResult>(cacheKey);
+
+          if (cachedResult) {
+            this.performanceMonitor?.endProfile(profileId);
+            return cachedResult;
+          }
+        } catch (cacheError) {
+          logger.warn('Cache lookup failed, proceeding without cache', { error: cacheError });
         }
       }
       // Load the JAR file
@@ -144,11 +148,15 @@ export class JavaAnalyzer {
       };
 
       // Cache the result if available
-      if (this.cache) {
-        const fileBuffer = await fs.readFile(jarPath);
-        const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
-        const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
-        await this.cache.set(cacheKey, result, 7200000); // Cache for 2 hours
+      if (this.cache && typeof this.cache.set === 'function') {
+        try {
+          const fileBuffer = await fs.readFile(jarPath);
+          const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+          const cacheKey = { type: 'java_analysis' as const, identifier: fileHash };
+          await this.cache.set(cacheKey, result, 7200000); // Cache for 2 hours
+        } catch (cacheError) {
+          logger.warn('Cache storage failed', { error: cacheError });
+        }
       }
 
       this.performanceMonitor?.endProfile(profileId);
