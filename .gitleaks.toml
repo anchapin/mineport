@@ -25,11 +25,7 @@ description = "GitHub App Token"
 regex = '''(ghu|ghs)_[0-9a-zA-Z]{36}'''
 tags = ["key", "github"]
 
-[[rules]]
-id = "snyk-token"
-description = "Snyk API Token"
-regex = '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'''
-tags = ["key", "snyk"]
+# Snyk token detection removed - using free npm audit instead
 
 [[rules]]
 id = "npm-token"

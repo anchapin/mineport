@@ -210,8 +210,8 @@ This runbook provides step-by-step operational procedures for managing the enhan
    # Check for security patches
    npm audit --audit-level moderate
    
-   # Review Snyk recommendations
-   npx snyk test --severity-threshold=medium
+   # Review npm audit recommendations
+   npm audit --json | jq '.vulnerabilities' | head -10
    ```
 
 3. **Update Approval Process**
@@ -500,8 +500,8 @@ This runbook provides step-by-step operational procedures for managing the enhan
    # Check for new vulnerabilities
    npm audit --audit-level high
    
-   # Review Snyk alerts
-   npx snyk monitor
+   # Generate detailed audit report
+   npm audit --json > detailed-security-audit.json
    ```
 
 2. **Secret Scanning**

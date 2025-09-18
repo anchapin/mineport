@@ -58,7 +58,7 @@ npm run hooks:install
 
 ✅ **GitHub Tokens**: `ghp_`, `gho_`, `ghu_`, `ghs_` patterns  
 ✅ **AWS Keys**: Access keys, secret keys  
-✅ **API Keys**: Snyk, NPM, generic API keys  
+✅ **API Keys**: NPM tokens, generic API keys (Snyk not used)
 ✅ **Database URLs**: Connection strings with credentials  
 ✅ **Private Keys**: RSA, EC, DSA, OpenSSH, PGP  
 ✅ **JWT Tokens**: JSON Web Tokens  

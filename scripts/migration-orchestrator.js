@@ -140,7 +140,7 @@ class MigrationOrchestrator {
   async checkRepositorySecrets() {
     try {
       const secrets = execSync('gh secret list', { encoding: 'utf8' });
-      const requiredSecrets = ['SNYK_TOKEN', 'SLACK_WEBHOOK_URL'];
+      const requiredSecrets = ['SLACK_WEBHOOK_URL']; // Removed SNYK_TOKEN - using free npm audit
 
       for (const secret of requiredSecrets) {
         if (!secrets.includes(secret)) {

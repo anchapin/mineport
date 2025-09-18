@@ -374,8 +374,8 @@ npm audit --audit-level high
 # Check specific vulnerabilities
 npm audit --json | jq '.vulnerabilities'
 
-# Scan with Snyk
-npx snyk test --severity-threshold=high
+# Enhanced npm audit with detailed output
+npm audit --json | jq '.vulnerabilities' | head -20
 ```
 
 **Solutions:**
@@ -394,11 +394,11 @@ npx snyk test --severity-threshold=high
 
 2. **Handle False Positives:**
    ```bash
-   # Create .snyk file to ignore false positives
-   echo "ignore:" > .snyk
-   echo "  SNYK-JS-PACKAGE-ID:" >> .snyk
-   echo "    - '*':" >> .snyk
-   echo "        reason: False positive" >> .snyk
+   # Use npm audit fix with specific packages
+   npm audit fix --package-lock-only
+   
+   # Override with specific versions if needed
+   npm install package-name@version --save-exact
    ```
 
 3. **Temporary Bypass (Use Carefully):**

@@ -113,7 +113,7 @@ Intelligent caching will be implemented at multiple levels:
   - Scan dependencies for vulnerabilities
   - Detect secrets and sensitive information
   - Generate security reports and alerts
-- **Interface**: Security scanning tools (CodeQL, Snyk, GitLeaks)
+- **Interface**: Security scanning tools (CodeQL, npm audit, GitLeaks)
 
 #### 4. Deployment Manager
 - **Purpose**: Handles automated deployments across environments
@@ -156,7 +156,7 @@ The workflow will integrate with existing project infrastructure:
 #### External Service Integration
 - **GitHub Packages**: For artifact storage and distribution
 - **CodeQL**: For static code analysis and security scanning
-- **Snyk**: For dependency vulnerability scanning
+- **npm audit**: For dependency vulnerability scanning
 - **Slack/Email**: For notification and alerting
 - **Monitoring Systems**: Integration with existing monitoring configuration
 
@@ -312,7 +312,7 @@ interface Vulnerability {
 
 #### 3. Security Testing
 - **Scope**: Security vulnerabilities and compliance
-- **Tools**: CodeQL, Snyk, GitLeaks, custom security tests
+- **Tools**: CodeQL, npm audit, GitLeaks, custom security tests
 - **Coverage**: OWASP Top 10, dependency vulnerabilities, secret detection
 - **Reporting**: Security dashboard with vulnerability tracking
 
