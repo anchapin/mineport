@@ -53,6 +53,8 @@ export class ConversionService extends EventEmitter implements IConversionServic
     super();
     this.jobQueue = options.jobQueue;
     this.resourceAllocator = options.resourceAllocator;
+
+    // Use provided options or defaults
     this.statusUpdateInterval = options.statusUpdateInterval || 5000;
     this.javaAnalyzer = options.javaAnalyzer;
     this.fileProcessor = options.fileProcessor;
@@ -284,19 +286,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
       return result;
     } catch (error) {
       logger.error('Failed to process mod file', { error, fileName });
-
-      return {
-        jobId: `job_${Date.now()}`,
-        success: false,
-        errors: [
-          {
-            code: 'PROCESSING_ERROR',
-            message: error instanceof Error ? error.message : String(error),
-            severity: 'error',
-          },
-        ],
-        warnings: [],
-      };
+      throw error;
     }
   }
 
