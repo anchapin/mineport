@@ -29,7 +29,7 @@ export interface SourceCodeFetchOptions {
   repoUrl: string;
 
   /**
-   * Optional branch or tag name, defaults to the default branch (usually 'main' or 'master')
+   * Optional branch or tag name, defaults to the default branch (usually 'main')
    */
   ref?: string;
 

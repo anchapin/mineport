@@ -1,20 +1,22 @@
+import { EventEmitter } from 'events';
 import {
   ModPorterAIConfig,
   ConfigValidationResult,
   ConfigValidationError,
   ConfigValidationWarning,
 } from '../types/config.js';
-import { logger } from '../utils/logger.js';
-import { EventEmitter } from 'events';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ConfigurationService');
+
+export interface ConfigurationServiceOptions {
+  watchForChanges?: boolean;
+}
 
 /**
  * Configuration service for ModPorter-AI integration components
  * Handles environment-based configuration loading and validation
  */
-export interface ConfigurationServiceOptions {
-  watchForChanges?: boolean;
-}
-
 export class ConfigurationService extends EventEmitter {
   private config: ModPorterAIConfig;
   private static instance: ConfigurationService;
@@ -119,7 +121,7 @@ export class ConfigurationService extends EventEmitter {
       // Navigate through nested config object
       const keys = keyPath.split('.');
       let value: any = this.config;
-      
+
       for (const key of keys) {
         if (value && typeof value === 'object' && key in value) {
           value = value[key];
@@ -127,8 +129,8 @@ export class ConfigurationService extends EventEmitter {
           return defaultValue as T;
         }
       }
-      
-      return value !== undefined ? value : defaultValue as T;
+
+      return value !== undefined ? value : (defaultValue as T);
     } catch (error) {
       return defaultValue as T;
     }
@@ -201,6 +203,7 @@ export class ConfigurationService extends EventEmitter {
   }
 
   /**
+>>>>>>> origin/main
    * Reload configuration from environment
    */
   public reloadConfiguration(): void {

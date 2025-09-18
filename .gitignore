@@ -25,9 +25,11 @@ coverage/
 test-results/
 test-results.xml
 
-# Temporary directories
+# Temporary files and test artifacts
 temp/
 tmp/
+*.tmp
+*.temp
 
 # JAR files (test artifacts)
 *.jar

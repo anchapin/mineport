@@ -181,7 +181,8 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                 bedrockEquivalent: '',
                 conversionType: 'direct',
                 notes: '',
-                version: '1.0.0',
+                version: 1,
+                createdAt: new Date(),
                 lastUpdated: new Date(),
               });
               setIsEditing(false);
@@ -402,13 +403,14 @@ export const APIMappingManagementPanel: React.FC<APIMappingManagementPanelProps>
                 <div className="form-group">
                   <label>Version:</label>
                   <input
-                    type="text"
+                    type="number"
                     value={selectedMapping.version}
                     onChange={(e) =>
-                      setSelectedMapping({ ...selectedMapping, version: e.target.value })
+                      setSelectedMapping({ ...selectedMapping, version: parseInt(e.target.value, 10) || 1 })
                     }
                     required
-                    placeholder="e.g., 1.0.0"
+                    min="1"
+                    placeholder="e.g., 1"
                   />
                 </div>
 
