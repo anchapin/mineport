@@ -4,13 +4,13 @@
  * Tests the integration between the enhanced UI components and backend services
  */
 
-import { ConversionService } from '../../src/services/ConversionService.js';
-import { ValidationPipeline } from '../../src/services/ValidationPipeline.js';
-import { EnhancedErrorCollector } from '../../src/services/EnhancedErrorCollector.js';
-import { FeatureFlagService } from '../../src/services/FeatureFlagService.js';
-import { FileProcessor } from '../../src/modules/ingestion/FileProcessor.js';
-import { JavaAnalyzer } from '../../src/modules/ingestion/JavaAnalyzer.js';
-import { JobQueue } from '../../src/services/JobQueue.js';
+import { ConversionService } from '../../src/services/ConversionService';
+import { ValidationPipeline } from '../../src/services/ValidationPipeline';
+import { EnhancedErrorCollector } from '../../src/services/EnhancedErrorCollector';
+import { FeatureFlagService } from '../../src/services/FeatureFlagService';
+import { FileProcessor } from '../../src/modules/ingestion/FileProcessor';
+import { JavaAnalyzer } from '../../src/modules/ingestion/JavaAnalyzer';
+import { JobQueue } from '../../src/services/JobQueue';
 
 describe('UI Backend Integration', () => {
   let conversionService: ConversionService;
@@ -30,6 +30,7 @@ describe('UI Backend Integration', () => {
 
     conversionService = new ConversionService({
       jobQueue,
+      fileProcessor,
       javaAnalyzer,
       validationPipeline,
       featureFlagService,

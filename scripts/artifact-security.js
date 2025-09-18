@@ -18,7 +18,7 @@ class ArtifactSecurity {
       gpgKeyId: options.gpgKeyId,
       enableSigning: options.enableSigning !== false,
       enableScanning: options.enableScanning !== false,
-      ...options
+      ...options,
     };
 
     this.securityReport = {
@@ -29,8 +29,8 @@ class ArtifactSecurity {
       compliance: {
         scanned: false,
         signed: false,
-        audit_trail: false
-      }
+        audit_trail: false,
+      },
     };
   }
 
@@ -64,7 +64,6 @@ class ArtifactSecurity {
 
       console.log('Artifact security operations completed successfully');
       return this.securityReport;
-
     } catch (error) {
       console.error('Error in artifact security operations:', error.message);
       throw error;
@@ -81,8 +80,9 @@ class ArtifactSecurity {
       throw new Error(`Artifacts directory not found: ${this.options.artifactsDir}`);
     }
 
-    const artifacts = fs.readdirSync(this.options.artifactsDir)
-      .filter(file => fs.statSync(path.join(this.options.artifactsDir, file)).isFile());
+    const artifacts = fs
+      .readdirSync(this.options.artifactsDir)
+      .filter((file) => fs.statSync(path.join(this.options.artifactsDir, file)).isFile());
 
     for (const artifact of artifacts) {
       const artifactPath = path.join(this.options.artifactsDir, artifact);
@@ -94,7 +94,7 @@ class ArtifactSecurity {
         size: fs.statSync(artifactPath).size,
         checksums: this.generateChecksums(artifactPath),
         vulnerabilities: [],
-        scan_timestamp: new Date().toISOString()
+        scan_timestamp: new Date().toISOString(),
       };
 
       // Perform different scans based on file type
@@ -145,7 +145,7 @@ class ArtifactSecurity {
           type: 'sensitive_files',
           severity: 'medium',
           description: 'Sensitive files found in package',
-          files: sensitiveFiles
+          files: sensitiveFiles,
         });
       }
 
@@ -156,19 +156,18 @@ class ArtifactSecurity {
           type: 'large_files',
           severity: 'low',
           description: 'Unusually large files found',
-          files: largeFiles
+          files: largeFiles,
         });
       }
 
       // Cleanup
       fs.rmSync(tempDir, { recursive: true });
-
     } catch (error) {
       console.warn(`Error scanning npm package ${packagePath}:`, error.message);
       scanResult.vulnerabilities.push({
         type: 'scan_error',
         severity: 'unknown',
-        description: `Failed to scan package: ${error.message}`
+        description: `Failed to scan package: ${error.message}`,
       });
     }
   }
@@ -195,19 +194,18 @@ class ArtifactSecurity {
           type: 'sensitive_files',
           severity: 'medium',
           description: 'Sensitive files found in archive',
-          files: sensitiveFiles
+          files: sensitiveFiles,
         });
       }
 
       // Cleanup
       fs.rmSync(tempDir, { recursive: true });
-
     } catch (error) {
       console.warn(`Error scanning zip archive ${zipPath}:`, error.message);
       scanResult.vulnerabilities.push({
         type: 'scan_error',
         severity: 'unknown',
-        description: `Failed to scan archive: ${error.message}`
+        description: `Failed to scan archive: ${error.message}`,
       });
     }
   }
@@ -227,7 +225,7 @@ class ArtifactSecurity {
           type: 'invalid_json',
           severity: 'medium',
           description: 'Invalid JSON format',
-          details: error.message
+          details: error.message,
         });
         return;
       }
@@ -238,7 +236,7 @@ class ArtifactSecurity {
         /api[_-]?key["\s]*[:=]["\s]*[^"\s]+/i,
         /secret["\s]*[:=]["\s]*[^"\s]+/i,
         /token["\s]*[:=]["\s]*[^"\s]+/i,
-        /private[_-]?key["\s]*[:=]/i
+        /private[_-]?key["\s]*[:=]/i,
       ];
 
       sensitivePatterns.forEach((pattern, index) => {
@@ -247,17 +245,16 @@ class ArtifactSecurity {
             type: 'sensitive_data',
             severity: 'high',
             description: 'Potential sensitive data found in JSON',
-            pattern: `Pattern ${index + 1}`
+            pattern: `Pattern ${index + 1}`,
           });
         }
       });
-
     } catch (error) {
       console.warn(`Error scanning JSON file ${jsonPath}:`, error.message);
       scanResult.vulnerabilities.push({
         type: 'scan_error',
         severity: 'unknown',
-        description: `Failed to scan JSON: ${error.message}`
+        description: `Failed to scan JSON: ${error.message}`,
       });
     }
   }
@@ -273,14 +270,14 @@ class ArtifactSecurity {
       const suspiciousCommands = ['curl', 'wget', 'rm -rf', 'sudo', 'chmod +x'];
 
       Object.entries(packageJson.scripts).forEach(([scriptName, command]) => {
-        suspiciousCommands.forEach(suspiciousCmd => {
+        suspiciousCommands.forEach((suspiciousCmd) => {
           if (command.includes(suspiciousCmd)) {
             issues.push({
               type: 'suspicious_script',
               severity: 'medium',
               description: `Suspicious command in script "${scriptName}": ${suspiciousCmd}`,
               script: scriptName,
-              command: command
+              command: command,
             });
           }
         });
@@ -292,7 +289,7 @@ class ArtifactSecurity {
       issues.push({
         type: 'missing_license',
         severity: 'low',
-        description: 'Package is missing license information'
+        description: 'Package is missing license information',
       });
     }
 
@@ -301,7 +298,7 @@ class ArtifactSecurity {
       issues.push({
         type: 'permissive_files',
         severity: 'low',
-        description: 'Package includes all files (*)  which may expose sensitive data'
+        description: 'Package includes all files (*)  which may expose sensitive data',
       });
     }
 
@@ -323,7 +320,7 @@ class ArtifactSecurity {
       /\.ssh\/.*$/,
       /password/i,
       /secret/i,
-      /\.git\/config$/
+      /\.git\/config$/,
     ];
 
     const sensitiveFiles = [];
@@ -332,14 +329,14 @@ class ArtifactSecurity {
       try {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           const fullPath = path.join(dir, entry.name);
           const relativePath = path.relative(directory, fullPath);
 
           if (entry.isDirectory()) {
             scanDirectory(fullPath);
           } else {
-            sensitivePatterns.forEach(pattern => {
+            sensitivePatterns.forEach((pattern) => {
               if (pattern.test(relativePath)) {
                 sensitiveFiles.push(relativePath);
               }
@@ -365,7 +362,7 @@ class ArtifactSecurity {
       try {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           const fullPath = path.join(dir, entry.name);
           const relativePath = path.relative(directory, fullPath);
 
@@ -376,7 +373,7 @@ class ArtifactSecurity {
             if (stats.size > threshold) {
               largeFiles.push({
                 path: relativePath,
-                size: stats.size
+                size: stats.size,
               });
             }
           }
@@ -400,7 +397,7 @@ class ArtifactSecurity {
       md5: crypto.createHash('md5').update(data).digest('hex'),
       sha1: crypto.createHash('sha1').update(data).digest('hex'),
       sha256: crypto.createHash('sha256').update(data).digest('hex'),
-      sha512: crypto.createHash('sha512').update(data).digest('hex')
+      sha512: crypto.createHash('sha512').update(data).digest('hex'),
     };
   }
 
@@ -423,8 +420,9 @@ class ArtifactSecurity {
       fs.mkdirSync(signaturesDir, { recursive: true });
     }
 
-    const artifacts = fs.readdirSync(this.options.artifactsDir)
-      .filter(file => fs.statSync(path.join(this.options.artifactsDir, file)).isFile());
+    const artifacts = fs
+      .readdirSync(this.options.artifactsDir)
+      .filter((file) => fs.statSync(path.join(this.options.artifactsDir, file)).isFile());
 
     for (const artifact of artifacts) {
       const artifactPath = path.join(this.options.artifactsDir, artifact);
@@ -447,11 +445,10 @@ class ArtifactSecurity {
           artifact: artifact,
           signature: `${artifact}.asc`,
           created_at: new Date().toISOString(),
-          verified: true
+          verified: true,
         });
 
         console.log(`✅ Successfully signed ${artifact}`);
-
       } catch (error) {
         console.error(`❌ Failed to sign ${artifact}:`, error.message);
         this.securityReport.signatures.push({
@@ -459,7 +456,7 @@ class ArtifactSecurity {
           signature: null,
           created_at: new Date().toISOString(),
           verified: false,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -468,7 +465,7 @@ class ArtifactSecurity {
     const manifest = {
       created_at: new Date().toISOString(),
       signer: this.getGpgSignerInfo(),
-      signatures: this.securityReport.signatures
+      signatures: this.securityReport.signatures,
     };
 
     fs.writeFileSync(
@@ -476,8 +473,12 @@ class ArtifactSecurity {
       JSON.stringify(manifest, null, 2)
     );
 
-    this.securityReport.compliance.signed = this.securityReport.signatures.some(sig => sig.verified);
-    console.log(`Signed ${this.securityReport.signatures.filter(sig => sig.verified).length} artifacts`);
+    this.securityReport.compliance.signed = this.securityReport.signatures.some(
+      (sig) => sig.verified
+    );
+    console.log(
+      `Signed ${this.securityReport.signatures.filter((sig) => sig.verified).length} artifacts`
+    );
   }
 
   /**
@@ -488,8 +489,8 @@ class ArtifactSecurity {
       const output = execSync('gpg --list-secret-keys --with-colons', { encoding: 'utf8' });
       const lines = output.split('\n');
 
-      const secLine = lines.find(line => line.startsWith('sec:'));
-      const uidLine = lines.find(line => line.startsWith('uid:'));
+      const secLine = lines.find((line) => line.startsWith('sec:'));
+      const uidLine = lines.find((line) => line.startsWith('uid:'));
 
       if (secLine && uidLine) {
         const keyId = secLine.split(':')[4];
@@ -497,7 +498,7 @@ class ArtifactSecurity {
 
         return {
           key_id: keyId,
-          user_id: userId
+          user_id: userId,
         };
       }
     } catch (error) {
@@ -519,19 +520,20 @@ class ArtifactSecurity {
       high: 0,
       medium: 0,
       low: 0,
-      unknown: 0
+      unknown: 0,
     };
 
-    this.securityReport.artifacts.forEach(artifact => {
-      artifact.vulnerabilities.forEach(vuln => {
+    this.securityReport.artifacts.forEach((artifact) => {
+      artifact.vulnerabilities.forEach((vuln) => {
         vulnerabilityCounts[vuln.severity] = (vulnerabilityCounts[vuln.severity] || 0) + 1;
       });
     });
 
     // Determine compliance status
     const hasHighCriticalVulns = vulnerabilityCounts.critical > 0 || vulnerabilityCounts.high > 0;
-    const allArtifactsSigned = this.securityReport.signatures.length > 0 &&
-                              this.securityReport.signatures.every(sig => sig.verified);
+    const allArtifactsSigned =
+      this.securityReport.signatures.length > 0 &&
+      this.securityReport.signatures.every((sig) => sig.verified);
 
     const complianceReport = {
       timestamp: new Date().toISOString(),
@@ -539,17 +541,17 @@ class ArtifactSecurity {
         total_artifacts: this.securityReport.artifacts.length,
         total_vulnerabilities: Object.values(vulnerabilityCounts).reduce((a, b) => a + b, 0),
         vulnerability_breakdown: vulnerabilityCounts,
-        artifacts_signed: this.securityReport.signatures.filter(sig => sig.verified).length,
-        compliance_status: hasHighCriticalVulns ? 'FAILED' : 'PASSED'
+        artifacts_signed: this.securityReport.signatures.filter((sig) => sig.verified).length,
+        compliance_status: hasHighCriticalVulns ? 'FAILED' : 'PASSED',
       },
       compliance_checks: {
         security_scan_completed: this.securityReport.compliance.scanned,
         no_critical_vulnerabilities: vulnerabilityCounts.critical === 0,
         no_high_vulnerabilities: vulnerabilityCounts.high === 0,
         artifacts_signed: allArtifactsSigned,
-        audit_trail_created: false // Will be set later
+        audit_trail_created: false, // Will be set later
       },
-      recommendations: this.generateRecommendations(vulnerabilityCounts, allArtifactsSigned)
+      recommendations: this.generateRecommendations(vulnerabilityCounts, allArtifactsSigned),
     };
 
     // Write compliance report
@@ -609,36 +611,41 @@ class ArtifactSecurity {
 
     if (complianceReport.summary.total_vulnerabilities > 0) {
       report += '## Vulnerability Breakdown\n\n';
-      Object.entries(complianceReport.summary.vulnerability_breakdown).forEach(([severity, count]) => {
-        if (count > 0) {
-          const emoji = severity === 'critical' ? '🔴' : severity === 'high' ? '🟠' :
-                       severity === 'medium' ? '🟡' : '🔵';
-          report += `- ${emoji} **${severity.toUpperCase()}:** ${count}\n`;
+      Object.entries(complianceReport.summary.vulnerability_breakdown).forEach(
+        ([severity, count]) => {
+          if (count > 0) {
+            const emoji =
+              severity === 'critical'
+                ? '🔴'
+                : severity === 'high'
+                  ? '🟠'
+                  : severity === 'medium'
+                    ? '🟡'
+                    : '🔵';
+            report += `- ${emoji} **${severity.toUpperCase()}:** ${count}\n`;
+          }
         }
-      });
+      );
       report += '\n';
     }
 
     report += '## Compliance Checks\n\n';
     Object.entries(complianceReport.compliance_checks).forEach(([check, passed]) => {
       const emoji = passed ? '✅' : '❌';
-      const checkName = check.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const checkName = check.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
       report += `- ${emoji} ${checkName}\n`;
     });
     report += '\n';
 
     if (complianceReport.recommendations.length > 0) {
       report += '## Recommendations\n\n';
-      complianceReport.recommendations.forEach(rec => {
+      complianceReport.recommendations.forEach((rec) => {
         report += `- ${rec}\n`;
       });
       report += '\n';
     }
 
-    fs.writeFileSync(
-      path.join(this.options.outputDir, 'compliance-report.md'),
-      report
-    );
+    fs.writeFileSync(path.join(this.options.outputDir, 'compliance-report.md'), report);
   }
 
   /**
@@ -655,31 +662,32 @@ class ArtifactSecurity {
         platform: process.platform,
         arch: process.arch,
         user: process.env.USER || process.env.USERNAME || 'unknown',
-        working_directory: process.cwd()
+        working_directory: process.cwd(),
       },
       operations: {
         security_scan: {
           performed: this.securityReport.compliance.scanned,
           artifacts_scanned: this.securityReport.artifacts.length,
           vulnerabilities_found: this.securityReport.artifacts.reduce(
-            (total, artifact) => total + artifact.vulnerabilities.length, 0
-          )
+            (total, artifact) => total + artifact.vulnerabilities.length,
+            0
+          ),
         },
         artifact_signing: {
           performed: this.securityReport.compliance.signed,
-          artifacts_signed: this.securityReport.signatures.filter(sig => sig.verified).length,
-          signing_method: 'GPG'
-        }
+          artifacts_signed: this.securityReport.signatures.filter((sig) => sig.verified).length,
+          signing_method: 'GPG',
+        },
       },
-      artifacts: this.securityReport.artifacts.map(artifact => ({
+      artifacts: this.securityReport.artifacts.map((artifact) => ({
         name: artifact.name,
         size: artifact.size,
         checksums: artifact.checksums,
         vulnerabilities_count: artifact.vulnerabilities.length,
-        scan_timestamp: artifact.scan_timestamp
+        scan_timestamp: artifact.scan_timestamp,
       })),
       signatures: this.securityReport.signatures,
-      compliance_status: this.securityReport.compliance
+      compliance_status: this.securityReport.compliance,
     };
 
     // Write audit trail
@@ -706,11 +714,11 @@ class ArtifactSecurity {
       validationResults[algorithm] = {
         expected: expectedHash,
         actual: actualHash,
-        valid: expectedHash === actualHash
+        valid: expectedHash === actualHash,
       };
     });
 
-    const allValid = Object.values(validationResults).every(result => result.valid);
+    const allValid = Object.values(validationResults).every((result) => result.valid);
 
     console.log(`Integrity validation: ${allValid ? '✅ PASSED' : '❌ FAILED'}`);
     return { valid: allValid, results: validationResults };
@@ -726,7 +734,7 @@ if (require.main === module) {
       const security = new ArtifactSecurity({
         enableSigning: !process.argv.includes('--no-signing'),
         enableScanning: !process.argv.includes('--no-scanning'),
-        gpgKeyId: process.env.GPG_KEY_ID
+        gpgKeyId: process.env.GPG_KEY_ID,
       });
 
       switch (command) {

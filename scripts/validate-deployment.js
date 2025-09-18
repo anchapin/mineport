@@ -18,7 +18,7 @@ class DeploymentValidator {
       passed: 0,
       failed: 0,
       warnings: 0,
-      tests: []
+      tests: [],
     };
   }
 
@@ -29,10 +29,12 @@ class DeploymentValidator {
       success: '\x1b[32m',
       warning: '\x1b[33m',
       error: '\x1b[31m',
-      reset: '\x1b[0m'
+      reset: '\x1b[0m',
     };
 
-    console.log(`${colors[level]}[${level.toUpperCase()}]${colors.reset} ${timestamp} - ${message}`);
+    console.log(
+      `${colors[level]}[${level.toUpperCase()}]${colors.reset} ${timestamp} - ${message}`
+    );
   }
 
   async runTest(name, testFn) {
@@ -48,7 +50,7 @@ class DeploymentValidator {
         name,
         status: 'passed',
         duration,
-        message: 'Test passed successfully'
+        message: 'Test passed successfully',
       });
 
       this.log('success', `✓ ${name} (${duration}ms)`);
@@ -59,7 +61,7 @@ class DeploymentValidator {
         status: 'failed',
         duration: 0,
         message: error.message,
-        error: error.stack
+        error: error.stack,
       });
 
       this.log('error', `✗ ${name}: ${error.message}`);
@@ -91,7 +93,7 @@ class DeploymentValidator {
 
     await this.runTest('Environment Variables Check', async () => {
       const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER'];
-      const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+      const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
       if (missingVars.length > 0) {
         throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
@@ -113,7 +115,7 @@ class DeploymentValidator {
         'enhanced_file_processing',
         'multi_strategy_analysis',
         'specialized_conversion_agents',
-        'comprehensive_validation'
+        'comprehensive_validation',
       ];
 
       for (const flag of requiredFlags) {
@@ -238,7 +240,7 @@ class DeploymentValidator {
       const response = await axios.get(`${this.baseUrl}/health`);
 
       const modporterCheck = response.data.checks.find(
-        check => check.name === 'modporter-ai-components'
+        (check) => check.name === 'modporter-ai-components'
       );
 
       if (!modporterCheck) {
@@ -246,7 +248,9 @@ class DeploymentValidator {
       }
 
       if (modporterCheck.status !== 'healthy') {
-        throw new Error(`ModPorter-AI components are ${modporterCheck.status}: ${modporterCheck.message}`);
+        throw new Error(
+          `ModPorter-AI components are ${modporterCheck.status}: ${modporterCheck.message}`
+        );
       }
     });
 
@@ -270,19 +274,19 @@ class DeploymentValidator {
 
       // Check for security-related health checks
       const securityChecks = response.data.checks.filter(
-        check => check.name.includes('security') || check.name === 'filesystem'
+        (check) => check.name.includes('security') || check.name === 'filesystem'
       );
 
       if (securityChecks.length === 0) {
         throw new Error('No security health checks found');
       }
 
-      const unhealthySecurityChecks = securityChecks.filter(
-        check => check.status !== 'healthy'
-      );
+      const unhealthySecurityChecks = securityChecks.filter((check) => check.status !== 'healthy');
 
       if (unhealthySecurityChecks.length > 0) {
-        throw new Error(`Unhealthy security checks: ${unhealthySecurityChecks.map(c => c.name).join(', ')}`);
+        throw new Error(
+          `Unhealthy security checks: ${unhealthySecurityChecks.map((c) => c.name).join(', ')}`
+        );
       }
     });
   }
@@ -315,7 +319,7 @@ class DeploymentValidator {
         'scripts/deploy-modporter-ai.sh',
         'scripts/rollback-deployment.sh',
         'scripts/canary-deployment.sh',
-        'scripts/run-migrations.js'
+        'scripts/run-migrations.js',
       ];
 
       for (const script of scripts) {
@@ -343,7 +347,7 @@ class DeploymentValidator {
         'rollback',
         'db:migrate',
         'test:smoke',
-        'health:check'
+        'health:check',
       ];
 
       for (const script of requiredScripts) {
@@ -371,7 +375,7 @@ class DeploymentValidator {
 
   generateReport() {
     const total = this.results.passed + this.results.failed;
-    const successRate = total > 0 ? (this.results.passed / total * 100).toFixed(2) : 0;
+    const successRate = total > 0 ? ((this.results.passed / total) * 100).toFixed(2) : 0;
 
     console.log('\n' + '='.repeat(60));
     console.log('DEPLOYMENT VALIDATION REPORT');
@@ -385,8 +389,8 @@ class DeploymentValidator {
     if (this.results.failed > 0) {
       console.log('\nFAILED TESTS:');
       this.results.tests
-        .filter(test => test.status === 'failed')
-        .forEach(test => {
+        .filter((test) => test.status === 'failed')
+        .forEach((test) => {
           console.log(`- ${test.name}: ${test.message}`);
         });
     }
@@ -403,23 +407,24 @@ class DeploymentValidator {
         total,
         passed: this.results.passed,
         failed: this.results.failed,
-        successRate: parseFloat(successRate)
+        successRate: parseFloat(successRate),
       },
       tests: this.results.tests,
       deployment_metrics: {
         validation_duration: Date.now() - this.startTime,
-        critical_failures: this.results.tests.filter(t =>
-          t.status === 'failed' &&
-          ['Service Health Check', 'Service Readiness', 'Database Connectivity'].includes(t.name)
+        critical_failures: this.results.tests.filter(
+          (t) =>
+            t.status === 'failed' &&
+            ['Service Health Check', 'Service Readiness', 'Database Connectivity'].includes(t.name)
         ).length,
-        security_failures: this.results.tests.filter(t =>
-          t.status === 'failed' && t.name.toLowerCase().includes('security')
+        security_failures: this.results.tests.filter(
+          (t) => t.status === 'failed' && t.name.toLowerCase().includes('security')
         ).length,
-        performance_failures: this.results.tests.filter(t =>
-          t.status === 'failed' &&
-          ['Response Time Check', 'Memory Usage Check'].includes(t.name)
-        ).length
-      }
+        performance_failures: this.results.tests.filter(
+          (t) =>
+            t.status === 'failed' && ['Response Time Check', 'Memory Usage Check'].includes(t.name)
+        ).length,
+      },
     };
 
     const reportPath = path.join(__dirname, '..', 'deployment-validation-report.json');
@@ -429,7 +434,6 @@ class DeploymentValidator {
 
     // Send metrics to monitoring system if webhook is configured
     this.sendValidationMetrics(reportData);
-
     return this.results.failed === 0;
   }
 
@@ -447,7 +451,7 @@ class DeploymentValidator {
           commit: reportData.commit,
           branch: reportData.branch,
           workflow: reportData.workflow,
-          run_id: reportData.run_id
+          run_id: reportData.run_id,
         },
         validation: {
           total_tests: reportData.summary.total,
@@ -457,28 +461,32 @@ class DeploymentValidator {
           duration: reportData.deployment_metrics.validation_duration,
           critical_failures: reportData.deployment_metrics.critical_failures,
           security_failures: reportData.deployment_metrics.security_failures,
-          performance_failures: reportData.deployment_metrics.performance_failures
+          performance_failures: reportData.deployment_metrics.performance_failures,
         },
-        failed_tests: reportData.tests.filter(t => t.status === 'failed').map(t => ({
-          name: t.name,
-          message: t.message,
-          duration: t.duration
-        }))
+        failed_tests: reportData.tests
+          .filter((t) => t.status === 'failed')
+          .map((t) => ({
+            name: t.name,
+            message: t.message,
+            duration: t.duration,
+          })),
       };
 
       const response = await fetch(process.env.MONITORING_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'DeploymentValidator/1.0'
+          'User-Agent': 'DeploymentValidator/1.0',
         },
-        body: JSON.stringify(validationMetrics)
+        body: JSON.stringify(validationMetrics),
       });
 
       if (response.ok) {
         console.log('✅ Validation metrics sent to monitoring system');
       } else {
-        console.warn(`⚠️ Failed to send validation metrics: ${response.status} ${response.statusText}`);
+        console.warn(
+          `⚠️ Failed to send validation metrics: ${response.status} ${response.statusText}`
+        );
       }
     } catch (error) {
       console.warn('⚠️ Failed to send validation metrics:', error.message);

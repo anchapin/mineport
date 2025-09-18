@@ -122,18 +122,18 @@ jobs:
 
           if [[ -n "$PREVIOUS_TAG" ]]; then
             echo "Generating changes since $PREVIOUS_TAG..."
-
+            
             # Get commits since last tag
             git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..HEAD" >> release-notes.md
-
+            
             echo "" >> release-notes.md
             echo "" >> release-notes.md
             echo "## Pull Requests" >> release-notes.md
-
+            
             # Get merged PRs since last tag
             git log --pretty=format:"%s" --grep="Merge pull request" "$PREVIOUS_TAG..HEAD" | \
               sed 's/Merge pull request #\([0-9]*\) from .*/- #\1/' >> release-notes.md || true
-
+            
           else
             echo "- Initial release" >> release-notes.md
           fi
@@ -221,7 +221,7 @@ jobs:
           name: release-artifacts-${{ needs.validate-release.outputs.version }}
           path: |
             artifacts/
-          retention-days: 365  # Keep release artifacts for 1 year
+          retention-days: 365 # Keep release artifacts for 1 year
 
   # Build and push container images
   build-container-images:
@@ -375,7 +375,7 @@ jobs:
             if [[ -f "$file" ]]; then
               filename=$(basename "$file")
               echo "Uploading $filename..."
-
+              
               gh release upload "${{ needs.validate-release.outputs.version }}" "$file" \
                 --clobber
             fi

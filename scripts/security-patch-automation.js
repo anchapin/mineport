@@ -26,7 +26,7 @@ class SecurityPatchAutomation {
       autoMerge: options.autoMerge !== false,
       maxSeverity: options.maxSeverity || 'high',
       testTimeout: options.testTimeout || 300000, // 5 minutes
-      ...options
+      ...options,
     };
 
     this.vulnerabilities = [];
@@ -55,7 +55,6 @@ class SecurityPatchAutomation {
 
       console.log('✅ Security patch automation completed successfully');
       return this.patchResults;
-
     } catch (error) {
       console.error('❌ Security patch automation failed:', error.message);
       throw error;
@@ -73,7 +72,7 @@ class SecurityPatchAutomation {
       const auditOutput = execSync('npm audit --json', {
         cwd: projectRoot,
         encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       const auditData = JSON.parse(auditOutput);
@@ -86,27 +85,28 @@ class SecurityPatchAutomation {
           range: vuln.range,
           fixAvailable: vuln.fixAvailable,
           effects: vuln.effects || [],
-          nodes: vuln.nodes || []
+          nodes: vuln.nodes || [],
         }));
       }
 
       console.log(`Found ${this.vulnerabilities.length} vulnerabilities`);
-
     } catch (error) {
       if (error.status === 1) {
         // npm audit returns exit code 1 when vulnerabilities are found
         try {
           const auditData = JSON.parse(error.stdout);
           if (auditData.vulnerabilities) {
-            this.vulnerabilities = Object.entries(auditData.vulnerabilities).map(([name, vuln]) => ({
-              name,
-              severity: vuln.severity,
-              via: vuln.via,
-              range: vuln.range,
-              fixAvailable: vuln.fixAvailable,
-              effects: vuln.effects || [],
-              nodes: vuln.nodes || []
-            }));
+            this.vulnerabilities = Object.entries(auditData.vulnerabilities).map(
+              ([name, vuln]) => ({
+                name,
+                severity: vuln.severity,
+                via: vuln.via,
+                range: vuln.range,
+                fixAvailable: vuln.fixAvailable,
+                effects: vuln.effects || [],
+                nodes: vuln.nodes || [],
+              })
+            );
           }
           console.log(`Found ${this.vulnerabilities.length} vulnerabilities`);
         } catch (parseError) {
@@ -129,7 +129,7 @@ class SecurityPatchAutomation {
     const severityOrder = { critical: 1, high: 2, moderate: 3, low: 4 };
 
     this.vulnerabilities = this.vulnerabilities
-      .filter(vuln => this.shouldProcessVulnerability(vuln))
+      .filter((vuln) => this.shouldProcessVulnerability(vuln))
       .sort((a, b) => {
         // Sort by severity first
         const severityDiff = severityOrder[a.severity] - severityOrder[b.severity];
@@ -182,14 +182,13 @@ class SecurityPatchAutomation {
         } else {
           console.log(`⚠️ Failed to patch ${vulnerability.name}: ${patchResult.error}`);
         }
-
       } catch (error) {
         console.error(`❌ Error patching ${vulnerability.name}:`, error.message);
         this.patchResults.push({
           vulnerability: vulnerability.name,
           success: false,
           error: error.message,
-          autoMergeEligible: false
+          autoMergeEligible: false,
         });
       }
     }
@@ -206,7 +205,7 @@ class SecurityPatchAutomation {
       error: null,
       autoMergeEligible: false,
       testsRun: [],
-      validationResults: {}
+      validationResults: {},
     };
 
     try {
@@ -232,14 +231,14 @@ class SecurityPatchAutomation {
       try {
         execSync(`npm audit fix --only=prod --audit-level=${vulnerability.severity}`, {
           cwd: projectRoot,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
       } catch (fixError) {
         // Try force fix for stubborn vulnerabilities
         console.log('Standard fix failed, trying force fix...');
         execSync(`npm audit fix --force --only=prod --audit-level=${vulnerability.severity}`, {
           cwd: projectRoot,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
       }
 
@@ -266,13 +265,11 @@ class SecurityPatchAutomation {
       }
 
       // Determine auto-merge eligibility
-      result.autoMergeEligible = this.isAutoMergeEligible(vulnerability) &&
-                                 validationResult.isValid &&
-                                 testResults.success;
+      result.autoMergeEligible =
+        this.isAutoMergeEligible(vulnerability) && validationResult.isValid && testResults.success;
 
       result.success = true;
       console.log(`✅ Successfully applied and validated patch for ${vulnerability.name}`);
-
     } catch (error) {
       result.error = error.message;
 
@@ -296,7 +293,7 @@ class SecurityPatchAutomation {
     const validation = {
       isValid: true,
       checks: [],
-      warnings: []
+      warnings: [],
     };
 
     try {
@@ -304,7 +301,7 @@ class SecurityPatchAutomation {
       const auditOutput = execSync('npm audit --json', {
         cwd: projectRoot,
         encoding: 'utf8',
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       const auditData = JSON.parse(auditOutput);
@@ -314,23 +311,22 @@ class SecurityPatchAutomation {
         validation.checks.push({
           name: 'vulnerability_resolved',
           status: 'failed',
-          message: 'Vulnerability still present after patch'
+          message: 'Vulnerability still present after patch',
         });
       } else {
         validation.checks.push({
           name: 'vulnerability_resolved',
           status: 'passed',
-          message: 'Vulnerability successfully resolved'
+          message: 'Vulnerability successfully resolved',
         });
       }
-
     } catch (error) {
       if (error.status === 0) {
         // No vulnerabilities found - this is good
         validation.checks.push({
           name: 'vulnerability_resolved',
           status: 'passed',
-          message: 'No vulnerabilities found after patch'
+          message: 'No vulnerabilities found after patch',
         });
       } else {
         validation.warnings.push(`Audit validation inconclusive: ${error.message}`);
@@ -343,14 +339,14 @@ class SecurityPatchAutomation {
       validation.checks.push({
         name: 'package_integrity',
         status: 'passed',
-        message: 'Package tree is valid'
+        message: 'Package tree is valid',
       });
     } catch (error) {
       validation.isValid = false;
       validation.checks.push({
         name: 'package_integrity',
         status: 'failed',
-        message: 'Package tree has issues'
+        message: 'Package tree has issues',
       });
     }
 
@@ -358,7 +354,7 @@ class SecurityPatchAutomation {
     try {
       const lsOutput = execSync('npm ls --depth=0 2>&1', {
         cwd: projectRoot,
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
 
       if (lsOutput.includes('WARN')) {
@@ -383,7 +379,7 @@ class SecurityPatchAutomation {
     const testResult = {
       success: true,
       testsRun: [],
-      errors: []
+      errors: [],
     };
 
     try {
@@ -392,12 +388,11 @@ class SecurityPatchAutomation {
       execSync('npm run test:security', {
         cwd: projectRoot,
         stdio: 'pipe',
-        timeout: this.options.testTimeout
+        timeout: this.options.testTimeout,
       });
 
       testResult.testsRun.push('security');
       console.log('✅ Security tests passed');
-
     } catch (error) {
       testResult.success = false;
       testResult.errors.push(`Security tests failed: ${error.message}`);
@@ -410,12 +405,11 @@ class SecurityPatchAutomation {
       execSync('npm run deps:validate', {
         cwd: projectRoot,
         stdio: 'pipe',
-        timeout: this.options.testTimeout
+        timeout: this.options.testTimeout,
       });
 
       testResult.testsRun.push('dependency-validation');
       console.log('✅ Dependency validation passed');
-
     } catch (error) {
       testResult.success = false;
       testResult.errors.push(`Dependency validation failed: ${error.message}`);
@@ -428,12 +422,11 @@ class SecurityPatchAutomation {
       execSync('npm run test:unit', {
         cwd: projectRoot,
         stdio: 'pipe',
-        timeout: this.options.testTimeout
+        timeout: this.options.testTimeout,
       });
 
       testResult.testsRun.push('unit');
       console.log('✅ Unit tests passed');
-
     } catch (error) {
       // Unit test failures are warnings for security patches
       testResult.errors.push(`Unit tests failed (warning): ${error.message}`);
@@ -458,8 +451,7 @@ class SecurityPatchAutomation {
 
     const autoMergeSeverities = ['low', 'moderate'];
 
-    return autoMergeSeverities.includes(vulnerability.severity) &&
-           vulnerability.fixAvailable;
+    return autoMergeSeverities.includes(vulnerability.severity) && vulnerability.fixAvailable;
   }
 
   /**
@@ -486,7 +478,7 @@ class SecurityPatchAutomation {
     }
 
     execSync(`cp "${this.backupDir}/package.json" "${this.backupDir}/package-lock.json" .`, {
-      cwd: projectRoot
+      cwd: projectRoot,
     });
 
     // Reinstall dependencies
@@ -506,13 +498,13 @@ class SecurityPatchAutomation {
       summary: {
         totalVulnerabilities: this.vulnerabilities.length,
         patchesAttempted: this.patchResults.length,
-        patchesSuccessful: this.patchResults.filter(r => r.success).length,
-        patchesFailed: this.patchResults.filter(r => !r.success).length,
-        autoMergeEligible: this.patchResults.filter(r => r.autoMergeEligible).length
+        patchesSuccessful: this.patchResults.filter((r) => r.success).length,
+        patchesFailed: this.patchResults.filter((r) => !r.success).length,
+        autoMergeEligible: this.patchResults.filter((r) => r.autoMergeEligible).length,
       },
       vulnerabilities: this.vulnerabilities,
       patchResults: this.patchResults,
-      recommendations: this.generateRecommendations()
+      recommendations: this.generateRecommendations(),
     };
 
     // Write report to file
@@ -544,33 +536,33 @@ class SecurityPatchAutomation {
   generateRecommendations() {
     const recommendations = [];
 
-    const failedPatches = this.patchResults.filter(r => !r.success);
+    const failedPatches = this.patchResults.filter((r) => !r.success);
     if (failedPatches.length > 0) {
       recommendations.push({
         type: 'manual_intervention',
         priority: 'high',
         message: `${failedPatches.length} vulnerabilities require manual intervention`,
-        details: failedPatches.map(p => `${p.vulnerability}: ${p.error}`)
+        details: failedPatches.map((p) => `${p.vulnerability}: ${p.error}`),
       });
     }
 
-    const criticalVulns = this.vulnerabilities.filter(v => v.severity === 'critical');
+    const criticalVulns = this.vulnerabilities.filter((v) => v.severity === 'critical');
     if (criticalVulns.length > 0) {
       recommendations.push({
         type: 'urgent_review',
         priority: 'critical',
         message: `${criticalVulns.length} critical vulnerabilities detected`,
-        details: criticalVulns.map(v => v.name)
+        details: criticalVulns.map((v) => v.name),
       });
     }
 
-    const autoMergeEligible = this.patchResults.filter(r => r.autoMergeEligible);
+    const autoMergeEligible = this.patchResults.filter((r) => r.autoMergeEligible);
     if (autoMergeEligible.length > 0) {
       recommendations.push({
         type: 'auto_merge',
         priority: 'medium',
         message: `${autoMergeEligible.length} patches are eligible for auto-merge`,
-        details: autoMergeEligible.map(p => p.vulnerability)
+        details: autoMergeEligible.map((p) => p.vulnerability),
       });
     }
 
@@ -597,7 +589,9 @@ Generated: ${report.timestamp}
 
 ## Patch Results
 
-${report.patchResults.map(result => `
+${report.patchResults
+  .map(
+    (result) => `
 ### ${result.vulnerability}
 
 - **Severity**: ${result.severity}
@@ -605,17 +599,23 @@ ${report.patchResults.map(result => `
 - **Auto-merge Eligible**: ${result.autoMergeEligible ? 'Yes' : 'No'}
 ${result.error ? `- **Error**: ${result.error}` : ''}
 ${result.testsRun.length > 0 ? `- **Tests Run**: ${result.testsRun.join(', ')}` : ''}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ## Recommendations
 
-${report.recommendations.map(rec => `
+${report.recommendations
+  .map(
+    (rec) => `
 ### ${rec.type.replace('_', ' ').toUpperCase()} (${rec.priority})
 
 ${rec.message}
 
-${rec.details ? rec.details.map(d => `- ${d}`).join('\n') : ''}
-`).join('\n')}
+${rec.details ? rec.details.map((d) => `- ${d}`).join('\n') : ''}
+`
+  )
+  .join('\n')}
 
 ---
 *Report generated by Security Patch Automation*`;
@@ -665,12 +665,13 @@ Examples:
 
   const automation = new SecurityPatchAutomation(options);
 
-  automation.run()
-    .then(results => {
+  automation
+    .run()
+    .then((results) => {
       console.log('\n✅ Security patch automation completed successfully');
       process.exit(0);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('\n❌ Security patch automation failed:', error.message);
       process.exit(1);
     });

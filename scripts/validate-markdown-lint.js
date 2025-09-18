@@ -19,12 +19,7 @@ const __dirname = path.dirname(__filename);
 const CONFIG = {
   markdownDirectories: ['docs', '.github'],
   markdownExtensions: ['.md'],
-  excludePatterns: [
-    '**/node_modules/**',
-    '**/dist/**',
-    '**/temp/**',
-    '**/coverage/**'
-  ],
+  excludePatterns: ['**/node_modules/**', '**/dist/**', '**/temp/**', '**/coverage/**'],
   rules: {
     // Header rules
     headerStyle: 'atx', // Use # style headers, not underline style
@@ -48,8 +43,8 @@ const CONFIG = {
     // General formatting
     lineLength: 120, // Maximum line length
     noHardTabs: true, // Use spaces, not tabs
-    finalNewline: true // Files should end with newline
-  }
+    finalNewline: true, // Files should end with newline
+  },
 };
 
 // Validation results
@@ -59,7 +54,7 @@ const results = {
   totalIssues: 0,
   issues: [],
   warnings: [],
-  errors: []
+  errors: [],
 };
 
 /**
@@ -85,7 +80,6 @@ async function validateMarkdownLinting() {
     if (results.issues.length > 0 || results.errors.length > 0) {
       process.exit(1);
     }
-
   } catch (error) {
     console.error('❌ Markdown linting validation failed:', error.message);
     process.exit(1);
@@ -107,7 +101,7 @@ async function getMarkdownFiles() {
     }
   }
 
-  return files.filter(file => shouldProcessFile(file));
+  return files.filter((file) => shouldProcessFile(file));
 }
 
 /**
@@ -128,14 +122,17 @@ async function getMarkdownFilesInDirectory(dir) {
 
         if (entry.isDirectory()) {
           await traverse(fullPath);
-        } else if (entry.isFile() && CONFIG.markdownExtensions.some(ext => entry.name.endsWith(ext))) {
+        } else if (
+          entry.isFile() &&
+          CONFIG.markdownExtensions.some((ext) => entry.name.endsWith(ext))
+        ) {
           files.push(fullPath);
         }
       }
     } catch (error) {
       // Skip directories we can't read
       results.warnings.push({
-        message: `Could not read directory: ${currentDir} - ${error.message}`
+        message: `Could not read directory: ${currentDir} - ${error.message}`,
       });
     }
   }
@@ -151,7 +148,7 @@ async function getMarkdownFilesInDirectory(dir) {
  * @returns {boolean} True if file should be processed
  */
 function shouldProcessFile(filePath) {
-  return !CONFIG.excludePatterns.some(pattern => {
+  return !CONFIG.excludePatterns.some((pattern) => {
     const regex = new RegExp(pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'));
     return regex.test(filePath);
   });
@@ -192,11 +189,10 @@ async function validateMarkdownFile(filePath) {
     validateLinks(lines, relativePath);
     validateCodeBlocks(lines, relativePath);
     validateGeneralFormatting(lines, relativePath, content);
-
   } catch (error) {
     results.errors.push({
       file: filePath,
-      message: `Failed to process file: ${error.message}`
+      message: `Failed to process file: ${error.message}`,
     });
   }
 }
@@ -228,15 +224,23 @@ function validateHeaders(lines, filePath) {
       // Check header increment rule
       if (CONFIG.rules.headerIncrement && previousHeaderLevel > 0) {
         if (level > previousHeaderLevel + 1) {
-          addIssue(filePath, lineNumber, 'header-increment',
-            `Header level ${level} follows level ${previousHeaderLevel}. Headers should increment by one level.`);
+          addIssue(
+            filePath,
+            lineNumber,
+            'header-increment',
+            `Header level ${level} follows level ${previousHeaderLevel}. Headers should increment by one level.`
+          );
         }
       }
 
       // Check for trailing spaces in header text
       if (text.endsWith(' ')) {
-        addIssue(filePath, lineNumber, 'header-trailing-space',
-          'Header text should not have trailing spaces');
+        addIssue(
+          filePath,
+          lineNumber,
+          'header-trailing-space',
+          'Header text should not have trailing spaces'
+        );
       }
 
       previousHeaderLevel = level;
@@ -247,8 +251,12 @@ function validateHeaders(lines, filePath) {
       if (i < lines.length - 1) {
         const nextLine = lines[i + 1];
         if (/^=+$/.test(nextLine) || /^-+$/.test(nextLine)) {
-          addIssue(filePath, lineNumber + 1, 'header-style',
-            'Use ATX-style headers (# Header) instead of setext-style (underlined)');
+          addIssue(
+            filePath,
+            lineNumber + 1,
+            'header-style',
+            'Use ATX-style headers (# Header) instead of setext-style (underlined)'
+          );
         }
       }
     }
@@ -256,8 +264,7 @@ function validateHeaders(lines, filePath) {
 
   // Check if document starts with H1
   if (CONFIG.rules.headerStartAtH1 && !hasH1) {
-    addIssue(filePath, 1, 'no-h1',
-      'Document should start with an H1 header (# Title)');
+    addIssue(filePath, 1, 'no-h1', 'Document should start with an H1 header (# Title)');
   }
 }
 
@@ -281,22 +288,29 @@ function validateLists(lines, filePath) {
 
       // Check list marker consistency
       if (CONFIG.rules.listMarkerStyle && marker !== CONFIG.rules.listMarkerStyle) {
-        addIssue(filePath, lineNumber, 'list-marker-style',
-          `Use "${CONFIG.rules.listMarkerStyle}" for unordered lists, not "${marker}"`);
+        addIssue(
+          filePath,
+          lineNumber,
+          'list-marker-style',
+          `Use "${CONFIG.rules.listMarkerStyle}" for unordered lists, not "${marker}"`
+        );
       }
 
       // Check indentation
       if (CONFIG.rules.listIndentation && indent.length > 0) {
         if (indent.length % CONFIG.rules.listIndentation !== 0) {
-          addIssue(filePath, lineNumber, 'list-indentation',
-            `List indentation should be multiples of ${CONFIG.rules.listIndentation} spaces`);
+          addIssue(
+            filePath,
+            lineNumber,
+            'list-indentation',
+            `List indentation should be multiples of ${CONFIG.rules.listIndentation} spaces`
+          );
         }
       }
 
       // Check for empty list items
       if (!content.trim()) {
-        addIssue(filePath, lineNumber, 'empty-list-item',
-          'List items should not be empty');
+        addIssue(filePath, lineNumber, 'empty-list-item', 'List items should not be empty');
       }
     }
 
@@ -310,14 +324,17 @@ function validateLists(lines, filePath) {
 
       // Check for consistent separator (. or ))
       if (!separator.startsWith('.') && !separator.startsWith(')')) {
-        addIssue(filePath, lineNumber, 'ordered-list-separator',
-          'Use "." or ")" as ordered list separator');
+        addIssue(
+          filePath,
+          lineNumber,
+          'ordered-list-separator',
+          'Use "." or ")" as ordered list separator'
+        );
       }
 
       // Check for empty list items
       if (!content.trim()) {
-        addIssue(filePath, lineNumber, 'empty-list-item',
-          'List items should not be empty');
+        addIssue(filePath, lineNumber, 'empty-list-item', 'List items should not be empty');
       }
     }
   }
@@ -339,8 +356,7 @@ function validateLinks(lines, filePath) {
       const emptyLinkPattern = /\[\s*\]\([^)]*\)/g;
       let match;
       while ((match = emptyLinkPattern.exec(line)) !== null) {
-        addIssue(filePath, lineNumber, 'empty-link-text',
-          'Links should have descriptive text');
+        addIssue(filePath, lineNumber, 'empty-link-text', 'Links should have descriptive text');
       }
     }
 
@@ -353,15 +369,13 @@ function validateLinks(lines, filePath) {
       const closeParens = (line.match(/\)/g) || []).length;
 
       if (openBrackets !== closeBrackets) {
-        addIssue(filePath, lineNumber, 'unmatched-brackets',
-          'Unmatched square brackets in link');
+        addIssue(filePath, lineNumber, 'unmatched-brackets', 'Unmatched square brackets in link');
       }
 
       // Check for links with missing URLs
       const linkWithoutUrl = /\[[^\]]+\]\(\s*\)/g;
       if (linkWithoutUrl.test(line)) {
-        addIssue(filePath, lineNumber, 'empty-link-url',
-          'Links must have a URL');
+        addIssue(filePath, lineNumber, 'empty-link-url', 'Links must have a URL');
       }
     }
   }
@@ -391,8 +405,12 @@ function validateCodeBlocks(lines, filePath) {
         if (CONFIG.rules.codeLanguageSpecified) {
           const language = line.substring(3).trim();
           if (!language) {
-            addIssue(filePath, lineNumber, 'code-language-missing',
-              'Code blocks should specify a language for syntax highlighting');
+            addIssue(
+              filePath,
+              lineNumber,
+              'code-language-missing',
+              'Code blocks should specify a language for syntax highlighting'
+            );
           }
         }
       } else {
@@ -402,8 +420,7 @@ function validateCodeBlocks(lines, filePath) {
 
     // Check for indented code blocks (discouraged if fenced blocks are preferred)
     if (CONFIG.rules.fencedCodeBlocks && !inCodeBlock) {
-      if (line.startsWith('    ') && line.trim() &&
-          i > 0 && !lines[i-1].trim()) {
+      if (line.startsWith('    ') && line.trim() && i > 0 && !lines[i - 1].trim()) {
         // This might be an indented code block
         let isCodeBlock = true;
         let j = i;
@@ -418,8 +435,12 @@ function validateCodeBlocks(lines, filePath) {
         }
 
         if (isCodeBlock && j > i + 1) {
-          addIssue(filePath, lineNumber, 'indented-code-block',
-            'Use fenced code blocks (```) instead of indented code blocks');
+          addIssue(
+            filePath,
+            lineNumber,
+            'indented-code-block',
+            'Use fenced code blocks (```) instead of indented code blocks'
+          );
         }
       }
     }
@@ -427,8 +448,7 @@ function validateCodeBlocks(lines, filePath) {
 
   // Check for unclosed code blocks
   if (inCodeBlock) {
-    addIssue(filePath, codeBlockStart, 'unclosed-code-block',
-      'Code block is not properly closed');
+    addIssue(filePath, codeBlockStart, 'unclosed-code-block', 'Code block is not properly closed');
   }
 }
 
@@ -448,20 +468,22 @@ function validateGeneralFormatting(lines, filePath, content) {
 
     // Check for trailing spaces
     if (CONFIG.rules.noTrailingSpaces && line.endsWith(' ')) {
-      addIssue(filePath, lineNumber, 'trailing-spaces',
-        'Lines should not have trailing spaces');
+      addIssue(filePath, lineNumber, 'trailing-spaces', 'Lines should not have trailing spaces');
     }
 
     // Check for hard tabs
     if (CONFIG.rules.noHardTabs && line.includes('\t')) {
-      addIssue(filePath, lineNumber, 'hard-tabs',
-        'Use spaces instead of tabs for indentation');
+      addIssue(filePath, lineNumber, 'hard-tabs', 'Use spaces instead of tabs for indentation');
     }
 
     // Check line length
     if (CONFIG.rules.lineLength && line.length > CONFIG.rules.lineLength) {
-      addIssue(filePath, lineNumber, 'line-length',
-        `Line exceeds maximum length of ${CONFIG.rules.lineLength} characters`);
+      addIssue(
+        filePath,
+        lineNumber,
+        'line-length',
+        `Line exceeds maximum length of ${CONFIG.rules.lineLength} characters`
+      );
     }
 
     // Track consecutive blank lines
@@ -469,8 +491,12 @@ function validateGeneralFormatting(lines, filePath, content) {
       consecutiveBlankLines++;
     } else {
       if (CONFIG.rules.noMultipleBlankLines && consecutiveBlankLines > 1) {
-        addIssue(filePath, lineNumber - 1, 'multiple-blank-lines',
-          'Multiple consecutive blank lines should be avoided');
+        addIssue(
+          filePath,
+          lineNumber - 1,
+          'multiple-blank-lines',
+          'Multiple consecutive blank lines should be avoided'
+        );
       }
       consecutiveBlankLines = 0;
     }
@@ -478,8 +504,7 @@ function validateGeneralFormatting(lines, filePath, content) {
 
   // Check for final newline
   if (CONFIG.rules.finalNewline && !content.endsWith('\n')) {
-    addIssue(filePath, lines.length, 'no-final-newline',
-      'File should end with a newline');
+    addIssue(filePath, lines.length, 'no-final-newline', 'File should end with a newline');
   }
 }
 
@@ -497,7 +522,7 @@ function addIssue(filePath, lineNumber, ruleId, message) {
     file: filePath,
     line: lineNumber,
     rule: ruleId,
-    message
+    message,
   });
 }
 
@@ -506,7 +531,7 @@ function addIssue(filePath, lineNumber, ruleId, message) {
  */
 function generateReport() {
   console.log('\n📊 Markdown Linting Validation Report');
-  console.log('=' .repeat(50));
+  console.log('='.repeat(50));
   console.log(`Files processed: ${results.processedFiles}/${results.totalFiles}`);
   console.log(`Total issues: ${results.totalIssues}`);
   console.log('');
@@ -514,7 +539,7 @@ function generateReport() {
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
-    results.warnings.forEach(warning => {
+    results.warnings.forEach((warning) => {
       console.log(`  ${warning.message}`);
     });
     console.log('');
@@ -527,7 +552,7 @@ function generateReport() {
     console.log(`❌ Linting Issues by Rule:`);
     Object.entries(issuesByRule).forEach(([rule, issues]) => {
       console.log(`\n  ${rule} (${issues.length} issues):`);
-      issues.forEach(issue => {
+      issues.forEach((issue) => {
         console.log(`    ${issue.file}:${issue.line} - ${issue.message}`);
       });
     });
@@ -537,7 +562,7 @@ function generateReport() {
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Processing Errors (${results.errors.length}):`);
-    results.errors.forEach(error => {
+    results.errors.forEach((error) => {
       console.log(`  ${error.file}: ${error.message}`);
     });
     console.log('');
@@ -560,7 +585,7 @@ function generateReport() {
   if (results.issues.length > 0) {
     const issuesByRule = groupIssuesByRule(results.issues);
     const sortedRules = Object.entries(issuesByRule)
-      .sort(([,a], [,b]) => b.length - a.length)
+      .sort(([, a], [, b]) => b.length - a.length)
       .slice(0, 5);
 
     console.log('\n📈 Most Common Issues:');
@@ -589,7 +614,7 @@ function groupIssuesByRule(issues) {
 
 // Run validation if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  validateMarkdownLinting().catch(error => {
+  validateMarkdownLinting().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

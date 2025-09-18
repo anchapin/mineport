@@ -47,7 +47,7 @@ class AlertManager {
           metric: 'pipeline_success_rate',
           operator: 'lt',
           threshold: 0.8,
-          timeWindow: 3600000 // 1 hour
+          timeWindow: 3600000, // 1 hour
         },
         severity: 'critical',
         channels: ['slack', 'email'],
@@ -55,8 +55,8 @@ class AlertManager {
         escalation: {
           enabled: true,
           delay: 900000, // 15 minutes
-          channels: ['pagerduty']
-        }
+          channels: ['pagerduty'],
+        },
       },
       {
         id: 'deployment_failure',
@@ -65,7 +65,7 @@ class AlertManager {
           metric: 'deployment_success_rate',
           operator: 'lt',
           threshold: 0.9,
-          timeWindow: 3600000
+          timeWindow: 3600000,
         },
         severity: 'critical',
         channels: ['slack', 'email', 'pagerduty'],
@@ -73,8 +73,8 @@ class AlertManager {
         escalation: {
           enabled: true,
           delay: 600000, // 10 minutes
-          channels: ['oncall']
-        }
+          channels: ['oncall'],
+        },
       },
       {
         id: 'security_threat',
@@ -83,7 +83,7 @@ class AlertManager {
           metric: 'security_threats',
           operator: 'gt',
           threshold: 0,
-          timeWindow: 300000 // 5 minutes
+          timeWindow: 300000, // 5 minutes
         },
         severity: 'critical',
         channels: ['slack', 'email', 'security-team'],
@@ -91,8 +91,8 @@ class AlertManager {
         escalation: {
           enabled: true,
           delay: 300000, // 5 minutes
-          channels: ['security-oncall']
-        }
+          channels: ['security-oncall'],
+        },
       },
       {
         id: 'performance_degradation',
@@ -101,14 +101,14 @@ class AlertManager {
           metric: 'response_time',
           operator: 'gt',
           threshold: 5000, // 5 seconds
-          timeWindow: 900000 // 15 minutes
+          timeWindow: 900000, // 15 minutes
         },
         severity: 'warning',
         channels: ['slack'],
         cooldown: 1800000, // 30 minutes
         escalation: {
-          enabled: false
-        }
+          enabled: false,
+        },
       },
       {
         id: 'high_memory_usage',
@@ -117,7 +117,7 @@ class AlertManager {
           metric: 'memory_usage_percent',
           operator: 'gt',
           threshold: 85,
-          timeWindow: 600000 // 10 minutes
+          timeWindow: 600000, // 10 minutes
         },
         severity: 'warning',
         channels: ['slack'],
@@ -125,8 +125,8 @@ class AlertManager {
         escalation: {
           enabled: true,
           delay: 1800000, // 30 minutes
-          channels: ['email']
-        }
+          channels: ['email'],
+        },
       },
       {
         id: 'disk_space_low',
@@ -135,7 +135,7 @@ class AlertManager {
           metric: 'disk_usage_percent',
           operator: 'gt',
           threshold: 90,
-          timeWindow: 300000 // 5 minutes
+          timeWindow: 300000, // 5 minutes
         },
         severity: 'critical',
         channels: ['slack', 'email'],
@@ -143,9 +143,9 @@ class AlertManager {
         escalation: {
           enabled: true,
           delay: 900000, // 15 minutes
-          channels: ['pagerduty']
-        }
-      }
+          channels: ['pagerduty'],
+        },
+      },
     ];
 
     // Load rules from configuration if available
@@ -164,9 +164,10 @@ class AlertManager {
       slack: {
         name: 'Slack',
         enabled: this.config.alerts?.channels?.slack?.enabled || false,
-        webhook_url: process.env.SLACK_WEBHOOK_URL || this.config.alerts?.channels?.slack?.webhook_url,
+        webhook_url:
+          process.env.SLACK_WEBHOOK_URL || this.config.alerts?.channels?.slack?.webhook_url,
         channel: this.config.alerts?.channels?.slack?.channel || '#alerts',
-        username: this.config.alerts?.channels?.slack?.username || 'Alert Manager'
+        username: this.config.alerts?.channels?.slack?.username || 'Alert Manager',
       },
       email: {
         name: 'Email',
@@ -174,18 +175,22 @@ class AlertManager {
         smtp_host: process.env.SMTP_HOST || this.config.alerts?.channels?.email?.smtp_host,
         smtp_port: process.env.SMTP_PORT || this.config.alerts?.channels?.email?.smtp_port || 587,
         from: process.env.ALERT_EMAIL_FROM || this.config.alerts?.channels?.email?.from,
-        to: (process.env.ALERT_EMAIL_TO || this.config.alerts?.channels?.email?.to || '').split(',').filter(Boolean)
+        to: (process.env.ALERT_EMAIL_TO || this.config.alerts?.channels?.email?.to || '')
+          .split(',')
+          .filter(Boolean),
       },
       pagerduty: {
         name: 'PagerDuty',
         enabled: this.config.alerts?.channels?.pagerduty?.enabled || false,
-        integration_key: process.env.PAGERDUTY_INTEGRATION_KEY || this.config.alerts?.channels?.pagerduty?.integration_key
+        integration_key:
+          process.env.PAGERDUTY_INTEGRATION_KEY ||
+          this.config.alerts?.channels?.pagerduty?.integration_key,
       },
       webhook: {
         name: 'Webhook',
         enabled: !!process.env.MONITORING_WEBHOOK_URL,
-        url: process.env.MONITORING_WEBHOOK_URL
-      }
+        url: process.env.MONITORING_WEBHOOK_URL,
+      },
     };
 
     for (const [channelId, channelConfig] of Object.entries(channels)) {
@@ -193,8 +198,8 @@ class AlertManager {
     }
 
     const enabledChannels = Array.from(this.notificationChannels.values())
-      .filter(channel => channel.enabled)
-      .map(channel => channel.name);
+      .filter((channel) => channel.enabled)
+      .map((channel) => channel.name);
 
     console.log(`Configured notification channels: ${enabledChannels.join(', ')}`);
   }
@@ -326,26 +331,27 @@ class AlertManager {
         name: rule.condition.metric,
         value: metricValue,
         threshold: rule.condition.threshold,
-        operator: rule.condition.operator
+        operator: rule.condition.operator,
       },
       metadata: {
         rule: rule,
         metrics: metrics,
-        environment: process.env.NODE_ENV || 'development'
-      }
+        environment: process.env.NODE_ENV || 'development',
+      },
     };
   }
 
   generateAlertMessage(rule, metricValue) {
     const { condition } = rule;
-    const operatorText = {
-      'gt': 'greater than',
-      'gte': 'greater than or equal to',
-      'lt': 'less than',
-      'lte': 'less than or equal to',
-      'eq': 'equal to',
-      'ne': 'not equal to'
-    }[condition.operator] || condition.operator;
+    const operatorText =
+      {
+        gt: 'greater than',
+        gte: 'greater than or equal to',
+        lt: 'less than',
+        lte: 'less than or equal to',
+        eq: 'equal to',
+        ne: 'not equal to',
+      }[condition.operator] || condition.operator;
 
     return `${rule.name}: ${condition.metric} is ${metricValue} (${operatorText} threshold of ${condition.threshold})`;
   }
@@ -365,7 +371,7 @@ class AlertManager {
     console.log(`Sending alert: ${alert.title}`);
 
     const results = await Promise.allSettled(
-      alert.channels.map(channelId => this.sendToChannel(channelId, alert))
+      alert.channels.map((channelId) => this.sendToChannel(channelId, alert))
     );
 
     // Log results
@@ -405,61 +411,64 @@ class AlertManager {
       throw new Error('Slack webhook URL not configured');
     }
 
-    const color = {
-      'critical': '#ff0000',
-      'warning': '#ffaa00',
-      'info': '#0099ff'
-    }[alert.severity] || '#cccccc';
+    const color =
+      {
+        critical: '#ff0000',
+        warning: '#ffaa00',
+        info: '#0099ff',
+      }[alert.severity] || '#cccccc';
 
     const payload = {
       username: channel.username,
       channel: channel.channel,
       icon_emoji: ':warning:',
-      attachments: [{
-        color: color,
-        title: alert.title,
-        text: alert.message,
-        fields: [
-          {
-            title: 'Severity',
-            value: alert.severity.toUpperCase(),
-            short: true
-          },
-          {
-            title: 'Metric',
-            value: alert.metric.name,
-            short: true
-          },
-          {
-            title: 'Value',
-            value: alert.metric.value.toString(),
-            short: true
-          },
-          {
-            title: 'Threshold',
-            value: alert.metric.threshold.toString(),
-            short: true
-          },
-          {
-            title: 'Environment',
-            value: alert.metadata.environment,
-            short: true
-          },
-          {
-            title: 'Timestamp',
-            value: alert.timestamp,
-            short: true
-          }
-        ],
-        footer: 'Alert Manager',
-        ts: Math.floor(new Date(alert.timestamp).getTime() / 1000)
-      }]
+      attachments: [
+        {
+          color: color,
+          title: alert.title,
+          text: alert.message,
+          fields: [
+            {
+              title: 'Severity',
+              value: alert.severity.toUpperCase(),
+              short: true,
+            },
+            {
+              title: 'Metric',
+              value: alert.metric.name,
+              short: true,
+            },
+            {
+              title: 'Value',
+              value: alert.metric.value.toString(),
+              short: true,
+            },
+            {
+              title: 'Threshold',
+              value: alert.metric.threshold.toString(),
+              short: true,
+            },
+            {
+              title: 'Environment',
+              value: alert.metadata.environment,
+              short: true,
+            },
+            {
+              title: 'Timestamp',
+              value: alert.timestamp,
+              short: true,
+            },
+          ],
+          footer: 'Alert Manager',
+          ts: Math.floor(new Date(alert.timestamp).getTime() / 1000),
+        },
+      ],
     };
 
     const response = await fetch(channel.webhook_url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -499,15 +508,15 @@ class AlertManager {
           metric_value: alert.metric.value,
           threshold: alert.metric.threshold,
           environment: alert.metadata.environment,
-          timestamp: alert.timestamp
-        }
-      }
+          timestamp: alert.timestamp,
+        },
+      },
     };
 
     const response = await fetch('https://events.pagerduty.com/v2/enqueue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -524,13 +533,13 @@ class AlertManager {
       type: 'alert',
       alert: alert,
       timestamp: new Date().toISOString(),
-      source: 'Alert Manager'
+      source: 'Alert Manager',
     };
 
     const response = await fetch(channel.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -547,7 +556,7 @@ class AlertManager {
       title: `[ESCALATED] ${alert.title}`,
       message: `ESCALATED: ${alert.message}`,
       channels: escalationConfig.channels,
-      severity: 'critical'
+      severity: 'critical',
     };
 
     await this.sendAlert(escalatedAlert);
@@ -576,9 +585,9 @@ class AlertManager {
     const now = Date.now();
     const activeWindow = 24 * 60 * 60 * 1000; // 24 hours
 
-    return this.alertHistory.filter(alert => {
+    return this.alertHistory.filter((alert) => {
       const alertTime = new Date(alert.timestamp).getTime();
-      return (now - alertTime) < activeWindow;
+      return now - alertTime < activeWindow;
     });
   }
 
@@ -626,13 +635,13 @@ class AlertManager {
         total_rules: this.alertRules.size,
         active_alerts: activeAlerts.length,
         alerts_by_severity: alertsBySeverity,
-        alerts_by_rule: alertsByRule
+        alerts_by_rule: alertsByRule,
       },
       active_alerts: activeAlerts,
       configured_channels: Array.from(this.notificationChannels.keys()),
       enabled_channels: Array.from(this.notificationChannels.values())
-        .filter(channel => channel.enabled)
-        .map(channel => channel.name)
+        .filter((channel) => channel.enabled)
+        .map((channel) => channel.name),
     };
 
     return report;
@@ -651,15 +660,16 @@ if (require.main === module) {
       const testMetrics = {
         pipeline: { success_rate: 0.7 },
         system: { memory_usage_percent: 90 },
-        security: { threats_detected: 1 }
+        security: { threats_detected: 1 },
       };
 
-      alertManager.processMetrics(testMetrics)
-        .then(alerts => {
+      alertManager
+        .processMetrics(testMetrics)
+        .then((alerts) => {
           console.log(`Generated ${alerts.length} test alerts`);
           process.exit(0);
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Test failed:', error);
           process.exit(1);
         });
@@ -673,7 +683,7 @@ if (require.main === module) {
     case 'rules':
       const rules = alertManager.getAlertRules();
       console.log('Alert Rules:');
-      rules.forEach(rule => {
+      rules.forEach((rule) => {
         console.log(`- ${rule.id}: ${rule.name} (${rule.severity})`);
       });
       break;
@@ -682,7 +692,7 @@ if (require.main === module) {
       const limit = parseInt(process.argv[3]) || 10;
       const history = alertManager.getAlertHistory(limit);
       console.log(`Last ${history.length} alerts:`);
-      history.forEach(alert => {
+      history.forEach((alert) => {
         console.log(`- ${alert.timestamp}: ${alert.title} (${alert.severity})`);
       });
       break;

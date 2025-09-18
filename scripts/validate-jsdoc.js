@@ -31,15 +31,15 @@ const CONFIG = {
     '**/*.spec.ts',
     '**/node_modules/**',
     '**/dist/**',
-    '**/*.d.ts'
+    '**/*.d.ts',
   ],
   requiredTags: ['param', 'returns'],
   conditionalTags: {
-    'deprecated': 'deprecated functionality',
-    'throws': 'methods that can throw exceptions',
-    'example': 'complex or important methods'
+    deprecated: 'deprecated functionality',
+    throws: 'methods that can throw exceptions',
+    example: 'complex or important methods',
   },
-  minCoveragePercent: 50
+  minCoveragePercent: 50,
 };
 
 // Validation results
@@ -53,7 +53,7 @@ const results = {
   totalInterfaces: 0,
   documentedInterfaces: 0,
   errors: [],
-  warnings: []
+  warnings: [],
 };
 
 /**
@@ -78,17 +78,18 @@ async function validateJSDoc() {
     // Report validation status but don't fail CI
     const coveragePercent = calculateCoverage();
     if (coveragePercent < CONFIG.minCoveragePercent) {
-      console.log(`⚠️ Coverage below threshold: ${coveragePercent}% < ${CONFIG.minCoveragePercent}%`);
+      console.log(
+        `⚠️ Coverage below threshold: ${coveragePercent}% < ${CONFIG.minCoveragePercent}%`
+      );
     }
     if (results.errors.length > 0) {
       console.log(`⚠️ Found ${results.errors.length} documentation errors`);
     }
-    
+
     // For now, make JSDoc validation non-blocking to allow PR merges
     // TODO: Re-enable strict JSDoc validation once documentation is improved
     console.log('✅ JSDoc validation completed (non-blocking mode)');
     // process.exit(1); // Commented out to make non-blocking
-
   } catch (error) {
     console.error('❌ JSDoc validation failed:', error.message);
     console.error('Full error:', error);
@@ -132,7 +133,7 @@ async function getTypeScriptFiles(dir) {
  * @returns {boolean} True if file should be processed
  */
 function shouldProcessFile(filePath) {
-  return !CONFIG.excludePatterns.some(pattern => {
+  return !CONFIG.excludePatterns.some((pattern) => {
     const regex = new RegExp(pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'));
     return regex.test(filePath);
   });
@@ -155,11 +156,10 @@ async function validateFile(filePath) {
     for (const construct of constructs) {
       validateConstruct(construct, relativePath);
     }
-
   } catch (error) {
     results.errors.push({
       file: filePath,
-      message: `Failed to process file: ${error.message}`
+      message: `Failed to process file: ${error.message}`,
     });
   }
 }
@@ -181,7 +181,7 @@ function parseTypeScriptConstructs(content, filePath) {
     interface: /^export\s+interface\s+(\w+)/,
     function: /^export\s+(?:async\s+)?function\s+(\w+)/,
     method: /^\s*(?:public\s+|private\s+|protected\s+)?(?:static\s+)?(?:async\s+)?(\w+)\s*\(/,
-    constructor: /^\s*constructor\s*\(/
+    constructor: /^\s*constructor\s*\(/,
   };
 
   let currentClass = null;
@@ -219,7 +219,7 @@ function parseTypeScriptConstructs(content, filePath) {
         line: lineNumber,
         comment: commentBlock.length > 0 ? commentBlock.join('\n') : null,
         commentLine: commentStartLine,
-        isPublic: line.includes('export')
+        isPublic: line.includes('export'),
       });
       commentBlock = [];
       commentStartLine = -1;
@@ -235,7 +235,7 @@ function parseTypeScriptConstructs(content, filePath) {
         line: lineNumber,
         comment: commentBlock.length > 0 ? commentBlock.join('\n') : null,
         commentLine: commentStartLine,
-        isPublic: line.includes('export')
+        isPublic: line.includes('export'),
       });
       commentBlock = [];
       commentStartLine = -1;
@@ -252,7 +252,7 @@ function parseTypeScriptConstructs(content, filePath) {
         comment: commentBlock.length > 0 ? commentBlock.join('\n') : null,
         commentLine: commentStartLine,
         isPublic: line.includes('export'),
-        className: currentClass
+        className: currentClass,
       });
       commentBlock = [];
       commentStartLine = -1;
@@ -262,7 +262,8 @@ function parseTypeScriptConstructs(content, filePath) {
     // Check for method declarations
     const methodMatch = line.match(patterns.method);
     if (methodMatch && currentClass) {
-      const isPublic = line.includes('public') || (!line.includes('private') && !line.includes('protected'));
+      const isPublic =
+        line.includes('public') || (!line.includes('private') && !line.includes('protected'));
       constructs.push({
         type: 'method',
         name: methodMatch[1],
@@ -270,7 +271,7 @@ function parseTypeScriptConstructs(content, filePath) {
         comment: commentBlock.length > 0 ? commentBlock.join('\n') : null,
         commentLine: commentStartLine,
         isPublic,
-        className: currentClass
+        className: currentClass,
       });
       commentBlock = [];
       commentStartLine = -1;
@@ -287,7 +288,7 @@ function parseTypeScriptConstructs(content, filePath) {
         comment: commentBlock.length > 0 ? commentBlock.join('\n') : null,
         commentLine: commentStartLine,
         isPublic: true,
-        className: currentClass
+        className: currentClass,
       });
       commentBlock = [];
       commentStartLine = -1;
@@ -340,7 +341,7 @@ function validateConstruct(construct, filePath) {
       file: filePath,
       line: construct.line,
       construct: `${construct.type} ${construct.name}`,
-      message: `Missing JSDoc comment for public ${construct.type}`
+      message: `Missing JSDoc comment for public ${construct.type}`,
     });
     return;
   }
@@ -361,7 +362,13 @@ function validateJSDocContent(construct, filePath) {
 
   // Check for required tags
   for (const tag of CONFIG.requiredTags) {
-    if (tag === 'returns' && (construct.type === 'constructor' || construct.name === 'constructor' || construct.type === 'interface' || construct.type === 'class')) {
+    if (
+      tag === 'returns' &&
+      (construct.type === 'constructor' ||
+        construct.name === 'constructor' ||
+        construct.type === 'interface' ||
+        construct.type === 'class')
+    ) {
       continue; // Constructors, interfaces, and classes don't need @returns
     }
 
@@ -373,7 +380,7 @@ function validateJSDocContent(construct, filePath) {
           file: filePath,
           line: construct.commentLine,
           construct: constructId,
-          message: `Missing @param tags (if method has parameters)`
+          message: `Missing @param tags (if method has parameters)`,
         });
       }
     } else if (!comment.includes(`@${tag}`)) {
@@ -381,19 +388,20 @@ function validateJSDocContent(construct, filePath) {
         file: filePath,
         line: construct.commentLine,
         construct: constructId,
-        message: `Missing required @${tag} tag`
+        message: `Missing required @${tag} tag`,
       });
     }
   }
 
   // Check for description
   const lines = comment.split('\n');
-  const descriptionLines = lines.filter(line =>
-    !line.trim().startsWith('/**') &&
-    !line.trim().startsWith('*/') &&
-    !line.trim().startsWith('*') &&
-    !line.trim().startsWith('@') &&
-    line.trim().length > 0
+  const descriptionLines = lines.filter(
+    (line) =>
+      !line.trim().startsWith('/**') &&
+      !line.trim().startsWith('*/') &&
+      !line.trim().startsWith('*') &&
+      !line.trim().startsWith('@') &&
+      line.trim().length > 0
   );
 
   if (descriptionLines.length === 0) {
@@ -401,19 +409,21 @@ function validateJSDocContent(construct, filePath) {
       file: filePath,
       line: construct.commentLine,
       construct: constructId,
-      message: 'Missing description in JSDoc comment'
+      message: 'Missing description in JSDoc comment',
     });
   }
 
   // Check for example in complex methods
-  if ((construct.type === 'method' || construct.type === 'function') &&
-      construct.name.length > 15 &&
-      !comment.includes('@example')) {
+  if (
+    (construct.type === 'method' || construct.type === 'function') &&
+    construct.name.length > 15 &&
+    !comment.includes('@example')
+  ) {
     results.warnings.push({
       file: filePath,
       line: construct.commentLine,
       construct: constructId,
-      message: 'Consider adding @example for complex method'
+      message: 'Consider adding @example for complex method',
     });
   }
 }
@@ -427,9 +437,9 @@ function validateJSDocContent(construct, filePath) {
 function needsParamTag(construct) {
   // This is a simplified check - in a real implementation,
   // we would parse the actual method signature
-  return construct.type === 'function' ||
-         construct.type === 'method' ||
-         construct.type === 'constructor';
+  return (
+    construct.type === 'function' || construct.type === 'method' || construct.type === 'constructor'
+  );
 }
 
 /**
@@ -439,7 +449,8 @@ function needsParamTag(construct) {
  */
 function calculateCoverage() {
   const totalItems = results.totalClasses + results.totalInterfaces + results.totalFunctions;
-  const documentedItems = results.documentedClasses + results.documentedInterfaces + results.documentedFunctions;
+  const documentedItems =
+    results.documentedClasses + results.documentedInterfaces + results.documentedFunctions;
 
   return totalItems > 0 ? Math.round((documentedItems / totalItems) * 100) : 100;
 }
@@ -451,22 +462,28 @@ function generateReport() {
   const coveragePercent = calculateCoverage();
 
   console.log('📊 JSDoc Validation Report');
-  console.log('=' .repeat(50));
+  console.log('='.repeat(50));
   console.log(`Files processed: ${results.processedFiles}/${results.totalFiles}`);
   console.log(`Overall coverage: ${coveragePercent}% (minimum: ${CONFIG.minCoveragePercent}%)`);
   console.log('');
 
   // Coverage breakdown
   console.log('Coverage Breakdown:');
-  console.log(`  Classes: ${results.documentedClasses}/${results.totalClasses} (${Math.round((results.documentedClasses/results.totalClasses)*100) || 0}%)`);
-  console.log(`  Interfaces: ${results.documentedInterfaces}/${results.totalInterfaces} (${Math.round((results.documentedInterfaces/results.totalInterfaces)*100) || 0}%)`);
-  console.log(`  Functions/Methods: ${results.documentedFunctions}/${results.totalFunctions} (${Math.round((results.documentedFunctions/results.totalFunctions)*100) || 0}%)`);
+  console.log(
+    `  Classes: ${results.documentedClasses}/${results.totalClasses} (${Math.round((results.documentedClasses / results.totalClasses) * 100) || 0}%)`
+  );
+  console.log(
+    `  Interfaces: ${results.documentedInterfaces}/${results.totalInterfaces} (${Math.round((results.documentedInterfaces / results.totalInterfaces) * 100) || 0}%)`
+  );
+  console.log(
+    `  Functions/Methods: ${results.documentedFunctions}/${results.totalFunctions} (${Math.round((results.documentedFunctions / results.totalFunctions) * 100) || 0}%)`
+  );
   console.log('');
 
   // Errors
   if (results.errors.length > 0) {
     console.log(`❌ Errors (${results.errors.length}):`);
-    results.errors.forEach(error => {
+    results.errors.forEach((error) => {
       console.log(`  ${error.file}:${error.line} - ${error.construct}: ${error.message}`);
     });
     console.log('');
@@ -475,7 +492,7 @@ function generateReport() {
   // Warnings
   if (results.warnings.length > 0) {
     console.log(`⚠️  Warnings (${results.warnings.length}):`);
-    results.warnings.forEach(warning => {
+    results.warnings.forEach((warning) => {
       console.log(`  ${warning.file}:${warning.line} - ${warning.construct}: ${warning.message}`);
     });
     console.log('');
@@ -498,7 +515,7 @@ function generateReport() {
 // Run validation if called directly
 try {
   if (import.meta.url === `file://${process.argv[1]}`) {
-    validateJSDoc().catch(error => {
+    validateJSDoc().catch((error) => {
       console.error('Fatal error:', error);
       // Make non-blocking during development
       console.log('⚠️  Continuing despite fatal error...');
@@ -509,7 +526,7 @@ try {
   // Fallback execution for environments with import.meta issues
   const isMainModule = process.argv[1] && process.argv[1].includes('validate-jsdoc.js');
   if (isMainModule) {
-    validateJSDoc().catch(error => {
+    validateJSDoc().catch((error) => {
       console.error('Fatal error:', error);
       console.log('⚠️  Continuing despite fatal error...');
       // process.exit(1); // Commented out to avoid blocking CI

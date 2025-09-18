@@ -10,7 +10,7 @@
   - Write unit and integration tests for UI components and backend service connections
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-- [x] 2. Build core logic translation engine infrastructure
+- [ ] 2. Build core logic translation engine infrastructure
   - Create LogicTranslationEngine class with MMIR parsing capabilities
   - Implement ASTTranspiler for direct Java-to-JavaScript pattern mapping
   - Build LLMTranslator integration for complex code semantic translation
@@ -20,7 +20,7 @@
   - Write comprehensive unit tests for all translation components
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-- [x] 3. Implement smart compromise framework system
+- [ ] 3. Implement smart compromise framework system
   - Create CompromiseStrategy interface and implementation system
   - Build strategy selection algorithm based on feature type and user preferences
   - Implement specific compromise strategies for custom dimensions, rendering, and UI elements
@@ -30,7 +30,7 @@
   - Write unit tests for compromise strategies and selection algorithms
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [x] 4. Create JobQueue service and pipeline integration
+- [ ] 4. Create JobQueue service and pipeline integration
   - Implement JobQueueService with priority queue and worker pool management
   - Create Job model with status tracking, progress reporting, and resource management
   - Build worker pool system for parallel job processing

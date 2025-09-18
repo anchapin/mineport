@@ -223,14 +223,22 @@ ${this.generateModuleDescriptions()}
 - **Total Dependencies**: ${Array.from(this.dependencies.values()).reduce((sum, deps) => sum + deps.size, 0)}
 - **Circular Dependencies**: ${this.circularDependencies.length}
 
-${this.circularDependencies.length > 0 ? `
+${
+  this.circularDependencies.length > 0
+    ? `
 ## ⚠️ Circular Dependencies Detected
 
-${this.circularDependencies.map((cycle, i) => `
+${this.circularDependencies
+  .map(
+    (cycle, i) => `
 ### Circular Dependency ${i + 1}
 \`${cycle.join(' → ')}\`
-`).join('')}
-` : '## ✅ No Circular Dependencies Found'}
+`
+  )
+  .join('')}
+`
+    : '## ✅ No Circular Dependencies Found'
+}
 `;
 
     fs.writeFileSync(outputPath, content);
@@ -249,14 +257,16 @@ ${this.circularDependencies.map((cycle, i) => `
       'modules/logic': 'Transpiles Java code to JavaScript',
       'modules/packaging': 'Packages and validates the final addon',
       'modules/ui': 'Provides the React-based user interface',
-      'services': 'Core application services and infrastructure',
-      'utils': 'Utility functions and helpers',
-      'types': 'TypeScript type definitions'
+      services: 'Core application services and infrastructure',
+      utils: 'Utility functions and helpers',
+      types: 'TypeScript type definitions',
     };
 
     return Array.from(this.modules)
       .sort()
-      .map(module => `- **${module}**: ${descriptions[module] || 'Module description not available'}`)
+      .map(
+        (module) => `- **${module}**: ${descriptions[module] || 'Module description not available'}`
+      )
       .join('\n');
   }
 
@@ -324,21 +334,21 @@ This document describes how modules interact with each other in the Minecraft Mo
    */
   getInteractionDescription(from, to) {
     const interactions = {
-      'services': {
+      services: {
         'modules/assets': 'asset conversion orchestration',
         'modules/compromise': 'compromise strategy execution',
         'modules/configuration': 'configuration processing',
         'modules/ingestion': 'mod validation and analysis',
         'modules/logic': 'code translation',
         'modules/packaging': 'addon packaging and validation',
-        'utils': 'utility functions and logging',
-        'types': 'type definitions'
+        utils: 'utility functions and logging',
+        types: 'type definitions',
       },
       'modules/ui': {
-        'services': 'backend API communication',
-        'types': 'type definitions',
-        'modules/compromise': 'compromise strategy configuration'
-      }
+        services: 'backend API communication',
+        types: 'type definitions',
+        'modules/compromise': 'compromise strategy configuration',
+      },
     };
 
     return interactions[from]?.[to] || 'shared functionality';

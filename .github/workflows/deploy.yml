@@ -159,8 +159,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pre-deployment, build-and-test]
     if: |
-      needs.pre-deployment.outputs.should-deploy == 'true' &&
-      (needs.pre-deployment.outputs.deployment-environment == 'staging' ||
+      needs.pre-deployment.outputs.should-deploy == 'true' && 
+      (needs.pre-deployment.outputs.deployment-environment == 'staging' || 
        needs.pre-deployment.outputs.deployment-environment == 'production')
     environment:
       name: staging
@@ -193,11 +193,11 @@ jobs:
           # Check if staging is accessible
           if curl -f -s https://staging.mineport.com/health > /dev/null; then
             echo "Staging environment is accessible"
-
+            
             # Get current health status
             current_status=$(curl -s https://staging.mineport.com/health | jq -r '.status // "unknown"')
             echo "Current staging status: $current_status"
-
+            
             # Store current version for potential rollback
             current_version=$(curl -s https://staging.mineport.com/health | jq -r '.version // "unknown"')
             echo "PREVIOUS_VERSION=$current_version" >> $GITHUB_ENV
@@ -260,17 +260,17 @@ jobs:
 
           while [ $attempt -le $max_attempts ]; do
             echo "Startup check attempt $attempt/$max_attempts..."
-
+            
             if curl -f -s https://staging.mineport.com/ready > /dev/null; then
               echo "✅ Staging service is ready"
               break
             fi
-
+            
             if [ $attempt -eq $max_attempts ]; then
               echo "❌ Service failed to start within timeout"
               exit 1
             fi
-
+            
             sleep 10
             ((attempt++))
           done
@@ -338,7 +338,7 @@ jobs:
             end_time=$(date +%s%3N)
             response_time=$((end_time - start_time))
             echo "Response time $i: ${response_time}ms"
-
+            
             if [ $response_time -gt 5000 ]; then
               echo "⚠️ Warning: Response time ${response_time}ms exceeds 5000ms threshold"
             fi
@@ -427,7 +427,7 @@ jobs:
           if [ -n "$PREVIOUS_VERSION" ] && [ "$PREVIOUS_VERSION" != "unknown" ]; then
             echo "Attempting rollback to previous version: $PREVIOUS_VERSION"
             chmod +x scripts/rollback-deployment.sh
-
+            
             export ROLLBACK_REASON="staging-deployment-failure"
             ./scripts/rollback-deployment.sh --type standard --reason "staging-deployment-failure"
           fi
@@ -560,7 +560,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pre-deployment, build-and-test]
     if: |
-      needs.pre-deployment.outputs.should-deploy == 'true' &&
+      needs.pre-deployment.outputs.should-deploy == 'true' && 
       needs.pre-deployment.outputs.deployment-environment == 'canary'
     environment:
       name: canary
@@ -600,7 +600,7 @@ jobs:
           if curl -f -s https://mineport.com/health > /dev/null; then
             prod_status=$(curl -s https://mineport.com/health | jq -r '.status // "unknown"')
             echo "Production status: $prod_status"
-
+            
             if [ "$prod_status" != "healthy" ]; then
               echo "❌ Production is not healthy - aborting canary deployment"
               exit 1
@@ -685,11 +685,11 @@ jobs:
           # Collect final metrics
           if curl -f -s https://canary.mineport.com/metrics > /dev/null; then
             curl -s https://canary.mineport.com/metrics > canary-monitoring/final-metrics.json
-
+            
             # Extract key metrics
             error_rate=$(curl -s https://canary.mineport.com/metrics | jq -r '.health.unhealthyChecks // 0')
             total_checks=$(curl -s https://canary.mineport.com/metrics | jq -r '.health.totalChecks // 1')
-
+            
             if [ "$total_checks" -gt 0 ]; then
               error_percentage=$(echo "scale=4; $error_rate / $total_checks" | bc)
               echo "Final error rate: $error_percentage"
@@ -751,31 +751,31 @@ jobs:
           while [ $(date +%s) -lt $end_time ]; do
             current_time=$(date)
             echo "[$current_time] Monitoring canary performance..."
-
+            
             # Check response time
             start_time=$(date +%s%3N)
             if curl -f -s https://canary.mineport.com/health > /dev/null; then
               end_time_ms=$(date +%s%3N)
               response_time=$((end_time_ms - start_time))
               echo "Response time: ${response_time}ms"
-
+              
               if [ $response_time -gt $RESPONSE_TIME_THRESHOLD ]; then
                 echo "⚠️ Response time ${response_time}ms exceeds threshold ${RESPONSE_TIME_THRESHOLD}ms"
               fi
             else
               echo "❌ Health check failed"
             fi
-
+            
             # Check error rates
             if curl -f -s https://canary.mineport.com/metrics > /dev/null; then
               metrics=$(curl -s https://canary.mineport.com/metrics)
               current_error_rate=$(echo "$metrics" | jq -r '.health.unhealthyChecks // 0')
               current_total_checks=$(echo "$metrics" | jq -r '.health.totalChecks // 1')
-
+              
               if [ "$current_total_checks" -gt 0 ]; then
                 current_error_percentage=$(echo "scale=4; $current_error_rate / $current_total_checks" | bc)
                 echo "Current error rate: $current_error_percentage"
-
+                
                 threshold_check=$(echo "$current_error_percentage > $ERROR_THRESHOLD" | bc)
                 if [ "$threshold_check" -eq 1 ]; then
                   echo "❌ Error rate $current_error_percentage exceeds threshold $ERROR_THRESHOLD"
@@ -784,7 +784,7 @@ jobs:
                 fi
               fi
             fi
-
+            
             sleep $check_interval
           done
 
@@ -906,9 +906,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pre-deployment, deploy-staging, deploy-production, deploy-canary]
     if: |
-      always() &&
-      (needs.deploy-staging.result == 'success' ||
-       needs.deploy-production.result == 'success' ||
+      always() && 
+      (needs.deploy-staging.result == 'success' || 
+       needs.deploy-production.result == 'success' || 
        needs.deploy-canary.result == 'success')
 
     steps:
@@ -968,7 +968,7 @@ jobs:
           else
             echo "❌ Deployment validation failed"
             echo "VALIDATION_STATUS=failed" >> $GITHUB_ENV
-
+            
             # Send immediate alert for validation failure
             if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
               curl -X POST -H 'Content-type: application/json' \
@@ -995,20 +995,20 @@ jobs:
             current_time=$(date)
             elapsed=$(($(date +%s) - start_time))
             remaining=$((end_time - $(date +%s)))
-
+            
             echo "[$current_time] Monitoring progress: ${elapsed}s elapsed, ${remaining}s remaining"
-
+            
             # Health check with response time measurement
             start_check=$(date +%s%3N)
             if health_response=$(curl -f -s "$MONITOR_URL/health" 2>/dev/null); then
               end_check=$(date +%s%3N)
               response_time=$((end_check - start_check))
               response_times+=($response_time)
-
+              
               # Parse health status
               health_status=$(echo "$health_response" | jq -r '.status // "unknown"')
               echo "✅ Health check passed - Status: $health_status, Response: ${response_time}ms"
-
+              
               # Check for degraded status
               if [ "$health_status" = "degraded" ]; then
                 echo "⚠️ Service is in degraded state"
@@ -1016,7 +1016,7 @@ jobs:
                 echo "❌ Service is unhealthy"
                 ((failed_checks++))
               fi
-
+              
               # Check response time threshold
               if [ $response_time -gt 5000 ]; then
                 echo "⚠️ Slow response time: ${response_time}ms"
@@ -1026,17 +1026,17 @@ jobs:
               ((failed_checks++))
               response_times+=(0)
             fi
-
+            
             ((total_checks++))
-
+            
             # Check error rate threshold
             if [ $total_checks -gt 0 ]; then
               error_rate=$(echo "scale=4; $failed_checks / $total_checks" | bc)
               threshold_check=$(echo "$error_rate > $ALERT_THRESHOLD" | bc)
-
+              
               if [ "$threshold_check" -eq 1 ]; then
                 echo "❌ Error rate $error_rate exceeds threshold $ALERT_THRESHOLD"
-
+                
                 # Send alert
                 if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
                   curl -X POST -H 'Content-type: application/json' \
@@ -1045,7 +1045,7 @@ jobs:
                 fi
               fi
             fi
-
+            
             # Collect detailed metrics every 5 minutes
             if [ $((elapsed % 300)) -eq 0 ] && [ $elapsed -gt 0 ]; then
               echo "Collecting detailed metrics..."
@@ -1053,7 +1053,7 @@ jobs:
                 echo "$metrics_response" > "monitoring-data/metrics-${elapsed}s.json"
               fi
             fi
-
+            
             sleep $check_interval
           done
 
@@ -1107,7 +1107,7 @@ jobs:
             modporter_status=$(echo "$health_response" | jq -r '.checks[] | select(.name=="modporter-ai-components") | .status // "unknown"')
             echo "ModPorter-AI components status: $modporter_status"
             echo "MODPORTER_STATUS=$modporter_status" >> $GITHUB_ENV
-
+            
             if [ "$modporter_status" = "healthy" ]; then
               echo "✅ ModPorter-AI components are healthy"
             else

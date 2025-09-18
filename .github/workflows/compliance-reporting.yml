@@ -114,19 +114,19 @@ jobs:
           if [ -f "compliance-reports/latest-compliance-report.json" ]; then
             echo "## Compliance Report Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-
+            
             # Extract key metrics from the report
             OVERALL_STATUS=$(jq -r '.summary.compliance_status' compliance-reports/latest-compliance-report.json)
             OVERALL_SCORE=$(jq -r '.summary.overall_score' compliance-reports/latest-compliance-report.json)
             VIOLATIONS=$(jq -r '.summary.violations_found' compliance-reports/latest-compliance-report.json)
             STANDARDS=$(jq -r '.standards | join(", ")' compliance-reports/latest-compliance-report.json)
-
+            
             echo "- **Overall Status**: $OVERALL_STATUS" >> $GITHUB_STEP_SUMMARY
             echo "- **Compliance Score**: $OVERALL_SCORE%" >> $GITHUB_STEP_SUMMARY
             echo "- **Violations Found**: $VIOLATIONS" >> $GITHUB_STEP_SUMMARY
             echo "- **Standards Assessed**: $STANDARDS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-
+            
             # Add violations details if any
             if [ "$VIOLATIONS" != "0" ]; then
               echo "### Critical Issues" >> $GITHUB_STEP_SUMMARY
@@ -240,28 +240,28 @@ jobs:
                       <p>Real-time compliance monitoring and reporting</p>
                       <p><strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
                   </div>
-
+                  
                   <div class="metrics" id="metricsGrid">
                       <!-- Metrics will be populated by JavaScript -->
                   </div>
-
+                  
                   <div class="standards-grid" id="standardsGrid">
                       <!-- Standards will be populated by JavaScript -->
                   </div>
-
+                  
                   <div class="footer">
                       <p>This dashboard is automatically updated by the ModPorter-AI CI/CD pipeline.</p>
                       <p>For detailed compliance reports, check the Actions artifacts.</p>
                   </div>
               </div>
-
+              
               <script>
                   // Load dashboard data
                   fetch('./compliance-dashboard.json')
                       .then(response => response.json())
                       .then(data => {
                           document.getElementById('lastUpdated').textContent = new Date(data.generated).toLocaleString();
-
+                          
                           // Populate metrics
                           const metricsGrid = document.getElementById('metricsGrid');
                           metricsGrid.innerHTML = `
@@ -286,7 +286,7 @@ jobs:
                                   <div class="metric-label">Standards Monitored</div>
                               </div>
                           `;
-
+                          
                           // Populate standards
                           const standardsGrid = document.getElementById('standardsGrid');
                           standardsGrid.innerHTML = Object.entries(data.standards).map(([name, standard]) => `

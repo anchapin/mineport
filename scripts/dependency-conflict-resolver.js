@@ -27,7 +27,7 @@ class DependencyConflictResolver {
       createIssues: options.createIssues !== false,
       autoFix: options.autoFix || false,
       verbose: options.verbose || false,
-      ...options
+      ...options,
     };
 
     this.conflicts = [];
@@ -68,9 +68,8 @@ class DependencyConflictResolver {
       console.log('✅ Dependency conflict resolution completed successfully');
       return {
         conflicts: this.conflicts,
-        resolutions: this.resolutions
+        resolutions: this.resolutions,
       };
-
     } catch (error) {
       console.error('❌ Dependency conflict resolution failed:', error.message);
       throw error;
@@ -88,11 +87,10 @@ class DependencyConflictResolver {
       const treeOutput = execSync('npm ls --json --depth=10', {
         cwd: projectRoot,
         encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       this.dependencyTree = JSON.parse(treeOutput);
-
     } catch (error) {
       // npm ls can exit with non-zero even with valid output
       if (error.stdout) {
@@ -112,11 +110,10 @@ class DependencyConflictResolver {
     try {
       const peerOutput = execSync('npm ls --depth=0 2>&1', {
         cwd: projectRoot,
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
 
       this.peerWarnings = this.parsePeerWarnings(peerOutput);
-
     } catch (error) {
       // npm ls can exit with non-zero for peer warnings
       if (error.stdout || error.stderr) {
@@ -127,7 +124,9 @@ class DependencyConflictResolver {
       }
     }
 
-    console.log(`Analyzed dependency tree with ${Object.keys(this.dependencyTree.dependencies || {}).length} direct dependencies`);
+    console.log(
+      `Analyzed dependency tree with ${Object.keys(this.dependencyTree.dependencies || {}).length} direct dependencies`
+    );
     console.log(`Found ${this.peerWarnings.length} peer dependency warnings`);
   }
 
@@ -139,7 +138,10 @@ class DependencyConflictResolver {
     const lines = output.split('\n');
 
     for (const line of lines) {
-      if (line.includes('WARN') && (line.includes('peer dep') || line.includes('UNMET PEER DEPENDENCY'))) {
+      if (
+        line.includes('WARN') &&
+        (line.includes('peer dep') || line.includes('UNMET PEER DEPENDENCY'))
+      ) {
         const warning = this.parsePeerWarningLine(line);
         if (warning) {
           warnings.push(warning);
@@ -164,7 +166,7 @@ class DependencyConflictResolver {
         peerDependency: match[2],
         issue: match[3],
         type: 'peer_dependency',
-        severity: 'warning'
+        severity: 'warning',
       };
     }
 
@@ -214,7 +216,7 @@ class DependencyConflictResolver {
         versionMap.get(name).push({
           version: info.version,
           path: currentPath,
-          resolved: info.resolved
+          resolved: info.resolved,
         });
 
         if (info.dependencies) {
@@ -228,7 +230,7 @@ class DependencyConflictResolver {
     // Find packages with multiple versions
     for (const [packageName, versions] of versionMap.entries()) {
       if (versions.length > 1) {
-        const uniqueVersions = [...new Set(versions.map(v => v.version))];
+        const uniqueVersions = [...new Set(versions.map((v) => v.version))];
 
         if (uniqueVersions.length > 1) {
           this.conflicts.push({
@@ -237,7 +239,7 @@ class DependencyConflictResolver {
             versions: uniqueVersions,
             instances: versions,
             severity: this.assessVersionConflictSeverity(uniqueVersions),
-            description: `Package ${packageName} has multiple versions: ${uniqueVersions.join(', ')}`
+            description: `Package ${packageName} has multiple versions: ${uniqueVersions.join(', ')}`,
           });
         }
       }
@@ -249,7 +251,7 @@ class DependencyConflictResolver {
    */
   assessVersionConflictSeverity(versions) {
     // Check if versions span major versions
-    const majorVersions = versions.map(v => parseInt(v.split('.')[0]));
+    const majorVersions = versions.map((v) => parseInt(v.split('.')[0]));
     const uniqueMajors = [...new Set(majorVersions)];
 
     if (uniqueMajors.length > 1) {
@@ -257,7 +259,7 @@ class DependencyConflictResolver {
     }
 
     // Check if versions span minor versions
-    const minorVersions = versions.map(v => {
+    const minorVersions = versions.map((v) => {
       const parts = v.split('.');
       return `${parts[0]}.${parts[1]}`;
     });
@@ -281,7 +283,7 @@ class DependencyConflictResolver {
         peerDependency: warning.peerDependency,
         issue: warning.issue,
         severity: 'medium',
-        description: `Peer dependency conflict: ${warning.package} requires ${warning.peerDependency} but ${warning.issue}`
+        description: `Peer dependency conflict: ${warning.package} requires ${warning.peerDependency} but ${warning.issue}`,
       });
     }
   }
@@ -294,14 +296,14 @@ class DependencyConflictResolver {
       const dedupeOutput = execSync('npm ls --json --depth=10', {
         cwd: projectRoot,
         encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       // Run npm dedupe in dry-run mode to see what would be deduplicated
       const dedupeCheck = execSync('npm dedupe --dry-run', {
         cwd: projectRoot,
         encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       if (dedupeCheck.trim()) {
@@ -309,10 +311,9 @@ class DependencyConflictResolver {
           type: 'duplicate_dependencies',
           description: 'Dependencies can be deduplicated to reduce conflicts',
           severity: 'low',
-          details: dedupeCheck.trim()
+          details: dedupeCheck.trim(),
         });
       }
-
     } catch (error) {
       // Dedupe check is optional
       if (this.options.verbose) {
@@ -329,7 +330,7 @@ class DependencyConflictResolver {
       const outdatedOutput = execSync('npm outdated --json', {
         cwd: projectRoot,
         encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       const outdated = JSON.parse(outdatedOutput);
@@ -348,11 +349,10 @@ class DependencyConflictResolver {
             wanted: info.wanted,
             latest: info.latest,
             severity: 'medium',
-            description: `${packageName} is ${currentParts[0]} major versions behind (current: ${info.current}, latest: ${info.latest})`
+            description: `${packageName} is ${currentParts[0]} major versions behind (current: ${info.current}, latest: ${info.latest})`,
           });
         }
       }
-
     } catch (error) {
       // No outdated packages or error checking
       if (this.options.verbose && error.status !== 1) {
@@ -384,7 +384,7 @@ class DependencyConflictResolver {
       strategies: [],
       recommendedStrategy: null,
       automatable: false,
-      priority: this.getResolutionPriority(conflict)
+      priority: this.getResolutionPriority(conflict),
     };
 
     switch (conflict.type) {
@@ -395,22 +395,22 @@ class DependencyConflictResolver {
             description: 'Run npm dedupe to consolidate versions',
             command: 'npm dedupe',
             risk: 'low',
-            automatable: true
+            automatable: true,
           },
           {
             name: 'update_to_latest',
             description: `Update all instances to latest compatible version`,
             command: `npm update ${conflict.package}`,
             risk: 'medium',
-            automatable: false
+            automatable: false,
           },
           {
             name: 'pin_version',
             description: 'Pin to specific version in package.json',
             command: `npm install ${conflict.package}@${conflict.versions[0]}`,
             risk: 'low',
-            automatable: false
-          }
+            automatable: false,
+          },
         ];
         resolution.recommendedStrategy = resolution.strategies[0];
         resolution.automatable = conflict.severity === 'low';
@@ -423,22 +423,22 @@ class DependencyConflictResolver {
             description: `Install missing peer dependency: ${conflict.peerDependency}`,
             command: `npm install ${conflict.peerDependency}`,
             risk: 'medium',
-            automatable: false
+            automatable: false,
           },
           {
             name: 'update_package',
             description: `Update ${conflict.package} to version compatible with existing peers`,
             command: `npm update ${conflict.package}`,
             risk: 'medium',
-            automatable: false
+            automatable: false,
           },
           {
             name: 'ignore_peer_warning',
             description: 'Add to .npmrc to ignore peer dependency warnings',
             command: 'echo "legacy-peer-deps=true" >> .npmrc',
             risk: 'high',
-            automatable: false
-          }
+            automatable: false,
+          },
         ];
         resolution.recommendedStrategy = resolution.strategies[0];
         break;
@@ -450,8 +450,8 @@ class DependencyConflictResolver {
             description: 'Run npm dedupe to remove duplicate dependencies',
             command: 'npm dedupe',
             risk: 'low',
-            automatable: true
-          }
+            automatable: true,
+          },
         ];
         resolution.recommendedStrategy = resolution.strategies[0];
         resolution.automatable = true;
@@ -464,22 +464,22 @@ class DependencyConflictResolver {
             description: `Update ${conflict.package} to latest major version`,
             command: `npm install ${conflict.package}@latest`,
             risk: 'high',
-            automatable: false
+            automatable: false,
           },
           {
             name: 'update_minor',
             description: `Update ${conflict.package} to latest compatible minor version`,
             command: `npm update ${conflict.package}`,
             risk: 'medium',
-            automatable: false
+            automatable: false,
           },
           {
             name: 'keep_current',
             description: 'Keep current version and monitor for security issues',
             command: null,
             risk: 'medium',
-            automatable: false
-          }
+            automatable: false,
+          },
         ];
         resolution.recommendedStrategy = resolution.strategies[1];
         break;
@@ -497,7 +497,7 @@ class DependencyConflictResolver {
       peer_dependency_conflict: 1,
       version_conflict: 2,
       outdated_major_conflict: 3,
-      duplicate_dependencies: 4
+      duplicate_dependencies: 4,
     };
 
     return severityPriority[conflict.severity] * 10 + typePriority[conflict.type];
@@ -509,7 +509,7 @@ class DependencyConflictResolver {
   async applyAutomaticFixes() {
     console.log('🔧 Applying automatic fixes...');
 
-    const automatableResolutions = this.resolutions.filter(r => r.automatable);
+    const automatableResolutions = this.resolutions.filter((r) => r.automatable);
 
     if (automatableResolutions.length === 0) {
       console.log('No automatic fixes available');
@@ -530,13 +530,12 @@ class DependencyConflictResolver {
         if (resolution.recommendedStrategy.command) {
           execSync(resolution.recommendedStrategy.command, {
             cwd: projectRoot,
-            stdio: 'pipe'
+            stdio: 'pipe',
           });
         }
 
         resolution.applied = true;
         console.log(`✅ Applied fix for ${resolution.conflict.type}`);
-
       } catch (error) {
         resolution.applied = false;
         resolution.error = error.message;
@@ -566,8 +565,9 @@ class DependencyConflictResolver {
       const remainingConflicts = this.conflicts.length;
       const resolvedConflicts = originalConflicts - remainingConflicts;
 
-      console.log(`Validation complete: ${resolvedConflicts} conflicts resolved, ${remainingConflicts} remaining`);
-
+      console.log(
+        `Validation complete: ${resolvedConflicts} conflicts resolved, ${remainingConflicts} remaining`
+      );
     } catch (error) {
       console.error('Failed to validate fixes:', error.message);
     }
@@ -579,7 +579,7 @@ class DependencyConflictResolver {
   async createResolutionIssues() {
     console.log('📝 Creating resolution issues...');
 
-    const manualResolutions = this.resolutions.filter(r => !r.automatable || !r.applied);
+    const manualResolutions = this.resolutions.filter((r) => !r.automatable || !r.applied);
 
     if (manualResolutions.length === 0) {
       console.log('No manual resolutions needed');
@@ -599,7 +599,9 @@ class DependencyConflictResolver {
     // Create issues for each priority group
     for (const [priority, resolutions] of Object.entries(groupedResolutions)) {
       if (this.options.dryRun) {
-        console.log(`[DRY RUN] Would create issue for ${resolutions.length} conflicts with priority ${priority}`);
+        console.log(
+          `[DRY RUN] Would create issue for ${resolutions.length} conflicts with priority ${priority}`
+        );
         continue;
       }
 
@@ -620,24 +622,26 @@ class DependencyConflictResolver {
       2: 'high',
       3: 'medium',
       4: 'medium',
-      5: 'low'
+      5: 'low',
     };
 
     const priorityLevel = priorityLabels[Math.floor(priority / 10)] || 'low';
-    const conflictTypes = [...new Set(resolutions.map(r => r.conflict.type))];
+    const conflictTypes = [...new Set(resolutions.map((r) => r.conflict.type))];
 
     const title = `🔧 Dependency Conflicts: ${conflictTypes.join(', ')} (${priorityLevel} priority)`;
 
     const body = this.generateIssueBody(resolutions, priorityLevel);
 
     try {
-      execSync(`gh issue create --title "${title}" --body "${body}" --label "dependencies,conflict-resolution,${priorityLevel}-priority" --assignee "${{ github.actor }}"`, {
-        cwd: projectRoot,
-        stdio: 'pipe'
-      });
+      execSync(
+        `gh issue create --title "${title}" --body "${body}" --label "dependencies,conflict-resolution,${priorityLevel}-priority"`,
+        {
+          cwd: projectRoot,
+          stdio: 'pipe',
+        }
+      );
 
       console.log(`✅ Created issue: ${title}`);
-
     } catch (error) {
       console.error(`Failed to create GitHub issue: ${error.message}`);
     }
@@ -675,7 +679,7 @@ This issue tracks ${resolutions.length} dependency conflicts that require manual
       if (resolution.strategies.length > 1) {
         body += `**Alternative Strategies**:
 `;
-        resolution.strategies.slice(1).forEach(strategy => {
+        resolution.strategies.slice(1).forEach((strategy) => {
           body += `- ${strategy.description} (\`${strategy.command || 'Manual'}\`) - Risk: ${strategy.risk}
 `;
         });
@@ -730,14 +734,15 @@ This issue was generated by the dependency conflict resolver. For detailed analy
         totalConflicts: this.conflicts.length,
         conflictTypes: this.getConflictTypeSummary(),
         resolutionsGenerated: this.resolutions.length,
-        automaticFixesApplied: this.resolutions.filter(r => r.applied).length,
-        manualResolutionsRequired: this.resolutions.filter(r => !r.automatable || !r.applied).length
+        automaticFixesApplied: this.resolutions.filter((r) => r.applied).length,
+        manualResolutionsRequired: this.resolutions.filter((r) => !r.automatable || !r.applied)
+          .length,
       },
       conflicts: this.conflicts,
       resolutions: this.resolutions,
       dependencyTree: this.dependencyTree,
       peerWarnings: this.peerWarnings,
-      recommendations: this.generateRecommendations()
+      recommendations: this.generateRecommendations(),
     };
 
     // Write report to file
@@ -778,33 +783,33 @@ This issue was generated by the dependency conflict resolver. For detailed analy
   generateRecommendations() {
     const recommendations = [];
 
-    const highSeverityConflicts = this.conflicts.filter(c => c.severity === 'high');
+    const highSeverityConflicts = this.conflicts.filter((c) => c.severity === 'high');
     if (highSeverityConflicts.length > 0) {
       recommendations.push({
         type: 'urgent_resolution',
         priority: 'high',
         message: `${highSeverityConflicts.length} high-severity conflicts require immediate attention`,
-        actions: ['Review major version conflicts', 'Test thoroughly before applying fixes']
+        actions: ['Review major version conflicts', 'Test thoroughly before applying fixes'],
       });
     }
 
-    const peerConflicts = this.conflicts.filter(c => c.type === 'peer_dependency_conflict');
+    const peerConflicts = this.conflicts.filter((c) => c.type === 'peer_dependency_conflict');
     if (peerConflicts.length > 0) {
       recommendations.push({
         type: 'peer_dependency_review',
         priority: 'medium',
         message: `${peerConflicts.length} peer dependency conflicts detected`,
-        actions: ['Install missing peer dependencies', 'Update packages to compatible versions']
+        actions: ['Install missing peer dependencies', 'Update packages to compatible versions'],
       });
     }
 
-    const automatableResolutions = this.resolutions.filter(r => r.automatable);
+    const automatableResolutions = this.resolutions.filter((r) => r.automatable);
     if (automatableResolutions.length > 0) {
       recommendations.push({
         type: 'automatic_fixes',
         priority: 'low',
         message: `${automatableResolutions.length} conflicts can be automatically resolved`,
-        actions: ['Run npm dedupe', 'Enable automatic conflict resolution']
+        actions: ['Run npm dedupe', 'Enable automatic conflict resolution'],
       });
     }
 
@@ -830,22 +835,30 @@ Generated: ${report.timestamp}
 
 ## Conflict Types
 
-${Object.entries(report.summary.conflictTypes).map(([type, count]) => `- **${type.replace('_', ' ')}**: ${count}`).join('\n')}
+${Object.entries(report.summary.conflictTypes)
+  .map(([type, count]) => `- **${type.replace('_', ' ')}**: ${count}`)
+  .join('\n')}
 
 ## Detected Conflicts
 
-${report.conflicts.map((conflict, index) => `
+${report.conflicts
+  .map(
+    (conflict, index) => `
 ### ${index + 1}. ${conflict.type.replace('_', ' ').toUpperCase()}
 
 - **Package**: ${conflict.package || 'Multiple'}
 - **Severity**: ${conflict.severity}
 - **Description**: ${conflict.description}
 ${conflict.versions ? `- **Versions**: ${conflict.versions.join(', ')}` : ''}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ## Resolution Strategies
 
-${report.resolutions.map((resolution, index) => `
+${report.resolutions
+  .map(
+    (resolution, index) => `
 ### ${index + 1}. ${resolution.conflict.package || resolution.conflict.type}
 
 **Recommended Strategy**: ${resolution.recommendedStrategy.description}
@@ -854,22 +867,35 @@ ${report.resolutions.map((resolution, index) => `
 **Automatable**: ${resolution.automatable ? 'Yes' : 'No'}
 ${resolution.applied !== undefined ? `**Applied**: ${resolution.applied ? 'Yes' : 'No'}` : ''}
 
-${resolution.strategies.length > 1 ? `
+${
+  resolution.strategies.length > 1
+    ? `
 **Alternative Strategies**:
-${resolution.strategies.slice(1).map(s => `- ${s.description} (Risk: ${s.risk})`).join('\n')}
-` : ''}
-`).join('\n')}
+${resolution.strategies
+  .slice(1)
+  .map((s) => `- ${s.description} (Risk: ${s.risk})`)
+  .join('\n')}
+`
+    : ''
+}
+`
+  )
+  .join('\n')}
 
 ## Recommendations
 
-${report.recommendations.map(rec => `
+${report.recommendations
+  .map(
+    (rec) => `
 ### ${rec.type.replace('_', ' ').toUpperCase()} (${rec.priority})
 
 ${rec.message}
 
 **Actions**:
-${rec.actions.map(action => `- ${action}`).join('\n')}
-`).join('\n')}
+${rec.actions.map((action) => `- ${action}`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ---
 *Report generated by Dependency Conflict Resolver*`;
@@ -920,12 +946,13 @@ Examples:
 
   const resolver = new DependencyConflictResolver(options);
 
-  resolver.run()
-    .then(results => {
+  resolver
+    .run()
+    .then((results) => {
       console.log('\n✅ Dependency conflict resolution completed successfully');
       process.exit(0);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('\n❌ Dependency conflict resolution failed:', error.message);
       process.exit(1);
     });

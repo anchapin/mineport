@@ -81,13 +81,41 @@ export interface ConversionOptions {
   /** Target Minecraft Bedrock version for the conversion */
   targetMinecraftVersion: string;
   /** Strategy for handling unmappable features */
-  compromiseStrategy: 'conservative' | 'balanced' | 'aggressive';
+  compromiseStrategy?: 'conservative' | 'balanced' | 'aggressive';
   /** Whether to include documentation in the output */
   includeDocumentation: boolean;
   /** Whether to optimize assets during conversion */
   optimizeAssets: boolean;
   /** Custom API mappings to override defaults */
   customMappings?: Record<string, string>;
+
+  // Enhanced conversion options
+  /** Enable enhanced security scanning */
+  enableSecurityScanning?: boolean;
+  /** Maximum file size for processing (MB) */
+  maxFileSize?: number;
+  /** Enable bytecode analysis */
+  enableBytecodeAnalysis?: boolean;
+  /** Analysis timeout in seconds */
+  analysisTimeout?: number;
+  /** Enable specialized asset converter agent */
+  enableAssetConverter?: boolean;
+  /** Enable specialized bedrock architect agent */
+  enableBedrockArchitect?: boolean;
+  /** Enable specialized block item generator agent */
+  enableBlockItemGenerator?: boolean;
+  /** Enable strict validation mode */
+  enableStrictValidation?: boolean;
+  /** Validation timeout in seconds */
+  validationTimeout?: number;
+  /** Enable debug mode with detailed logging */
+  enableDebugMode?: boolean;
+  /** Preserve intermediate files for debugging */
+  preserveIntermediateFiles?: boolean;
+  /** Number of worker threads to use */
+  workerThreads?: number;
+  /** Enable caching for improved performance */
+  enableCaching?: boolean;
 }
 
 /**
@@ -100,6 +128,8 @@ export interface ConversionStatus {
   currentStage?: string;
   stageProgress?: number;
   estimatedTimeRemaining?: number;
+  currentTask?: string;
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -141,6 +171,29 @@ export interface ConversionResult {
   };
   errors: any[];
   warnings: any[];
+
+  // Enhanced result properties
+  outputPath?: string;
+  downloadUrl?: string;
+  summary?: string;
+  compromises?: any[];
+  recommendations?: string[];
+  statistics?: {
+    filesProcessed: number;
+    assetsConverted: number;
+    codeTranslated: number;
+    configurationsMapped: number;
+    processingTime: number;
+  };
+  validationResults?: {
+    passed: boolean;
+    stages: Array<{
+      name: string;
+      passed: boolean;
+      errors: string[];
+      warnings: string[];
+    }>;
+  };
 }
 
 /**
@@ -214,7 +267,7 @@ export interface ConversionService {
    * @param input Conversion input
    * @returns Created conversion job
    */
-  createConversionJob(input: ConversionInput): ConversionJob;
+  createConversionJob(input: ConversionInput): Promise<ConversionJob>;
 
   /**
    * Get the status of a conversion job

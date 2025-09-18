@@ -20,7 +20,7 @@ class ReleaseNotesGenerator {
       includeContributors: options.includeContributors !== false,
       includeBreakingChanges: options.includeBreakingChanges !== false,
       groupByType: options.groupByType !== false,
-      ...options
+      ...options,
     };
 
     this.releaseData = {
@@ -33,7 +33,7 @@ class ReleaseNotesGenerator {
       features: [],
       fixes: [],
       improvements: [],
-      other: []
+      other: [],
     };
   }
 
@@ -57,7 +57,6 @@ class ReleaseNotesGenerator {
 
       console.log(`Release notes generated: ${this.options.outputFile}`);
       return releaseNotes;
-
     } catch (error) {
       console.error('Error generating release notes:', error.message);
       throw error;
@@ -78,7 +77,9 @@ class ReleaseNotesGenerator {
       } else {
         // Get the previous tag automatically
         try {
-          const previousTag = execSync('git describe --tags --abbrev=0 HEAD^', { encoding: 'utf8' }).trim();
+          const previousTag = execSync('git describe --tags --abbrev=0 HEAD^', {
+            encoding: 'utf8',
+          }).trim();
           commitRange = `${previousTag}..${this.options.toTag}`;
           this.options.fromTag = previousTag;
         } catch (error) {
@@ -91,13 +92,13 @@ class ReleaseNotesGenerator {
 
       // Get commit data with detailed format
       const gitLogFormat = [
-        '%H',      // commit hash
-        '%h',      // abbreviated commit hash
-        '%an',     // author name
-        '%ae',     // author email
-        '%ad',     // author date
-        '%s',      // subject
-        '%b'       // body
+        '%H', // commit hash
+        '%h', // abbreviated commit hash
+        '%an', // author name
+        '%ae', // author email
+        '%ad', // author date
+        '%s', // subject
+        '%b', // body
       ].join('%x09'); // tab separator
 
       const gitLogCommand = `git log --pretty=format:"${gitLogFormat}" --date=short "${commitRange}"`;
@@ -106,7 +107,7 @@ class ReleaseNotesGenerator {
       if (gitOutput.trim()) {
         const commitLines = gitOutput.trim().split('\n');
 
-        commitLines.forEach(line => {
+        commitLines.forEach((line) => {
           const parts = line.split('\t');
           if (parts.length >= 6) {
             const commit = {
@@ -116,7 +117,7 @@ class ReleaseNotesGenerator {
               email: parts[3],
               date: parts[4],
               subject: parts[5],
-              body: parts[6] || ''
+              body: parts[6] || '',
             };
 
             this.releaseData.commits.push(commit);
@@ -126,7 +127,6 @@ class ReleaseNotesGenerator {
       }
 
       console.log(`Found ${this.releaseData.commits.length} commits`);
-
     } catch (error) {
       console.warn('Error collecting commit data:', error.message);
     }
@@ -140,13 +140,14 @@ class ReleaseNotesGenerator {
 
     try {
       // Find merge commits that indicate pull requests
-      const mergeCommits = this.releaseData.commits.filter(commit =>
-        commit.subject.includes('Merge pull request') ||
-        commit.subject.includes('Merge branch') ||
-        commit.body.includes('Merged-By:')
+      const mergeCommits = this.releaseData.commits.filter(
+        (commit) =>
+          commit.subject.includes('Merge pull request') ||
+          commit.subject.includes('Merge branch') ||
+          commit.body.includes('Merged-By:')
       );
 
-      mergeCommits.forEach(commit => {
+      mergeCommits.forEach((commit) => {
         const prMatch = commit.subject.match(/Merge pull request #(\d+) from (.+)/);
         if (prMatch) {
           const pr = {
@@ -154,7 +155,7 @@ class ReleaseNotesGenerator {
             branch: prMatch[2],
             title: this.extractPRTitle(commit),
             author: commit.author,
-            hash: commit.shortHash
+            hash: commit.shortHash,
           };
 
           this.releaseData.pullRequests.push(pr);
@@ -162,7 +163,6 @@ class ReleaseNotesGenerator {
       });
 
       console.log(`Found ${this.releaseData.pullRequests.length} pull requests`);
-
     } catch (error) {
       console.warn('Error collecting pull request data:', error.message);
     }
@@ -174,7 +174,7 @@ class ReleaseNotesGenerator {
   extractPRTitle(commit) {
     // Try to extract title from commit body
     const lines = commit.body.split('\n');
-    const titleLine = lines.find(line => line.trim() && !line.startsWith('*'));
+    const titleLine = lines.find((line) => line.trim() && !line.startsWith('*'));
     return titleLine ? titleLine.trim() : commit.subject;
   }
 
@@ -184,7 +184,7 @@ class ReleaseNotesGenerator {
   categorizeChanges() {
     console.log('Categorizing changes...');
 
-    this.releaseData.commits.forEach(commit => {
+    this.releaseData.commits.forEach((commit) => {
       const subject = commit.subject.toLowerCase();
       const body = commit.body.toLowerCase();
       const fullMessage = `${subject} ${body}`;
@@ -224,43 +224,29 @@ class ReleaseNotesGenerator {
       'BREAKING CHANGE',
       'BREAKING:',
       '!:',
-      'major:'
+      'major:',
     ];
 
     const fullMessage = `${commit.subject} ${commit.body}`.toLowerCase();
-    return indicators.some(indicator => fullMessage.includes(indicator.toLowerCase()));
+    return indicators.some((indicator) => fullMessage.includes(indicator.toLowerCase()));
   }
 
   /**
    * Check if commit is a feature
    */
   isFeature(subject) {
-    const featureKeywords = [
-      'feat:',
-      'feature:',
-      'add:',
-      'implement:',
-      'new:',
-      'create:'
-    ];
+    const featureKeywords = ['feat:', 'feature:', 'add:', 'implement:', 'new:', 'create:'];
 
-    return featureKeywords.some(keyword => subject.startsWith(keyword));
+    return featureKeywords.some((keyword) => subject.startsWith(keyword));
   }
 
   /**
    * Check if commit is a fix
    */
   isFix(subject) {
-    const fixKeywords = [
-      'fix:',
-      'bugfix:',
-      'hotfix:',
-      'patch:',
-      'resolve:',
-      'correct:'
-    ];
+    const fixKeywords = ['fix:', 'bugfix:', 'hotfix:', 'patch:', 'resolve:', 'correct:'];
 
-    return fixKeywords.some(keyword => subject.startsWith(keyword));
+    return fixKeywords.some((keyword) => subject.startsWith(keyword));
   }
 
   /**
@@ -275,10 +261,10 @@ class ReleaseNotesGenerator {
       'perf:',
       'style:',
       'docs:',
-      'test:'
+      'test:',
     ];
 
-    return improvementKeywords.some(keyword => subject.startsWith(keyword));
+    return improvementKeywords.some((keyword) => subject.startsWith(keyword));
   }
 
   /**
@@ -298,7 +284,7 @@ class ReleaseNotesGenerator {
     // Breaking Changes (if any)
     if (this.releaseData.breakingChanges.length > 0) {
       notes += '## ⚠️ Breaking Changes\n\n';
-      this.releaseData.breakingChanges.forEach(commit => {
+      this.releaseData.breakingChanges.forEach((commit) => {
         notes += `- ${this.formatCommitMessage(commit)}\n`;
       });
       notes += '\n';
@@ -307,7 +293,7 @@ class ReleaseNotesGenerator {
     // Features
     if (this.releaseData.features.length > 0) {
       notes += '## ✨ New Features\n\n';
-      this.releaseData.features.forEach(commit => {
+      this.releaseData.features.forEach((commit) => {
         notes += `- ${this.formatCommitMessage(commit)}\n`;
       });
       notes += '\n';
@@ -316,7 +302,7 @@ class ReleaseNotesGenerator {
     // Bug Fixes
     if (this.releaseData.fixes.length > 0) {
       notes += '## 🐛 Bug Fixes\n\n';
-      this.releaseData.fixes.forEach(commit => {
+      this.releaseData.fixes.forEach((commit) => {
         notes += `- ${this.formatCommitMessage(commit)}\n`;
       });
       notes += '\n';
@@ -325,7 +311,7 @@ class ReleaseNotesGenerator {
     // Improvements
     if (this.releaseData.improvements.length > 0) {
       notes += '## 🚀 Improvements\n\n';
-      this.releaseData.improvements.forEach(commit => {
+      this.releaseData.improvements.forEach((commit) => {
         notes += `- ${this.formatCommitMessage(commit)}\n`;
       });
       notes += '\n';
@@ -334,7 +320,7 @@ class ReleaseNotesGenerator {
     // Pull Requests
     if (this.options.includePRs && this.releaseData.pullRequests.length > 0) {
       notes += '## 🔀 Pull Requests\n\n';
-      this.releaseData.pullRequests.forEach(pr => {
+      this.releaseData.pullRequests.forEach((pr) => {
         notes += `- #${pr.number}: ${pr.title} (@${pr.author})\n`;
       });
       notes += '\n';
@@ -343,7 +329,7 @@ class ReleaseNotesGenerator {
     // All Changes (if not grouped by type)
     if (!this.options.groupByType && this.options.includeCommits) {
       notes += '## 📝 All Changes\n\n';
-      this.releaseData.commits.forEach(commit => {
+      this.releaseData.commits.forEach((commit) => {
         notes += `- ${this.formatCommitMessage(commit)}\n`;
       });
       notes += '\n';
@@ -353,7 +339,7 @@ class ReleaseNotesGenerator {
     if (this.options.includeContributors && this.releaseData.contributors.size > 0) {
       notes += '## 👥 Contributors\n\n';
       const contributors = Array.from(this.releaseData.contributors).sort();
-      contributors.forEach(contributor => {
+      contributors.forEach((contributor) => {
         notes += `- @${contributor}\n`;
       });
       notes += '\n';
@@ -375,7 +361,10 @@ class ReleaseNotesGenerator {
     let message = commit.subject;
 
     // Remove conventional commit prefixes for cleaner display
-    message = message.replace(/^(feat|fix|docs|style|refactor|perf|test|chore|build|ci)(\(.+\))?:\s*/, '');
+    message = message.replace(
+      /^(feat|fix|docs|style|refactor|perf|test|chore|build|ci)(\(.+\))?:\s*/,
+      ''
+    );
 
     // Capitalize first letter
     message = message.charAt(0).toUpperCase() + message.slice(1);
@@ -479,8 +468,10 @@ class ReleaseNotesGenerator {
 
     let changelog = '# Changelog\n\n';
     changelog += 'All notable changes to this project will be documented in this file.\n\n';
-    changelog += 'The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\n';
-    changelog += 'and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n';
+    changelog +=
+      'The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\n';
+    changelog +=
+      'and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n';
 
     for (let i = 0; i < versions.length; i++) {
       const currentVersion = versions[i];
@@ -494,7 +485,7 @@ class ReleaseNotesGenerator {
         toTag: currentVersion,
         groupByType: true,
         includeContributors: false,
-        includePRs: false
+        includePRs: false,
       });
 
       await generator.collectCommitData();
@@ -510,7 +501,7 @@ class ReleaseNotesGenerator {
       // Add categorized changes
       if (generator.releaseData.breakingChanges.length > 0) {
         changelog += '### ⚠️ Breaking Changes\n';
-        generator.releaseData.breakingChanges.forEach(commit => {
+        generator.releaseData.breakingChanges.forEach((commit) => {
           changelog += `- ${generator.formatCommitMessage(commit)}\n`;
         });
         changelog += '\n';
@@ -518,7 +509,7 @@ class ReleaseNotesGenerator {
 
       if (generator.releaseData.features.length > 0) {
         changelog += '### Added\n';
-        generator.releaseData.features.forEach(commit => {
+        generator.releaseData.features.forEach((commit) => {
           changelog += `- ${generator.formatCommitMessage(commit)}\n`;
         });
         changelog += '\n';
@@ -526,7 +517,7 @@ class ReleaseNotesGenerator {
 
       if (generator.releaseData.fixes.length > 0) {
         changelog += '### Fixed\n';
-        generator.releaseData.fixes.forEach(commit => {
+        generator.releaseData.fixes.forEach((commit) => {
           changelog += `- ${generator.formatCommitMessage(commit)}\n`;
         });
         changelog += '\n';
@@ -534,7 +525,7 @@ class ReleaseNotesGenerator {
 
       if (generator.releaseData.improvements.length > 0) {
         changelog += '### Changed\n';
-        generator.releaseData.improvements.forEach(commit => {
+        generator.releaseData.improvements.forEach((commit) => {
           changelog += `- ${generator.formatCommitMessage(commit)}\n`;
         });
         changelog += '\n';
@@ -558,9 +549,9 @@ if (require.main === module) {
     try {
       switch (command) {
         case 'generate':
-          const fromTag = args.find(arg => arg.startsWith('--from='))?.split('=')[1];
-          const toTag = args.find(arg => arg.startsWith('--to='))?.split('=')[1] || 'HEAD';
-          const outputFile = args.find(arg => arg.startsWith('--output='))?.split('=')[1];
+          const fromTag = args.find((arg) => arg.startsWith('--from='))?.split('=')[1];
+          const toTag = args.find((arg) => arg.startsWith('--to='))?.split('=')[1] || 'HEAD';
+          const outputFile = args.find((arg) => arg.startsWith('--output='))?.split('=')[1];
 
           const generator = new ReleaseNotesGenerator({
             fromTag,
@@ -568,7 +559,7 @@ if (require.main === module) {
             outputFile,
             groupByType: !args.includes('--no-group'),
             includeContributors: !args.includes('--no-contributors'),
-            includePRs: !args.includes('--no-prs')
+            includePRs: !args.includes('--no-prs'),
           });
 
           await generator.generateReleaseNotes();
@@ -579,7 +570,7 @@ if (require.main === module) {
           const allTags = execSync('git tag --sort=-version:refname', { encoding: 'utf8' })
             .trim()
             .split('\n')
-            .filter(tag => tag.match(/^v?\d+\.\d+\.\d+/));
+            .filter((tag) => tag.match(/^v?\d+\.\d+\.\d+/));
 
           const generator2 = new ReleaseNotesGenerator();
           await generator2.generateChangelog(allTags.slice(0, 10)); // Last 10 versions
@@ -596,9 +587,9 @@ if (require.main === module) {
           console.log('  --from=TAG      Start from this tag');
           console.log('  --to=TAG        End at this tag (default: HEAD)');
           console.log('  --output=FILE   Output file (default: RELEASE_NOTES.md)');
-          console.log('  --no-group      Don\'t group changes by type');
-          console.log('  --no-contributors  Don\'t include contributors');
-          console.log('  --no-prs        Don\'t include pull requests');
+          console.log("  --no-group      Don't group changes by type");
+          console.log("  --no-contributors  Don't include contributors");
+          console.log("  --no-prs        Don't include pull requests");
           console.log('');
           console.log('Examples:');
           console.log('  node generate-release-notes.js generate --from=v1.0.0 --to=v1.1.0');

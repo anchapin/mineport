@@ -2,10 +2,10 @@ name: Artifact Management
 
 on:
   push:
-    branches: [ main, develop ]
-    tags: [ 'v*' ]
+    branches: [main, develop]
+    tags: ['v*']
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -236,10 +236,10 @@ jobs:
                 echo "," >> artifact-manifest.json
               fi
               first=false
-
+              
               size=$(stat -c%s "$file")
               sha256=$(sha256sum "$file" | cut -d' ' -f1)
-
+              
               cat >> artifact-manifest.json << EOF
               {
                 "name": "$file",
@@ -293,8 +293,13 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.metadata.outputs.is_release == 'true' || github.ref == 'refs/heads/main'
     steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.metadata.outputs.artifact_name }}
+          path: artifacts
+
       - name: Upload to GitHub Packages (npm)
-        if: needs.metadata.outputs.is_release == 'true' || github.ref == 'refs/heads/main'
         run: |
           echo "Uploading to GitHub Packages..."
 
@@ -303,7 +308,7 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
 
           # Publish package
-          cd package
+          cd artifacts/package
           npm publish --registry=https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -427,10 +432,10 @@ jobs:
             const octokit = new Octokit({
               auth: process.env.GITHUB_TOKEN,
             });
-
+            
             const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
             const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
-
+            
             try {
               // Get all artifacts
               const { data: artifacts } = await octokit.rest.actions.listArtifactsForRepo({
@@ -438,9 +443,9 @@ jobs:
                 repo,
                 per_page: 100,
               });
-
+              
               console.log(`Found ${artifacts.artifacts.length} artifacts`);
-
+              
               // Define retention policies
               const retentionPolicies = {
                 'test-results-': 7,      // Test results: 7 days
@@ -449,14 +454,14 @@ jobs:
                 'comprehensive-test-': 7, // Comprehensive tests: 7 days
                 'aggregated-': 14,       // Aggregated results: 14 days
               };
-
+              
               const now = new Date();
               let deletedCount = 0;
-
+              
               for (const artifact of artifacts.artifacts) {
                 const createdAt = new Date(artifact.created_at);
                 const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
-
+                
                 // Determine retention period
                 let retentionDays = 30; // default
                 for (const [prefix, days] of Object.entries(retentionPolicies)) {
@@ -465,16 +470,16 @@ jobs:
                     break;
                   }
                 }
-
+                
                 // Skip if artifact is from a release
                 if (artifact.name.includes('-v') && artifact.name.match(/v\d+\.\d+\.\d+/)) {
                   console.log(`Skipping release artifact: ${artifact.name}`);
                   continue;
                 }
-
+                
                 if (ageInDays > retentionDays) {
                   console.log(`Deleting artifact: ${artifact.name} (${Math.floor(ageInDays)} days old)`);
-
+                  
                   try {
                     await octokit.rest.actions.deleteArtifact({
                       owner,
@@ -489,9 +494,9 @@ jobs:
                   console.log(`Keeping artifact: ${artifact.name} (${Math.floor(ageInDays)} days old)`);
                 }
               }
-
+              
               console.log(`Cleanup completed. Deleted ${deletedCount} artifacts.`);
-
+              
               // Generate cleanup report
               const report = {
                 timestamp: new Date().toISOString(),
@@ -499,9 +504,9 @@ jobs:
                 deleted_artifacts: deletedCount,
                 retention_policies: retentionPolicies,
               };
-
+              
               require('fs').writeFileSync('cleanup-report.json', JSON.stringify(report, null, 2));
-
+              
             } catch (error) {
               console.error('Cleanup failed:', error.message);
               process.exit(1);

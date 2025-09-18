@@ -53,7 +53,7 @@ class AuditLogger {
       metadata: operation.metadata || {},
       environment: this.getEnvironmentInfo(),
       security: this.getSecurityContext(),
-      compliance: this.getComplianceInfo()
+      compliance: this.getComplianceInfo(),
     };
 
     try {
@@ -77,8 +77,8 @@ class AuditLogger {
         workflow_name: workflowName,
         trigger_event: trigger.event,
         trigger_ref: trigger.ref,
-        trigger_actor: trigger.actor
-      }
+        trigger_actor: trigger.actor,
+      },
     });
   }
 
@@ -91,8 +91,8 @@ class AuditLogger {
       status: status,
       duration: duration,
       metadata: {
-        workflow_name: workflowName
-      }
+        workflow_name: workflowName,
+      },
     });
   }
 
@@ -108,8 +108,8 @@ class AuditLogger {
         deployment_id: metadata.deploymentId,
         strategy: metadata.strategy,
         artifacts: metadata.artifacts,
-        health_checks: metadata.healthChecks
-      }
+        health_checks: metadata.healthChecks,
+      },
     });
   }
 
@@ -125,8 +125,8 @@ class AuditLogger {
         vulnerabilities_found: results.vulnerabilities?.length || 0,
         severity_breakdown: results.severityBreakdown,
         scan_duration: results.duration,
-        tools_used: results.tools
-      }
+        tools_used: results.tools,
+      },
     });
   }
 
@@ -141,8 +141,8 @@ class AuditLogger {
         check_type: checkType,
         policies_evaluated: results.policies,
         violations_found: results.violations?.length || 0,
-        compliance_score: results.score
-      }
+        compliance_score: results.score,
+      },
     });
   }
 
@@ -161,7 +161,7 @@ class AuditLogger {
       username: process.env.GITHUB_ACTOR,
       type: process.env.GITHUB_ACTOR_ID ? 'user' : 'system',
       id: process.env.GITHUB_ACTOR_ID,
-      email: process.env.GITHUB_ACTOR_EMAIL || null
+      email: process.env.GITHUB_ACTOR_EMAIL || null,
     };
   }
 
@@ -172,7 +172,7 @@ class AuditLogger {
     return {
       name: process.env.GITHUB_REPOSITORY,
       owner: process.env.GITHUB_REPOSITORY_OWNER,
-      url: `https://github.com/${process.env.GITHUB_REPOSITORY}`
+      url: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
     };
   }
 
@@ -183,7 +183,7 @@ class AuditLogger {
     return {
       name: process.env.GITHUB_REF_NAME,
       ref: process.env.GITHUB_REF,
-      protected: process.env.GITHUB_REF_PROTECTED === 'true'
+      protected: process.env.GITHUB_REF_PROTECTED === 'true',
     };
   }
 
@@ -195,7 +195,7 @@ class AuditLogger {
       sha: process.env.GITHUB_SHA,
       message: process.env.GITHUB_EVENT_HEAD_COMMIT_MESSAGE,
       author: process.env.GITHUB_EVENT_HEAD_COMMIT_AUTHOR_NAME,
-      url: `https://github.com/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}`
+      url: `https://github.com/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}`,
     };
   }
 
@@ -208,7 +208,7 @@ class AuditLogger {
       run_id: process.env.GITHUB_RUN_ID,
       run_number: process.env.GITHUB_RUN_NUMBER,
       run_attempt: process.env.GITHUB_RUN_ATTEMPT,
-      url: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+      url: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
     };
   }
 
@@ -218,7 +218,7 @@ class AuditLogger {
   getJob() {
     return {
       name: process.env.GITHUB_JOB,
-      status: process.env.GITHUB_JOB_STATUS || 'running'
+      status: process.env.GITHUB_JOB_STATUS || 'running',
     };
   }
 
@@ -228,7 +228,7 @@ class AuditLogger {
   getStep() {
     return {
       name: process.env.GITHUB_STEP_NAME || 'unknown',
-      summary: process.env.GITHUB_STEP_SUMMARY || null
+      summary: process.env.GITHUB_STEP_SUMMARY || null,
     };
   }
 
@@ -242,7 +242,7 @@ class AuditLogger {
       runner_name: process.env.RUNNER_NAME,
       node_version: process.version,
       github_server_url: process.env.GITHUB_SERVER_URL,
-      github_api_url: process.env.GITHUB_API_URL
+      github_api_url: process.env.GITHUB_API_URL,
     };
   }
 
@@ -255,7 +255,7 @@ class AuditLogger {
       event_name: process.env.GITHUB_EVENT_NAME,
       event_path: process.env.GITHUB_EVENT_PATH,
       workspace: process.env.GITHUB_WORKSPACE,
-      retention_days: process.env.GITHUB_RETENTION_DAYS
+      retention_days: process.env.GITHUB_RETENTION_DAYS,
     };
   }
 
@@ -267,7 +267,7 @@ class AuditLogger {
       required_checks: process.env.REQUIRED_STATUS_CHECKS?.split(',') || [],
       branch_protection: process.env.GITHUB_REF_PROTECTED === 'true',
       signed_commits: process.env.REQUIRE_SIGNED_COMMITS === 'true',
-      audit_required: true
+      audit_required: true,
     };
   }
 
@@ -314,7 +314,7 @@ class AuditLogger {
       timestamp: entry.timestamp,
       operation: entry.operation,
       actor: entry.actor.username,
-      status: entry.status
+      status: entry.status,
     });
 
     // Update operation counts
@@ -324,7 +324,8 @@ class AuditLogger {
     index.actors[entry.actor.username] = (index.actors[entry.actor.username] || 0) + 1;
 
     // Update repository counts
-    index.repositories[entry.repository.name] = (index.repositories[entry.repository.name] || 0) + 1;
+    index.repositories[entry.repository.name] =
+      (index.repositories[entry.repository.name] || 0) + 1;
 
     // Keep only last 10000 entries in index for performance
     if (index.entries.length > 10000) {
@@ -347,7 +348,7 @@ class AuditLogger {
         entries: [],
         operations: {},
         actors: {},
-        repositories: {}
+        repositories: {},
       };
       await fs.writeFile(indexFile, JSON.stringify(initialIndex, null, 2));
     }
@@ -412,23 +413,23 @@ class AuditLogger {
       let results = index.entries;
 
       if (criteria.operation) {
-        results = results.filter(entry => entry.operation === criteria.operation);
+        results = results.filter((entry) => entry.operation === criteria.operation);
       }
 
       if (criteria.actor) {
-        results = results.filter(entry => entry.actor === criteria.actor);
+        results = results.filter((entry) => entry.actor === criteria.actor);
       }
 
       if (criteria.status) {
-        results = results.filter(entry => entry.status === criteria.status);
+        results = results.filter((entry) => entry.status === criteria.status);
       }
 
       if (criteria.startDate) {
-        results = results.filter(entry => entry.timestamp >= criteria.startDate);
+        results = results.filter((entry) => entry.timestamp >= criteria.startDate);
       }
 
       if (criteria.endDate) {
-        results = results.filter(entry => entry.timestamp <= criteria.endDate);
+        results = results.filter((entry) => entry.timestamp <= criteria.endDate);
       }
 
       return results.slice(0, criteria.limit || 100);
@@ -454,17 +455,16 @@ class AuditLogger {
       security_events: 0,
       compliance_events: 0,
       deployment_events: 0,
-      failed_operations: 0
+      failed_operations: 0,
     };
 
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       // Count by operation type
       report.operations_by_type[entry.operation] =
         (report.operations_by_type[entry.operation] || 0) + 1;
 
       // Count by actor
-      report.operations_by_actor[entry.actor] =
-        (report.operations_by_actor[entry.actor] || 0) + 1;
+      report.operations_by_actor[entry.actor] = (report.operations_by_actor[entry.actor] || 0) + 1;
 
       // Count by status
       report.operations_by_status[entry.status] =
@@ -496,14 +496,14 @@ if (require.main === module) {
       break;
     case 'search':
       const criteria = JSON.parse(process.argv[3] || '{}');
-      logger.searchLogs(criteria).then(results => {
+      logger.searchLogs(criteria).then((results) => {
         console.log(JSON.stringify(results, null, 2));
       });
       break;
     case 'report':
       const startDate = process.argv[3];
       const endDate = process.argv[4];
-      logger.generateReport(startDate, endDate).then(report => {
+      logger.generateReport(startDate, endDate).then((report) => {
         console.log(JSON.stringify(report, null, 2));
       });
       break;

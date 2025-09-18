@@ -1,21 +1,21 @@
 /**
  * Error Display Component
- *
+ * 
  * This component provides comprehensive error display and management,
  * integrating with the EnhancedErrorCollector to show detailed error
  * information, recovery options, and error analytics.
  */
 
 import React, { useState, useEffect } from 'react';
-import { EnhancedErrorCollector } from '../../../services/EnhancedErrorCollector.js';
-import {
+import { EnhancedErrorCollector } from '../../../services/EnhancedErrorCollector';
+import { 
   EnhancedConversionError,
   ErrorAggregation,
   ErrorCategorization,
   RecoveryResult,
-  SystemHealthStatus,
-} from '../../../types/errors.js';
-import { UIError, UIWarning } from './EnhancedConversionUI.js';
+  SystemHealthStatus
+} from '../../../types/errors';
+import { UIError, UIWarning } from './EnhancedConversionUI';
 
 export interface ErrorDisplayProps {
   errors: UIError[];
@@ -26,10 +26,12 @@ export interface ErrorDisplayProps {
 /**
  * Error Display Component
  */
-export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, errorCollector }) => {
-  const [activeTab, setActiveTab] = useState<
-    'current' | 'aggregated' | 'categorized' | 'recoverable'
-  >('current');
+export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
+  errors,
+  warnings,
+  errorCollector
+}) => {
+  const [activeTab, setActiveTab] = useState<'current' | 'aggregated' | 'categorized' | 'recoverable'>('current');
   const [aggregatedErrors, setAggregatedErrors] = useState<ErrorAggregation[]>([]);
   const [categorizedErrors, setCategorizedErrors] = useState<ErrorCategorization[]>([]);
   const [recoverableErrors, setRecoverableErrors] = useState<EnhancedConversionError[]>([]);
@@ -59,16 +61,16 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
    * Attempt error recovery
    */
   const attemptRecovery = async (errorId: string) => {
-    setRecoveryInProgress((prev) => new Set(prev).add(errorId));
-
+    setRecoveryInProgress(prev => new Set(prev).add(errorId));
+    
     try {
       const result: RecoveryResult = await errorCollector.attemptRecovery(errorId);
-
+      
       if (result.success) {
         // Refresh recoverable errors list
         const updatedRecoverable = errorCollector.getRecoverableErrors();
         setRecoverableErrors(updatedRecoverable);
-
+        
         // Show success message
         alert(`Recovery successful: ${result.message}`);
       } else {
@@ -79,7 +81,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
       console.error('Recovery attempt failed:', error);
       alert('Recovery attempt failed due to an unexpected error');
     } finally {
-      setRecoveryInProgress((prev) => {
+      setRecoveryInProgress(prev => {
         const newSet = new Set(prev);
         newSet.delete(errorId);
         return newSet;
@@ -106,16 +108,11 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
    */
   const getSeverityIcon = (severity: string): string => {
     switch (severity) {
-      case 'critical':
-        return '🔴';
-      case 'high':
-        return '🟠';
-      case 'medium':
-        return '🟡';
-      case 'low':
-        return '🔵';
-      default:
-        return '⚪';
+      case 'critical': return '🔴';
+      case 'high': return '🟠';
+      case 'medium': return '🟡';
+      case 'low': return '🔵';
+      default: return '⚪';
     }
   };
 
@@ -124,14 +121,10 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
    */
   const getTrendIcon = (trend: string): string => {
     switch (trend) {
-      case 'increasing':
-        return '📈';
-      case 'decreasing':
-        return '📉';
-      case 'stable':
-        return '➡️';
-      default:
-        return '➡️';
+      case 'increasing': return '📈';
+      case 'decreasing': return '📉';
+      case 'stable': return '➡️';
+      default: return '➡️';
     }
   };
 
@@ -154,7 +147,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
     <div className="error-display">
       <div className="error-display-header">
         <h3>Error Analysis & Management</h3>
-
+        
         {/* System Health Indicator */}
         {systemHealth && (
           <div className={`health-indicator health-${systemHealth.overall}`}>
@@ -162,7 +155,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
               System Health: {systemHealth.overall.toUpperCase()}
             </span>
             {systemHealth.degradationLevel > 0 && (
-              <span className="degradation-level">Level {systemHealth.degradationLevel}</span>
+              <span className="degradation-level">
+                Level {systemHealth.degradationLevel}
+              </span>
             )}
           </div>
         )}
@@ -207,30 +202,32 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
                 <h4>Errors ({errors.length})</h4>
                 <div className="error-list">
                   {errors.map((error) => (
-                    <div
-                      key={error.id}
-                      className={`error-item ${getSeverityClass(error.severity)}`}
-                    >
+                    <div key={error.id} className={`error-item ${getSeverityClass(error.severity)}`}>
                       <div className="error-header">
-                        <span className="error-severity">{getSeverityIcon(error.severity)}</span>
+                        <span className="error-severity">
+                          {getSeverityIcon(error.severity)}
+                        </span>
                         <span className="error-message">{error.message}</span>
                         <span className="error-module">({error.module})</span>
-                        <span className="error-time">{formatTimestamp(error.timestamp)}</span>
+                        <span className="error-time">
+                          {formatTimestamp(error.timestamp)}
+                        </span>
                       </div>
-
+                      
                       {error.recoverable && (
                         <div className="error-recovery">
                           <span className="recoverable-indicator">🔄 Recoverable</span>
                         </div>
                       )}
-
+                      
                       {error.details && (
                         <details className="error-details">
                           <summary>Technical Details</summary>
                           <pre className="error-details-content">
-                            {typeof error.details === 'object'
+                            {typeof error.details === 'object' 
                               ? JSON.stringify(error.details, null, 2)
-                              : String(error.details)}
+                              : String(error.details)
+                            }
                           </pre>
                         </details>
                       )}
@@ -251,11 +248,15 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
                         <span className="warning-icon">⚠️</span>
                         <span className="warning-message">{warning.message}</span>
                         <span className="warning-module">({warning.module})</span>
-                        <span className="warning-time">{formatTimestamp(warning.timestamp)}</span>
+                        <span className="warning-time">
+                          {formatTimestamp(warning.timestamp)}
+                        </span>
                       </div>
-
+                      
                       {warning.suggestion && (
-                        <div className="warning-suggestion">💡 {warning.suggestion}</div>
+                        <div className="warning-suggestion">
+                          💡 {warning.suggestion}
+                        </div>
                       )}
                     </div>
                   ))}
@@ -274,25 +275,27 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
                 <div key={index} className="aggregation-item">
                   <div className="aggregation-header">
                     <span className="aggregation-pattern">{aggregation.pattern}</span>
-                    <span className="aggregation-count">{aggregation.count} occurrences</span>
+                    <span className="aggregation-count">
+                      {aggregation.count} occurrences
+                    </span>
                   </div>
-
+                  
                   <div className="aggregation-details">
                     <div className="aggregation-timespan">
                       <span>First: {formatTimestamp(aggregation.firstOccurrence)}</span>
                       <span>Last: {formatTimestamp(aggregation.lastOccurrence)}</span>
                     </div>
-
+                    
                     <div className="aggregation-modules">
                       Affected modules: {aggregation.affectedModules.join(', ')}
                     </div>
-
+                    
                     {aggregation.commonCause && (
                       <div className="aggregation-cause">
                         Common cause: {aggregation.commonCause}
                       </div>
                     )}
-
+                    
                     {aggregation.suggestedFix && (
                       <div className="aggregation-fix">
                         💡 Suggested fix: {aggregation.suggestedFix}
@@ -321,7 +324,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
                       {categorization.frequency} errors
                     </span>
                   </div>
-
+                  
                   <div className="categorization-details">
                     <div className="categorization-metrics">
                       <span className={`impact impact-${categorization.impact}`}>
@@ -330,11 +333,8 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
                       <span className="trend">
                         {getTrendIcon(categorization.trend)} {categorization.trend}
                       </span>
-                      <span
-                        className={`severity ${getSeverityClass(categorization.severity.toString())}`}
-                      >
-                        {getSeverityIcon(categorization.severity.toString())}{' '}
-                        {categorization.severity}
+                      <span className={`severity ${getSeverityClass(categorization.severity.toString())}`}>
+                        {getSeverityIcon(categorization.severity.toString())} {categorization.severity}
                       </span>
                     </div>
                   </div>
@@ -350,9 +350,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
             <h4>Recoverable Errors</h4>
             {recoverableErrors.length === 0 ? (
               <div className="no-recoverable-errors">
-                <p>
-                  No recoverable errors found. All errors have been resolved or are not recoverable.
-                </p>
+                <p>No recoverable errors found. All errors have been resolved or are not recoverable.</p>
               </div>
             ) : (
               <div className="recoverable-list">
@@ -365,7 +363,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
                         Attempts: {error.recoveryAttempts}
                       </span>
                     </div>
-
+                    
                     <div className="recoverable-details">
                       <div className="recovery-actions">
                         <h5>Available Recovery Actions:</h5>
@@ -383,18 +381,16 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, warnings, er
                           ))}
                         </ul>
                       </div>
-
+                      
                       <div className="recovery-controls">
                         <button
                           className="recovery-button"
                           disabled={recoveryInProgress.has(error.id)}
                           onClick={() => attemptRecovery(error.id)}
                         >
-                          {recoveryInProgress.has(error.id)
-                            ? 'Recovering...'
-                            : '🔄 Attempt Recovery'}
+                          {recoveryInProgress.has(error.id) ? 'Recovering...' : '🔄 Attempt Recovery'}
                         </button>
-
+                        
                         {error.lastRecoveryAttempt && (
                           <span className="last-attempt">
                             Last attempt: {formatTimestamp(error.lastRecoveryAttempt)}

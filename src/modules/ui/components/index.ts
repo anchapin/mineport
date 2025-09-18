@@ -23,19 +23,19 @@
  */
 
 // Export all components
-export * from './FileUploader.js';
-export * from './ProgressTracker.js';
-export * from './StatusDisplay.js';
-export * from './SettingsPanel.js';
-export * from './JobMonitoringPanel.js';
-export * from './StrategyPreviewPanel.js';
-export * from './APIMappingManagementPanel.js';
+export * from './FileUploader';
+export * from './ProgressTracker';
+export * from './StatusDisplay';
+export * from './SettingsPanel';
+export * from './JobMonitoringPanel';
+export * from './StrategyPreviewPanel';
+export * from './APIMappingManagementPanel';
 
 // Export enhanced components
-export * from './EnhancedConversionUI.js';
-export * from './EnhancedProgressTracker.js';
-export * from './EnhancedStatusDisplay.js';
-export * from './ErrorDisplay.js';
-export * from './ConversionConfigPanel.js';
-export * from './ResultsDisplay.js';
-export * from './SystemHealthPanel.js';
+export * from './EnhancedConversionUI';
+export * from './EnhancedProgressTracker';
+export * from './EnhancedStatusDisplay';
+export * from './ErrorDisplay';
+export * from './ConversionConfigPanel';
+export * from './ResultsDisplay';
+export * from './SystemHealthPanel';

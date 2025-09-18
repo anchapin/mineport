@@ -79,12 +79,12 @@ jobs:
           else
             echo "Security vulnerabilities found"
             echo "has_security_updates=true" >> $GITHUB_OUTPUT
-
+            
             # Parse security vulnerabilities and categorize by severity
             node -e "
               const audit = JSON.parse(require('fs').readFileSync('security-audit.json', 'utf8'));
               const vulnerabilities = [];
-
+              
               if (audit.vulnerabilities) {
                 Object.entries(audit.vulnerabilities).forEach(([name, vuln]) => {
                   vulnerabilities.push({
@@ -96,7 +96,7 @@ jobs:
                   });
                 });
               }
-
+              
               console.log('security_updates=' + JSON.stringify(vulnerabilities));
             " >> $GITHUB_OUTPUT
           fi
@@ -110,29 +110,29 @@ jobs:
           if npm outdated --json > outdated.json 2>/dev/null || true; then
             if [[ -s outdated.json ]]; then
               echo "has_regular_updates=true" >> $GITHUB_OUTPUT
-
+              
               # Parse outdated dependencies and categorize by update type
               node -e "
                 const outdated = JSON.parse(require('fs').readFileSync('outdated.json', 'utf8') || '{}');
                 const updates = [];
-
+                
                 Object.entries(outdated).forEach(([name, info]) => {
                   const current = info.current;
                   const wanted = info.wanted;
                   const latest = info.latest;
-
+                  
                   let updateType = 'patch';
                   if (current && latest) {
                     const currentParts = current.split('.');
                     const latestParts = latest.split('.');
-
+                    
                     if (currentParts[0] !== latestParts[0]) {
                       updateType = 'major';
                     } else if (currentParts[1] !== latestParts[1]) {
                       updateType = 'minor';
                     }
                   }
-
+                  
                   updates.push({
                     name: name,
                     current: current,
@@ -142,7 +142,7 @@ jobs:
                     location: info.location
                   });
                 });
-
+                
                 console.log('regular_updates=' + JSON.stringify(updates));
               " >> $GITHUB_OUTPUT
             else
@@ -164,9 +164,9 @@ jobs:
             const securityUpdates = JSON.parse('${{ steps.security-check.outputs.security_updates }}' || '[]');
             const regularUpdates = JSON.parse('${{ steps.regular-check.outputs.regular_updates }}' || '[]');
             const updateType = '${{ github.event.inputs.update_type || 'all' }}';
-
+            
             const matrix = [];
-
+            
             // Add security updates (always high priority)
             securityUpdates.forEach(update => {
               if (updateType === 'all' || updateType === 'security') {
@@ -180,7 +180,7 @@ jobs:
                 });
               }
             });
-
+            
             // Add regular updates based on type filter
             regularUpdates.forEach(update => {
               if (updateType === 'all' || updateType === update.type) {
@@ -196,10 +196,10 @@ jobs:
                 });
               }
             });
-
+            
             // Sort by priority
             matrix.sort((a, b) => a.priority - b.priority);
-
+            
             console.log('update_matrix=' + JSON.stringify(matrix));
           " >> $GITHUB_OUTPUT
 
@@ -279,68 +279,68 @@ jobs:
             node -e "
               const report = JSON.parse(require('fs').readFileSync('security-patch-report.json', 'utf8'));
               const { execSync } = require('child_process');
-
+              
               console.log('Processing', report.patchResults.length, 'patch results');
-
+              
               report.patchResults.forEach(result => {
                 if (result.success && !result.autoMergeEligible) {
                   // Create PR for successful patches that need manual review
                   const branchName = \`security-patch/\${result.vulnerability}-\${Date.now()}\`;
-
+                  
                   try {
                     execSync(\`git checkout -b \${branchName}\`);
                     execSync(\`git add package.json package-lock.json\`);
                     execSync(\`git commit -m \"security: fix \${result.severity} vulnerability in \${result.vulnerability}\"\`);
                     execSync(\`git push origin \${branchName}\`);
-
+                    
                     const prBody = \`## Security Patch
-
+            
             This PR addresses a **\${result.severity}** severity vulnerability in \\\`\${result.vulnerability}\\\`.
-
+            
             ### Changes
             - Applied automated security patch
             - Updated package-lock.json with secure versions
             - Validated with security test suite
-
+            
             ### Validation Results
             \${result.testsRun.map(test => \`- ✅ \${test} tests passed\`).join('\\n')}
-
+            
             ### Manual Review Required
             This patch requires manual review due to:
             - \${result.severity} severity level
             - Potential for breaking changes
-
+            
             ---
             *This PR was automatically generated by the security patch automation.*\`;
-
+                    
                     execSync(\`gh pr create --title \"🔒 Security: Fix \${result.severity} vulnerability in \${result.vulnerability}\" --body \"\${prBody}\" --label \"security,dependencies,manual-review\" --assignee \"\${{ github.actor }}\"\`);
-
+                    
                   } catch (error) {
                     console.error(\`Failed to create PR for \${result.vulnerability}:\`, error.message);
                   }
-
+                  
                 } else if (!result.success) {
                   // Create issue for failed patches
                   const issueBody = \`## Manual Security Update Required
-
+            
             A **\${result.severity}** severity vulnerability was detected in \\\`\${result.vulnerability}\\\` but automatic patching failed.
-
+            
             ### Error Details
             \${result.error}
-
+            
             ### Action Required
             Please manually review and update this dependency to resolve the security vulnerability.
-
+            
             ### Validation Results
             \${result.testsRun.length > 0 ? result.testsRun.map(test => \`- Tests run: \${test}\`).join('\\n') : 'No tests were run due to patch failure'}
-
+            
             ### Resources
             - [npm audit documentation](https://docs.npmjs.com/cli/v8/commands/npm-audit)
             - [Security advisory database](https://github.com/advisories)
-
+            
             ---
             *This issue was automatically generated by the security patch automation.*\`;
-
+                  
                   try {
                     execSync(\`gh issue create --title \"🔒 Manual Security Update Required: \${result.vulnerability}\" --body \"\${issueBody}\" --label \"security,dependencies,manual-intervention\" --assignee \"\${{ github.actor }}\"\`);
                   } catch (error) {
@@ -348,51 +348,51 @@ jobs:
                   }
                 }
               });
-
+              
               // Handle auto-merge eligible patches
               const autoMergePatches = report.patchResults.filter(r => r.autoMergeEligible);
               if (autoMergePatches.length > 0) {
                 console.log(\`\${autoMergePatches.length} patches are eligible for auto-merge\`);
-
+                
                 autoMergePatches.forEach(result => {
                   const branchName = \`security-patch/auto-merge/\${result.vulnerability}-\${Date.now()}\`;
-
+                  
                   try {
                     execSync(\`git checkout -b \${branchName}\`);
                     execSync(\`git add package.json package-lock.json\`);
                     execSync(\`git commit -m \"security: auto-merge \${result.severity} vulnerability fix in \${result.vulnerability}\"\`);
                     execSync(\`git push origin \${branchName}\`);
-
+                    
                     const prBody = \`## Automated Security Patch
-
+            
             This PR addresses a **\${result.severity}** severity vulnerability in \\\`\${result.vulnerability}\\\`.
-
+            
             ### Changes
             - Applied automated security patch
             - Updated package-lock.json with secure versions
             - Validated with comprehensive test suite
-
+            
             ### Validation Results
             \${result.testsRun.map(test => \`- ✅ \${test} tests passed\`).join('\\n')}
-
+            
             ### Auto-merge Criteria Met
             - ✅ Low/moderate severity
             - ✅ All tests passed
             - ✅ No breaking changes detected
             - ✅ Patch validation successful
-
+            
             This PR will be automatically merged after CI passes.
-
+            
             ---
             *This PR was automatically generated and will be auto-merged by the security patch automation.*\`;
-
+                    
                     execSync(\`gh pr create --title \"🔒 Auto-merge: Fix \${result.severity} vulnerability in \${result.vulnerability}\" --body \"\${prBody}\" --label \"security,dependencies,auto-merge\" --assignee \"\${{ github.actor }}\"\`);
-
+                    
                     // Enable auto-merge
                     if ('${{ github.event.inputs.auto_merge }}' !== 'false') {
                       execSync(\`gh pr merge --auto --squash\`);
                     }
-
+                    
                   } catch (error) {
                     console.error(\`Failed to create auto-merge PR for \${result.vulnerability}:\`, error.message);
                   }
@@ -561,7 +561,7 @@ jobs:
           *This PR was automatically generated by the dependency management workflow.*" \
               --label "dependencies,${{ matrix.type }}-update,automated" \
               --assignee "${{ github.actor }}"
-
+            
             # Auto-merge if eligible and enabled
             if [[ "${{ matrix.auto_merge }}" == "true" && "${{ github.event.inputs.auto_merge }}" != "false" ]]; then
               echo "Auto-merging low-risk ${{ matrix.type }} update..."
@@ -631,19 +631,19 @@ jobs:
             node -e "
               const prs = JSON.parse(require('fs').readFileSync('open_dependency_prs.json', 'utf8'));
               const fs = require('fs');
-
+              
               let conflictReport = {};
               if (fs.existsSync('dependency-conflict-report.json')) {
                 conflictReport = JSON.parse(fs.readFileSync('dependency-conflict-report.json', 'utf8'));
               }
-
+              
               const prConflicts = [];
-
+              
               prs.forEach(pr => {
                 console.log(\`Analyzing PR #\${pr.number}: \${pr.title}\`);
-
+                
                 const conflicts = [];
-
+                
                 // Check for major version updates
                 if (pr.title.toLowerCase().includes('major')) {
                   conflicts.push({
@@ -652,7 +652,7 @@ jobs:
                     description: 'Major version update may introduce breaking changes'
                   });
                 }
-
+                
                 // Check for security updates that might conflict
                 if (pr.labels.some(label => label.name === 'security')) {
                   conflicts.push({
@@ -661,16 +661,16 @@ jobs:
                     description: 'Security update may conflict with existing dependencies'
                   });
                 }
-
+                
                 // Check against detected conflicts
                 if (conflictReport.conflicts) {
                   const packageName = pr.title.match(/update\\s+([\\w-]+)/i);
                   if (packageName) {
-                    const relatedConflicts = conflictReport.conflicts.filter(c =>
-                      c.package === packageName[1] ||
+                    const relatedConflicts = conflictReport.conflicts.filter(c => 
+                      c.package === packageName[1] || 
                       (c.instances && c.instances.some(i => i.path.includes(packageName[1])))
                     );
-
+                    
                     conflicts.push(...relatedConflicts.map(c => ({
                       type: c.type,
                       severity: c.severity,
@@ -678,7 +678,7 @@ jobs:
                     })));
                   }
                 }
-
+                
                 if (conflicts.length > 0) {
                   prConflicts.push({
                     pr: pr.number,
@@ -688,7 +688,7 @@ jobs:
                   });
                 }
               });
-
+              
               if (prConflicts.length > 0) {
                 console.log('PR conflicts detected:', JSON.stringify(prConflicts, null, 2));
                 fs.writeFileSync('pr-conflicts.json', JSON.stringify(prConflicts, null, 2));
@@ -710,66 +710,66 @@ jobs:
           node -e "
             const prConflicts = JSON.parse(require('fs').readFileSync('pr-conflicts.json', 'utf8'));
             const { execSync } = require('child_process');
-
+            
             prConflicts.forEach(prConflict => {
               const highSeverityConflicts = prConflict.conflicts.filter(c => c.severity === 'high');
               const mediumSeverityConflicts = prConflict.conflicts.filter(c => c.severity === 'medium');
-
-              const priority = highSeverityConflicts.length > 0 ? 'high' :
+              
+              const priority = highSeverityConflicts.length > 0 ? 'high' : 
                               mediumSeverityConflicts.length > 0 ? 'medium' : 'low';
-
+              
               const issueTitle = \`🔧 PR Conflict Resolution: #\${prConflict.pr} (\${priority} priority)\`;
-
+              
               const issueBody = \`## Dependency PR Conflict Resolution
-
+              
               Potential conflicts detected in PR #\${prConflict.pr}: \${prConflict.title}
-
+              
               ### Detected Conflicts
-
+              
               \${prConflict.conflicts.map((conflict, index) => \`
               #### \${index + 1}. \${conflict.type.replace(/[-_]/g, ' ').toUpperCase()}
-
+              
               - **Severity**: \${conflict.severity}
               - **Description**: \${conflict.description}
               \`).join('\\n')}
-
+              
               ### Resolution Steps
-
+              
               1. **Review the PR changes** in #\${prConflict.pr}
               2. **Check dependency compatibility** with existing packages
               3. **Run comprehensive tests** to identify breaking changes
               4. **Consider staging deployment** for validation
               5. **Update related dependencies** if needed
-
+              
               ### Validation Commands
-
+              
               Before merging PR #\${prConflict.pr}, run:
-
+              
               \\\`\\\`\\\`bash
               # Checkout the PR branch
               git checkout \${prConflict.headRef}
-
+              
               # Install dependencies
               npm ci
-
+              
               # Run conflict detection
               node scripts/dependency-conflict-resolver.js --verbose
-
+              
               # Run comprehensive tests
               npm run test:comprehensive
-
+              
               # Check for peer dependency warnings
               npm ls --depth=0 2>&1 | grep WARN
               \\\`\\\`\\\`
-
+              
               ### Recommendations
-
+              
               \${highSeverityConflicts.length > 0 ? '⚠️ **High priority**: This PR contains high-severity conflicts that require immediate attention before merging.' : ''}
               \${mediumSeverityConflicts.length > 0 ? '⚠️ **Medium priority**: Review and test thoroughly before merging.' : ''}
-
+              
               ---
               *This issue was automatically generated by the dependency conflict detection workflow.*\`;
-
+              
               try {
                 execSync(\`gh issue create --title \"\${issueTitle}\" --body \"\${issueBody}\" --label \"dependencies,pr-conflict,\${priority}-priority\" --assignee \"\${{ github.actor }}\"\`, {
                   stdio: 'pipe'
@@ -791,36 +791,36 @@ jobs:
           node -e "
             const prConflicts = JSON.parse(require('fs').readFileSync('pr-conflicts.json', 'utf8'));
             const { execSync } = require('child_process');
-
+            
             prConflicts.forEach(prConflict => {
               const comment = \`## ⚠️ Dependency Conflicts Detected
-
+              
               This PR has been analyzed and potential dependency conflicts have been detected:
-
+              
               \${prConflict.conflicts.map((conflict, index) => \`
               ### \${index + 1}. \${conflict.type.replace(/[-_]/g, ' ').toUpperCase()} (\${conflict.severity} severity)
-
+              
               \${conflict.description}
               \`).join('\\n')}
-
+              
               ### Next Steps
-
+              
               1. A detailed conflict resolution issue has been created for tracking
               2. Please review the conflicts and apply necessary fixes
               3. Run \\\`node scripts/dependency-conflict-resolver.js --verbose\\\` for detailed analysis
               4. Ensure all tests pass before merging
-
+              
               ### Validation
-
+              
               Before merging, please confirm:
               - [ ] All dependency conflicts have been resolved
               - [ ] Comprehensive tests pass
               - [ ] No peer dependency warnings remain
               - [ ] Manual testing completed for affected functionality
-
+              
               ---
               *This comment was automatically generated by the dependency management workflow.*\`;
-
+              
               try {
                 execSync(\`gh pr comment \${prConflict.pr} --body \"\${comment}\"\`, {
                   stdio: 'pipe'

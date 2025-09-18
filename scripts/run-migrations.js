@@ -42,9 +42,7 @@ class MigrationRunner {
   async getMigrationFiles() {
     try {
       const files = await fs.readdir(this.migrationsDir);
-      return files
-        .filter(file => file.endsWith('.sql'))
-        .sort();
+      return files.filter((file) => file.endsWith('.sql')).sort();
     } catch (error) {
       console.error('Error reading migrations directory:', error.message);
       return [];
@@ -55,7 +53,7 @@ class MigrationRunner {
     const client = await this.pool.connect();
     try {
       const result = await client.query('SELECT filename FROM migrations ORDER BY id');
-      return result.rows.map(row => row.filename);
+      return result.rows.map((row) => row.filename);
     } finally {
       client.release();
     }
@@ -79,10 +77,10 @@ class MigrationRunner {
       await client.query(content);
 
       // Record the migration
-      await client.query(
-        'INSERT INTO migrations (filename, checksum) VALUES ($1, $2)',
-        [filename, checksum]
-      );
+      await client.query('INSERT INTO migrations (filename, checksum) VALUES ($1, $2)', [
+        filename,
+        checksum,
+      ]);
 
       await client.query('COMMIT');
       console.log(`✓ Executed migration: ${filename}`);
@@ -136,9 +134,7 @@ class MigrationRunner {
     const migrationFiles = await this.getMigrationFiles();
     const executedMigrations = await this.getExecutedMigrations();
 
-    const pendingMigrations = migrationFiles.filter(
-      file => !executedMigrations.includes(file)
-    );
+    const pendingMigrations = migrationFiles.filter((file) => !executedMigrations.includes(file));
 
     if (pendingMigrations.length === 0) {
       console.log('✓ No pending migrations');
@@ -182,10 +178,9 @@ class MigrationRunner {
         const content = await fs.readFile(filePath, 'utf8');
         const currentChecksum = await this.calculateChecksum(content);
 
-        const result = await client.query(
-          'SELECT checksum FROM migrations WHERE filename = $1',
-          [filename]
-        );
+        const result = await client.query('SELECT checksum FROM migrations WHERE filename = $1', [
+          filename,
+        ]);
 
         if (result.rows.length > 0) {
           const storedChecksum = result.rows[0].checksum;
@@ -209,9 +204,7 @@ class MigrationRunner {
     const migrationFiles = await this.getMigrationFiles();
     const executedMigrations = await this.getExecutedMigrations();
 
-    const pendingMigrations = migrationFiles.filter(
-      file => !executedMigrations.includes(file)
-    );
+    const pendingMigrations = migrationFiles.filter((file) => !executedMigrations.includes(file));
 
     if (pendingMigrations.length === 0) {
       console.log('✓ No pending migrations to test');
@@ -231,7 +224,6 @@ class MigrationRunner {
 
         // Start a transaction for dry-run
         await client.query('BEGIN');
-
         try {
           // Execute the migration in the transaction
           await client.query(content);

@@ -136,14 +136,12 @@ paths = [
     '''\.github/workflows/''',
     '''docs/''',
     '''examples/''',
-    '''tests/''',
-    '''test/''',
     '''README\.md''',
     '''CHANGELOG\.md''',
     '''LICENSE''',
-    '''\.md''',
-    '''\.txt''',
-    '''\.log''',
+    '''\.md$''',
+    '''\.txt$''',
+    '''\.log$''',
 ]
 
 # Allowlist specific patterns that are known to be safe
@@ -157,9 +155,6 @@ regexes = [
     '''your[_-]?(key|token|secret)''',
     '''insert[_-]?(key|token|secret)''',
     '''replace[_-]?(key|token|secret)''',
-    '''00000000-0000-0000-0000-000000000000''',
-    '''00000000-0000-0000-0000-000000000001''',
-    '''00000000-0000-0000-0000-000000000002''',
     '''TODO''',
     '''FIXME''',
     '''XXX''',

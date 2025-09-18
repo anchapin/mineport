@@ -88,7 +88,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
   /**
    * Create a new conversion job
    */
-  public createConversionJob(input: ConversionInput): ConversionJob {
+  public async createConversionJob(input: ConversionInput): Promise<ConversionJob> {
     logger.info('Creating conversion job', { modFile: input.modFile });
 
     try {

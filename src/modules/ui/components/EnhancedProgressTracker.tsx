@@ -1,13 +1,13 @@
 /**
  * Enhanced Progress Tracker Component
- *
+ * 
  * This component provides detailed progress tracking for the enhanced conversion system,
  * showing real-time updates from the ValidationPipeline stages and providing visual
  * feedback on the conversion process.
  */
 
 import React from 'react';
-import { ConversionStage, ProgressInfo } from './EnhancedConversionUI.js';
+import { ConversionStage, ProgressInfo } from './EnhancedConversionUI';
 
 export interface EnhancedProgressTrackerProps {
   progress: ProgressInfo;
@@ -19,7 +19,7 @@ export interface EnhancedProgressTrackerProps {
  */
 export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = ({
   progress,
-  currentStage,
+  currentStage
 }) => {
   const stages = [
     { id: 'initializing', label: 'Initialize', icon: '🚀' },
@@ -31,11 +31,11 @@ export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = (
     { id: 'translating_logic', label: 'Logic', icon: '💻' },
     { id: 'validating_output', label: 'Validate', icon: '✅' },
     { id: 'packaging', label: 'Package', icon: '📦' },
-    { id: 'completed', label: 'Complete', icon: '🎉' },
+    { id: 'completed', label: 'Complete', icon: '🎉' }
   ];
 
   const getCurrentStageIndex = () => {
-    return stages.findIndex((stage) => stage.id === currentStage.name);
+    return stages.findIndex(stage => stage.id === currentStage.name);
   };
 
   const currentStageIndex = getCurrentStageIndex();
@@ -44,14 +44,10 @@ export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = (
     if (index < currentStageIndex) return 'completed';
     if (index === currentStageIndex) {
       switch (currentStage.status) {
-        case 'running':
-          return 'active';
-        case 'completed':
-          return 'completed';
-        case 'failed':
-          return 'failed';
-        default:
-          return 'pending';
+        case 'running': return 'active';
+        case 'completed': return 'completed';
+        case 'failed': return 'failed';
+        default: return 'pending';
       }
     }
     return 'pending';
@@ -88,9 +84,12 @@ export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = (
             )}
           </div>
         </div>
-
+        
         <div className="progress-bar-container">
-          <div className="progress-bar" style={{ width: `${progress.overall}%` }} />
+          <div 
+            className="progress-bar" 
+            style={{ width: `${progress.overall}%` }}
+          />
         </div>
       </div>
 
@@ -100,21 +99,17 @@ export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = (
           {stages.map((stage, index) => {
             const status = getStageStatus(index);
             const isActive = index === currentStageIndex;
-
+            
             return (
               <div key={stage.id} className="stage-wrapper">
                 <div className={`stage ${status} ${isActive ? 'active' : ''}`}>
                   <div className="stage-indicator">
                     <div className="stage-icon">
-                      {status === 'completed' ? (
-                        '✓'
-                      ) : status === 'failed' ? (
-                        '❌'
-                      ) : status === 'active' ? (
-                        <div className="spinner">{stage.icon}</div>
-                      ) : (
-                        stage.icon
-                      )}
+                      {status === 'completed' ? '✓' : 
+                       status === 'failed' ? '❌' : 
+                       status === 'active' ? (
+                         <div className="spinner">{stage.icon}</div>
+                       ) : stage.icon}
                     </div>
                     {isActive && currentStage.progress > 0 && (
                       <div className="stage-progress-ring">
@@ -144,15 +139,17 @@ export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = (
                       </div>
                     )}
                   </div>
-
+                  
                   <div className="stage-label">
                     <span className="stage-name">{stage.label}</span>
                     {isActive && currentStage.progress > 0 && (
-                      <span className="stage-percentage">{Math.round(currentStage.progress)}%</span>
+                      <span className="stage-percentage">
+                        {Math.round(currentStage.progress)}%
+                      </span>
                     )}
                   </div>
                 </div>
-
+                
                 {index < stages.length - 1 && (
                   <div className={`stage-connector ${status === 'completed' ? 'completed' : ''}`} />
                 )}
@@ -171,7 +168,7 @@ export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = (
               <p className="current-task">{currentStage.details.currentTask}</p>
             )}
           </div>
-
+          
           {/* Sub-tasks */}
           {currentStage.details.subTasks && currentStage.details.subTasks.length > 0 && (
             <div className="sub-tasks">
@@ -179,38 +176,39 @@ export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = (
               <ul className="sub-task-list">
                 {currentStage.details.subTasks.map((subTask, index) => (
                   <li key={index} className={`sub-task ${subTask.completed ? 'completed' : ''}`}>
-                    <span className="sub-task-icon">{subTask.completed ? '✓' : '○'}</span>
+                    <span className="sub-task-icon">
+                      {subTask.completed ? '✓' : '○'}
+                    </span>
                     <span className="sub-task-name">{subTask.name}</span>
                     {subTask.progress !== undefined && !subTask.completed && (
-                      <span className="sub-task-progress">({Math.round(subTask.progress)}%)</span>
+                      <span className="sub-task-progress">
+                        ({Math.round(subTask.progress)}%)
+                      </span>
                     )}
                   </li>
                 ))}
               </ul>
             </div>
           )}
-
+          
           {/* Stage Metadata */}
-          {currentStage.details.metadata &&
-            Object.keys(currentStage.details.metadata).length > 0 && (
-              <div className="stage-metadata">
-                <details>
-                  <summary>Technical Details</summary>
-                  <div className="metadata-content">
-                    {Object.entries(currentStage.details.metadata).map(([key, value]) => (
-                      <div key={key} className="metadata-item">
-                        <span className="metadata-key">{key}:</span>
-                        <span className="metadata-value">
-                          {typeof value === 'object'
-                            ? JSON.stringify(value, null, 2)
-                            : String(value)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              </div>
-            )}
+          {currentStage.details.metadata && Object.keys(currentStage.details.metadata).length > 0 && (
+            <div className="stage-metadata">
+              <details>
+                <summary>Technical Details</summary>
+                <div className="metadata-content">
+                  {Object.entries(currentStage.details.metadata).map(([key, value]) => (
+                    <div key={key} className="metadata-item">
+                      <span className="metadata-key">{key}:</span>
+                      <span className="metadata-value">
+                        {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </div>
+          )}
         </div>
       )}
     </div>

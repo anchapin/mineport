@@ -109,7 +109,6 @@ jobs:
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
-
       - name: 'Get PR details (issue_comment)'
         id: 'get_pr_comment'
         if: |-

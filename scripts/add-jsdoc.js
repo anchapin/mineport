@@ -23,10 +23,10 @@ const CONFIG = {
     '**/*.spec.ts',
     '**/node_modules/**',
     '**/dist/**',
-    '**/*.d.ts'
+    '**/*.d.ts',
   ],
   dryRun: process.argv.includes('--dry-run'),
-  verbose: process.argv.includes('--verbose')
+  verbose: process.argv.includes('--verbose'),
 };
 
 /**
@@ -58,7 +58,6 @@ async function addJSDoc() {
     if (CONFIG.dryRun) {
       console.log('\n💡 Run without --dry-run to apply changes');
     }
-
   } catch (error) {
     console.error('❌ Failed to add JSDoc comments:', error.message);
     process.exit(1);
@@ -99,7 +98,7 @@ async function getTypeScriptFiles(dir) {
  * @returns {boolean} True if file should be processed
  */
 function shouldProcessFile(filePath) {
-  return !CONFIG.excludePatterns.some(pattern => {
+  return !CONFIG.excludePatterns.some((pattern) => {
     const regex = new RegExp(pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'));
     return regex.test(filePath);
   });
@@ -132,14 +131,16 @@ async function processFile(filePath) {
         const indent = getIndentation(line);
 
         // Add the JSDoc comment with proper indentation
-        jsdocComment.split('\n').forEach(commentLine => {
+        jsdocComment.split('\n').forEach((commentLine) => {
           newLines.push(indent + commentLine);
         });
 
         modified = true;
 
         if (CONFIG.verbose) {
-          console.log(`  Added JSDoc for ${construct.type} ${construct.name} in ${path.relative(process.cwd(), filePath)}`);
+          console.log(
+            `  Added JSDoc for ${construct.type} ${construct.name} in ${path.relative(process.cwd(), filePath)}`
+          );
         }
       }
 
@@ -152,11 +153,12 @@ async function processFile(filePath) {
     }
 
     if (modified) {
-      console.log(`📝 ${CONFIG.dryRun ? 'Would modify' : 'Modified'}: ${path.relative(process.cwd(), filePath)}`);
+      console.log(
+        `📝 ${CONFIG.dryRun ? 'Would modify' : 'Modified'}: ${path.relative(process.cwd(), filePath)}`
+      );
     }
 
     return modified;
-
   } catch (error) {
     console.error(`❌ Error processing ${filePath}:`, error.message);
     return false;
@@ -183,7 +185,7 @@ function identifyConstruct(line, lines, index) {
     return {
       type: 'class',
       name: classMatch[1],
-      isPublic: line.includes('export')
+      isPublic: line.includes('export'),
     };
   }
 
@@ -193,7 +195,7 @@ function identifyConstruct(line, lines, index) {
     return {
       type: 'interface',
       name: interfaceMatch[1],
-      isPublic: true
+      isPublic: true,
     };
   }
 
@@ -203,18 +205,21 @@ function identifyConstruct(line, lines, index) {
     return {
       type: 'function',
       name: functionMatch[1],
-      isPublic: true
+      isPublic: true,
     };
   }
 
   // Method declaration (inside class)
-  const methodMatch = line.match(/^\s*(?:public\s+|private\s+|protected\s+)?(?:static\s+)?(?:async\s+)?(\w+)\s*\(/);
+  const methodMatch = line.match(
+    /^\s*(?:public\s+|private\s+|protected\s+)?(?:static\s+)?(?:async\s+)?(\w+)\s*\(/
+  );
   if (methodMatch && !line.includes('=') && !line.includes('=>')) {
-    const isPublic = line.includes('public') || (!line.includes('private') && !line.includes('protected'));
+    const isPublic =
+      line.includes('public') || (!line.includes('private') && !line.includes('protected'));
     return {
       type: 'method',
       name: methodMatch[1],
-      isPublic
+      isPublic,
     };
   }
 
@@ -223,7 +228,7 @@ function identifyConstruct(line, lines, index) {
     return {
       type: 'constructor',
       name: 'constructor',
-      isPublic: true
+      isPublic: true,
     };
   }
 
@@ -233,7 +238,7 @@ function identifyConstruct(line, lines, index) {
     return {
       type: 'type',
       name: typeMatch[1],
-      isPublic: true
+      isPublic: true,
     };
   }
 
@@ -432,7 +437,7 @@ function generateGenericJSDoc(name, type) {
 
 // Run the script if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  addJSDoc().catch(error => {
+  addJSDoc().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

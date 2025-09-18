@@ -4,34 +4,9 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { EnhancedProgressTracker } from '../EnhancedProgressTracker.js';
-import { ConversionStage, ProgressInfo } from '../EnhancedConversionUI.js';
-
-// Setup Vitest DOM matchers
-import { expect as vitestExpect } from 'vitest';
-import '@testing-library/jest-dom/vitest';
-vitestExpect.extend({
-  toBeInTheDocument: (received) => {
-    const pass = received !== null && received !== undefined;
-    return {
-      pass,
-      message: () => (pass ? 'element is in document' : 'element is not in document'),
-    };
-  },
-  toHaveStyle: (received, style) => {
-    if (typeof received.style === 'undefined') {
-      return { pass: false, message: () => 'element has no style' };
-    }
-    const pass = Object.keys(style).every((key) => {
-      return received.style[key] === style[key];
-    });
-    return {
-      pass,
-      message: () => (pass ? 'element has expected style' : 'element does not have expected style'),
-    };
-  },
-});
+import '@testing-library/jest-dom';
+import { EnhancedProgressTracker } from '../EnhancedProgressTracker';
+import { ConversionStage, ProgressInfo } from '../EnhancedConversionUI';
 
 describe('EnhancedProgressTracker', () => {
   const createMockProgress = (overrides: Partial<ProgressInfo> = {}): ProgressInfo => ({
@@ -40,7 +15,7 @@ describe('EnhancedProgressTracker', () => {
     currentStage: 'analyzing',
     estimatedTimeRemaining: 120,
     startTime: new Date(Date.now() - 60000), // 1 minute ago
-    ...overrides,
+    ...overrides
   });
 
   const createMockStage = (overrides: Partial<ConversionStage> = {}): ConversionStage => ({
@@ -53,10 +28,10 @@ describe('EnhancedProgressTracker', () => {
       subTasks: [
         { name: 'Parse JAR file', completed: true },
         { name: 'Extract registry names', completed: false, progress: 60 },
-        { name: 'Analyze textures', completed: false },
-      ],
+        { name: 'Analyze textures', completed: false }
+      ]
     },
-    ...overrides,
+    ...overrides
   });
 
   describe('Overall Progress Display', () => {
@@ -71,7 +46,7 @@ describe('EnhancedProgressTracker', () => {
 
     it('should display elapsed time when start time is provided', () => {
       const progress = createMockProgress({
-        startTime: new Date(Date.now() - 90000), // 1.5 minutes ago
+        startTime: new Date(Date.now() - 90000) // 1.5 minutes ago
       });
       const currentStage = createMockStage();
 
@@ -140,9 +115,9 @@ describe('EnhancedProgressTracker', () => {
 
     it('should show failed stage with error icon', () => {
       const progress = createMockProgress();
-      const currentStage = createMockStage({
-        name: 'analyzing',
-        status: 'failed',
+      const currentStage = createMockStage({ 
+        name: 'analyzing', 
+        status: 'failed' 
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -152,10 +127,10 @@ describe('EnhancedProgressTracker', () => {
 
     it('should display stage progress percentage for active stage', () => {
       const progress = createMockProgress();
-      const currentStage = createMockStage({
+      const currentStage = createMockStage({ 
         name: 'analyzing',
         status: 'running',
-        progress: 65,
+        progress: 65
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -169,15 +144,13 @@ describe('EnhancedProgressTracker', () => {
       const progress = createMockProgress();
       const currentStage = createMockStage({
         details: {
-          description: 'Analyzing mod structure with multi-strategy extraction',
-        },
+          description: 'Analyzing mod structure with multi-strategy extraction'
+        }
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
 
-      expect(
-        screen.getByText('Analyzing mod structure with multi-strategy extraction')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Analyzing mod structure with multi-strategy extraction')).toBeInTheDocument();
     });
 
     it('should display current task when available', () => {
@@ -185,8 +158,8 @@ describe('EnhancedProgressTracker', () => {
       const currentStage = createMockStage({
         details: {
           description: 'Analyzing mod structure',
-          currentTask: 'Extracting registry names from bytecode',
-        },
+          currentTask: 'Extracting registry names from bytecode'
+        }
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -202,9 +175,9 @@ describe('EnhancedProgressTracker', () => {
           subTasks: [
             { name: 'Convert textures', completed: true },
             { name: 'Convert models', completed: false, progress: 40 },
-            { name: 'Convert sounds', completed: false },
-          ],
-        },
+            { name: 'Convert sounds', completed: false }
+          ]
+        }
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -222,9 +195,9 @@ describe('EnhancedProgressTracker', () => {
           description: 'Processing',
           subTasks: [
             { name: 'Task 1', completed: true },
-            { name: 'Task 2', completed: false },
-          ],
-        },
+            { name: 'Task 2', completed: false }
+          ]
+        }
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -241,9 +214,9 @@ describe('EnhancedProgressTracker', () => {
           metadata: {
             filesProcessed: 15,
             registryNamesFound: 8,
-            texturesDetected: 12,
-          },
-        },
+            texturesDetected: 12
+          }
+        }
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -259,7 +232,7 @@ describe('EnhancedProgressTracker', () => {
       const currentStage = createMockStage({
         name: 'analyzing',
         status: 'running',
-        progress: 75,
+        progress: 75
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -273,7 +246,7 @@ describe('EnhancedProgressTracker', () => {
       const currentStage = createMockStage({
         name: 'analyzing',
         status: 'running',
-        progress: 0,
+        progress: 0
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
@@ -286,7 +259,7 @@ describe('EnhancedProgressTracker', () => {
   describe('Time Formatting', () => {
     it('should format seconds correctly', () => {
       const progress = createMockProgress({
-        startTime: new Date(Date.now() - 45000), // 45 seconds ago
+        startTime: new Date(Date.now() - 45000) // 45 seconds ago
       });
       const currentStage = createMockStage();
 
@@ -297,7 +270,7 @@ describe('EnhancedProgressTracker', () => {
 
     it('should format minutes and seconds correctly', () => {
       const progress = createMockProgress({
-        startTime: new Date(Date.now() - 125000), // 2 minutes 5 seconds ago
+        startTime: new Date(Date.now() - 125000) // 2 minutes 5 seconds ago
       });
       const currentStage = createMockStage();
 
@@ -326,9 +299,7 @@ describe('EnhancedProgressTracker', () => {
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);
 
       // Stage information should be accessible
-      expect(
-        screen.getByText('Analyzing mod structure with multi-strategy extraction')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Analyzing mod structure with multi-strategy extraction')).toBeInTheDocument();
     });
   });
 
@@ -358,8 +329,8 @@ describe('EnhancedProgressTracker', () => {
       const currentStage = createMockStage({
         details: {
           description: 'Processing',
-          subTasks: [],
-        },
+          subTasks: []
+        }
       });
 
       render(<EnhancedProgressTracker progress={progress} currentStage={currentStage} />);

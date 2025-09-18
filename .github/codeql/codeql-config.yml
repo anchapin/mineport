@@ -16,17 +16,21 @@ paths-ignore:
   - "**/*.test.tsx"
   - "**/*.spec.ts"
   - "**/*.spec.tsx"
+  - "**/*.d.ts"
+  - "**/.github/**"
+  - "**/docs/**"
 
 paths:
   - src
   - scripts
   - config
+  - "**/*.js"
+  - "**/*.jsx"
+  - "**/*.ts"
+  - "**/*.tsx"
 
 # Custom query packs for enhanced security scanning
 packs:
-  - codeql/javascript-queries
-
-# Query filters to exclude specific rules that may not be relevant
-query-filters:
-  - exclude:
-      tags: exclude-from-incremental
+  - codeql/javascript-queries:Security
+  - codeql/javascript-queries:Correctness
+  - codeql/javascript-queries:Maintainability

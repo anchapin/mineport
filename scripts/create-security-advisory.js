@@ -56,7 +56,7 @@ class SecurityAdvisoryCreator {
 
     if (auditResults.vulnerabilities) {
       Object.entries(auditResults.vulnerabilities).forEach(([packageName, vulnData]) => {
-        vulnData.via.forEach(via => {
+        vulnData.via.forEach((via) => {
           if (typeof via === 'object' && via.title) {
             vulnerabilities.push({
               source: 'npm-audit',
@@ -66,7 +66,7 @@ class SecurityAdvisoryCreator {
               cve: via.cve || null,
               url: via.url || null,
               range: via.range || null,
-              description: `Vulnerability in ${packageName}: ${via.title}`
+              description: `Vulnerability in ${packageName}: ${via.title}`,
             });
           }
         });
@@ -83,7 +83,7 @@ class SecurityAdvisoryCreator {
     const vulnerabilities = [];
 
     if (snykResults.vulnerabilities) {
-      snykResults.vulnerabilities.forEach(vuln => {
+      snykResults.vulnerabilities.forEach((vuln) => {
         vulnerabilities.push({
           source: 'snyk',
           package: vuln.packageName,
@@ -92,7 +92,7 @@ class SecurityAdvisoryCreator {
           cve: vuln.identifiers?.CVE?.[0] || null,
           url: vuln.url || null,
           range: vuln.version || null,
-          description: vuln.description || `Vulnerability in ${vuln.packageName}: ${vuln.title}`
+          description: vuln.description || `Vulnerability in ${vuln.packageName}: ${vuln.title}`,
         });
       });
     }
@@ -107,7 +107,7 @@ class SecurityAdvisoryCreator {
     const severityLevels = { low: 1, medium: 2, high: 3, critical: 4 };
     const threshold = severityLevels[this.severityThreshold] || 3;
 
-    return vulnerabilities.filter(vuln => {
+    return vulnerabilities.filter((vuln) => {
       const vulnLevel = severityLevels[vuln.severity] || 0;
       return vulnLevel >= threshold;
     });
@@ -122,14 +122,16 @@ class SecurityAdvisoryCreator {
       description: vulnerability.description,
       severity: vulnerability.severity.toUpperCase(),
       cve_id: vulnerability.cve,
-      vulnerabilities: [{
-        package: {
-          ecosystem: 'npm',
-          name: vulnerability.package
+      vulnerabilities: [
+        {
+          package: {
+            ecosystem: 'npm',
+            name: vulnerability.package,
+          },
+          vulnerable_version_range: vulnerability.range || '< 0.0.0',
+          patched_versions: 'See advisory for details',
         },
-        vulnerable_version_range: vulnerability.range || '< 0.0.0',
-        patched_versions: 'See advisory for details'
-      }]
+      ],
     };
 
     console.log(`Creating security advisory for ${vulnerability.package}:`);
@@ -216,7 +218,9 @@ Workflow run: ${process.env.GITHUB_RUN_ID || 'Unknown'}
       }
     }
 
-    console.log(`📋 Created ${created} security advisories out of ${vulnerabilities.length} vulnerabilities`);
+    console.log(
+      `📋 Created ${created} security advisories out of ${vulnerabilities.length} vulnerabilities`
+    );
     return { created, total: vulnerabilities.length };
   }
 }

@@ -105,55 +105,55 @@ jobs:
             if [[ -f "$artifact" ]]; then
               filename=$(basename "$artifact")
               echo "Scanning $filename..."
-
+              
               # Determine scan type based on file extension
               case "$filename" in
                 *.tgz|*.tar.gz)
                   echo "Scanning npm package: $filename"
-
+                  
                   # Extract package for scanning
                   mkdir -p "temp-extract/$filename"
                   tar -xzf "$artifact" -C "temp-extract/$filename"
-
+                  
                   # Scan with Trivy
                   trivy fs --format json --output "scan-results/${filename}-trivy.json" "temp-extract/$filename" || true
-
+                  
                   # Generate SBOM with Syft
                   syft "temp-extract/$filename" -o json > "scan-results/${filename}-sbom.json" || true
-
+                  
                   # Scan with Grype
                   grype "temp-extract/$filename" -o json > "scan-results/${filename}-grype.json" || true
-
+                  
                   # Check for high/critical vulnerabilities
                   if trivy fs --severity HIGH,CRITICAL --quiet "temp-extract/$filename" | grep -q "Total:"; then
                     VULNERABILITIES_FOUND=true
                     echo "⚠️ High/Critical vulnerabilities found in $filename"
                   fi
-
+                  
                   # Cleanup
                   rm -rf "temp-extract/$filename"
                   ;;
-
+                  
                 *.zip)
                   echo "Scanning zip archive: $filename"
-
+                  
                   # Extract and scan zip
                   mkdir -p "temp-extract/$filename"
                   unzip -q "$artifact" -d "temp-extract/$filename"
-
+                  
                   # Scan with Trivy
                   trivy fs --format json --output "scan-results/${filename}-trivy.json" "temp-extract/$filename" || true
-
+                  
                   # Check for vulnerabilities
                   if trivy fs --severity HIGH,CRITICAL --quiet "temp-extract/$filename" | grep -q "Total:"; then
                     VULNERABILITIES_FOUND=true
                     echo "⚠️ High/Critical vulnerabilities found in $filename"
                   fi
-
+                  
                   # Cleanup
                   rm -rf "temp-extract/$filename"
                   ;;
-
+                  
                 *.json)
                   echo "Scanning JSON file: $filename"
                   # Basic JSON validation and content scanning
@@ -161,7 +161,7 @@ jobs:
                     echo "⚠️ Invalid JSON format in $filename"
                   fi
                   ;;
-
+                  
                 *)
                   echo "Skipping unknown file type: $filename"
                   ;;
@@ -241,14 +241,14 @@ jobs:
             if [[ -f "$artifact" ]]; then
               filename=$(basename "$artifact")
               echo "Signing $filename..."
-
+              
               # Create detached signature
               gpg --batch --yes --pinentry-mode loopback \
                   --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
                   --armor --detach-sign \
                   --output "signatures/${filename}.asc" \
                   "$artifact"
-
+              
               # Verify signature
               if gpg --verify "signatures/${filename}.asc" "$artifact"; then
                 echo "✅ Successfully signed and verified $filename"
@@ -277,7 +277,7 @@ jobs:
                 echo "," >> signatures/signature-manifest.json
               fi
               first=false
-
+              
               filename=$(basename "$sig" .asc)
               echo "      {" >> signatures/signature-manifest.json
               echo "        \"file\": \"$filename\"," >> signatures/signature-manifest.json
@@ -500,7 +500,7 @@ jobs:
         with:
           name: audit-logs-${{ env.VERSION }}
           path: audit-logs/
-          retention-days: 2555  # 7 years for compliance
+          retention-days: 2555 # 7 years for compliance
 
       - name: Create audit trail issue
         if: needs.security-scan.outputs.vulnerabilities_found == 'true'

@@ -23,7 +23,7 @@ class DeploymentIntegrationTester {
       passed: 0,
       failed: 0,
       warnings: 0,
-      tests: []
+      tests: [],
     };
   }
 
@@ -34,10 +34,12 @@ class DeploymentIntegrationTester {
       success: '\x1b[32m',
       warning: '\x1b[33m',
       error: '\x1b[31m',
-      reset: '\x1b[0m'
+      reset: '\x1b[0m',
     };
 
-    console.log(`${colors[level]}[${level.toUpperCase()}]${colors.reset} ${timestamp} - ${message}`);
+    console.log(
+      `${colors[level]}[${level.toUpperCase()}]${colors.reset} ${timestamp} - ${message}`
+    );
   }
 
   async runTest(name, testFn) {
@@ -53,7 +55,7 @@ class DeploymentIntegrationTester {
         name,
         status: 'passed',
         duration,
-        message: 'Test passed successfully'
+        message: 'Test passed successfully',
       });
 
       this.log('success', `✓ ${name} (${duration}ms)`);
@@ -64,7 +66,7 @@ class DeploymentIntegrationTester {
         status: 'failed',
         duration: 0,
         message: error.message,
-        error: error.stack
+        error: error.stack,
       });
 
       this.log('error', `✗ ${name}: ${error.message}`);
@@ -92,7 +94,7 @@ class DeploymentIntegrationTester {
       try {
         const output = execSync(`bash "${scriptPath}" --help`, {
           encoding: 'utf8',
-          timeout: 10000
+          timeout: 10000,
         });
 
         if (!output.includes('Usage:')) {
@@ -112,11 +114,7 @@ class DeploymentIntegrationTester {
       const scriptContent = await fs.readFile(scriptPath, 'utf8');
 
       // Check for required environment variable usage
-      const requiredEnvVars = [
-        'DEPLOYMENT_ENV',
-        'PROJECT_ROOT',
-        'FEATURE_FLAGS_FILE'
-      ];
+      const requiredEnvVars = ['DEPLOYMENT_ENV', 'PROJECT_ROOT', 'FEATURE_FLAGS_FILE'];
 
       for (const envVar of requiredEnvVars) {
         if (!scriptContent.includes(envVar)) {
@@ -162,7 +160,7 @@ class DeploymentIntegrationTester {
         'CANARY_PERCENTAGE',
         'MONITORING_DURATION',
         'ERROR_THRESHOLD',
-        'RESPONSE_TIME_THRESHOLD'
+        'RESPONSE_TIME_THRESHOLD',
       ];
 
       for (const config of requiredConfig) {
@@ -254,7 +252,7 @@ class DeploymentIntegrationTester {
         'validateService',
         'validateModPorterAI',
         'validateSecurity',
-        'validatePerformance'
+        'validatePerformance',
       ];
 
       for (const category of validationCategories) {
@@ -339,7 +337,7 @@ class DeploymentIntegrationTester {
         'enhanced_file_processing',
         'multi_strategy_analysis',
         'specialized_conversion_agents',
-        'comprehensive_validation'
+        'comprehensive_validation',
       ];
 
       for (const flag of requiredFlags) {
@@ -356,7 +354,12 @@ class DeploymentIntegrationTester {
 
   async testHealthCheckIntegration() {
     await this.runTest('Health Check Service Integration', async () => {
-      const healthServicePath = path.join(this.projectRoot, 'src', 'services', 'HealthCheckService.ts');
+      const healthServicePath = path.join(
+        this.projectRoot,
+        'src',
+        'services',
+        'HealthCheckService.ts'
+      );
 
       await fs.access(healthServicePath);
 
@@ -367,7 +370,7 @@ class DeploymentIntegrationTester {
         'performHealthCheck',
         'isReady',
         'checkDatabaseConnectivity',
-        'checkModPorterAIComponents'
+        'checkModPorterAIComponents',
       ];
 
       for (const method of requiredMethods) {
@@ -385,13 +388,7 @@ class DeploymentIntegrationTester {
       const apiContent = await fs.readFile(healthAPIPath, 'utf8');
 
       // Check for required endpoints
-      const requiredEndpoints = [
-        'health',
-        'ready',
-        'live',
-        'metrics',
-        'validateConfig'
-      ];
+      const requiredEndpoints = ['health', 'ready', 'live', 'metrics', 'validateConfig'];
 
       for (const endpoint of requiredEndpoints) {
         if (!apiContent.includes(`async ${endpoint}(`)) {
@@ -452,7 +449,7 @@ class DeploymentIntegrationTester {
         'rollback',
         'db:migrate',
         'db:check',
-        'health:check'
+        'health:check',
       ];
 
       for (const script of requiredScripts) {
@@ -474,7 +471,7 @@ class DeploymentIntegrationTester {
         'security.yml',
         'deploy.yml',
         'dependencies.yml',
-        'performance.yml'
+        'performance.yml',
       ];
 
       for (const workflow of expectedWorkflows) {
@@ -494,7 +491,7 @@ class DeploymentIntegrationTester {
       const referencedScripts = [
         'deploy-modporter-ai.sh',
         'validate-deployment.js',
-        'canary-deployment.sh'
+        'canary-deployment.sh',
       ];
 
       for (const script of referencedScripts) {
@@ -505,9 +502,9 @@ class DeploymentIntegrationTester {
     });
   }
 
-  generateReport() {
+  async generateReport() {
     const total = this.results.passed + this.results.failed;
-    const successRate = total > 0 ? (this.results.passed / total * 100).toFixed(2) : 0;
+    const successRate = total > 0 ? ((this.results.passed / total) * 100).toFixed(2) : 0;
 
     console.log('\n' + '='.repeat(60));
     console.log('DEPLOYMENT INTEGRATION TEST REPORT');
@@ -521,8 +518,8 @@ class DeploymentIntegrationTester {
     if (this.results.failed > 0) {
       console.log('\nFAILED TESTS:');
       this.results.tests
-        .filter(test => test.status === 'failed')
-        .forEach(test => {
+        .filter((test) => test.status === 'failed')
+        .forEach((test) => {
           console.log(`- ${test.name}: ${test.message}`);
         });
     }
@@ -534,9 +531,9 @@ class DeploymentIntegrationTester {
         total,
         passed: this.results.passed,
         failed: this.results.failed,
-        successRate: parseFloat(successRate)
+        successRate: parseFloat(successRate),
       },
-      tests: this.results.tests
+      tests: this.results.tests,
     };
 
     const reportPath = path.join(this.projectRoot, 'deployment-integration-report.json');
@@ -561,7 +558,7 @@ class DeploymentIntegrationTester {
       await this.testPackageScriptsIntegration();
       await this.testWorkflowIntegration();
 
-      const success = this.generateReport();
+      const success = await this.generateReport();
 
       if (success) {
         this.log('success', 'All deployment integration tests passed!');
