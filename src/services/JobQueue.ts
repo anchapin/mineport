@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
 import { promises as fs } from 'fs';
-import path from 'path';
 import { ConfigurationService } from './ConfigurationService.js';
 import { createLogger } from '../utils/logger.js';
 
@@ -378,7 +377,7 @@ export class JobQueue extends EventEmitter {
       const data = await fs.readFile(filePath, 'utf-8');
       const jobs = JSON.parse(data) as Job[];
       // Reset processing status for all loaded jobs
-      this.queue = jobs.map(job => ({
+      this.queue = jobs.map((job) => ({
         ...job,
         status: job.status === 'processing' ? 'pending' : job.status,
         createdAt: new Date(job.createdAt),

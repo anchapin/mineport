@@ -310,8 +310,14 @@ export class ConfigurationService extends EventEmitter {
       jobQueue: {
         persistence: {
           enabled: this.getEnvBoolean('MODPORTER_JOB_QUEUE_PERSISTENCE_ENABLED', false),
-          filePath: this.getEnvString('MODPORTER_JOB_QUEUE_PERSISTENCE_FILE_PATH', './job-queue.json'),
-          cleanupInterval: this.getEnvNumber('MODPORTER_JOB_QUEUE_PERSISTENCE_CLEANUP_INTERVAL', 3600000), // 1 hour
+          filePath: this.getEnvString(
+            'MODPORTER_JOB_QUEUE_PERSISTENCE_FILE_PATH',
+            './job-queue.json'
+          ),
+          cleanupInterval: this.getEnvNumber(
+            'MODPORTER_JOB_QUEUE_PERSISTENCE_CLEANUP_INTERVAL',
+            3600000
+          ), // 1 hour
         },
       },
     };
