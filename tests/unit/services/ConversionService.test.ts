@@ -10,27 +10,27 @@ vi.mock('../../../src/services/ConversionPipeline', async () => {
   const { EventEmitter } = await vi.importActual<typeof import('events')>('events');
   const MockConversionPipeline = class extends EventEmitter {
     convert = vi.fn().mockResolvedValue({
-        success: true,
-        outputPath: '/mock/output',
-        reportPath: '/mock/report.html',
-        addonPath: '/mock/addon.mcaddon',
-        errorSummary: {
-          totalErrors: 0,
-          criticalErrors: 0,
-          errors: 0,
-          warnings: 0,
-          info: 0,
-        },
-      });
-      queueConversion = vi.fn().mockReturnValue('mock_job_id');
-      cancelJob = vi.fn().mockReturnValue(true);
-      startProcessingJobs = vi.fn();
-      stopProcessingJobs = vi.fn();
-      getJobStatus = vi.fn().mockReturnValue({
-        status: 'pending',
-        progress: 0,
-      });
-    };
+      success: true,
+      outputPath: '/mock/output',
+      reportPath: '/mock/report.html',
+      addonPath: '/mock/addon.mcaddon',
+      errorSummary: {
+        totalErrors: 0,
+        criticalErrors: 0,
+        errors: 0,
+        warnings: 0,
+        info: 0,
+      },
+    });
+    queueConversion = vi.fn().mockReturnValue('mock_job_id');
+    cancelJob = vi.fn().mockReturnValue(true);
+    startProcessingJobs = vi.fn();
+    stopProcessingJobs = vi.fn();
+    getJobStatus = vi.fn().mockReturnValue({
+      status: 'pending',
+      progress: 0,
+    });
+  };
 
   return { ConversionPipeline: MockConversionPipeline };
 });

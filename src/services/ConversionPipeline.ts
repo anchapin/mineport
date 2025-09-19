@@ -712,7 +712,6 @@ export class ConversionPipeline extends EventEmitter {
         this.jobQueue?.failJob(job.id, error instanceof Error ? error : new Error(String(error)));
       }
     });
-
   }
 
   /**
