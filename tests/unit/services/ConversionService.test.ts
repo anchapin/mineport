@@ -2,12 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ConversionService } from '../../../src/services/ConversionService.js';
 import { JobQueue } from '../../../src/services/JobQueue.js';
 import { ErrorCollector } from '../../../src/services/ErrorCollector.js';
+import { ConversionPipeline } from '../../../src/services/ConversionPipeline.js';
 
 // Mock dependencies
-vi.mock('../../../src/services/ConversionPipeline', () => {
-  return {
-    ConversionPipeline: vi.fn().mockImplementation(() => ({
-      convert: vi.fn().mockResolvedValue({
+vi.mock('../../../src/services/ConversionPipeline', async () => {
+  const { EventEmitter } = await vi.importActual<typeof import('events')>('events');
+  const MockConversionPipeline = class extends EventEmitter {
+    convert = vi.fn().mockResolvedValue({
         success: true,
         outputPath: '/mock/output',
         reportPath: '/mock/report.html',
@@ -19,17 +20,18 @@ vi.mock('../../../src/services/ConversionPipeline', () => {
           warnings: 0,
           info: 0,
         },
-      }),
-      queueConversion: vi.fn().mockReturnValue('mock_job_id'),
-      cancelJob: vi.fn().mockReturnValue(true),
-      startProcessingJobs: vi.fn(),
-      stopProcessingJobs: vi.fn(),
-      getJobStatus: vi.fn().mockReturnValue({
+      });
+      queueConversion = vi.fn().mockReturnValue('mock_job_id');
+      cancelJob = vi.fn().mockReturnValue(true);
+      startProcessingJobs = vi.fn();
+      stopProcessingJobs = vi.fn();
+      getJobStatus = vi.fn().mockReturnValue({
         status: 'pending',
         progress: 0,
-      }),
-    })),
-  };
+      });
+    };
+
+  return { ConversionPipeline: MockConversionPipeline };
 });
 
 vi.mock('../../../src/utils/logger', async () => {
@@ -67,12 +69,14 @@ vi.mock('../../../src/utils/logger', async () => {
 describe('ConversionService', () => {
   let jobQueue: JobQueue;
   let errorCollector: ErrorCollector;
+  let conversionPipeline: ConversionPipeline;
   let conversionService: ConversionService;
 
   beforeEach(() => {
     // Create fresh instances for each test
     jobQueue = new JobQueue();
     errorCollector = new ErrorCollector();
+    conversionPipeline = new ConversionPipeline();
 
     // Mock JobQueue methods
     jobQueue.addJob = vi.fn().mockImplementation((type, data, priority) => {
@@ -123,6 +127,7 @@ describe('ConversionService', () => {
     // Create the service
     conversionService = new ConversionService({
       jobQueue,
+      conversionPipeline,
     });
 
     // Mock event emitter methods
@@ -273,5 +278,39 @@ describe('ConversionService', () => {
     // Stop service (it's async)
     await conversionService.stop();
     expect(conversionService.emit).toHaveBeenCalledWith('stopped');
+  });
+
+  it('should update job progress and emit status update event', () => {
+    const jobId = 'mock_job_id';
+    const input = {
+      modFile: 'test.jar',
+      outputPath: '/output',
+      options: {
+        targetMinecraftVersion: '1.19',
+        compromiseStrategy: 'balanced' as const,
+        includeDocumentation: true,
+        optimizeAssets: true,
+      },
+    };
+
+    conversionService.createConversionJob(input);
+
+    const progressData = {
+      status: 'processing' as const,
+      progress: 50,
+      currentStage: 'Asset Conversion',
+      stageProgress: 25,
+    };
+
+    conversionService.updateJobProgress(jobId, progressData);
+
+    const status = conversionService.getJobStatus(jobId);
+
+    expect(status).toBeDefined();
+    expect(status?.status).toBe('processing');
+    expect(status?.progress).toBe(50);
+    expect(status?.currentStage).toBe('Asset Conversion');
+    expect(status?.stageProgress).toBe(25);
+    expect(conversionService.emit).toHaveBeenCalledWith('job-status:updated', status);
   });
 });
