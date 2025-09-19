@@ -252,8 +252,8 @@ export class ConversionService extends EventEmitter implements IConversionServic
     this.validationPipeline = options.validationPipeline || new ValidationPipeline();
     this.featureFlagService = options.featureFlagService || new FeatureFlagService();
 
-    // Create pipeline with job queue and resource allocator
-    this.pipeline = new ConversionPipeline({
+    // Use provided conversion pipeline or create a new one
+    this.pipeline = options.conversionPipeline || new ConversionPipeline({
       errorCollector: this.errorCollector,
       jobQueue: this.jobQueue,
       resourceAllocator: this.resourceAllocator,

@@ -7,7 +7,7 @@ import { ConversionPipeline } from '../../../src/services/ConversionPipeline.js'
 
 // Mock dependencies
 vi.mock('../../../src/services/ConversionPipeline', async () => {
-  const { EventEmitter } = await vi.importActual&lt;typeof import('events')&gt;('events');
+  const { EventEmitter } = await vi.importActual<typeof import('events')>('events');
   const MockConversionPipeline = class extends EventEmitter {
     convert = vi.fn().mockResolvedValue({
         success: true,
@@ -293,7 +293,7 @@ describe('ConversionService', () => {
     expect(conversionService.emit).toHaveBeenCalledWith('stopped');
   });
 
-  it('should update job progress and emit status update event', () => {
+  it('should update job progress and emit status update event', async () => {
     const jobId = 'mock_job_id';
     const input = {
       modFile: 'test.jar',
@@ -306,7 +306,7 @@ describe('ConversionService', () => {
       },
     };
 
-    conversionService.createConversionJob(input);
+    await conversionService.createConversionJob(input);
 
     const progressData = {
       status: 'processing' as const,
