@@ -269,10 +269,7 @@ describe('ResourceAllocator', () => {
 
       // Create a temp file for the job
       const tempFileManager = resourceAllocator.getTempFileManager();
-      await tempFileManager.createTempFile(
-        { prefix: 'test' },
-        jobId
-      );
+      await tempFileManager.createTempFile({ prefix: 'test' }, jobId);
 
       // Verify resources are allocated
       expect(resourceAllocator.getCurrentUsage().memory).toBe(128);
