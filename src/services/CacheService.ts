@@ -58,7 +58,7 @@ export class CacheService {
   private memoryCache: LRUCache<string, CacheEntry<any>>;
   private options: CacheOptions;
   private metrics!: CacheMetrics; // Initialized in constructor
-  private persistenceEnabled: boolean;
+  private persistenceEnabled: boolean = false;
   private persistenceDir: string;
   private enabled: boolean;
   private ttlDefaults: Record<string, number>;
@@ -155,7 +155,27 @@ export class CacheService {
       },
     });
 
-    this.initializePersistence();
+    this.initializePersistence().then(() => this.loadCacheFromDisk());
+  }
+
+  private async loadCacheFromDisk(): Promise<void> {
+    if (!this.persistenceEnabled) return;
+
+    try {
+      const files = await fs.readdir(this.persistenceDir);
+      for (const file of files) {
+        if (file.endsWith('.json')) {
+          const key = file.replace('.json', '');
+          const entry = await this.loadFromDisk(key);
+          if (entry && !this.isExpired(entry)) {
+            this.memoryCache.set(key, entry);
+          }
+        }
+      }
+      logger.info(`Loaded ${this.memoryCache.size} items from disk cache`);
+    } catch (error) {
+      logger.warn('Could not load cache from disk.', { error });
+    }
   }
 
   /**

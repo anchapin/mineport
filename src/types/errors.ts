@@ -347,6 +347,28 @@ export const VALIDATION_PIPELINE_ERRORS = {
   AGGREGATION_FAILED: createErrorCode('VAL', 'AGG', 1),
 };
 
+export const SECURITY_ERROR_CODES = {
+  FILE_TOO_LARGE: 'SEC-001',
+  INVALID_FILE_TYPE: 'SEC-002',
+  MAGIC_NUMBER_MISMATCH: 'SEC-003',
+  ZIP_BOMB_DETECTED: 'SEC-004',
+  PATH_TRAVERSAL_DETECTED: 'SEC-005',
+  MALWARE_PATTERN_DETECTED: 'SEC-006',
+  SCAN_TIMEOUT: 'SEC-007',
+  CORRUPTED_ARCHIVE: 'SEC-008',
+} as const;
+
+export interface SecurityValidationError extends ConversionError {
+  securityContext: {
+    threatType?: 'zip_bomb' | 'path_traversal' | 'malware_pattern';
+    fileSize?: number;
+    compressionRatio?: number;
+    suspiciousPatterns?: string[];
+    affectedPaths?: string[];
+    recommendedAction: string;
+  };
+}
+
 /**
  * Error recovery strategy types
  */
