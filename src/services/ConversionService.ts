@@ -90,6 +90,7 @@ import {
   ConversionStatus,
   ConversionResult,
   JobStatus,
+  ConversionJobStatus,
   ConversionService as IConversionService,
 } from '../types/services';
 // import { ErrorSeverity, createErrorCode, createConversionError } from '../types/errors';
@@ -116,6 +117,7 @@ const logger = createLogger('ConversionService');
  */
 export interface ConversionServiceOptions {
   jobQueue: JobQueue;
+  conversionPipeline?: ConversionPipeline;
   resourceAllocator?: ResourceAllocator;
   errorCollector?: ErrorCollector;
   configService?: ConfigurationService;
@@ -146,6 +148,7 @@ export interface ConversionServiceOptions {
  */
 export class ConversionService extends EventEmitter implements IConversionService {
   private jobQueue: JobQueue;
+  private conversionPipeline?: ConversionPipeline;
   private resourceAllocator?: ResourceAllocator;
   private errorCollector: ErrorCollector;
   private configService?: ConfigurationService;
@@ -160,6 +163,17 @@ export class ConversionService extends EventEmitter implements IConversionServic
     }
   > = new Map();
   private statusIntervalId?: NodeJS.Timeout;
+  private stageWeights: Map<string, number> = new Map([
+    ['Mod Validation', 0.05],
+    ['Feature Compatibility', 0.1],
+    ['Manifest Generation', 0.05],
+    ['Asset Conversion', 0.2],
+    ['Configuration Conversion', 0.2],
+    ['Logic Conversion', 0.3],
+    ['Addon Validation', 0.05],
+    ['Report Generation', 0.02],
+    ['Addon Packaging', 0.03],
+  ]);
 
   // New ModPorter-AI components
   private fileProcessor: FileProcessor;
@@ -188,6 +202,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
   constructor(options: ConversionServiceOptions) {
     super();
     this.jobQueue = options.jobQueue;
+    this.conversionPipeline = options.conversionPipeline;
     this.resourceAllocator = options.resourceAllocator;
     this.errorCollector = options.errorCollector || new ErrorCollector();
     this.configService = options.configService;
@@ -236,13 +251,15 @@ export class ConversionService extends EventEmitter implements IConversionServic
     this.validationPipeline = options.validationPipeline || new ValidationPipeline();
     this.featureFlagService = options.featureFlagService || new FeatureFlagService();
 
-    // Create pipeline with job queue and resource allocator
-    this.pipeline = new ConversionPipeline({
-      errorCollector: this.errorCollector,
-      jobQueue: this.jobQueue,
-      resourceAllocator: this.resourceAllocator,
-      configService: this.configService,
-    });
+    // Use provided conversion pipeline or create a new one
+    this.pipeline =
+      options.conversionPipeline ||
+      new ConversionPipeline({
+        errorCollector: this.errorCollector,
+        jobQueue: this.jobQueue,
+        resourceAllocator: this.resourceAllocator,
+        configService: this.configService,
+      });
 
     /**
      * if method.
@@ -331,6 +348,13 @@ export class ConversionService extends EventEmitter implements IConversionServic
     // Start the resource allocator if provided
     if (this.resourceAllocator) {
       this.resourceAllocator.start();
+    }
+
+    // Set up progress tracking from pipeline
+    if (this.conversionPipeline) {
+      this.conversionPipeline.on('job:progress', (progressData) => {
+        this.updateJobProgress(progressData.jobId, progressData);
+      });
     }
 
     // Start processing jobs from the queue
@@ -571,7 +595,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
       // Create a dedicated error collector for this job
       const jobErrorCollector = new ErrorCollector();
 
-      // Store active job info with enhanced status
+      // Store active job info with enhanced status tracking
       this.activeJobs.set(job.id, {
         job,
         status: {
@@ -579,6 +603,9 @@ export class ConversionService extends EventEmitter implements IConversionServic
           status: job.status as JobStatus,
           progress: 0,
           currentStage: 'validated',
+          stageProgress: 0,
+          history: [{ status: job.status as JobStatus, stage: 'validated', timestamp: new Date() }],
+          estimatedTimeRemaining: -1, // Will be calculated during processing
         },
         errorCollector: jobErrorCollector,
       });
@@ -1009,6 +1036,83 @@ export class ConversionService extends EventEmitter implements IConversionServic
   private async readFileBuffer(filePath: string): Promise<Buffer> {
     const fs = await import('fs/promises');
     return await fs.readFile(filePath);
+  }
+
+  /**
+   * Update job progress and status
+   * @param jobId Job ID
+   * @param progressData Progress data
+   */
+  public updateJobProgress(jobId: string, progressData: Partial<ConversionJobStatus>): void {
+    const activeJob = this.activeJobs.get(jobId);
+    if (!activeJob) {
+      return;
+    }
+
+    const { status, job } = activeJob;
+
+    // Update status properties
+    Object.assign(status, progressData);
+
+    // Add to history if stage or status has changed
+    const lastHistory = status.history[status.history.length - 1];
+    if (
+      progressData.status &&
+      (lastHistory.status !== progressData.status ||
+        lastHistory.stage !== progressData.currentStage)
+    ) {
+      status.history.push({
+        status: progressData.status,
+        stage: progressData.currentStage || status.currentStage,
+        timestamp: new Date(),
+      });
+    }
+
+    // Update job timestamps
+    job.updatedAt = new Date();
+    if (status.status === 'completed' || status.status === 'failed') {
+      job.completedAt = new Date();
+    }
+
+    // Calculate estimated time remaining
+    status.estimatedTimeRemaining = this.calculateEstimatedTimeRemaining(status);
+
+    this.emit('job-status:updated', status);
+  }
+
+  private calculateEstimatedTimeRemaining(status: ConversionJobStatus): number {
+    const { history, currentStage } = status;
+    let totalTime = 0;
+    let totalWeight = 0;
+
+    for (let i = 1; i < history.length; i++) {
+      const stageName = history[i - 1].stage;
+      const stageWeight = this.stageWeights.get(stageName) || 0;
+      const stageTime = history[i].timestamp.getTime() - history[i - 1].timestamp.getTime();
+
+      if (stageWeight > 0) {
+        totalTime += stageTime / stageWeight;
+        totalWeight += stageWeight;
+      }
+    }
+
+    if (totalWeight === 0) {
+      return -1; // Not enough data
+    }
+
+    const avgTimePerWeight = totalTime / totalWeight;
+    let remainingWeight = 0;
+    let stageFound = false;
+    for (const [stage, weight] of this.stageWeights.entries()) {
+      if (stageFound) {
+        remainingWeight += weight;
+      }
+      if (stage === currentStage) {
+        stageFound = true;
+      }
+    }
+
+    return avgTimePerWeight * remainingWeight;
   }
 
   public async processModFile(file: Buffer, filename: string): Promise<ConversionResult> {

@@ -1,19 +1,34 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Core TypeScript code sits in `src/`: `modules/` for conversion stages, `services/` for orchestration, `api/` for Express endpoints, and shared helpers in `types/` and `utils/`. Builds compile to `dist/`. Automation lives in `scripts/` (deploy, docs, migrations, security). Config templates inhabit `config/` and `security-config/`. Tests live in `tests/` with unit, integration, security, benchmark, deployment suites plus fixtures and mocks. Supplemental references are under `docs/`; runnable flows and CLI samples reside in `examples/`.
+- TypeScript sources live in `src/`; conversion stages under `modules/`, orchestration in `services/`, HTTP endpoints in `api/`, and shared helpers in `types/` and `utils/`.
+- Build artifacts emit to `dist/`; automation scripts reside in `scripts/`, config templates in `config/` and `security-config/`, and docs or runnable samples under `docs/` and `examples/`.
+- Tests sit in `tests/` grouped by suite (`unit`, `integration`, `security`, `benchmark`, `deployment`) with fixtures in `tests/fixtures/`; reuse them before adding new data.
 
 ## Build, Test, and Development Commands
-Install dependencies with `npm install`. Run `npm run dev` for a ts-node-dev loop, `npm run build` to emit JavaScript, and `npm start` to execute the compiled entrypoint. Primary validation commands: `npm test`, `npm run test:unit`, `npm run test:integration`, and `npm run test:coverage`. Lint and formatting checks run via `npm run lint`, `npm run lint:fix`, and `npm run format`. Install pre-commit hooks with `npm run hooks:install` when onboarding.
+- `npm install` - install dependencies.
+- `npm run dev` - start the ts-node-dev loop for local iteration.
+- `npm run build` - compile TypeScript to `dist/`.
+- `npm start` - execute the compiled entrypoint.
+- `npm test`, `npm run test:unit`, `npm run test:integration`, `npm run test:coverage` - run the Vitest suites and enforce coverage thresholds.
+- `npm run lint`, `npm run lint:fix`, `npm run format` - apply ESLint and Prettier rules; run before commits.
 
 ## Coding Style & Naming Conventions
-The repo enforces strict TypeScript; address every `tsc` warning before pushing and document any intentional `any`. Prettier uses two-space indentation and single quotes—avoid manual adjustments. Follow naming conventions in `CONTRIBUTING.md`: PascalCase for types and classes, camelCase for functions and variables, UPPER_SNAKE_CASE for constants. Keep one primary export per file and align folder names with their module namespace.
+- Enforce strict TypeScript: resolve `tsc` warnings and document intentional `any` usage.
+- Formatting uses Prettier defaults: two space indentation, single quotes, and repository lint rules.
+- Naming: PascalCase for types and classes, camelCase for variables and functions, UPPER_SNAKE_CASE for constants; prefer one primary export per file.
 
 ## Testing Guidelines
-Vitest drives all automated testing. Store specs in the matching suite folder, ending filenames with `.test.ts`. New logic needs unit coverage and an integration spec when cross-module behavior shifts. Reuse fixtures from `tests/fixtures/`; extend them instead of committing sample data to `src/`. Run `npm run test:coverage` before feature branches exit review and track thresholds enforced by CI.
+- Vitest drives all specs; name files `*.test.ts` inside the matching suite directory.
+- Add unit coverage for new logic and integration tests when workflows cross modules; verify with `npm run test:coverage` before review.
+- Extend shared fixtures in `tests/fixtures/` instead of embedding sample data inside `src/`.
 
 ## Commit & Pull Request Guidelines
-Commits follow Conventional Commits, e.g. `fix(transpiler): handle biome registry gap`. Branch names mirror effort (`feature/...`, `fix/...`, `docs/...`). Pull requests should summarize intent, list verification commands, link related issues, and attach artifacts (screenshots, JSON samples) when outputs change. Keep PR scope small, update relevant docs or configs, and ensure CI passes before requesting review.
+- Follow Conventional Commits such as `fix(transpiler): handle biome registry gap`.
+- Scope branches by intent (`feature/...`, `fix/...`, `docs/...`).
+- Pull requests should summarize intent, list verification commands run, link related issues, and attach artifacts (logs, screenshots) when behavior changes.
 
 ## Security & Configuration Tips
-Secrets stay in untracked `.env` files. Run `npm run security:audit` and `npm run security:scan` on release-bound work. Update `security-config/` policies when dependency surface or API contracts shift. Before deploying, execute `npm run test:pre-deploy` and verify health endpoints with `npm run health:check` or `npm run config:validate`.
+- Keep secrets in untracked `.env` files; never commit credentials.
+- Before releases, run `npm run security:audit`, `npm run security:scan`, `npm run test:pre-deploy`, and verify health with `npm run health:check` or `npm run config:validate`.
+- Update `security-config/` policies whenever API contracts or dependencies change, and confirm health endpoints before deploying.
