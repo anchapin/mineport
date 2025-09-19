@@ -11,6 +11,7 @@ import { createLogger } from '../utils/logger';
 import { ErrorHandler } from '../utils/errorHandler';
 import { ErrorSeverity, createErrorCode } from '../types/errors';
 import { ConfigurationService } from './ConfigurationService';
+import { CacheService, CacheMetrics } from './CacheService';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -283,39 +284,54 @@ export class InMemoryMappingDatabase implements MappingDatabase {
 
 export class APIMapperServiceImpl implements APIMapperService {
   private database: MappingDatabase;
-  private cache: Map<string, APIMapping> = new Map();
-  private cacheEnabled: boolean = true;
-  private cacheMaxSize: number = 1000;
   private configService: ConfigurationService;
+  private cacheService: CacheService;
 
-  private constructor(configService: ConfigurationService, database?: MappingDatabase) {
+  private constructor(
+    configService: ConfigurationService,
+    cacheService: CacheService,
+    database?: MappingDatabase
+  ) {
     this.configService = configService;
     this.database = database || new InMemoryMappingDatabase();
-    this.cacheEnabled = this.configService.get('apiMapper.cacheEnabled', true);
-    this.cacheMaxSize = this.configService.get('apiMapper.cacheMaxSize', 1000);
+    this.cacheService = cacheService;
   }
 
   public static async create(
     configService: ConfigurationService,
     database?: MappingDatabase
   ): Promise<APIMapperServiceImpl> {
-    const service = new APIMapperServiceImpl(configService, database);
+    const cacheService = await CacheService.create({
+      configService,
+      enablePersistence: configService.get('apiMapper.cache.persistenceEnabled', true),
+      persistenceDir: configService.get('apiMapper.cache.persistenceDir', path.join(process.cwd(), '.cache', 'api-mappings')),
+      defaultTTL: configService.get('apiMapper.cache.ttl', 24 * 60 * 60 * 1000), // 24 hours
+    });
+
+    const service = new APIMapperServiceImpl(configService, cacheService, database);
     await service.initializeDefaultMappings();
     logger.info('APIMapperService initialized', {
-      cacheEnabled: service.cacheEnabled,
-      cacheMaxSize: service.cacheMaxSize,
+      cacheEnabled: configService.get('apiMapper.cacheEnabled', true),
+      cacheMaxSize: configService.get('apiMapper.cacheMaxSize', 1000),
     });
     return service;
   }
 
   async getMapping(javaSignature: string): Promise<APIMapping | undefined> {
-    if (this.cacheEnabled && this.cache.has(javaSignature)) {
+    const cacheKey = `api_mapping:${javaSignature}`;
+    let mapping = await this.cacheService.get<APIMapping>(cacheKey);
+
+    if (mapping) {
       logger.debug(`Cache hit for signature: ${javaSignature}`);
-      return this.cache.get(javaSignature);
+      return mapping;
     }
+
+    logger.debug(`Cache miss for signature: ${javaSignature}`);
     try {
-      const mapping = await this.database.getBySignature(javaSignature);
-      if (mapping && this.cacheEnabled) this.addToCache(javaSignature, mapping);
+      mapping = await this.database.getBySignature(javaSignature);
+      if (mapping) {
+        await this.cacheService.set(cacheKey, mapping);
+      }
       logger.debug(`Retrieved mapping for signature: ${javaSignature}`, { found: !!mapping });
       return mapping;
     } catch (error: any) {
@@ -360,7 +376,8 @@ export class APIMapperServiceImpl implements APIMapperService {
     try {
       this.validateMapping(mappingData);
       const newMapping = await this.database.create(mappingData);
-      if (this.cacheEnabled) this.addToCache(newMapping.javaSignature, newMapping);
+      const cacheKey = `api_mapping:${newMapping.javaSignature}`;
+      await this.cacheService.set(cacheKey, newMapping);
       logger.info(
         `Added new mapping: ${newMapping.javaSignature} -> ${newMapping.bedrockEquivalent}`
       );
@@ -376,14 +393,16 @@ export class APIMapperServiceImpl implements APIMapperService {
     updates: Partial<Omit<APIMapping, 'id' | 'createdAt'>>
   ): Promise<APIMapping> {
     try {
-      const updatedMapping = await this.database.update(id, updates);
-      if (this.cacheEnabled) {
-        const oldMapping = await this.database.get(id);
-        if (oldMapping && oldMapping.javaSignature !== updatedMapping.javaSignature) {
-          this.cache.delete(oldMapping.javaSignature);
-        }
-        this.addToCache(updatedMapping.javaSignature, updatedMapping);
+      const oldMapping = await this.database.get(id);
+      if (oldMapping) {
+        const oldCacheKey = `api_mapping:${oldMapping.javaSignature}`;
+        await this.cacheService.delete(oldCacheKey);
       }
+
+      const updatedMapping = await this.database.update(id, updates);
+      const newCacheKey = `api_mapping:${updatedMapping.javaSignature}`;
+      await this.cacheService.set(newCacheKey, updatedMapping);
+
       logger.info(`Updated mapping: ${updatedMapping.javaSignature}`);
       return updatedMapping;
     } catch (error: any) {
@@ -395,8 +414,11 @@ export class APIMapperServiceImpl implements APIMapperService {
   async deleteMapping(id: string): Promise<boolean> {
     try {
       const mapping = await this.database.get(id);
+      if (mapping) {
+        const cacheKey = `api_mapping:${mapping.javaSignature}`;
+        await this.cacheService.delete(cacheKey);
+      }
       const deleted = await this.database.delete(id);
-      if (deleted && mapping && this.cacheEnabled) this.cache.delete(mapping.javaSignature);
       logger.info(`Deleted mapping with ID: ${id}`, { success: deleted });
       return deleted;
     } catch (error: any) {
@@ -410,7 +432,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     try {
       const result = await this.database.bulkImport(mappings);
       logger.info(`Import completed`, result);
-      this.clearCache();
+      await this.cacheService.clear();
       return result;
     } catch (error: any) {
       this.handleError(error, 'IMPORT_MAPPINGS', {});
@@ -426,13 +448,13 @@ export class APIMapperServiceImpl implements APIMapperService {
     }
   }
 
-  clearCache(): void {
-    this.cache.clear();
+  clearCache(): Promise<void> {
     logger.info('API mapping cache cleared');
+    return this.cacheService.clear();
   }
 
-  getCacheStats(): { size: number; maxSize: number; enabled: boolean } {
-    return { size: this.cache.size, maxSize: this.cacheMaxSize, enabled: this.cacheEnabled };
+  getCacheStats(): CacheMetrics {
+    return this.cacheService.getMetrics();
   }
 
   async getDatabaseStats(): Promise<{ totalMappings: number }> {
@@ -442,15 +464,6 @@ export class APIMapperServiceImpl implements APIMapperService {
 
   private validateMapping(mapping: Partial<APIMapping>): void {
     validateAPIMapping(mapping);
-  }
-
-  private addToCache(signature: string, mapping: APIMapping): void {
-    if (!this.cacheEnabled) return;
-    if (this.cache.size >= this.cacheMaxSize && !this.cache.has(signature)) {
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
-    }
-    this.cache.set(signature, mapping);
   }
 
   private async initializeDefaultMappings(): Promise<void> {
@@ -507,7 +520,8 @@ export class APIMapperServiceImpl implements APIMapperService {
 }
 
 export async function createAPIMapperService(
-  configService: ConfigurationService
+  configService: ConfigurationService,
+  cacheService?: CacheService
 ): Promise<APIMapperService> {
   return APIMapperServiceImpl.create(configService);
 }
