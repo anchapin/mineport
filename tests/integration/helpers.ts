@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
+import tmp from 'tmp';
 import { v4 as uuidv4 } from 'uuid';
 import JSZip from 'jszip';
 import { JavaMod } from '../../src/types/base.js';
@@ -8,12 +8,14 @@ import { ConversionInput, ConversionResult } from '../../src/types/index.js';
 import { ConversionError } from '../../src/types/errors.js';
 
 /**
- * Creates a temporary directory for integration tests
+ * Creates a temporary directory for integration tests using secure tmp library
  */
 export function createTempDirectory(): string {
-  const tempDir = path.join(os.tmpdir(), `minecraft-mod-converter-test-${uuidv4()}`);
-  fs.mkdirSync(tempDir, { recursive: true });
-  return tempDir;
+  const tempDir = tmp.dirSync({
+    prefix: 'minecraft-mod-converter-test-',
+    unsafeCleanup: true,
+  });
+  return tempDir.name;
 }
 
 /**

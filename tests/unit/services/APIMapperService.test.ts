@@ -234,10 +234,50 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
     });
   });
 
+  describe('Fallback Strategies', () => {
+    beforeAll(async () => {
+      const partialMatchMapping = {
+        javaSignature: 'net.minecraft.world.World.getBlockState',
+        bedrockEquivalent: 'dimension.getBlock',
+        conversionType: 'direct' as const,
+        notes: 'Partial match test mapping',
+      };
+      await apiMapperService.addMapping(partialMatchMapping);
+    });
+
+    it('should return a partial match when no exact match is found', async () => {
+      const result = await apiMapperService.getMapping(
+        'net.minecraft.world.World.getBlockState(BlockPos)'
+      );
+      expect(result).toBeDefined();
+      expect(result!.javaSignature).toBe('net.minecraft.world.World.getBlockState');
+      expect(result!.notes).toContain('[PARTIAL MATCH]');
+    });
+
+    it('should return a legacy mapping if no exact or partial match is found', async () => {
+      const result = await apiMapperService.getMapping('net.minecraft.world.World.isRemote');
+      expect(result).toBeDefined();
+      expect(result!.javaSignature).toBe('net.minecraft.world.World.isRemote');
+      expect(result!.notes).toContain('[LEGACY]');
+      expect(result!.deprecated).toBe(true);
+    });
+
+    it('should generate an impossible mapping when no other match is found', async () => {
+      vi.mocked(uuidv4).mockReturnValue('mock-uuid-impossible');
+      const result = await apiMapperService.getMapping(
+        'com.example.mod.NonExistentClass.nonExistentMethod'
+      );
+      expect(result).toBeDefined();
+      expect(result!.conversionType).toBe('impossible');
+      expect(result!.id).toBe('mock-uuid-impossible');
+    });
+  });
+
   describe('Error Handling', () => {
     it('should handle missing mappings gracefully', async () => {
       const result = await apiMapperService.getMapping('non.existent.Signature');
-      expect(result).toBeUndefined();
+      expect(result).toBeDefined();
+      expect(result!.conversionType).toBe('impossible');
     });
 
     it('should handle duplicate signature additions', async () => {

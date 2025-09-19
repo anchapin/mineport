@@ -163,12 +163,6 @@ async function runConversionBenchmark() {
               methods: [],
             },
             dependencies: [],
-            complexity: {
-              cyclomaticComplexity: 0,
-              cognitiveComplexity: 0,
-              linesOfCode: 0,
-              nestingDepth: 0,
-            },
           };
 
           // Transpile to JavaScript AST
@@ -286,7 +280,6 @@ async function runConversionBenchmark() {
               recipes: [],
               lootTables: [],
             },
-            behaviorPackFiles: [],
             resourcePackFiles: [],
             documentation: {
               conversionReport: { html: '', json: '', markdown: '' },

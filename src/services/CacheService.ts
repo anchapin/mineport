@@ -58,7 +58,7 @@ export class CacheService {
   private memoryCache: LRUCache<string, CacheEntry<any>>;
   private options: CacheOptions;
   private metrics!: CacheMetrics; // Initialized in constructor
-  private persistenceEnabled: boolean;
+  private persistenceEnabled: boolean = false;
   private persistenceDir: string;
   private enabled: boolean;
   private ttlDefaults: Record<string, number>;
