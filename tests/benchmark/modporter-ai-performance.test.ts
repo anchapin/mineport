@@ -325,40 +325,11 @@ describe('ModPorter-AI Performance Tests', () => {
   describe('Validation Pipeline Performance', () => {
     it('should validate simple conversions quickly', async () => {
       const mockConversionInput = {
-        modId: 'testmod',
-        modName: 'Test Mod',
-        modVersion: '1.0.0',
-        bedrockConfigs: {
-          manifests: {
-            behaviorPack: {
-              format_version: 2,
-              header: {
-                name: 'Test Mod',
-                description: 'A test mod',
-                uuid: '00000000-0000-0000-0000-000000000001',
-                version: [1, 0, 0],
-                min_engine_version: [1, 19, 0],
-              },
-              modules: [],
-            },
-            resourcePack: {
-              format_version: 2,
-              header: {
-                name: 'Test Mod Resources',
-                description: 'Resources for Test Mod',
-                uuid: '00000000-0000-0000-0000-000000000002',
-                version: [1, 0, 0],
-                min_engine_version: [1, 19, 0],
-              },
-              modules: [],
-            },
-          },
-          definitions: {
-            blocks: [],
-            items: [],
-          },
-          recipes: {},
-          lootTables: {},
+        addonPath: '/mock/path/to/addon',
+        modInfo: {
+          modId: 'testmod',
+          modName: 'Test Mod',
+          modVersion: '1.0.0',
         },
       };
 
