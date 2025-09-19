@@ -534,10 +534,21 @@ export class ConversionService extends EventEmitter implements IConversionServic
       };
 
       // Queue the conversion job using the pipeline
+      // Queue the conversion job using the pipeline
       const jobId = this.pipeline.queueConversion(pipelineInput);
 
       if (!jobId) {
         throw new Error('Failed to queue conversion job');
+      }
+
+      // Allocate resources for the job now that we have an ID
+      if (this.resourceAllocator) {
+        this.resourceAllocator.allocate({
+          jobId: jobId,
+          memory: 256, // MB
+          cpu: 1, // cores
+          storage: 1024, // MB
+        });
       }
 
       // Get the job from the queue
@@ -687,8 +698,9 @@ export class ConversionService extends EventEmitter implements IConversionServic
      * @since 1.0.0
      */
     if (cancelled) {
-      // Emit job cancelled event
-      this.emit('job:cancelled', { jobId });
+      // The 'job:cancelled' event is now emitted by the JobQueue itself.
+      // The listener in this service will handle the cleanup.
+      logger.info('Job cancellation requested successfully.', { jobId });
     }
 
     return cancelled;
@@ -808,15 +820,6 @@ export class ConversionService extends EventEmitter implements IConversionServic
 
       // Update active job status
       const activeJob = this.activeJobs.get(job.id);
-      /**
-       * if method.
-       *
-       * TODO: Add detailed description of the method's purpose and behavior.
-       *
-       * @param param - TODO: Document parameters
-       * @returns result - TODO: Document return value
-       * @since 1.0.0
-       */
       if (activeJob) {
         activeJob.status.status = 'failed';
         activeJob.status.currentStage = 'failed';
@@ -828,10 +831,67 @@ export class ConversionService extends EventEmitter implements IConversionServic
         error: job.error,
       });
 
+      // Clean up resources on failure
+      if (this.resourceAllocator) {
+        this.resourceAllocator.releaseJobResources(job.id);
+      }
+
       // Clean up active job after some time
       setTimeout(() => {
         this.activeJobs.delete(job.id);
       }, 3600000); // Keep failed jobs for 1 hour
+    });
+
+    // Listen for job cancelled events
+    this.jobQueue.on('job:cancelled', (job: Job) => {
+      if (job.type !== 'conversion') return;
+
+      logger.info('Handling job cancellation cleanup', { jobId: job.id });
+
+      // Clean up resources on cancellation
+      if (this.resourceAllocator) {
+        this.resourceAllocator.releaseJobResources(job.id);
+      }
+
+      // Update active job status
+      const activeJob = this.activeJobs.get(job.id);
+      if (activeJob) {
+        activeJob.status.status = 'cancelled';
+        activeJob.status.currentStage = 'cancelled';
+      }
+
+      // Emit job cancelled event from the service
+      this.emit('job:cancelled', { jobId: job.id });
+
+      // Clean up active job immediately
+      this.activeJobs.delete(job.id);
+    });
+
+    // Listen for orphaned job events
+    this.jobQueue.on('job:orphaned', (job: Job) => {
+      if (job.type !== 'conversion') return;
+
+      logger.warn('Handling orphaned job cleanup', { jobId: job.id });
+
+      // Clean up resources for orphaned job
+      if (this.resourceAllocator) {
+        this.resourceAllocator.releaseJobResources(job.id);
+      }
+
+      // Update active job status
+      const activeJob = this.activeJobs.get(job.id);
+      if (activeJob) {
+        activeJob.status.status = 'failed'; // Or 'orphaned' if we add it to the type
+        activeJob.status.currentStage = 'failed';
+      }
+
+      // Emit a failed event for the orphaned job
+      this.emit('job:failed', {
+        jobId: job.id,
+        error: new Error('Job orphaned and timed out'),
+      });
+
+      this.activeJobs.delete(job.id);
     });
   }
 
@@ -899,8 +959,10 @@ export class ConversionService extends EventEmitter implements IConversionServic
      * @returns result - TODO: Document return value
      * @since 1.0.0
      */
-    for (const [_jobId, activeJob] of this.activeJobs.entries()) {
+    for (const [jobId, activeJob] of this.activeJobs.entries()) {
       if (activeJob.job.status === 'processing') {
+        // Update heartbeat to prevent job from being marked as orphaned
+        this.jobQueue.updateJobHeartbeat(jobId);
         // Emit status update event
         this.emit('job:status', activeJob.status);
       }

@@ -254,4 +254,60 @@ describe('ResourceAllocator', () => {
       resourceAllocator.allocate(lowPriorityRequest);
     }).toThrow(/Insufficient resources/);
   });
+
+  describe('releaseJobResources', () => {
+    it('should release all resources associated with a job ID', async () => {
+      const jobId = 'test-job-123';
+
+      // Allocate resources for the job
+      resourceAllocator.allocate({
+        jobId,
+        memory: 128,
+        cpu: 1,
+        storage: 512,
+      });
+
+      // Create a temp file for the job
+      const tempFileManager = resourceAllocator.getTempFileManager();
+      await tempFileManager.createTempFile({ prefix: 'test' }, jobId);
+
+      // Verify resources are allocated
+      expect(resourceAllocator.getCurrentUsage().memory).toBe(128);
+      expect(tempFileManager.getTempFilesCount()).toBe(1);
+
+      // Release resources for the job
+      await resourceAllocator.releaseJobResources(jobId);
+
+      // Verify resources are released
+      expect(resourceAllocator.getCurrentUsage().memory).toBe(0);
+      expect(tempFileManager.getTempFilesCount()).toBe(0);
+
+      // Verify temp file is deleted (this is a bit tricky to test without fs mocks)
+      // For now, we trust the implementation. A more robust test would mock 'fs/promises'.
+    });
+
+    it('should not release resources for other jobs', async () => {
+      const jobId1 = 'job-1';
+      const jobId2 = 'job-2';
+
+      // Allocate resources for both jobs
+      resourceAllocator.allocate({ jobId: jobId1, memory: 100, cpu: 1, storage: 100 });
+      resourceAllocator.allocate({ jobId: jobId2, memory: 200, cpu: 1, storage: 200 });
+
+      // Create temp files for both jobs
+      const tempManager = resourceAllocator.getTempFileManager();
+      await tempManager.createTempFile({ prefix: 'job1' }, jobId1);
+      await tempManager.createTempFile({ prefix: 'job2' }, jobId2);
+
+      expect(resourceAllocator.getCurrentUsage().memory).toBe(300);
+      expect(tempManager.getTempFilesCount()).toBe(2);
+
+      // Release resources for job 1 only
+      await resourceAllocator.releaseJobResources(jobId1);
+
+      // Verify job 2 resources are still allocated
+      expect(resourceAllocator.getCurrentUsage().memory).toBe(200);
+      expect(tempManager.getTempFilesCount()).toBe(1);
+    });
+  });
 });

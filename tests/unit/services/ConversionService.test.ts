@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ConversionService } from '../../../src/services/ConversionService.js';
 import { JobQueue } from '../../../src/services/JobQueue.js';
+import { ResourceAllocator } from '../../../src/services/ResourceAllocator.js';
 import { ErrorCollector } from '../../../src/services/ErrorCollector.js';
 
 // Mock dependencies
@@ -67,12 +68,14 @@ vi.mock('../../../src/utils/logger', async () => {
 describe('ConversionService', () => {
   let jobQueue: JobQueue;
   let errorCollector: ErrorCollector;
+  let resourceAllocator: ResourceAllocator;
   let conversionService: ConversionService;
 
   beforeEach(() => {
     // Create fresh instances for each test
     jobQueue = new JobQueue();
     errorCollector = new ErrorCollector();
+    resourceAllocator = new ResourceAllocator();
 
     // Mock JobQueue methods
     jobQueue.addJob = vi.fn().mockImplementation((type, data, priority) => {
@@ -120,9 +123,13 @@ describe('ConversionService', () => {
     jobQueue.on = vi.fn();
     jobQueue.emit = vi.fn();
 
+    // Mock ResourceAllocator
+    resourceAllocator.releaseJobResources = vi.fn();
+
     // Create the service
     conversionService = new ConversionService({
       jobQueue,
+      resourceAllocator,
     });
 
     // Mock event emitter methods
@@ -193,10 +200,15 @@ describe('ConversionService', () => {
   it('should cancel a pending job', () => {
     const jobId = 'mock_job_id';
 
+    // Mock the pipeline's cancelJob to return true
+    const mockPipeline = (conversionService as any).pipeline;
+    mockPipeline.cancelJob.mockReturnValue(true);
+
     const result = conversionService.cancelJob(jobId);
 
     expect(result).toBe(true);
-    expect(conversionService.emit).toHaveBeenCalledWith('job:cancelled', { jobId });
+    // The service itself no longer emits 'job:cancelled' directly, the queue does.
+    // We will test the cleanup logic in a separate test.
   });
 
   it('should handle job not found when cancelling', () => {
@@ -274,5 +286,49 @@ describe('ConversionService', () => {
     // Stop service (it's async)
     await conversionService.stop();
     expect(conversionService.emit).toHaveBeenCalledWith('stopped');
+  });
+
+  describe('Resource Cleanup', () => {
+    it('should clean up resources when a job is cancelled', () => {
+      const cancelledJob = { id: 'cancelled_job', type: 'conversion' };
+      // Find the 'job:cancelled' event registration
+      const onCancelled = (jobQueue.on as any).mock.calls.find(
+        (call: any) => call[0] === 'job:cancelled'
+      );
+      expect(onCancelled).toBeDefined();
+
+      // Trigger the event
+      const eventCallback = onCancelled[1];
+      eventCallback(cancelledJob);
+
+      // Verify cleanup was called
+      expect(resourceAllocator.releaseJobResources).toHaveBeenCalledWith(cancelledJob.id);
+    });
+
+    it('should clean up resources when a job fails', () => {
+      const failedJob = { id: 'failed_job', type: 'conversion', error: new Error('Failure') };
+      const onFailed = (jobQueue.on as any).mock.calls.find(
+        (call: any) => call[0] === 'job:failed'
+      );
+      expect(onFailed).toBeDefined();
+
+      const eventCallback = onFailed[1];
+      eventCallback(failedJob);
+
+      expect(resourceAllocator.releaseJobResources).toHaveBeenCalledWith(failedJob.id);
+    });
+
+    it('should clean up resources for an orphaned job', () => {
+      const orphanedJob = { id: 'orphaned_job', type: 'conversion' };
+      const onOrphaned = (jobQueue.on as any).mock.calls.find(
+        (call: any) => call[0] === 'job:orphaned'
+      );
+      expect(onOrphaned).toBeDefined();
+
+      const eventCallback = onOrphaned[1];
+      eventCallback(orphanedJob);
+
+      expect(resourceAllocator.releaseJobResources).toHaveBeenCalledWith(orphanedJob.id);
+    });
   });
 });
