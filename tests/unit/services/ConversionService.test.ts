@@ -307,7 +307,9 @@ describe('ConversionService', () => {
 
     it('should clean up resources when a job fails', () => {
       const failedJob = { id: 'failed_job', type: 'conversion', error: new Error('Failure') };
-      const onFailed = (jobQueue.on as any).mock.calls.find((call: any) => call[0] === 'job:failed');
+      const onFailed = (jobQueue.on as any).mock.calls.find(
+        (call: any) => call[0] === 'job:failed'
+      );
       expect(onFailed).toBeDefined();
 
       const eventCallback = onFailed[1];
