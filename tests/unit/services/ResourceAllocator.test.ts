@@ -269,7 +269,7 @@ describe('ResourceAllocator', () => {
 
       // Create a temp file for the job
       const tempFileManager = resourceAllocator.getTempFileManager();
-      const { path: tempFilePath } = await tempFileManager.createTempFile(
+      await tempFileManager.createTempFile(
         { prefix: 'test' },
         jobId
       );
