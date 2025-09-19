@@ -11,7 +11,7 @@ import { createLogger } from '../utils/logger';
 import { ErrorHandler } from '../utils/errorHandler';
 import { ErrorSeverity, createErrorCode } from '../types/errors';
 import { ConfigurationService } from './ConfigurationService';
-import { CacheService, CacheMetrics } from './CacheService';
+import { CacheService } from './CacheService';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -321,7 +321,10 @@ export class APIMapperServiceImpl implements APIMapperService {
     const cacheService = new CacheService({
       configService,
       enablePersistence: configService.get('apiMapper.cache.persistenceEnabled', true),
-      persistenceDir: configService.get('apiMapper.cache.persistenceDir', path.join(process.cwd(), '.cache', 'api-mappings')),
+      persistenceDir: configService.get(
+        'apiMapper.cache.persistenceDir',
+        path.join(process.cwd(), '.cache', 'api-mappings')
+      ),
       defaultTTL: configService.get('apiMapper.cache.ttl', 24 * 60 * 60 * 1000), // 24 hours
     });
 
@@ -618,7 +621,7 @@ export class APIMapperServiceImpl implements APIMapperService {
     return {
       size: metrics.totalEntries || 0,
       maxSize: this.configService.get('apiMapper.cacheMaxSize', 1000),
-      enabled: this.configService.get('apiMapper.cacheEnabled', true)
+      enabled: this.configService.get('apiMapper.cacheEnabled', true),
     };
   }
 
@@ -686,7 +689,7 @@ export class APIMapperServiceImpl implements APIMapperService {
 
 export async function createAPIMapperService(
   configService: ConfigurationService,
-  cacheService?: CacheService
+  _cacheService?: CacheService
 ): Promise<APIMapperService> {
   return APIMapperServiceImpl.create(configService);
 }
