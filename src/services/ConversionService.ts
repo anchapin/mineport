@@ -108,7 +108,6 @@ import { PerformanceMonitor } from './PerformanceMonitor';
 const logger = createLogger('ConversionService');
 // const MODULE_ID = 'CONVERSION';
 
-
 /**
  * ConversionServiceOptions interface.
  *
@@ -253,12 +252,14 @@ export class ConversionService extends EventEmitter implements IConversionServic
     this.featureFlagService = options.featureFlagService || new FeatureFlagService();
 
     // Use provided conversion pipeline or create a new one
-    this.pipeline = options.conversionPipeline || new ConversionPipeline({
-      errorCollector: this.errorCollector,
-      jobQueue: this.jobQueue,
-      resourceAllocator: this.resourceAllocator,
-      configService: this.configService,
-    });
+    this.pipeline =
+      options.conversionPipeline ||
+      new ConversionPipeline({
+        errorCollector: this.errorCollector,
+        jobQueue: this.jobQueue,
+        resourceAllocator: this.resourceAllocator,
+        configService: this.configService,
+      });
 
     /**
      * if method.
@@ -1042,10 +1043,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
    * @param jobId Job ID
    * @param progressData Progress data
    */
-  public updateJobProgress(
-    jobId: string,
-    progressData: Partial<ConversionJobStatus>
-  ): void {
+  public updateJobProgress(jobId: string, progressData: Partial<ConversionJobStatus>): void {
     const activeJob = this.activeJobs.get(jobId);
     if (!activeJob) {
       return;
@@ -1060,7 +1058,8 @@ export class ConversionService extends EventEmitter implements IConversionServic
     const lastHistory = status.history[status.history.length - 1];
     if (
       progressData.status &&
-      (lastHistory.status !== progressData.status || lastHistory.stage !== progressData.currentStage)
+      (lastHistory.status !== progressData.status ||
+        lastHistory.stage !== progressData.currentStage)
     ) {
       status.history.push({
         status: progressData.status,
@@ -1083,7 +1082,6 @@ export class ConversionService extends EventEmitter implements IConversionServic
 
   private calculateEstimatedTimeRemaining(status: ConversionJobStatus): number {
     const { history, currentStage } = status;
-    const now = Date.now();
     let totalTime = 0;
     let totalWeight = 0;
 
