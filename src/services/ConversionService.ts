@@ -543,6 +543,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
 
       // Prepare enhanced pipeline input with analysis results
       const pipelineInput = {
+        jobId: 'pending',
         inputPath: inputPath,
         outputPath: input.outputPath,
         modId: analysisResult.modId || this.extractModId(inputPath),
@@ -668,6 +669,9 @@ export class ConversionService extends EventEmitter implements IConversionServic
         status: job.status as JobStatus,
         progress: job.status === 'completed' ? 100 : 0,
         currentStage: job.status,
+        stageProgress: job.status === 'completed' ? 100 : 0,
+        history: [{ status: job.status as JobStatus, stage: job.status, timestamp: new Date() }],
+        estimatedTimeRemaining: -1,
       };
     }
 
@@ -1068,11 +1072,8 @@ export class ConversionService extends EventEmitter implements IConversionServic
       });
     }
 
-    // Update job timestamps
-    job.updatedAt = new Date();
-    if (status.status === 'completed' || status.status === 'failed') {
-      job.completedAt = new Date();
-    }
+    // Update job heartbeat to mark activity safely
+    this.jobQueue.updateJobHeartbeat(jobId);
 
     // Calculate estimated time remaining
     status.estimatedTimeRemaining = this.calculateEstimatedTimeRemaining(status);
