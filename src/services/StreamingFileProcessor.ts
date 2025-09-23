@@ -49,20 +49,7 @@ export class StreamingFileProcessor {
       enableProgressTracking: options.enableProgressTracking ?? true,
       memoryThreshold: options.memoryThreshold || StreamingFileProcessor.DEFAULT_MEMORY_THRESHOLD,
     };
-    const defaultSecurityConfig = {
-      enableRealTimeScanning: true,
-      scanTimeout: 30000,
-      maxFileSize: 100 * 1024 * 1024,
-      quarantineDirectory: '/tmp/quarantine',
-      allowedFileTypes: ['.jar', '.zip'],
-      blockedPatterns: ['eval(', 'exec(', 'system('],
-      enableZipBombDetection: true,
-      maxCompressionRatio: 100,
-      maxExtractedSize: 500 * 1024 * 1024,
-      enablePathTraversalDetection: true,
-      enableMalwarePatternDetection: true,
-    };
-    this.securityScanner = new SecurityScanner(defaultSecurityConfig);
+    this.securityScanner = new SecurityScanner();
   }
 
   /**
@@ -83,7 +70,6 @@ export class StreamingFileProcessor {
     const startTime = Date.now();
     const startMemory = process.memoryUsage().heapUsed;
     let peakMemoryUsage = startMemory;
-    let chunksProcessed = 0;
 
     try {
       // Get file stats first
@@ -102,13 +88,11 @@ export class StreamingFileProcessor {
       }
 
       // Create streaming validation pipeline
-      const pipelineResult = await this.createValidationPipeline(
+      const validationResult = await this.createValidationPipeline(
         filePath,
         stats.size,
         _validationOptions
       );
-      const validationResult = pipelineResult.result;
-      chunksProcessed = pipelineResult.chunksProcessed; // Used in return statement
 
       // Track memory usage
       const currentMemory = process.memoryUsage().heapUsed;
@@ -124,7 +108,7 @@ export class StreamingFileProcessor {
       return {
         ...validationResult,
         streamProcessingTime: Date.now() - startTime,
-        chunksProcessed,
+        chunksProcessed: 0,
         peakMemoryUsage: peakMemoryUsage - startMemory,
       };
     } catch (error) {
@@ -140,10 +124,9 @@ export class StreamingFileProcessor {
     filePath: string,
     fileSize: number,
     _validationOptions: FileValidationOptions
-  ): Promise<{ result: ValidationResult; chunksProcessed: number }> {
+  ): Promise<ValidationResult> {
     const errors: any[] = [];
     const warnings: any[] = [];
-    let chunksProcessed = 0;
 
     // Create hash stream for checksum calculation
     const hashStream = crypto.createHash('sha256');
@@ -157,9 +140,6 @@ export class StreamingFileProcessor {
     const validationTransform = new Transform({
       transform(chunk: Buffer, _encoding, callback) {
         try {
-          // Count chunks processed
-          chunksProcessed++;
-
           // Check magic number on first chunk
           if (!magicNumberChecked && chunk.length >= 4) {
             const magicNumber = chunk.subarray(0, 4);
@@ -223,22 +203,19 @@ export class StreamingFileProcessor {
     }
 
     return {
-      result: {
-        isValid: errors.length === 0,
-        fileType: fileTypeDetected,
-        size: fileSize,
-        errors,
-        warnings,
-        metadata: {
-          mimeType: fileTypeDetected,
-          extension: filePath.split('.').pop() || '',
-          magicNumber: '',
-          checksum,
-          createdAt: new Date(),
-          modifiedAt: new Date(),
-        },
+      isValid: errors.length === 0,
+      fileType: fileTypeDetected,
+      size: fileSize,
+      errors,
+      warnings,
+      metadata: {
+        mimeType: fileTypeDetected,
+        extension: filePath.split('.').pop() || '',
+        magicNumber: '',
+        checksum,
+        createdAt: new Date(),
+        modifiedAt: new Date(),
       },
-      chunksProcessed: chunksProcessed,
     };
   }
 
@@ -279,21 +256,6 @@ export class StreamingFileProcessor {
   ): Promise<ValidationResult> {
     // Use existing FileProcessor for small files
     const { FileProcessor } = await import('../modules/ingestion/FileProcessor.js');
-
-    const _defaultSecurityConfig = {
-      enableRealTimeScanning: true,
-      scanTimeout: 30000,
-      maxFileSize: 100 * 1024 * 1024,
-      quarantineDirectory: '/tmp/quarantine',
-      allowedFileTypes: ['.jar', '.zip'],
-      blockedPatterns: ['eval(', 'exec(', 'system('],
-      enableZipBombDetection: true,
-      maxCompressionRatio: 100,
-      maxExtractedSize: 500 * 1024 * 1024,
-      enablePathTraversalDetection: true,
-      enableMalwarePatternDetection: true,
-    };
-
     const processor = new FileProcessor(validationOptions);
     return processor.validateUpload(buffer, filePath);
   }

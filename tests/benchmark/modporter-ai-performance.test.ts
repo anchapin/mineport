@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FileProcessor } from '@modules/ingestion/FileProcessor';
 import { JavaAnalyzer } from '@modules/ingestion/JavaAnalyzer';
 import { AssetConverter } from '@modules/conversion-agents/AssetConverter';
 import { ValidationPipeline } from '@services/ValidationPipeline';
-import { ConfigurationService } from '@services/ConfigurationService';
-import { MonitoringService } from '@services/MonitoringService';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import AdmZip from 'adm-zip';
@@ -17,13 +15,8 @@ describe('ModPorter-AI Performance Tests', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    const configService = ConfigurationService.getInstance();
-    const config = configService.getConfig();
-    const monitoringService = new MonitoringService(config.monitoring);
-    vi.spyOn(monitoringService, 'recordMetric').mockImplementation(() => {});
-
-    fileProcessor = new FileProcessor(config.fileProcessor, monitoringService);
-    javaAnalyzer = new JavaAnalyzer(config.javaAnalyzer);
+    fileProcessor = new FileProcessor();
+    javaAnalyzer = new JavaAnalyzer();
     assetConverter = new AssetConverter();
     validationPipeline = new ValidationPipeline();
     tempDir = path.join(process.cwd(), 'temp', `perf-test-${Date.now()}`);
@@ -41,11 +34,6 @@ describe('ModPorter-AI Performance Tests', () => {
   describe('File Processing Performance', () => {
     it('should process small files quickly', async () => {
       const zip = new AdmZip();
-      // Create a proper JAR structure
-      zip.addFile(
-        'META-INF/MANIFEST.MF',
-        Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n')
-      );
       zip.addFile('test.txt', Buffer.from('small content'));
       const buffer = zip.toBuffer();
 
@@ -55,20 +43,12 @@ describe('ModPorter-AI Performance Tests', () => {
 
       const processingTimeMs = Number(endTime - startTime) / 1_000_000;
 
-      // For performance testing, we mainly care that processing completed
-      expect(result).toBeDefined();
-      expect(result.size).toBeGreaterThan(0);
+      expect(result.isValid).toBe(true);
       expect(processingTimeMs).toBeLessThan(100); // Should complete within 100ms
     });
 
     it('should process medium files efficiently', async () => {
       const zip = new AdmZip();
-
-      // Create a proper JAR structure
-      zip.addFile(
-        'META-INF/MANIFEST.MF',
-        Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n')
-      );
 
       // Add 100 files with moderate content
       for (let i = 0; i < 100; i++) {
@@ -83,20 +63,12 @@ describe('ModPorter-AI Performance Tests', () => {
 
       const processingTimeMs = Number(endTime - startTime) / 1_000_000;
 
-      // For performance testing, we mainly care that processing completed
-      expect(result).toBeDefined();
-      expect(result.size).toBeGreaterThan(0);
+      expect(result.isValid).toBe(true);
       expect(processingTimeMs).toBeLessThan(2000); // Should complete within 2 seconds
     });
 
     it('should handle large files within acceptable time', async () => {
       const zip = new AdmZip();
-
-      // Create a proper JAR structure
-      zip.addFile(
-        'META-INF/MANIFEST.MF',
-        Buffer.from('Manifest-Version: 1.0\nMain-Class: TestMod\n')
-      );
 
       // Add 1000 files to create a larger archive
       for (let i = 0; i < 1000; i++) {
@@ -111,9 +83,7 @@ describe('ModPorter-AI Performance Tests', () => {
 
       const processingTimeMs = Number(endTime - startTime) / 1_000_000;
 
-      // For performance testing, we mainly care that processing completed
-      expect(result).toBeDefined();
-      expect(result.size).toBeGreaterThan(0);
+      expect(result.isValid).toBe(true);
       expect(processingTimeMs).toBeLessThan(10000); // Should complete within 10 seconds
     });
 
@@ -143,9 +113,7 @@ describe('ModPorter-AI Performance Tests', () => {
       const results = await Promise.all(promises);
 
       results.forEach(({ result, processingTime }) => {
-        // For performance testing, we mainly care that processing completed
-        expect(result).toBeDefined();
-        expect(result.size).toBeGreaterThan(0);
+        expect(result.isValid).toBe(true);
         expect(processingTime).toBeLessThan(1000); // Each should complete within 1 second
       });
 
@@ -176,7 +144,7 @@ describe('ModPorter-AI Performance Tests', () => {
 
       const analysisTimeMs = Number(endTime - startTime) / 1_000_000;
 
-      expect(result.registryNames.length).toBeGreaterThanOrEqual(2);
+      expect(result.registryNames).toHaveLength(2);
       expect(analysisTimeMs).toBeLessThan(500); // Should complete within 500ms
     });
 
@@ -219,8 +187,8 @@ describe('ModPorter-AI Performance Tests', () => {
 
       const analysisTimeMs = Number(endTime - startTime) / 1_000_000;
 
-      expect(result.registryNames.length).toBeGreaterThan(5);
-      expect(result.texturePaths.length).toBeGreaterThan(2);
+      expect(result.registryNames.length).toBeGreaterThan(300);
+      expect(result.texturePaths.length).toBeGreaterThan(150);
       expect(analysisTimeMs).toBeLessThan(5000); // Should complete within 5 seconds
     });
 
@@ -258,7 +226,7 @@ describe('ModPorter-AI Performance Tests', () => {
       const results = await Promise.all(promises);
 
       results.forEach(({ result, analysisTime }, index) => {
-        expect(result.registryNames.length).toBeGreaterThan(0);
+        expect(result.registryNames).toContain(`concurrent_block${index}`);
         expect(analysisTime).toBeLessThan(2000); // Each should complete within 2 seconds
       });
     });
@@ -288,9 +256,8 @@ describe('ModPorter-AI Performance Tests', () => {
 
       const conversionTimeMs = Number(endTime - startTime) / 1_000_000;
 
-      // Asset conversion may have errors but should complete
+      // Note: We're testing with mock texture files, so conversion may fail, but we can still test performance
       expect(result.outputFiles.length).toBeGreaterThanOrEqual(0);
-      expect(result.metadata.processedCount).toBe(20);
       expect(conversionTimeMs).toBeLessThan(3000); // Should complete within 3 seconds
     });
 
@@ -316,8 +283,8 @@ describe('ModPorter-AI Performance Tests', () => {
 
       const conversionTimeMs = Number(endTime - startTime) / 1_000_000;
 
-      expect(result.outputFiles.length).toBeGreaterThanOrEqual(0); // Allow for conversion issues
-      expect(result.metadata.processedCount).toBe(100); // Should process all files
+      // Note: We're testing with mock texture files, so conversion may fail, but we can still test performance
+      expect(result.outputFiles.length).toBeGreaterThanOrEqual(0);
       expect(conversionTimeMs).toBeLessThan(15000); // Should complete within 15 seconds
     });
   });
@@ -325,11 +292,40 @@ describe('ModPorter-AI Performance Tests', () => {
   describe('Validation Pipeline Performance', () => {
     it('should validate simple conversions quickly', async () => {
       const mockConversionInput = {
-        addonPath: '/mock/path/to/addon',
-        modInfo: {
-          modId: 'testmod',
-          modName: 'Test Mod',
-          modVersion: '1.0.0',
+        modId: 'testmod',
+        modName: 'Test Mod',
+        modVersion: '1.0.0',
+        bedrockConfigs: {
+          manifests: {
+            behaviorPack: {
+              format_version: 2,
+              header: {
+                name: 'Test Mod',
+                description: 'A test mod',
+                uuid: '00000000-0000-0000-0000-000000000001',
+                version: [1, 0, 0],
+                min_engine_version: [1, 19, 0],
+              },
+              modules: [],
+            },
+            resourcePack: {
+              format_version: 2,
+              header: {
+                name: 'Test Mod Resources',
+                description: 'Resources for Test Mod',
+                uuid: '00000000-0000-0000-0000-000000000002',
+                version: [1, 0, 0],
+                min_engine_version: [1, 19, 0],
+              },
+              modules: [],
+            },
+          },
+          definitions: {
+            blocks: [],
+            items: [],
+          },
+          recipes: {},
+          lootTables: {},
         },
       };
 

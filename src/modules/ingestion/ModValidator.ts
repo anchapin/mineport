@@ -89,38 +89,9 @@ export class ModValidator {
     securityScanner?: SecurityScanner
   ) {
     this.tempDir = tempDir;
-
-    // Default configurations for FileProcessor
-    const defaultFileValidationConfig = {
-      maxFileSize: 100 * 1024 * 1024, // 100MB
-      allowedMimeTypes: ['application/java-archive', 'application/zip'],
-      enableMalwareScanning: true,
-      tempDirectory: tempDir,
-      scanTimeout: 30000,
-      maxCompressionRatio: 100,
-      maxExtractedSize: 500 * 1024 * 1024, // 500MB
-      enableMagicNumberValidation: true,
-      cacheValidationResults: true,
-      cacheTTL: 3600000, // 1 hour
-    };
-
-    const defaultSecurityScanningConfig = {
-      enableRealTimeScanning: true,
-      scanTimeout: 30000,
-      maxFileSize: 100 * 1024 * 1024,
-      quarantineDirectory: path.join(tempDir, 'quarantine'),
-      allowedFileTypes: ['.jar', '.zip'],
-      blockedPatterns: ['eval(', 'exec(', 'system('],
-      enableZipBombDetection: true,
-      maxCompressionRatio: 100,
-      maxExtractedSize: 500 * 1024 * 1024,
-      enablePathTraversalDetection: true,
-      enableMalwarePatternDetection: true,
-    };
-
-    this.fileProcessor = fileProcessor || new FileProcessor(defaultFileValidationConfig);
+    this.fileProcessor = fileProcessor || new FileProcessor();
     this.javaAnalyzer = javaAnalyzer || new JavaAnalyzer();
-    this.securityScanner = securityScanner || new SecurityScanner(defaultSecurityScanningConfig);
+    this.securityScanner = securityScanner || new SecurityScanner();
   }
 
   /**

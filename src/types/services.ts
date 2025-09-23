@@ -320,6 +320,3 @@ export interface ConversionService {
    */
   updateJobPriority(jobId: string, priority: number): boolean;
 }
-
-// Backward-compatible alias: legacy name mapped to new structure
-export type ConversionStatus = ConversionJobStatus;

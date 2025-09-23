@@ -163,30 +163,6 @@ export class MonitoringService extends EventEmitter {
   }
 
   /**
-   * Generic method to record any metric (for testing compatibility)
-   */
-  recordMetric(metric: any): void {
-    // Determine metric type and delegate to appropriate method
-    if (metric.type === 'security_event' || metric.event) {
-      this.recordSecurityMetric(metric);
-    } else if (metric.type === 'performance' || metric.operation) {
-      this.recordPerformanceMetric(metric);
-    } else if (metric.type === 'conversion_quality' || metric.stage) {
-      this.recordConversionQualityMetric(metric);
-    } else if (metric.type === 'system_health' || metric.component) {
-      this.recordSystemHealthMetric(metric);
-    } else {
-      // Default to performance metric
-      this.recordPerformanceMetric({
-        operation: 'file_processing',
-        duration: metric.duration || 0,
-        success: metric.success !== false,
-        details: metric.details || {},
-      });
-    }
-  }
-
-  /**
    * Record a security metric event
    * @param metric - Security metric data without type and timestamp
    * @returns void

@@ -103,6 +103,8 @@ export class ResourcePool<T> {
       hitRate: 0,
       averageUsage: 0,
     };
+
+    this.startCleanupTimer();
   }
 
   /**
@@ -245,10 +247,7 @@ export class ResourcePool<T> {
   /**
    * Start cleanup timer
    */
-  public startCleanupTimer(): void {
-    if (this.cleanupTimer) {
-      return;
-    }
+  private startCleanupTimer(): void {
     this.cleanupTimer = setInterval(() => {
       this.cleanup().catch((error) => {
         logger.error('Resource pool cleanup failed', { error });
@@ -310,15 +309,14 @@ export class ResourcePool<T> {
  * Temporary file manager with automatic cleanup and resource management
  */
 export class TempFileManager {
-  private tempFiles: Map<
-    string,
-    { path: string; createdAt: Date; options: TempFileOptions; jobId?: string }
-  > = new Map();
+  private tempFiles: Map<string, { path: string; createdAt: Date; options: TempFileOptions }> =
+    new Map();
   private cleanupTimer?: NodeJS.Timeout;
   private tempDir: string;
 
   constructor(tempDir?: string) {
     this.tempDir = tempDir || os.tmpdir();
+    this.startCleanupTimer();
   }
 
   /**
@@ -327,8 +325,7 @@ export class TempFileManager {
    * @returns Promise resolving to file path and cleanup function
    */
   async createTempFile(
-    options: TempFileOptions = {},
-    jobId?: string
+    options: TempFileOptions = {}
   ): Promise<{ path: string; cleanup: () => Promise<void> }> {
     const id = uuidv4();
     const filename = `${options.prefix || 'temp'}_${id}${options.suffix || '.tmp'}`;
@@ -345,7 +342,6 @@ export class TempFileManager {
       path: filePath,
       createdAt: new Date(),
       options,
-      jobId,
     };
 
     this.tempFiles.set(id, tempFileInfo);
@@ -371,8 +367,7 @@ export class TempFileManager {
    * ```
    */
   async createTempDirectory(
-    options: TempFileOptions = {},
-    jobId?: string
+    options: TempFileOptions = {}
   ): Promise<{ path: string; cleanup: () => Promise<void> }> {
     const id = uuidv4();
     const dirname = `${options.prefix || 'temp'}_${id}`;
@@ -385,7 +380,6 @@ export class TempFileManager {
       path: dirPath,
       createdAt: new Date(),
       options,
-      jobId,
     };
 
     this.tempFiles.set(id, tempFileInfo);
@@ -412,9 +406,7 @@ export class TempFileManager {
       }
       this.tempFiles.delete(id);
     } catch (error) {
-      if (error.code !== 'ENOENT') {
-        logger.error('Failed to cleanup temp file', { error, path: tempFileInfo.path });
-      }
+      logger.error('Failed to cleanup temp file', { error, path: tempFileInfo.path });
     }
   }
 
@@ -440,29 +432,9 @@ export class TempFileManager {
   }
 
   /**
-   * Clean up all temporary files and directories for a specific job.
-   * @param jobId The ID of the job to clean up resources for.
-   */
-  async cleanupForJob(jobId: string): Promise<void> {
-    const toCleanup: string[] = [];
-    for (const [id, tempFileInfo] of this.tempFiles.entries()) {
-      if (tempFileInfo.jobId === jobId) {
-        toCleanup.push(id);
-      }
-    }
-
-    for (const id of toCleanup) {
-      await this.cleanupTempFile(id);
-    }
-  }
-
-  /**
    * Start cleanup timer
    */
-  public startCleanupTimer(): void {
-    if (this.cleanupTimer) {
-      return;
-    }
+  private startCleanupTimer(): void {
     this.cleanupTimer = setInterval(() => {
       this.cleanupOldFiles().catch((error) => {
         logger.error('Temp file cleanup failed', { error });
@@ -501,7 +473,6 @@ export class TempFileManager {
  */
 export interface ResourceAllocation {
   id: string;
-  jobId?: string; // Associate allocation with a job
   memory: number;
   cpu: number;
   storage: number;
@@ -522,7 +493,6 @@ export interface ResourceUsage {
  * Resource allocation request with requirements and preferences
  */
 export interface ResourceRequest {
-  jobId?: string;
   memory: number;
   cpu: number;
   storage: number;
@@ -649,23 +619,6 @@ export class ResourceAllocator {
   }
 
   /**
-   * Start the resource allocator and its components
-   */
-  public start(): void {
-    this.tempFileManager.startCleanupTimer();
-    for (const pool of this.pools.values()) {
-      pool.startCleanupTimer();
-    }
-  }
-
-  /**
-   * Stop the resource allocator and destroy its components
-   */
-  public async stop(): Promise<void> {
-    await this.destroy();
-  }
-
-  /**
    * Create or get a resource pool
    */
   createPool<T>(
@@ -734,7 +687,6 @@ export class ResourceAllocator {
 
     const allocation: ResourceAllocation = {
       id: uuidv4(),
-      jobId: request.jobId,
       memory: request.memory,
       cpu: request.cpu,
       storage: request.storage,
@@ -753,35 +705,6 @@ export class ResourceAllocator {
    */
   release(allocationId: string): void {
     this.allocations.delete(allocationId);
-  }
-
-  /**
-   * Releases all resources associated with a specific job.
-   * This includes memory, CPU, storage allocations, and temporary files.
-   * @param jobId The ID of the job to release resources for.
-   */
-  async releaseJobResources(jobId: string): Promise<void> {
-    logger.info('Releasing resources for job', { jobId });
-
-    // Release resource allocations
-    const allocationsToRelease: string[] = [];
-    for (const [id, allocation] of this.allocations.entries()) {
-      if (allocation.jobId === jobId) {
-        allocationsToRelease.push(id);
-      }
-    }
-    for (const id of allocationsToRelease) {
-      this.release(id);
-    }
-    logger.info(`Released ${allocationsToRelease.length} allocations for job`, { jobId });
-
-    // Clean up temporary files and directories for the job
-    await this.tempFileManager.cleanupForJob(jobId);
-    logger.info('Cleaned up temporary files for job', { jobId });
-
-    // In a real implementation, we would also terminate any associated worker threads.
-    // This is a placeholder for that logic.
-    logger.info('Terminated worker threads for job', { jobId });
   }
 
   /**
@@ -831,6 +754,24 @@ export class ResourceAllocator {
         this.allocations.delete(id);
       }
     }
+  }
+
+  /**
+   * Start the resource allocator
+   * @returns void
+   */
+  start(): void {
+    logger.info('ResourceAllocator started');
+    // Initialize any background processes if needed
+  }
+
+  /**
+   * Stop the resource allocator
+   * @returns void
+   */
+  stop(): void {
+    logger.info('ResourceAllocator stopped');
+    // Stop any background processes if needed
   }
 
   /**
