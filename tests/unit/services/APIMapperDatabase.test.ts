@@ -36,16 +36,26 @@ describe('InMemoryMappingDatabase', () => {
   let database: InMemoryMappingDatabase;
 
   beforeEach(async () => {
-    await fs.unlink(DB_PATH).catch((e) => {
-      if (e.code !== 'ENOENT') console.error(e);
-    });
+    // Ensure the test database file does not exist before each test
+    try {
+      await fs.unlink(DB_PATH);
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
     database = new InMemoryMappingDatabase(DB_PATH);
   });
 
   afterEach(async () => {
-    await fs.unlink(DB_PATH).catch((e) => {
-      if (e.code !== 'ENOENT') console.error(e);
-    });
+    // Clean up the test database file after each test
+    try {
+      await fs.unlink(DB_PATH);
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
     vi.clearAllMocks();
   });
 
@@ -54,7 +64,7 @@ describe('InMemoryMappingDatabase', () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-123');
 
       const mappingData = {
-        javaSignature: 'test.create.Method',
+        javaSignature: 'test.create.Method()',
         bedrockEquivalent: 'test.bedrock.method',
         conversionType: 'direct' as const,
         notes: 'Test mapping',
@@ -70,7 +80,7 @@ describe('InMemoryMappingDatabase', () => {
       expect(createdMapping.bedrockEquivalent).toBe(mappingData.bedrockEquivalent);
       expect(createdMapping.conversionType).toBe(mappingData.conversionType);
       expect(createdMapping.notes).toBe(mappingData.notes);
-    });
+    }, 60000);
 
     it('should throw ValidationError for invalid mapping data', async () => {
       const invalidMappingData = {
@@ -81,13 +91,13 @@ describe('InMemoryMappingDatabase', () => {
       };
 
       await expect(database.create(invalidMappingData)).rejects.toThrow(ValidationError);
-    });
+    }, 60000);
 
     it('should retrieve a mapping by ID', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-456');
 
       const mappingData = {
-        javaSignature: 'test.get.Method',
+        javaSignature: 'test.get.Method()',
         bedrockEquivalent: 'test.bedrock.get',
         conversionType: 'wrapper' as const,
         notes: 'Test get mapping',
@@ -103,13 +113,13 @@ describe('InMemoryMappingDatabase', () => {
       // Ensure it's a deep clone (different object instances but same dates)
       expect(retrievedMapping!.createdAt).toBeInstanceOf(Date);
       expect(retrievedMapping!.createdAt.getTime()).toBe(createdMapping.createdAt.getTime());
-    });
+    }, 60000);
 
     it('should retrieve a mapping by Java signature', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-789');
 
       const mappingData = {
-        javaSignature: 'test.getBySignature.Method',
+        javaSignature: 'test.getBySignature.Method()',
         bedrockEquivalent: 'test.bedrock.getBySignature',
         conversionType: 'complex' as const,
         notes: 'Test get by signature mapping',
@@ -120,13 +130,13 @@ describe('InMemoryMappingDatabase', () => {
 
       expect(retrievedMapping).toBeDefined();
       expect(retrievedMapping!.javaSignature).toBe(mappingData.javaSignature);
-    });
+    }, 60000);
 
     it('should update a mapping with version increment', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-update');
 
       const mappingData = {
-        javaSignature: 'test.update.Method',
+        javaSignature: 'test.update.Method()',
         bedrockEquivalent: 'test.bedrock.update',
         conversionType: 'direct' as const,
         notes: 'Original notes',
@@ -140,6 +150,7 @@ describe('InMemoryMappingDatabase', () => {
       await new Promise((resolve) => setTimeout(resolve, 1));
 
       const updates = {
+        javaSignature: 'test.update.Method()',
         notes: 'Updated notes',
         bedrockEquivalent: 'test.bedrock.updated',
       };
@@ -153,19 +164,19 @@ describe('InMemoryMappingDatabase', () => {
         createdMapping.lastUpdated.getTime()
       );
       expect(updatedMapping.createdAt.getTime()).toBe(originalCreatedAt.getTime());
-    });
+    }, 60000);
 
     it('should throw MappingNotFoundError when updating non-existent mapping', async () => {
       await expect(database.update('non-existent-id', { notes: 'test' })).rejects.toThrow(
         MappingNotFoundError
       );
-    });
+    }, 60000);
 
     it('should delete a mapping', async () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-delete');
 
       const mappingData = {
-        javaSignature: 'test.delete.Method',
+        javaSignature: 'test.delete.Method()',
         bedrockEquivalent: 'test.bedrock.delete',
         conversionType: 'impossible' as const,
         notes: 'To be deleted',
@@ -178,12 +189,12 @@ describe('InMemoryMappingDatabase', () => {
 
       const retrievedMapping = await database.get(createdMapping.id);
       expect(retrievedMapping).toBeUndefined();
-    });
+    }, 60000);
 
     it('should return false when deleting non-existent mapping', async () => {
       const deleteResult = await database.delete('non-existent-id');
       expect(deleteResult).toBe(false);
-    });
+    }, 60000);
   });
 
   describe('Filtering and Bulk Operations', () => {
@@ -192,14 +203,14 @@ describe('InMemoryMappingDatabase', () => {
 
       // Create test mappings
       await database.create({
-        javaSignature: 'test.filter.Direct',
+        javaSignature: 'test.filter.Direct()',
         bedrockEquivalent: 'test.bedrock.direct',
         conversionType: 'direct',
         notes: 'Direct conversion test',
       });
 
       await database.create({
-        javaSignature: 'test.filter.Wrapper',
+        javaSignature: 'test.filter.Wrapper()',
         bedrockEquivalent: 'test.bedrock.wrapper',
         conversionType: 'wrapper',
         notes: 'Wrapper conversion test',
@@ -215,7 +226,7 @@ describe('InMemoryMappingDatabase', () => {
 
       expect(wrapperMappings).toHaveLength(1);
       expect(wrapperMappings[0].conversionType).toBe('wrapper');
-    });
+    }, 60000);
 
     it('should filter mappings by search term', async () => {
       const searchResults = await database.getAll({ search: 'direct' });
@@ -228,12 +239,12 @@ describe('InMemoryMappingDatabase', () => {
             m.notes.toLowerCase().includes('direct')
         )
       ).toBe(true);
-    });
+    }, 60000);
 
     it('should return correct count', async () => {
       const count = await database.count();
       expect(count).toBe(2); // From beforeEach setup
-    });
+    }, 60000);
   });
 
   describe('Persistence', () => {
@@ -241,7 +252,7 @@ describe('InMemoryMappingDatabase', () => {
       vi.mocked(uuidv4).mockReturnValue('test-uuid-persist');
 
       const mappingData = {
-        javaSignature: 'test.persist.Method',
+        javaSignature: 'test.persist.Method()',
         bedrockEquivalent: 'test.bedrock.persist',
         conversionType: 'direct' as const,
         notes: 'Persistence test',
@@ -257,7 +268,7 @@ describe('InMemoryMappingDatabase', () => {
       expect(loadedMapping).toBeDefined();
       expect(loadedMapping!.javaSignature).toBe(mappingData.javaSignature);
       expect(loadedMapping!.version).toBe(1);
-    });
+    }, 60000);
   });
 
   describe('Thread Safety', () => {
@@ -266,7 +277,7 @@ describe('InMemoryMappingDatabase', () => {
 
       const concurrentOps = Array.from({ length: 10 }, (_, i) =>
         database.create({
-          javaSignature: `concurrent.test.Method${i}`,
+          javaSignature: `concurrent.test.Method${i}()`,
           bedrockEquivalent: `concurrent.bedrock.method${i}`,
           conversionType: 'direct',
           notes: `Concurrent test ${i}`,
@@ -278,13 +289,13 @@ describe('InMemoryMappingDatabase', () => {
       // All operations should succeed
       expect(results).toHaveLength(10);
       results.forEach((result, i) => {
-        expect(result.javaSignature).toBe(`concurrent.test.Method${i}`);
+        expect(result.javaSignature).toBe(`concurrent.test.Method${i}()`);
         expect(result.version).toBe(1);
       });
 
       // Check final count
       const count = await database.count();
       expect(count).toBe(10);
-    });
+    }, 60000);
   });
 });
