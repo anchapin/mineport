@@ -58,88 +58,53 @@ export class InMemoryMappingDatabase implements MappingDatabase {
     this.dbPath = dbPath;
   }
 
-  private isWriting: boolean = false;
-  private writeQueue: (() => void)[] = [];
-
-  private async withWriteLock<T>(operation: () => Promise<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      const execute = async () => {
-        if (this.isWriting) {
-          this.writeQueue.push(execute);
-          return;
-        }
-
-        this.isWriting = true;
-        try {
-          const result = await operation();
-          resolve(result);
-        } catch (error) {
-          reject(error);
-        } finally {
-          this.isWriting = false;
-          if (this.writeQueue.length > 0) {
-            const next = this.writeQueue.shift();
-            if (next) {
-              next();
-            }
-          }
-        }
-      };
-      execute();
-    });
-  }
-
   async load(): Promise<void> {
-    await this.withWriteLock(async () => {
-      try {
-        const data = await fs.readFile(this.dbPath, 'utf-8');
-        const mappings: APIMapping[] = JSON.parse(data);
-        this.mappings.clear();
-        this.signatureIndex.clear();
-        for (const mapping of mappings) {
-          // Convert date strings back to Date objects
-          mapping.lastUpdated = new Date(mapping.lastUpdated);
-          if (mapping.createdAt) {
-            mapping.createdAt = new Date(mapping.createdAt);
-          } else {
-            // Backward compatibility: if createdAt doesn't exist, use lastUpdated
-            mapping.createdAt = new Date(mapping.lastUpdated);
-          }
-
-          // Ensure version is a number for backward compatibility
-          if (typeof mapping.version === 'string') {
-            mapping.version = 1; // Convert semantic versions to number
-          }
-
-          // Validate loaded mapping
-          try {
-            validateAPIMapping(mapping);
-            this.mappings.set(mapping.id, mapping);
-            this.signatureIndex.set(mapping.javaSignature, mapping.id);
-          } catch (error) {
-            logger.warn(`Skipping invalid mapping during load: ${mapping.id}`, {
-              error: error.message,
-            });
-          }
+    try {
+      const data = await fs.readFile(this.dbPath, 'utf-8');
+      const mappings: APIMapping[] = JSON.parse(data);
+      this.mappings.clear();
+      this.signatureIndex.clear();
+      for (const mapping of mappings) {
+        // Convert date strings back to Date objects
+        mapping.lastUpdated = new Date(mapping.lastUpdated);
+        if (mapping.createdAt) {
+          mapping.createdAt = new Date(mapping.createdAt);
+        } else {
+          // Backward compatibility: if createdAt doesn't exist, use lastUpdated
+          mapping.createdAt = new Date(mapping.lastUpdated);
         }
-        logger.info(`Loaded ${mappings.length} mappings from ${this.dbPath}`);
-      } catch (error: any) {
-        if (error.code !== 'ENOENT') {
-          throw new Error(`Failed to load mapping database: ${error.message}`);
+
+        // Ensure version is a number for backward compatibility
+        if (typeof mapping.version === 'string') {
+          mapping.version = 1; // Convert semantic versions to number
         }
-        logger.warn(`Database file not found at ${this.dbPath}. Starting with an empty database.`);
-        this.mappings.clear();
-        this.signatureIndex.clear();
+
+        // Validate loaded mapping
+        try {
+          validateAPIMapping(mapping);
+          this.mappings.set(mapping.id, mapping);
+          this.signatureIndex.set(mapping.javaSignature, mapping.id);
+        } catch (error) {
+          logger.warn(`Skipping invalid mapping during load: ${mapping.id}`, {
+            error: error.message,
+          });
+        }
       }
-    });
+      logger.info(`Loaded ${mappings.length} mappings from ${this.dbPath}`);
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        throw new Error(`Failed to load mapping database: ${error.message}`);
+      }
+      logger.warn(`Database file not found at ${this.dbPath}. Starting with an empty database.`);
+      this.mappings.clear();
+      this.signatureIndex.clear();
+    }
   }
 
   async persist(): Promise<void> {
-    await this.withWriteLock(async () => {
-      const data = JSON.stringify(Array.from(this.mappings.values()), null, 2);
-      await fs.writeFile(this.dbPath, data, 'utf-8');
-      logger.debug(`Persisted ${this.mappings.size} mappings to ${this.dbPath}`);
-    });
+    const data = JSON.stringify(Array.from(this.mappings.values()), null, 2);
+    await fs.writeFile(this.dbPath, data, 'utf-8');
+    logger.debug(`Persisted ${this.mappings.size} mappings to ${this.dbPath}`);
   }
 
   async create(
@@ -147,7 +112,7 @@ export class InMemoryMappingDatabase implements MappingDatabase {
   ): Promise<APIMapping> {
     // Validate the input mapping
     try {
-      validateAPIMapping(mapping);
+      validateAPIMapping(mapping, true);
     } catch (error: any) {
       throw new ValidationError(error.message);
     }
@@ -161,14 +126,12 @@ export class InMemoryMappingDatabase implements MappingDatabase {
       lastUpdated: now,
       notes: mapping.notes || '',
     };
-    await this.withWriteLock(async () => {
-      if (this.signatureIndex.has(mapping.javaSignature)) {
-        throw new Error(`Mapping with signature "${mapping.javaSignature}" already exists.`);
-      }
-      this.mappings.set(newMapping.id, newMapping);
-      this.signatureIndex.set(newMapping.javaSignature, newMapping.id);
-      await this.persist();
-    });
+    if (this.signatureIndex.has(mapping.javaSignature)) {
+      throw new Error(`Mapping with signature "${mapping.javaSignature}" already exists.`);
+    }
+    this.mappings.set(newMapping.id, newMapping);
+    this.signatureIndex.set(newMapping.javaSignature, newMapping.id);
+    await this.persist();
     return newMapping;
   }
 
@@ -185,19 +148,34 @@ export class InMemoryMappingDatabase implements MappingDatabase {
   }
 
   async getAll(filter?: MappingFilter): Promise<APIMapping[]> {
-    let results = Array.from(this.mappings.values());
-    if (filter) {
-      results = results.filter(
-        (m) =>
-          (!filter.conversionType || m.conversionType === filter.conversionType) &&
-          (!filter.version || m.version.toString() === filter.version) &&
-          (!filter.search ||
-            m.javaSignature.toLowerCase().includes(filter.search.toLowerCase()) ||
-            m.bedrockEquivalent.toLowerCase().includes(filter.search.toLowerCase()) ||
-            m.notes.toLowerCase().includes(filter.search.toLowerCase()))
-      );
+    const allMappings = Array.from(this.mappings.values());
+    if (!filter) {
+      return allMappings.map((m) => this.deepCloneMapping(m));
     }
-    // Return deep cloned results to prevent external mutation
+
+    const results: APIMapping[] = [];
+    for (const m of allMappings) {
+      let match = true;
+      if (filter.conversionType && m.conversionType !== filter.conversionType) {
+        match = false;
+      }
+      if (filter.version && m.version.toString() !== filter.version) {
+        match = false;
+      }
+      if (filter.search) {
+        const searchTerm = filter.search.toLowerCase();
+        if (
+          !m.javaSignature.toLowerCase().includes(searchTerm) &&
+          !m.bedrockEquivalent.toLowerCase().includes(searchTerm) &&
+          !m.notes.toLowerCase().includes(searchTerm)
+        ) {
+          match = false;
+        }
+      }
+      if (match) {
+        results.push(m);
+      }
+    }
     return results.map((mapping) => this.deepCloneMapping(mapping));
   }
 
@@ -222,56 +200,49 @@ export class InMemoryMappingDatabase implements MappingDatabase {
     id: string,
     updates: Partial<Omit<APIMapping, 'id' | 'createdAt'>>
   ): Promise<APIMapping> {
-    // Validate updates if they contain core fields
-    if (updates.javaSignature || updates.bedrockEquivalent || updates.conversionType) {
-      try {
-        validateAPIMapping({ ...updates } as Partial<APIMapping>);
-      } catch (error: any) {
-        throw new ValidationError(error.message);
-      }
+    const existing = this.mappings.get(id);
+    if (!existing) throw new MappingNotFoundError(id, 'id');
+
+    const mergedMapping = { ...this.deepCloneMapping(existing), ...updates };
+    try {
+      // Validate the potential new state of the object, not as a new entry
+      validateAPIMapping(mergedMapping, false);
+    } catch (error: any) {
+      throw new ValidationError(error.message);
     }
 
-    let updatedMapping: APIMapping;
-    await this.withWriteLock(async () => {
-      const existing = this.mappings.get(id);
-      if (!existing) throw new MappingNotFoundError(id, 'id');
+    // Create deep clone to prevent external mutation
+    const updatedFields = { ...updates };
+    delete (updatedFields as any).createdAt; // Prevent modification of createdAt
+    delete (updatedFields as any).id; // Prevent modification of id
 
-      // Create deep clone to prevent external mutation
-      const updatedFields = { ...updates };
-      delete (updatedFields as any).createdAt; // Prevent modification of createdAt
-      delete (updatedFields as any).id; // Prevent modification of id
-
-      updatedMapping = {
-        ...existing,
-        ...updatedFields,
-        version: existing.version + 1,
-        lastUpdated: new Date(),
-      };
-      if (updates.javaSignature && updates.javaSignature !== existing.javaSignature) {
-        if (this.signatureIndex.has(updates.javaSignature)) {
-          throw new Error(`Mapping with signature "${updates.javaSignature}" already exists.`);
-        }
-        this.signatureIndex.delete(existing.javaSignature);
-        this.signatureIndex.set(updates.javaSignature, id);
+    const updatedMapping: APIMapping = {
+      ...existing,
+      ...updatedFields,
+      version: existing.version + 1,
+      lastUpdated: new Date(),
+    };
+    if (updates.javaSignature && updates.javaSignature !== existing.javaSignature) {
+      if (this.signatureIndex.has(updates.javaSignature)) {
+        throw new Error(`Mapping with signature "${updates.javaSignature}" already exists.`);
       }
-      this.mappings.set(id, updatedMapping);
-      await this.persist();
-    });
-    return updatedMapping!;
+      this.signatureIndex.delete(existing.javaSignature);
+      this.signatureIndex.set(updates.javaSignature, id);
+    }
+    this.mappings.set(id, updatedMapping);
+    await this.persist();
+    return updatedMapping;
   }
 
   async delete(id: string): Promise<boolean> {
-    let deleted = false;
-    await this.withWriteLock(async () => {
-      const mapping = this.mappings.get(id);
-      if (mapping) {
-        this.mappings.delete(id);
-        this.signatureIndex.delete(mapping.javaSignature);
-        await this.persist();
-        deleted = true;
-      }
-    });
-    return deleted;
+    const mapping = this.mappings.get(id);
+    if (mapping) {
+      this.mappings.delete(id);
+      this.signatureIndex.delete(mapping.javaSignature);
+      await this.persist();
+      return true;
+    }
+    return false;
   }
 
   async bulkImport(mappings: APIMapping[]): Promise<ImportResult> {
@@ -369,16 +340,16 @@ export class APIMapperServiceImpl implements APIMapperService {
       // Fallback strategies
       logger.debug(`No exact mapping found for ${javaSignature}, trying fallbacks...`);
 
-      // Step 2: Partial signature matching
-      const partialMatch = await this.findPartialMatch(javaSignature);
-      if (partialMatch) {
-        return partialMatch;
-      }
-
-      // Step 3: Legacy system fallback
+      // Step 2: Legacy system fallback
       const legacyMapping = await this.findLegacyMapping(javaSignature);
       if (legacyMapping) {
         return legacyMapping;
+      }
+
+      // Step 3: Partial signature matching
+      const partialMatch = await this.findPartialMatch(javaSignature);
+      if (partialMatch) {
+        return partialMatch;
       }
 
       // Step 4: Impossible mapping generation
@@ -463,9 +434,9 @@ export class APIMapperServiceImpl implements APIMapperService {
     // In a real application, this might be a separate database or service.
     // For this example, we'll use a simple in-memory map.
     const legacyMappings = new Map<string, APIMapping>();
-    legacyMappings.set('net.minecraft.world.World.isRemote', {
+    legacyMappings.set('net.minecraft.world.World.isRemote()', {
       id: 'legacy-1',
-      javaSignature: 'net.minecraft.world.World.isRemote',
+      javaSignature: 'net.minecraft.world.World.isRemote()',
       bedrockEquivalent: 'system.isClient',
       conversionType: 'direct',
       notes: 'Legacy mapping for checking client-side execution.',
@@ -537,7 +508,6 @@ export class APIMapperServiceImpl implements APIMapperService {
     mappingData: Omit<APIMapping, 'id' | 'version' | 'createdAt' | 'lastUpdated'>
   ): Promise<APIMapping> {
     try {
-      this.validateMapping(mappingData);
       const newMapping = await this.database.create(mappingData);
       const cacheKey = `api_mapping:${newMapping.javaSignature}`;
       await this.cacheService.set(cacheKey, newMapping);
@@ -628,10 +598,6 @@ export class APIMapperServiceImpl implements APIMapperService {
   async getDatabaseStats(): Promise<{ totalMappings: number }> {
     const totalMappings = await this.database.count();
     return { totalMappings };
-  }
-
-  private validateMapping(mapping: Partial<APIMapping>): void {
-    validateAPIMapping(mapping);
   }
 
   private async initializeDefaultMappings(): Promise<void> {

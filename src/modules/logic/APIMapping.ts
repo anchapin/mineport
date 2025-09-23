@@ -90,70 +90,153 @@ export interface APIMapping {
 }
 
 /**
- * Validates an APIMapping object for correctness
- * @param mapping The mapping object to validate
- * @throws Error if the mapping is invalid
+ * Represents the result of a validation check.
  */
-export function validateAPIMapping(mapping: Partial<APIMapping>): void {
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+/**
+ * Validates a Java method signature.
+ * @param signature The Java signature to validate.
+ * @returns A ValidationResult object.
+ */
+export function validateJavaSignature(signature: string): ValidationResult {
+  const result: ValidationResult = { isValid: true, errors: [] };
+  // Updated regex to handle method parameters
+  const javaSignaturePattern =
+    /^[a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)+\(.*\)$/;
+
+  if (!javaSignaturePattern.test(signature)) {
+    result.isValid = false;
+    result.errors.push(
+      'Invalid Java signature format. Expected format: package.class.method(parameters)'
+    );
+  }
+  return result;
+}
+
+/**
+ * Validates a Bedrock API equivalent.
+ * @param bedrockEquivalent The Bedrock API equivalent to validate.
+ * @returns A ValidationResult object.
+ */
+export function validateBedrockEquivalent(bedrockEquivalent: string): ValidationResult {
+  const result: ValidationResult = { isValid: true, errors: [] };
+  if (bedrockEquivalent.trim().length === 0) {
+    result.isValid = false;
+    result.errors.push('Bedrock equivalent cannot be empty.');
+  }
+  // Allow for more complex Bedrock equivalents, including comments
   if (
-    !mapping.javaSignature ||
-    typeof mapping.javaSignature !== 'string' ||
-    mapping.javaSignature.trim().length === 0
+    !bedrockEquivalent.startsWith('//') &&
+    !/^[a-zA-Z0-9_$.]+(\(.*\))?/.test(bedrockEquivalent)
   ) {
-    throw new Error('Java signature is required and must be a non-empty string');
+    result.isValid = false;
+    result.errors.push('Invalid Bedrock equivalent format.');
+  }
+  return result;
+}
+
+/**
+ * Validates an APIMapping object for correctness.
+ * This function can perform different checks for new vs. existing mappings.
+ * @param mapping The mapping object to validate.
+ * @param isNew Whether this is a new mapping being created.
+ * @throws Error if the mapping is invalid.
+ */
+export function validateAPIMapping(
+  mapping: Partial<APIMapping>,
+  isNew: boolean = false,
+): void {
+  const errors: string[] = [];
+
+  if (isNew) {
+    if (!mapping.javaSignature) {
+      errors.push('Java signature is required');
+    }
+    if (!mapping.bedrockEquivalent) {
+      errors.push('Bedrock equivalent is required');
+    }
+    if (!mapping.conversionType) {
+      errors.push('Conversion type is required');
+    }
   }
 
-  if (
-    !mapping.bedrockEquivalent ||
-    typeof mapping.bedrockEquivalent !== 'string' ||
-    mapping.bedrockEquivalent.trim().length === 0
-  ) {
-    throw new Error('Bedrock equivalent is required and must be a non-empty string');
+  if (mapping.javaSignature !== undefined) {
+    if (typeof mapping.javaSignature !== 'string' || mapping.javaSignature.trim().length === 0) {
+      errors.push('Java signature must be a non-empty string');
+    } else {
+      const javaSignatureValidation = validateJavaSignature(mapping.javaSignature);
+      if (!javaSignatureValidation.isValid) {
+        errors.push(...javaSignatureValidation.errors);
+      }
+    }
   }
 
-  const validConversionTypes = ['direct', 'wrapper', 'complex', 'impossible'];
-  if (!mapping.conversionType || !validConversionTypes.includes(mapping.conversionType)) {
-    throw new Error(`Conversion type must be one of: ${validConversionTypes.join(', ')}`);
+  if (mapping.bedrockEquivalent !== undefined) {
+    if (
+      typeof mapping.bedrockEquivalent !== 'string' ||
+      mapping.bedrockEquivalent.trim().length === 0
+    ) {
+      errors.push('Bedrock equivalent must be a non-empty string');
+    } else {
+      const bedrockEquivalentValidation = validateBedrockEquivalent(mapping.bedrockEquivalent);
+      if (!bedrockEquivalentValidation.isValid) {
+        errors.push(...bedrockEquivalentValidation.errors);
+      }
+    }
+  }
+
+  if (mapping.conversionType !== undefined) {
+    const validConversionTypes = ['direct', 'wrapper', 'complex', 'impossible'];
+    if (!validConversionTypes.includes(mapping.conversionType)) {
+      errors.push(`Conversion type must be one of: ${validConversionTypes.join(', ')}`);
+    }
   }
 
   if (mapping.notes !== undefined && typeof mapping.notes !== 'string') {
-    throw new Error('Notes must be a string if provided');
+    errors.push('Notes must be a string if provided');
   }
 
   if (mapping.deprecated !== undefined && typeof mapping.deprecated !== 'boolean') {
-    throw new Error('Deprecated must be a boolean if provided');
+    errors.push('Deprecated must be a boolean if provided');
   }
 
   if (
     mapping.version !== undefined &&
     (typeof mapping.version !== 'number' || mapping.version < 1)
   ) {
-    throw new Error('Version must be a positive number if provided');
+    errors.push('Version must be a positive number if provided');
   }
 
   if (mapping.createdAt !== undefined && !(mapping.createdAt instanceof Date)) {
-    throw new Error('createdAt must be a Date object if provided');
+    errors.push('createdAt must be a Date object if provided');
   }
 
   if (mapping.lastUpdated !== undefined && !(mapping.lastUpdated instanceof Date)) {
-    throw new Error('lastUpdated must be a Date object if provided');
+    errors.push('lastUpdated must be a Date object if provided');
   }
 
   if (mapping.minecraftVersions !== undefined && !Array.isArray(mapping.minecraftVersions)) {
-    throw new Error('minecraftVersions must be an array if provided');
+    errors.push('minecraftVersions must be an array if provided');
   }
 
   if (mapping.modLoaders !== undefined) {
     if (!Array.isArray(mapping.modLoaders)) {
-      throw new Error('modLoaders must be an array if provided');
+      errors.push('modLoaders must be an array if provided');
     }
     const validLoaders = ['forge', 'fabric'];
     for (const loader of mapping.modLoaders) {
       if (!validLoaders.includes(loader)) {
-        throw new Error(
-          `Invalid mod loader: ${loader}. Must be one of: ${validLoaders.join(', ')}`
+        errors.push(
+          `Invalid mod loader: ${loader}. Must be one of: ${validLoaders.join(', ')}`,
         );
       }
     }
+  }
+  if (errors.length > 0) {
+    throw new Error(errors.join(', '));
   }
 }

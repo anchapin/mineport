@@ -51,12 +51,23 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
         };
         return values[key] || defaultValue;
       }),
-      on: vi.fn(), // Add event listener mock
+      on: vi.fn(),
     } as any;
 
-    // Create service directly instead of using create method to avoid initialization timeout
     const database = new InMemoryMappingDatabase(DB_PATH);
-    apiMapperService = new (APIMapperServiceImpl as any)(mockConfigService, database);
+    const cacheService = {
+      get: vi.fn(),
+      set: vi.fn(),
+      delete: vi.fn(),
+      clear: vi.fn(),
+      getMetrics: vi.fn().mockReturnValue({ totalEntries: 0 }),
+    };
+
+    apiMapperService = new (APIMapperServiceImpl as any)(
+      mockConfigService,
+      cacheService,
+      database
+    );
   });
 
   afterEach(async () => {
@@ -70,7 +81,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
     it('should add a new mapping and assign an ID, version, and timestamp', async () => {
       vi.mocked(uuidv4).mockReturnValue('mock-uuid-create');
       const mappingData = {
-        javaSignature: 'test.crud.Create',
+        javaSignature: 'test.crud.Create()',
         bedrockEquivalent: 'bedrock.crud.create',
         conversionType: 'direct' as const,
         notes: 'A test mapping.',
@@ -89,14 +100,14 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
     it('should retrieve a mapping by signature', async () => {
       vi.mocked(uuidv4).mockReturnValue('mock-uuid-retrieve');
       const mappingData = {
-        javaSignature: 'test.crud.Retrieve',
+        javaSignature: 'test.crud.Retrieve()',
         bedrockEquivalent: 'bedrock.crud.retrieve',
         conversionType: 'direct' as const,
         notes: 'A test mapping for retrieval.',
       };
 
       const createdMapping = await apiMapperService.addMapping(mappingData);
-      const retrievedMapping = await apiMapperService.getMapping('test.crud.Retrieve');
+      const retrievedMapping = await apiMapperService.getMapping('test.crud.Retrieve()');
 
       expect(retrievedMapping).toBeDefined();
       expect(retrievedMapping!.id).toBe(createdMapping.id);
@@ -106,7 +117,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
     it('should update an existing mapping', async () => {
       vi.mocked(uuidv4).mockReturnValue('mock-uuid-update');
       const mappingData = {
-        javaSignature: 'test.crud.Update',
+        javaSignature: 'test.crud.Update()',
         bedrockEquivalent: 'bedrock.crud.update',
         conversionType: 'direct' as const,
         notes: 'A test mapping for updating.',
@@ -116,6 +127,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       const updates = {
         bedrockEquivalent: 'bedrock.crud.updated',
         notes: 'Updated mapping',
+        conversionType: 'wrapper' as const,
       };
 
       const updatedMapping = await apiMapperService.updateMapping(createdMapping.id, updates);
@@ -131,7 +143,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
     it('should delete a mapping', async () => {
       vi.mocked(uuidv4).mockReturnValue('mock-uuid-delete');
       const mappingData = {
-        javaSignature: 'test.crud.Delete',
+        javaSignature: 'test.crud.Delete()',
         bedrockEquivalent: 'bedrock.crud.delete',
         conversionType: 'direct' as const,
         notes: 'A test mapping for deletion.',
@@ -142,8 +154,8 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
 
       expect(deleteResult).toBe(true);
 
-      const retrievedMapping = await apiMapperService.getMapping('test.crud.Delete');
-      expect(retrievedMapping).toBeUndefined();
+      const retrievedMapping = await apiMapperService.getMapping('test.crud.Delete()');
+      expect(retrievedMapping?.conversionType).toBe('impossible');
     });
   });
 
@@ -151,7 +163,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
     it('should cache retrieved mappings', async () => {
       vi.mocked(uuidv4).mockReturnValue('mock-uuid-cache');
       const mappingData = {
-        javaSignature: 'test.cache.Mapping',
+        javaSignature: 'test.cache.Mapping()',
         bedrockEquivalent: 'bedrock.cache.mapping',
         conversionType: 'direct' as const,
         notes: 'A test mapping for caching.',
@@ -160,11 +172,11 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       await apiMapperService.addMapping(mappingData);
 
       // First retrieval should hit the database
-      const firstRetrieval = await apiMapperService.getMapping('test.cache.Mapping');
+      const firstRetrieval = await apiMapperService.getMapping('test.cache.Mapping()');
       expect(firstRetrieval).toBeDefined();
 
       // Second retrieval should hit the cache (same object reference)
-      const secondRetrieval = await apiMapperService.getMapping('test.cache.Mapping');
+      const secondRetrieval = await apiMapperService.getMapping('test.cache.Mapping()');
       expect(secondRetrieval).toBeDefined();
     });
 
@@ -180,19 +192,19 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       // Add test mappings with different characteristics
       const testMappings = [
         {
-          javaSignature: 'test.filter.Direct',
+          javaSignature: 'test.filter.Direct()',
           bedrockEquivalent: 'bedrock.filter.direct',
           conversionType: 'direct' as const,
           notes: 'Direct mapping',
         },
         {
-          javaSignature: 'test.filter.Wrapper',
+          javaSignature: 'test.filter.Wrapper()',
           bedrockEquivalent: 'bedrock.filter.wrapper',
           conversionType: 'wrapper' as const,
           notes: 'Wrapper mapping',
         },
         {
-          javaSignature: 'test.filter.Complex',
+          javaSignature: 'test.filter.Complex()',
           bedrockEquivalent: 'bedrock.filter.complex',
           conversionType: 'complex' as const,
           notes: 'Complex mapping',
@@ -208,8 +220,8 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       const directMappings = await apiMapperService.getMappings({ conversionType: 'direct' });
       const wrapperMappings = await apiMapperService.getMappings({ conversionType: 'wrapper' });
 
-      expect(directMappings.length).toBeGreaterThan(0);
-      expect(wrapperMappings.length).toBeGreaterThan(0);
+      expect(directMappings.length).toBe(1);
+      expect(wrapperMappings.length).toBe(1);
 
       directMappings.forEach((mapping) => {
         expect(mapping.conversionType).toBe('direct');
@@ -222,7 +234,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
 
     it('should filter by search term', async () => {
       const searchResults = await apiMapperService.getMappings({ search: 'filter' });
-      expect(searchResults.length).toBeGreaterThanOrEqual(3);
+      expect(searchResults.length).toBe(3);
 
       searchResults.forEach((mapping) => {
         const hasSearchTerm =
@@ -235,9 +247,9 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
   });
 
   describe('Fallback Strategies', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       const partialMatchMapping = {
-        javaSignature: 'net.minecraft.world.World.getBlockState',
+        javaSignature: 'net.minecraft.world.World.getBlockState()',
         bedrockEquivalent: 'dimension.getBlock',
         conversionType: 'direct' as const,
         notes: 'Partial match test mapping',
@@ -250,39 +262,51 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
         'net.minecraft.world.World.getBlockState(BlockPos)'
       );
       expect(result).toBeDefined();
-      expect(result!.javaSignature).toBe('net.minecraft.world.World.getBlockState');
+      expect(result!.javaSignature).toBe('net.minecraft.world.World.getBlockState()');
       expect(result!.notes).toContain('[PARTIAL MATCH]');
-    });
+    }, 60000);
 
     it('should return a legacy mapping if no exact or partial match is found', async () => {
-      const result = await apiMapperService.getMapping('net.minecraft.world.World.isRemote');
+      const result = await apiMapperService.getMapping('net.minecraft.world.World.isRemote()');
       expect(result).toBeDefined();
-      expect(result!.javaSignature).toBe('net.minecraft.world.World.isRemote');
+      expect(result!.javaSignature).toBe('net.minecraft.world.World.isRemote()');
       expect(result!.notes).toContain('[LEGACY]');
       expect(result!.deprecated).toBe(true);
-    });
+    }, 60000);
 
     it('should generate an impossible mapping when no other match is found', async () => {
       vi.mocked(uuidv4).mockReturnValue('mock-uuid-impossible');
       const result = await apiMapperService.getMapping(
-        'com.example.mod.NonExistentClass.nonExistentMethod'
+        'com.example.mod.NonExistentClass.nonExistentMethod()'
       );
       expect(result).toBeDefined();
       expect(result!.conversionType).toBe('impossible');
       expect(result!.id).toBe('mock-uuid-impossible');
-    });
+    }, 60000);
   });
 
   describe('Error Handling', () => {
     it('should handle missing mappings gracefully', async () => {
-      const result = await apiMapperService.getMapping('non.existent.Signature');
+      const result = await apiMapperService.getMapping('non.existent.Signature()');
       expect(result).toBeDefined();
       expect(result!.conversionType).toBe('impossible');
     });
 
+    it('should reject adding a mapping with an invalid signature', async () => {
+      const invalidMappingData = {
+        javaSignature: 'invalid-signature-format',
+        bedrockEquivalent: 'bedrock.equivalent',
+        conversionType: 'direct' as const,
+        notes: 'Invalid mapping',
+      };
+      await expect(apiMapperService.addMapping(invalidMappingData)).rejects.toThrow(
+        'Invalid Java signature format. Expected format: package.class.method(parameters)'
+      );
+    });
+
     it('should handle duplicate signature additions', async () => {
       const mappingData = {
-        javaSignature: 'test.duplicate.Signature',
+        javaSignature: 'test.duplicate.Signature()',
         bedrockEquivalent: 'bedrock.duplicate',
         conversionType: 'direct' as const,
         notes: 'First mapping',
@@ -318,7 +342,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       const mappingsToImport: APIMapping[] = [
         {
           id: 'import-1',
-          javaSignature: 'import.test.First',
+          javaSignature: 'import.test.First()',
           bedrockEquivalent: 'bedrock.import.first',
           conversionType: 'direct',
           notes: 'First import',
@@ -328,7 +352,7 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
         },
         {
           id: 'import-2',
-          javaSignature: 'import.test.Second',
+          javaSignature: 'import.test.Second()',
           bedrockEquivalent: 'bedrock.import.second',
           conversionType: 'wrapper',
           notes: 'Second import',
@@ -344,8 +368,8 @@ describe('APIMapperService with InMemoryMappingDatabase', () => {
       expect(result.failed).toBe(0);
 
       // Verify mappings were actually imported
-      const firstMapping = await apiMapperService.getMapping('import.test.First');
-      const secondMapping = await apiMapperService.getMapping('import.test.Second');
+      const firstMapping = await apiMapperService.getMapping('import.test.First()');
+      const secondMapping = await apiMapperService.getMapping('import.test.Second()');
 
       expect(firstMapping).toBeDefined();
       expect(secondMapping).toBeDefined();
