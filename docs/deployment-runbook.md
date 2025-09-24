@@ -14,6 +14,7 @@ This runbook provides step-by-step procedures for deploying, monitoring, and tro
 6. [Emergency Procedures](#emergency-procedures)
 
 ## Pre-Deployment Checklist
+id: pre-deployment-checklist
 
 ### Prerequisites
 
@@ -51,7 +52,7 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 
 # Monitoring Configuration
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}
 SMTP_HOST=smtp.example.com
 
 # Feature Flags

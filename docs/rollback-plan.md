@@ -419,6 +419,7 @@ echo "4. Plan recovery strategy"
 ```
 
 ## Post-Rollback Procedures
+id: post-rollback-procedures
 
 ### Immediate Post-Rollback (0-30 minutes)
 
