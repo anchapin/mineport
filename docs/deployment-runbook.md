@@ -13,7 +13,7 @@ This runbook provides step-by-step procedures for deploying, monitoring, and tro
 5. [Troubleshooting Guide](#troubleshooting-guide)
 6. [Emergency Procedures](#emergency-procedures)
 
-## Pre-Deployment Checklist
+## Pre-Deployment Checklist {#pre-deployment-checklist}
 
 ### Prerequisites
 
@@ -51,7 +51,7 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 
 # Monitoring Configuration
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}
 SMTP_HOST=smtp.example.com
 
 # Feature Flags
@@ -293,7 +293,7 @@ grep -i "feature.*flag" logs/app.log
    ```bash
    # Emergency rollback
    ./scripts/rollback-deployment.sh --type emergency
-   
+
    # Alert team
    echo "CRITICAL: ModPorter-AI deployment failure" | \
      curl -X POST -H 'Content-type: application/json' \
@@ -302,14 +302,14 @@ grep -i "feature.*flag" logs/app.log
    ```
 
 2. **Assessment:**
-   - Check system logs
-   - Verify database integrity
-   - Assess impact scope
+    - Check system logs
+    - Verify database integrity
+    - Assess impact scope
 
 3. **Recovery:**
-   - Restore from backup if necessary
-   - Validate system functionality
-   - Document incident
+    - Restore from backup if necessary
+    - Validate system functionality
+    - Document incident
 
 ### Security Incident
 
@@ -317,20 +317,20 @@ grep -i "feature.*flag" logs/app.log
    ```bash
    # Disable all ModPorter-AI features
    echo '{"enhanced_file_processing":false,"multi_strategy_analysis":false,"specialized_conversion_agents":false,"comprehensive_validation":false,"modporter_ai_rollout_percentage":0,"security_incident":true}' > config/feature-flags.json
-   
+
    # Restart services
    sudo systemctl restart mineport
    ```
 
 2. **Investigation:**
-   - Review security logs
-   - Check for malicious uploads
-   - Analyze threat patterns
+    - Review security logs
+    - Check for malicious uploads
+    - Analyze threat patterns
 
 3. **Remediation:**
-   - Apply security patches
-   - Update security rules
-   - Re-enable features gradually
+    - Apply security patches
+    - Update security rules
+    - Re-enable features gradually
 
 ## Deployment Validation
 

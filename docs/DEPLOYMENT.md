@@ -9,19 +9,19 @@ This document provides comprehensive guidance for deploying the ModPorter-AI int
 ### Prerequisites
 
 1. **System Requirements:**
-   - Node.js 18.0.0 or higher
-   - PostgreSQL database
-   - npm 8.0.0 or higher
+    - Node.js 18.0.0 or higher
+    - PostgreSQL database
+    - npm 8.0.0 or higher
 
 2. **Environment Setup:**
    ```bash
    # Install dependencies
    npm install
-   
+
    # Set up environment variables
    cp .env.example .env
    # Edit .env with your configuration
-   
+
    # Validate prerequisites
    npm run validate:deployment
    ```

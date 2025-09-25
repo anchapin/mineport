@@ -45,9 +45,9 @@ Please check the type of change your PR introduces:
 - Browser (if applicable):
 
 **Test Steps**:
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Documentation
 
@@ -119,7 +119,7 @@ Please ensure the following before approving:
 
 ## Checklist
 
-- [ ] I have read the [CONTRIBUTING](CONTRIBUTING.md) guidelines
+- [ ] I have read the [CONTRIBUTING](../CONTRIBUTING.md) guidelines
 - [ ] I have signed the Contributor License Agreement (if applicable)
 - [ ] My commits follow the conventional commit format
 - [ ] I have rebased my branch on the latest main branch

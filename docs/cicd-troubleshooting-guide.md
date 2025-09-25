@@ -71,7 +71,7 @@ npm ls @types/
    ```bash
    # Run TypeScript compiler locally
    npx tsc --noEmit
-   
+
    # Fix type errors in reported files
    # Update tsconfig.json if needed
    ```
@@ -81,7 +81,7 @@ npm ls @types/
    # Clean install
    rm -rf node_modules package-lock.json
    npm install
-   
+
    # Update dependencies
    npm update
    ```
@@ -90,7 +90,7 @@ npm ls @types/
    ```bash
    # Install missing types
    npm install --save-dev @types/node @types/jest
-   
+
    # Check for conflicting type definitions
    npm ls @types/ | grep -E "(WARN|ERR)"
    ```
@@ -135,7 +135,7 @@ env | grep -E "(NODE|NPM|CI)"
    ```bash
    # Create .nvmrc file
    echo "20.18.0" > .nvmrc
-   
+
    # Update workflow to use .nvmrc
    node-version-file: '.nvmrc'
    ```
@@ -165,7 +165,7 @@ npm outdated
    ```bash
    # Install missing peer dependencies
    npm install --save-dev <missing-peer-dep>
-   
+
    # Or use --legacy-peer-deps flag
    npm install --legacy-peer-deps
    ```
@@ -185,7 +185,7 @@ npm outdated
    # Remove and reinstall
    rm -rf node_modules package-lock.json
    npm install
-   
+
    # Or use npm ci for clean install
    npm ci
    ```
@@ -217,7 +217,7 @@ npm run test:coverage
    ```typescript
    // Update expected values
    expect(result).toBe(expectedValue);
-   
+
    // Use more specific matchers
    expect(result).toMatchObject({ key: 'value' });
    ```
@@ -228,7 +228,7 @@ npm run test:coverage
    beforeEach(() => {
      jest.clearAllMocks();
    });
-   
+
    // Use proper mock implementations
    jest.mock('./module', () => ({
      functionName: jest.fn().mockReturnValue('mocked value')
@@ -239,7 +239,7 @@ npm run test:coverage
    ```bash
    # Update all snapshots
    npm test -- --run --update-snapshots
-   
+
    # Update specific test snapshots
    npm test -- --run --update-snapshots src/path/to/test.test.ts
    ```
@@ -270,10 +270,10 @@ cat tests/integration/setup.ts
    ```bash
    # Start test database
    docker-compose up -d test-db
-   
+
    # Run database migrations
    npm run migrate:test
-   
+
    # Seed test data
    npm run seed:test
    ```
@@ -297,7 +297,7 @@ cat tests/integration/setup.ts
    ```typescript
    // In test files
    jest.setTimeout(30000); // 30 seconds
-   
+
    // Or in vitest config
    export default defineConfig({
      test: {
@@ -333,7 +333,7 @@ grep -r "setTimeout\|setInterval" tests/
    await waitFor(() => {
      expect(element).toBeInTheDocument();
    });
-   
+
    // Use deterministic delays
    await new Promise(resolve => setTimeout(resolve, 100));
    ```
@@ -344,7 +344,7 @@ grep -r "setTimeout\|setInterval" tests/
    beforeEach(() => {
      jest.useFakeTimers();
    });
-   
+
    afterEach(() => {
      jest.useRealTimers();
    });
@@ -384,10 +384,10 @@ npm audit --json | jq '.vulnerabilities' | head -20
    ```bash
    # Auto-fix vulnerabilities
    npm audit fix
-   
+
    # Force fix breaking changes
    npm audit fix --force
-   
+
    # Update specific packages
    npm update package-name
    ```
@@ -396,7 +396,7 @@ npm audit --json | jq '.vulnerabilities' | head -20
    ```bash
    # Use npm audit fix with specific packages
    npm audit fix --package-lock-only
-   
+
    # Override with specific versions if needed
    npm install package-name@version --save-exact
    ```
@@ -434,7 +434,7 @@ gitleaks detect --source . --config .gitleaks.toml
    ```bash
    # Remove secrets from current code
    # Replace with environment variables
-   
+
    # For historical commits, use BFG or git-filter-branch
    git filter-branch --force --index-filter \
      'git rm --cached --ignore-unmatch path/to/file' \
@@ -445,7 +445,7 @@ gitleaks detect --source . --config .gitleaks.toml
    ```typescript
    // Instead of hardcoded secrets
    const apiKey = process.env.API_KEY;
-   
+
    // Use GitHub secrets in workflows
    env:
      API_KEY: ${{ secrets.API_KEY }}
@@ -456,7 +456,7 @@ gitleaks detect --source . --config .gitleaks.toml
    # .gitleaks.toml
    [[rules]]
    description = "Generic API Key"
-   regex = '''(?i)api[_-]?key[_-]?=.{0,5}['"][0-9a-zA-Z]{32,45}['"]'''
+   regex = '''(?i)api[_-]?key[_-]?=.{0,5}['"]\[0-9a-zA-Z\]{32,45}['"]'''
    tags = ["key", "API"]
    ```
 
@@ -485,7 +485,7 @@ npm run lint:security
    ```bash
    # Auto-fix ESLint issues
    npx eslint . --fix
-   
+
    # Update security rules
    npm install --save-dev eslint-plugin-security
    ```
@@ -495,7 +495,7 @@ npm run lint:security
    // Fix SQL injection
    const query = 'SELECT * FROM users WHERE id = ?';
    db.query(query, [userId]);
-   
+
    // Fix XSS vulnerabilities
    const sanitized = DOMPurify.sanitize(userInput);
    ```
@@ -540,7 +540,7 @@ kubectl describe service modporter-ai
    ```typescript
    // Ensure health endpoint is implemented
    app.get('/health', (req, res) => {
-     res.status(200).json({ 
+     res.status(200).json({
        status: 'healthy',
        timestamp: new Date().toISOString()
      });
@@ -567,10 +567,10 @@ kubectl describe service modporter-ai
    ```bash
    # Check service status
    systemctl status modporter-ai
-   
+
    # Check port binding
    netstat -tlnp | grep :3000
-   
+
    # Check environment variables
    env | grep -E "(NODE|PORT|DATABASE)"
    ```
@@ -600,7 +600,7 @@ npm run migrate:status
    ```bash
    # Test rollback script
    ./scripts/rollback-deployment.sh --dry-run
-   
+
    # Fix script permissions
    chmod +x scripts/rollback-deployment.sh
    ```
@@ -609,7 +609,7 @@ npm run migrate:status
    ```bash
    # Check artifact storage
    aws s3 ls s3://deployment-artifacts/
-   
+
    # Download previous version
    aws s3 cp s3://deployment-artifacts/v1.2.3/ ./previous-version/ --recursive
    ```
@@ -618,7 +618,7 @@ npm run migrate:status
    ```bash
    # Create rollback migrations
    npm run migrate:rollback
-   
+
    # Or use database snapshots
    kubectl exec -it postgres-pod -- pg_restore backup.sql
    ```
@@ -651,7 +651,7 @@ nc -zv redis-host 6379
    # Set missing environment variables
    export DATABASE_URL="postgresql://user:pass@host:5432/db"
    export REDIS_URL="redis://host:6379"
-   
+
    # Or use .env file
    cp .env.example .env
    ```
@@ -672,7 +672,7 @@ nc -zv redis-host 6379
    ```bash
    # Check database connectivity
    psql $DATABASE_URL -c "SELECT 1"
-   
+
    # Check Redis connectivity
    redis-cli -u $REDIS_URL ping
    ```
@@ -782,7 +782,7 @@ npm test -- --run --reporter=verbose | grep -E "SLOW|[0-9]+ms"
      jest.clearAllMocks();
      cleanup(); // React Testing Library
    });
-   
+
    // Use proper teardown
    afterAll(async () => {
      await server.close();
@@ -794,7 +794,7 @@ npm test -- --run --reporter=verbose | grep -E "SLOW|[0-9]+ms"
    ```bash
    # Run tests in parallel
    npm test -- --run --threads=4
-   
+
    # Use test sharding
    npm test -- --run --shard=1/4
    ```
@@ -881,7 +881,7 @@ find node_modules -name "*.js" -exec file {} \; | grep -v "ASCII\|UTF-8"
    ```bash
    # Clear GitHub Actions cache
    gh cache delete --all
-   
+
    # Clear local caches
    rm -rf node_modules ~/.npm
    npm install
@@ -988,7 +988,7 @@ gh run view --log | grep -i slack
    ```bash
    # Cancel running workflows
    gh run cancel $RUN_ID
-   
+
    # Trigger rollback
    ./scripts/rollback-deployment.sh
    ```
@@ -997,7 +997,7 @@ gh run view --log | grep -i slack
    ```bash
    # Check service status
    curl -f https://api.modporter.ai/health
-   
+
    # Check error rates
    kubectl logs deployment/modporter-ai --tail=100 | grep ERROR
    ```
@@ -1017,7 +1017,7 @@ gh run view --log | grep -i slack
    ```bash
    # Disable affected workflows
    gh workflow disable ci-enhanced.yml
-   
+
    # Revoke compromised secrets
    gh secret delete COMPROMISED_SECRET
    ```
@@ -1026,7 +1026,7 @@ gh run view --log | grep -i slack
    ```bash
    # Check recent commits
    git log --oneline --since="1 day ago"
-   
+
    # Scan for secrets
    gitleaks detect --source . --verbose
    ```
@@ -1035,7 +1035,7 @@ gh run view --log | grep -i slack
    ```bash
    # Rotate all secrets
    gh secret set API_KEY --body "new-secure-key"
-   
+
    # Update security policies
    git add .github/workflows/security.yml
    git commit -m "Enhanced security policies"
@@ -1048,7 +1048,7 @@ gh run view --log | grep -i slack
    ```bash
    # Disable all automated workflows
    find .github/workflows -name "*.yml" -exec gh workflow disable {} \;
-   
+
    # Use manual deployment
    ./scripts/manual-deploy.sh
    ```
@@ -1057,7 +1057,7 @@ gh run view --log | grep -i slack
    ```bash
    # Check GitHub status
    curl -s https://www.githubstatus.com/api/v2/status.json
-   
+
    # Review recent changes
    git log --oneline --since="1 week ago" .github/workflows/
    ```

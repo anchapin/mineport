@@ -125,4 +125,4 @@ Mineport is a sophisticated tool designed to convert Minecraft Java Edition mods
 - Contribute to discussions
 
 ## License
-This project is licensed under the terms of the MIT license. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the terms of the MIT license. See the [LICENSE](../../LICENSE) file for details.

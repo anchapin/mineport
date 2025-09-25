@@ -169,10 +169,10 @@ const bootstrap = createBootstrap();
 try {
   // Initialize all modules
   await bootstrap.initialize();
-  
+
   // Start all modules
   await bootstrap.start();
-  
+
   console.log('System started successfully');
 } catch (error) {
   console.error('Failed to start system:', error);
@@ -186,7 +186,7 @@ try {
 // Set up graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   console.log(`Received ${signal}, shutting down...`);
-  
+
   try {
     await bootstrap.shutdown();
     process.exit(0);
@@ -246,7 +246,7 @@ try {
   await bootstrap.start();
 } catch (error) {
   console.error('System startup failed:', error);
-  
+
   // Attempt graceful cleanup
   try {
     await bootstrap.shutdown();
@@ -275,7 +275,7 @@ export class MyModule extends BaseModule {
 // ✅ Good: Dependency injection
 export class MyModule extends BaseModule {
   private service: MyService;
-  
+
   protected async onInitialize(): Promise<void> {
     this.service = this.getDependency<MyService>('myService');
   }
@@ -311,12 +311,12 @@ protected async onDestroy(): Promise<void> {
   if (this.connection) {
     await this.connection.close();
   }
-  
+
   // Clear timers
   if (this.timer) {
     clearInterval(this.timer);
   }
-  
+
   // Clear caches
   this.cache.clear();
 }
@@ -339,11 +339,11 @@ protected async onDestroy(): Promise<void> {
 // Before: Old module pattern
 export class OldModule {
   private service: MyService;
-  
+
   constructor() {
     this.service = new MyService(); // Direct dependency
   }
-  
+
   public doSomething() {
     // Business logic
   }
@@ -352,31 +352,31 @@ export class OldModule {
 // After: Standardized module pattern
 export class NewModule extends BaseModule {
   private service: MyService;
-  
+
   constructor(config: ModuleConfig, dependencies: DependencyContainer) {
     super(config, dependencies);
   }
-  
+
   protected async onInitialize(): Promise<void> {
     this.service = this.getDependency<MyService>('myService');
   }
-  
+
   protected async onStart(): Promise<void> {
     // Startup logic
   }
-  
+
   protected async onStop(): Promise<void> {
     // Shutdown logic
   }
-  
+
   protected async onDestroy(): Promise<void> {
     // Cleanup logic
   }
-  
+
   protected getMetrics(): Record<string, any> {
     return { /* metrics */ };
   }
-  
+
   public doSomething() {
     // Business logic (unchanged)
   }
@@ -394,7 +394,7 @@ import { MyModule } from './MyModule';
 describe('MyModule', () => {
   let module: MyModule;
   let mockContainer: DependencyContainer;
-  
+
   beforeEach(() => {
     mockContainer = {
       get: jest.fn(),
@@ -402,21 +402,21 @@ describe('MyModule', () => {
       register: jest.fn(),
       registerFactory: jest.fn()
     };
-    
+
     const config: ModuleConfig = {
       id: 'test',
       name: 'Test Module',
       dependencies: ['myService']
     };
-    
+
     module = new MyModule(config, mockContainer);
   });
-  
+
   it('should initialize successfully', async () => {
     mockContainer.get = jest.fn().mockReturnValue(new MockService());
-    
+
     await module.initialize(mockContainer);
-    
+
     expect(module.state).toBe('initialized');
   });
 });

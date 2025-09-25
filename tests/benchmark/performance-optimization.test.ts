@@ -129,13 +129,13 @@ describe('Performance Optimization Tests', () => {
       const profileId = performanceMonitor.startProfile('resource-pool-usage');
       const acquisitions: Array<{ resource: any; release: () => Promise<void> }> = [];
 
-      // Acquire multiple resources rapidly (stay within pool limits)
-      for (let i = 0; i < 15; i++) {
+      // Acquire multiple resources rapidly
+      for (let i = 0; i < 20; i++) {
         const acquired = await pool.acquire();
         acquisitions.push(acquired);
 
-        // Release some resources to test reuse and prevent pool exhaustion
-        if (i % 2 === 0 && acquisitions.length > 5) {
+        // Release some resources to test reuse
+        if (i % 3 === 0 && acquisitions.length > 1) {
           const toRelease = acquisitions.shift()!;
           await toRelease.release();
         }
@@ -412,11 +412,11 @@ describe('Performance Optimization Tests', () => {
           `pool-${cycle}`,
           async () => ({ data: Buffer.alloc(5 * 1024) }),
           async () => {},
-          { maxSize: 10 }
+          { maxSize: 5 }
         );
 
         const resources = [];
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 10; i++) {
           resources.push(await pool.acquire());
         }
 

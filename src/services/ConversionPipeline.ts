@@ -12,6 +12,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { EventEmitter } from 'events';
 import { createLogger } from '../utils/logger.js';
 import { ErrorHandler, globalErrorCollector } from '../utils/errorHandler.js';
 import { ErrorCollector } from './ErrorCollector.js';
@@ -39,6 +40,11 @@ const MODULE_ID = 'PIPELINE';
  * Input for the conversion pipeline
  */
 export interface ConversionPipelineInput {
+  /**
+   * Job ID
+   */
+  jobId: string;
+
   /**
    * Path to the Java mod file or directory
    */
@@ -131,7 +137,7 @@ export interface ConversionPipelineResult {
  *
  * Refactored to use JobQueue for processing conversion requests.
  */
-export class ConversionPipeline {
+export class ConversionPipeline extends EventEmitter {
   private errorCollector: ErrorCollector;
   private jobQueue?: JobQueue;
   private resourceAllocator?: ResourceAllocator;
@@ -148,6 +154,7 @@ export class ConversionPipeline {
     resourceAllocator?: ResourceAllocator;
     configService?: ConfigurationService;
   }) {
+    super();
     this.errorCollector = options?.errorCollector || globalErrorCollector;
     this.jobQueue = options?.jobQueue;
     this.resourceAllocator = options?.resourceAllocator;
@@ -200,6 +207,7 @@ export class ConversionPipeline {
     try {
       // Step 1: Validate the input mod
       logger.info('Validating input mod');
+      this.emitProgress(input.jobId, 'Mod Validation', 0, 5);
       const modValidator = new ModValidator();
 
       // Read the mod file
@@ -222,8 +230,10 @@ export class ConversionPipeline {
         return this.createFailureResult(input.outputPath, errorCollector);
       }
 
+      this.emitProgress(input.jobId, 'Mod Validation', 100, 10);
       // Step 2: Analyze feature compatibility
       logger.info('Analyzing feature compatibility');
+      this.emitProgress(input.jobId, 'Feature Compatibility', 0, 15);
       const featureAnalyzer = new FeatureCompatibilityAnalyzer();
       const compatibilityResult = await featureAnalyzer.analyze(
         validationResult.extractedPath || input.inputPath
@@ -265,8 +275,11 @@ export class ConversionPipeline {
       await fs.mkdir(behaviorPackPath, { recursive: true });
       await fs.mkdir(resourcePackPath, { recursive: true });
 
+      this.emitProgress(input.jobId, 'Feature Compatibility', 100, 20);
+
       // Step 3: Generate manifests
       logger.info('Generating manifests');
+      this.emitProgress(input.jobId, 'Manifest Generation', 0, 25);
       const manifestGenerator = new ManifestGenerator();
       const manifestResult = manifestGenerator.generateManifests({
         modId: input.modId,
@@ -291,8 +304,11 @@ export class ConversionPipeline {
         );
       }
 
+      this.emitProgress(input.jobId, 'Manifest Generation', 100, 30);
+
       // Step 4: Convert assets
       logger.info('Converting assets');
+      this.emitProgress(input.jobId, 'Asset Conversion', 0, 40);
       const assetModule = new AssetTranslationModule();
 
       // Check if modInfo and assets exist before accessing
@@ -309,8 +325,11 @@ export class ConversionPipeline {
       // Organize assets
       await assetModule.organizeAssets(assetResult.bedrockAssets, resourcePackPath);
 
+      this.emitProgress(input.jobId, 'Asset Conversion', 100, 50);
+
       // Step 5: Convert configuration
       logger.info('Converting configuration');
+      this.emitProgress(input.jobId, 'Configuration Conversion', 0, 60);
 
       // Convert block/item definitions
       const definitionConverter = new BlockItemDefinitionConverter();
@@ -357,8 +376,11 @@ export class ConversionPipeline {
         );
       }
 
+      this.emitProgress(input.jobId, 'Configuration Conversion', 100, 70);
+
       // Step 6: Convert logic
       logger.info('Converting logic');
+      this.emitProgress(input.jobId, 'Logic Conversion', 0, 80);
       const logicEngine = new LogicTranslationEngine();
       const logicResult = await logicEngine.translateJavaCode(
         '', // Empty string as placeholder since we don't have source code in modInfo
@@ -404,8 +426,11 @@ export class ConversionPipeline {
         }
       }
 
+      this.emitProgress(input.jobId, 'Logic Conversion', 100, 85);
+
       // Step 7: Validate the addon
       logger.info('Validating addon');
+      this.emitProgress(input.jobId, 'Addon Validation', 0, 90);
       const addonValidator = new AddonValidator();
       const addonValidationResult = await addonValidator.validateAddon({
         behaviorPackPath,
@@ -431,6 +456,8 @@ export class ConversionPipeline {
         );
       });
 
+      this.emitProgress(input.jobId, 'Addon Validation', 100, 95);
+
       // Step 8: Generate report if requested
       let reportPath: string | undefined;
       /**
@@ -444,6 +471,7 @@ export class ConversionPipeline {
        */
       if (input.generateReport) {
         logger.info('Generating conversion report');
+        this.emitProgress(input.jobId, 'Report Generation', 0, 98);
         const reportGenerator = new ConversionReportGenerator();
         const reportResult = await reportGenerator.generateReport(
           {
@@ -462,6 +490,8 @@ export class ConversionPipeline {
         reportPath = (reportResult as any).reportPath;
       }
 
+      this.emitProgress(input.jobId, 'Report Generation', 100, 99);
+
       // Step 9: Package addon if requested
       let addonPath: string | undefined;
       /**
@@ -475,6 +505,7 @@ export class ConversionPipeline {
        */
       if (input.packageAddon) {
         logger.info('Packaging addon');
+        this.emitProgress(input.jobId, 'Addon Packaging', 0, 100);
         const addonPackager = new AddonPackager();
         const packagingResult = await addonPackager.createAddon({
           outputPath: input.outputPath,
@@ -588,6 +619,21 @@ export class ConversionPipeline {
    * @param errorCollector Error collector
    * @returns Error summary
    */
+  private emitProgress(
+    jobId: string,
+    currentStage: string,
+    stageProgress: number,
+    overallProgress: number
+  ) {
+    this.emit('job:progress', {
+      jobId,
+      status: 'processing',
+      progress: overallProgress,
+      currentStage,
+      stageProgress,
+    });
+  }
+
   private createErrorSummary(
     errorCollector: ErrorCollector
   ): ConversionPipelineResult['errorSummary'] {
@@ -651,6 +697,7 @@ export class ConversionPipeline {
         // Process the job
         const result = await this.convert({
           ...job.data,
+          jobId: job.id,
           errorCollector: jobErrorCollector,
         });
 
@@ -665,6 +712,7 @@ export class ConversionPipeline {
         this.jobQueue?.failJob(job.id, error instanceof Error ? error : new Error(String(error)));
       }
     });
+
   }
 
   /**

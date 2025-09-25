@@ -9,12 +9,12 @@ This document provides guidelines for managing module dependencies in the Minecr
 Circular dependencies create tight coupling and make the codebase harder to maintain and test.
 
 **❌ Bad Example:**
-```
+```text
 ModuleA → ModuleB → ModuleC → ModuleA
 ```
 
 **✅ Good Example:**
-```
+```text
 ModuleA → SharedModule ← ModuleB
 ModuleC → SharedModule
 ```
@@ -51,7 +51,7 @@ Each module should have the minimum number of dependencies necessary to fulfill 
 
 Organize modules into layers where each layer only depends on layers below it:
 
-```
+```text
 ┌─────────────────┐
 │   UI Layer      │ ← User Interface Components
 ├─────────────────┤

@@ -643,7 +643,7 @@ interface ConversionError {
 #### ErrorType
 
 ```typescript
-type ErrorType = 
+type ErrorType =
   | 'validation'     // Input validation errors
   | 'parsing'        // Code parsing errors
   | 'translation'    // Translation/conversion errors
@@ -657,7 +657,7 @@ type ErrorType =
 #### ErrorSeverity
 
 ```typescript
-type ErrorSeverity = 
+type ErrorSeverity =
   | 'info'           // Informational messages
   | 'warning'        // Non-fatal warnings
   | 'error'          // Recoverable errors
@@ -750,21 +750,21 @@ interface ConversionConfig {
     statusUpdateInterval: number;     // Status update frequency
     timeout: number;                  // Job timeout in milliseconds
   };
-  
+
   assets: {
     optimizeTextures: boolean;        // Enable texture optimization
     generateAtlas: boolean;           // Generate texture atlases
     maxTextureSize: number;          // Maximum texture dimensions
     compressionQuality: number;       // Compression quality (0-100)
   };
-  
+
   logic: {
     enableLLMTranslation: boolean;    // Use LLM for complex translations
     apiMappingSource: string;         // API mapping data source
     generateSourceMaps: boolean;      // Generate source maps
     validateOutput: boolean;          // Validate generated code
   };
-  
+
   output: {
     includeDocumentation: boolean;    // Include conversion docs
     generateReport: boolean;          // Generate conversion report
@@ -784,8 +784,8 @@ import { ConversionService, JobQueue, ResourceAllocator, WorkerPool } from 'mine
 // Set up dependencies
 const jobQueue = new JobQueue({ maxConcurrent: 3 });
 const workerPool = new WorkerPool({ maxWorkers: 5 });
-const resourceAllocator = new ResourceAllocator({ 
-  workerPool, 
+const resourceAllocator = new ResourceAllocator({
+  workerPool,
   jobQueue,
   minWorkers: 1,
   maxWorkers: 5
@@ -868,31 +868,31 @@ const conversionService = new ConversionService({
 
 try {
   const job = conversionService.createConversionJob(input);
-  
+
   // Wait for completion
   await new Promise((resolve, reject) => {
     conversionService.on('job:completed', resolve);
     conversionService.on('job:failed', reject);
   });
-  
+
   // Check for warnings and errors
   const errors = errorCollector.getErrors();
   const warnings = errorCollector.getWarnings();
-  
+
   if (errors.length > 0) {
     console.log('Errors encountered:');
     errors.forEach(error => {
       console.log(`- ${error.severity}: ${error.message} (${error.moduleOrigin})`);
     });
   }
-  
+
   if (warnings.length > 0) {
     console.log('Warnings:');
     warnings.forEach(warning => {
       console.log(`- ${warning.message}`);
     });
   }
-  
+
 } catch (error) {
   if (error instanceof ConversionError) {
     console.error(`Conversion failed: ${error.message}`);

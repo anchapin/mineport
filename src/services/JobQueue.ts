@@ -28,8 +28,7 @@ export interface Job {
   data: any;
   priority: number;
   createdAt: Date;
-  lastHeartbeat: Date;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'orphaned';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   result?: any;
   error?: Error;
 }
@@ -101,9 +100,6 @@ export class JobQueue extends EventEmitter {
       });
     }
 
-    // Start orphan job detection
-    setInterval(() => this.detectOrphanedJobs(), 60000); // Check every minute
-
     this.debouncedSaveQueue = debounce(this._saveQueue.bind(this), 1000);
 
     if (this.persistenceOptions?.enabled) {
@@ -145,7 +141,6 @@ export class JobQueue extends EventEmitter {
       data,
       priority: priority || this.defaultPriority,
       createdAt: new Date(),
-      lastHeartbeat: new Date(),
       status: 'pending',
     };
 
@@ -287,7 +282,6 @@ export class JobQueue extends EventEmitter {
     completed: number;
     failed: number;
     cancelled: number;
-    orphaned: number;
   } {
     return {
       pending: this.queue.filter((job) => job.status === 'pending').length,
@@ -295,7 +289,6 @@ export class JobQueue extends EventEmitter {
       completed: this.queue.filter((job) => job.status === 'completed').length,
       failed: this.queue.filter((job) => job.status === 'failed').length,
       cancelled: this.queue.filter((job) => job.status === 'cancelled').length,
-      orphaned: this.queue.filter((job) => job.status === 'orphaned').length,
     };
   }
 
@@ -319,37 +312,6 @@ export class JobQueue extends EventEmitter {
     this.debouncedSaveQueue();
 
     return true;
-  }
-
-  /**
-   * Update the last heartbeat time for a job to keep it alive.
-   * @param id The ID of the job to update.
-   */
-  public updateJobHeartbeat(id: string): void {
-    const job = this.getJob(id);
-    if (job && job.status === 'processing') {
-      job.lastHeartbeat = new Date();
-    }
-  }
-
-  /**
-   * Detects and marks jobs that have been processing for too long without a heartbeat.
-   */
-  private detectOrphanedJobs(): void {
-    const now = new Date();
-    const timeout = this.configService?.get('jobQueue.orphanTimeout', 300000) || 300000; // 5 minutes
-
-    for (const job of this.queue) {
-      if (job.status === 'processing') {
-        const timeSinceHeartbeat = now.getTime() - job.lastHeartbeat.getTime();
-        if (timeSinceHeartbeat > timeout) {
-          job.status = 'orphaned';
-          this.processing.delete(job.id);
-          this.emit('job:orphaned', job);
-          logger.warn('Detected orphaned job', { jobId: job.id });
-        }
-      }
-    }
   }
 
   /**

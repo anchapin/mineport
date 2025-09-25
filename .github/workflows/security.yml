@@ -231,7 +231,6 @@ jobs:
           config-path: .gitleaks.toml
 
       - name: Process GitLeaks results
-        id: process-gitleaks-results
         if: always()
         run: |
           # Check if results file exists and process it

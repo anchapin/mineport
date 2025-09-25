@@ -121,15 +121,25 @@ export interface ConversionOptions {
 /**
  * Interface for conversion status
  */
-export interface ConversionStatus {
+export interface ConversionJobStatus {
   jobId: string;
   status: JobStatus;
   progress: number;
-  currentStage?: string;
-  stageProgress?: number;
+  currentStage: string;
+  stageProgress: number;
   estimatedTimeRemaining?: number;
+  history: StatusHistory[];
   currentTask?: string;
   metadata?: Record<string, any>;
+}
+
+/**
+ * Interface for status history
+ */
+export interface StatusHistory {
+  status: JobStatus;
+  stage: string;
+  timestamp: Date;
 }
 
 /**
@@ -275,7 +285,7 @@ export interface ConversionService {
    * @param jobId Job ID
    * @returns Conversion status or undefined if job not found
    */
-  getJobStatus(jobId: string): ConversionStatus | undefined;
+  getJobStatus(jobId: string): ConversionJobStatus | undefined;
 
   /**
    * Get all conversion jobs with optional filtering

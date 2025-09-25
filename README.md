@@ -188,10 +188,10 @@ Create a `converter.config.json` file for complex setups:
 ### Programmatic API
 
 ```typescript
-import { 
-  ConversionService, 
+import {
+  ConversionService,
   AssetTranslationModule,
-  LogicTranslationEngine 
+  LogicTranslationEngine
 } from 'minecraft-mod-converter';
 
 // Initialize the conversion service
@@ -492,5 +492,4 @@ For commercial support, training, or custom development:
 **Made with ❤️ by the Minecraft Mod Converter team**
 
 *Converting the impossible, one mod at a time.*
-
 

@@ -29,7 +29,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check last 24 hours of workflow runs
    gh run list --limit 50 --created ">=$(date -d '1 day ago' --iso-8601)"
-   
+
    # Count failures
    gh run list --status failure --limit 20 --created ">=$(date -d '1 day ago' --iso-8601)"
    ```
@@ -38,7 +38,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check average build times
    ./scripts/analyze-build-times.sh --since="24 hours ago"
-   
+
    # Review cache hit rates
    ./scripts/cache-performance-report.sh --daily
    ```
@@ -47,7 +47,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check for new vulnerabilities
    npm audit --audit-level high
-   
+
    # Review security scan results
    gh run list --workflow=security.yml --limit 5
    ```
@@ -56,7 +56,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check GitHub Actions usage
    gh api /repos/:owner/:repo/actions/billing/usage
-   
+
    # Monitor runner queue times
    ./scripts/monitor-runner-queues.sh
    ```
@@ -79,7 +79,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Monitor active deployments
    gh run list --workflow=deploy.yml --status in_progress
-   
+
    # Check deployment health
    ./scripts/check-deployment-health.sh
    ```
@@ -88,7 +88,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Verify deployment success
    curl -f https://api.modporter.ai/health
-   
+
    # Check error rates
    ./scripts/check-error-rates.sh --since="15 minutes ago"
    ```
@@ -97,7 +97,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Ensure rollback scripts are ready
    ./scripts/validate-rollback-readiness.sh
-   
+
    # Check previous version availability
    ./scripts/check-artifact-availability.sh
    ```
@@ -116,7 +116,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Generate weekly performance report
    ./scripts/generate-weekly-performance-report.sh
-   
+
    # Analyze trends
    ./scripts/analyze-performance-trends.sh --weeks=4
    ```
@@ -125,7 +125,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Review cache effectiveness
    ./scripts/cache-optimization-report.sh
-   
+
    # Clean up stale caches
    gh cache delete --all --older-than 7d
    ```
@@ -134,7 +134,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check GitHub Actions minutes usage
    gh api /repos/:owner/:repo/actions/billing/usage
-   
+
    # Optimize workflow efficiency
    ./scripts/workflow-efficiency-analysis.sh
    ```
@@ -158,7 +158,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Run comprehensive security scan
    ./scripts/comprehensive-security-scan.sh
-   
+
    # Review dependency vulnerabilities
    npm audit --json > security-audit.json
    ```
@@ -167,7 +167,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Audit repository secrets
    gh secret list
-   
+
    # Check for secret rotation needs
    ./scripts/check-secret-rotation.sh
    ```
@@ -176,7 +176,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Review workflow permissions
    ./scripts/audit-workflow-permissions.sh
-   
+
    # Check branch protection rules
    gh api /repos/:owner/:repo/branches/main/protection
    ```
@@ -200,7 +200,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check for available updates
    npm outdated
-   
+
    # Review automated dependency PRs
    gh pr list --label "dependencies"
    ```
@@ -209,7 +209,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check for security patches
    npm audit --audit-level moderate
-   
+
    # Review npm audit recommendations
    npm audit --json | jq '.vulnerabilities' | head -10
    ```
@@ -218,7 +218,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Test dependency updates
    ./scripts/test-dependency-updates.sh
-   
+
    # Approve low-risk updates
    ./scripts/approve-safe-updates.sh
    ```
@@ -234,27 +234,27 @@ This runbook provides step-by-step operational procedures for managing the enhan
 #### Agenda
 
 1. **Performance Metrics Review (30 minutes)**
-   - Build time trends
-   - Test execution performance
-   - Deployment frequency and success rates
-   - Cache effectiveness analysis
+    - Build time trends
+    - Test execution performance
+    - Deployment frequency and success rates
+    - Cache effectiveness analysis
 
 2. **Security Posture Assessment (30 minutes)**
-   - Vulnerability trends
-   - Security scan effectiveness
-   - Compliance status
-   - Incident review
+    - Vulnerability trends
+    - Security scan effectiveness
+    - Compliance status
+    - Incident review
 
 3. **Cost Analysis (20 minutes)**
-   - GitHub Actions usage costs
-   - Resource optimization opportunities
-   - ROI analysis
+    - GitHub Actions usage costs
+    - Resource optimization opportunities
+    - ROI analysis
 
 4. **Process Improvements (40 minutes)**
-   - Workflow optimization opportunities
-   - Tool evaluation
-   - Team feedback integration
-   - Roadmap planning
+    - Workflow optimization opportunities
+    - Tool evaluation
+    - Team feedback integration
+    - Roadmap planning
 
 #### Deliverables
 
@@ -276,10 +276,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Simulate pipeline failure
    ./scripts/simulate-pipeline-failure.sh
-   
+
    # Test manual deployment process
    ./scripts/test-manual-deployment.sh
-   
+
    # Verify recovery procedures
    ./scripts/test-pipeline-recovery.sh
    ```
@@ -288,10 +288,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Simulate secret compromise
    ./scripts/simulate-secret-breach.sh
-   
+
    # Test incident response
    ./scripts/test-incident-response.sh
-   
+
    # Verify recovery time
    ./scripts/measure-recovery-time.sh
    ```
@@ -300,10 +300,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Test automated rollback
    ./scripts/test-automated-rollback.sh
-   
+
    # Test manual rollback
    ./scripts/test-manual-rollback.sh
-   
+
    # Verify data consistency
    ./scripts/verify-rollback-integrity.sh
    ```
@@ -340,10 +340,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Assess impact
    curl -f https://api.modporter.ai/health
-   
+
    # Check service status
    kubectl get pods -l app=modporter-ai
-   
+
    # Notify team
    ./scripts/send-critical-alert.sh "P0 Incident: Production down"
    ```
@@ -352,10 +352,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Attempt quick fix
    ./scripts/quick-fix-common-issues.sh
-   
+
    # If unsuccessful, initiate rollback
    ./scripts/emergency-rollback.sh
-   
+
    # Monitor recovery
    ./scripts/monitor-service-recovery.sh
    ```
@@ -364,7 +364,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Update status page
    ./scripts/update-status-page.sh "Investigating service disruption"
-   
+
    # Notify stakeholders
    ./scripts/notify-stakeholders.sh --severity=P0
    ```
@@ -375,10 +375,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Gather information
    ./scripts/collect-incident-data.sh
-   
+
    # Analyze logs
    ./scripts/analyze-recent-logs.sh --hours=2
-   
+
    # Identify root cause
    ./scripts/identify-root-cause.sh
    ```
@@ -387,10 +387,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Apply temporary fix
    ./scripts/apply-temporary-fix.sh
-   
+
    # Monitor effectiveness
    ./scripts/monitor-fix-effectiveness.sh
-   
+
    # Prepare permanent solution
    ./scripts/prepare-permanent-fix.sh
    ```
@@ -403,7 +403,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Generate incident report template
    ./scripts/create-incident-report.sh --incident-id=$INCIDENT_ID
-   
+
    # Collect timeline data
    ./scripts/collect-incident-timeline.sh --incident-id=$INCIDENT_ID
    ```
@@ -412,7 +412,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Analyze contributing factors
    ./scripts/analyze-contributing-factors.sh
-   
+
    # Identify systemic issues
    ./scripts/identify-systemic-issues.sh
    ```
@@ -421,7 +421,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Create improvement tasks
    ./scripts/create-improvement-tasks.sh --incident-id=$INCIDENT_ID
-   
+
    # Schedule follow-up reviews
    ./scripts/schedule-followup-reviews.sh
    ```
@@ -454,7 +454,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check pipeline dashboard
    open https://github.com/owner/repo/actions
-   
+
    # Monitor custom metrics
    ./scripts/check-custom-metrics.sh
    ```
@@ -477,7 +477,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Generate performance trends
    ./scripts/generate-performance-trends.sh --days=30
-   
+
    # Identify performance regressions
    ./scripts/identify-performance-regressions.sh
    ```
@@ -486,7 +486,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Analyze build bottlenecks
    ./scripts/analyze-build-bottlenecks.sh
-   
+
    # Identify slow tests
    ./scripts/identify-slow-tests.sh
    ```
@@ -499,7 +499,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Check for new vulnerabilities
    npm audit --audit-level high
-   
+
    # Generate detailed audit report
    npm audit --json > detailed-security-audit.json
    ```
@@ -508,7 +508,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Scan for secrets
    gitleaks detect --source . --verbose
-   
+
    # Check for exposed credentials
    ./scripts/check-exposed-credentials.sh
    ```
@@ -519,7 +519,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Review security scan results
    ./scripts/review-security-scans.sh --week
-   
+
    # Update security policies
    ./scripts/update-security-policies.sh
    ```
@@ -528,7 +528,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Audit repository access
    gh api /repos/:owner/:repo/collaborators
-   
+
    # Review workflow permissions
    ./scripts/audit-workflow-permissions.sh
    ```
@@ -539,7 +539,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Isolate affected systems
    ./scripts/isolate-affected-systems.sh
-   
+
    # Revoke compromised credentials
    ./scripts/revoke-compromised-credentials.sh
    ```
@@ -548,7 +548,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Collect forensic data
    ./scripts/collect-forensic-data.sh
-   
+
    # Analyze attack vectors
    ./scripts/analyze-attack-vectors.sh
    ```
@@ -557,7 +557,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Implement security fixes
    ./scripts/implement-security-fixes.sh
-   
+
    # Verify system integrity
    ./scripts/verify-system-integrity.sh
    ```
@@ -570,10 +570,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Verify all tests pass
    npm test
-   
+
    # Run security scans
    npm audit --audit-level high
-   
+
    # Check deployment readiness
    ./scripts/check-deployment-readiness.sh
    ```
@@ -582,10 +582,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Deploy to staging
    ./scripts/deploy-to-staging.sh
-   
+
    # Run smoke tests
    ./scripts/run-smoke-tests.sh --environment=staging
-   
+
    # Validate deployment
    ./scripts/validate-staging-deployment.sh
    ```
@@ -594,10 +594,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Deploy to production
    ./scripts/deploy-to-production.sh
-   
+
    # Monitor deployment
    ./scripts/monitor-production-deployment.sh
-   
+
    # Verify health
    ./scripts/verify-production-health.sh
    ```
@@ -608,7 +608,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Start canary deployment
    ./scripts/start-canary-deployment.sh --percentage=10
-   
+
    # Monitor canary metrics
    ./scripts/monitor-canary-metrics.sh
    ```
@@ -617,7 +617,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Increase canary traffic
    ./scripts/increase-canary-traffic.sh --percentage=50
-   
+
    # Continue monitoring
    ./scripts/monitor-canary-health.sh
    ```
@@ -626,7 +626,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Complete rollout
    ./scripts/complete-canary-rollout.sh
-   
+
    # Verify full deployment
    ./scripts/verify-full-deployment.sh
    ```
@@ -636,10 +636,10 @@ This runbook provides step-by-step operational procedures for managing the enhan
 ### Automated Rollback
 
 1. **Trigger Conditions**
-   - Health check failures
-   - Error rate > 5%
-   - Response time > 2x baseline
-   - Critical security vulnerability
+    - Health check failures
+    - Error rate > 5%
+    - Response time > 2x baseline
+    - Critical security vulnerability
 
 2. **Rollback Process**
    ```bash
@@ -647,7 +647,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    if [[ $ERROR_RATE > 5 ]]; then
      ./scripts/trigger-automatic-rollback.sh
    fi
-   
+
    # Monitor rollback progress
    ./scripts/monitor-rollback-progress.sh
    ```
@@ -658,7 +658,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Immediate rollback
    ./scripts/emergency-rollback.sh --version=previous
-   
+
    # Verify rollback success
    ./scripts/verify-rollback-success.sh
    ```
@@ -667,7 +667,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Scheduled rollback
    ./scripts/planned-rollback.sh --version=v1.2.3 --schedule="2024-01-15 02:00"
-   
+
    # Notify stakeholders
    ./scripts/notify-rollback-completion.sh
    ```
@@ -678,7 +678,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Verify system stability
    ./scripts/verify-system-stability.sh
-   
+
    # Check data integrity
    ./scripts/check-data-integrity.sh
    ```
@@ -687,7 +687,7 @@ This runbook provides step-by-step operational procedures for managing the enhan
    ```bash
    # Analyze rollback cause
    ./scripts/analyze-rollback-cause.sh
-   
+
    # Create improvement plan
    ./scripts/create-improvement-plan.sh
    ```

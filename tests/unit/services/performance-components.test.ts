@@ -7,25 +7,20 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import tmp from 'tmp';
+import * as os from 'os';
 import { CacheService } from '../../../src/services/CacheService.js';
 import { PerformanceMonitor } from '../../../src/services/PerformanceMonitor.js';
 import { ResourceAllocator } from '../../../src/services/ResourceAllocator.js';
 
 describe('Performance Components Unit Tests', () => {
   let tempDir: string;
-  let tempDirCleanup: () => void;
 
   beforeEach(async () => {
-    const tmpDir = tmp.dirSync({ prefix: 'perf-unit-', unsafeCleanup: true });
-    tempDir = tmpDir.name;
-    tempDirCleanup = tmpDir.removeCallback;
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'perf-unit-'));
   });
 
   afterEach(async () => {
-    if (tempDirCleanup) {
-      tempDirCleanup();
-    }
+    await fs.rm(tempDir, { recursive: true, force: true });
   });
 
   describe('CacheService', () => {

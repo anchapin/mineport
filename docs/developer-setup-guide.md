@@ -7,30 +7,30 @@ This guide will help you set up your development environment for the Minecraft M
 ### Required Software
 
 1. **Node.js** (v18.x or v20.x)
-   - Download from [nodejs.org](https://nodejs.org/)
-   - Verify installation: `node --version` and `npm --version`
+    - Download from [nodejs.org](https://nodejs.org/)
+    - Verify installation: `node --version` and `npm --version`
 
 2. **Git**
-   - Download from [git-scm.com](https://git-scm.com/)
-   - Verify installation: `git --version`
+    - Download from [git-scm.com](https://git-scm.com/)
+    - Verify installation: `git --version`
 
 3. **Code Editor**
-   - Recommended: [Visual Studio Code](https://code.visualstudio.com/)
-   - Alternative: WebStorm, Sublime Text, or any TypeScript-compatible editor
+    - Recommended: [Visual Studio Code](https://code.visualstudio.com/)
+    - Alternative: WebStorm, Sublime Text, or any TypeScript-compatible editor
 
 ### Optional but Recommended
 
 1. **Docker** (for containerized development)
-   - Download from [docker.com](https://www.docker.com/)
-   - Useful for running databases and external services locally
+    - Download from [docker.com](https://www.docker.com/)
+    - Useful for running databases and external services locally
 
 2. **MongoDB** (for local database development)
-   - Download from [mongodb.com](https://www.mongodb.com/)
-   - Alternative: Use MongoDB Atlas for cloud database
+    - Download from [mongodb.com](https://www.mongodb.com/)
+    - Alternative: Use MongoDB Atlas for cloud database
 
 3. **Redis** (for caching during development)
-   - Download from [redis.io](https://redis.io/)
-   - Alternative: Use Redis Cloud or disable caching in development
+    - Download from [redis.io](https://redis.io/)
+    - Alternative: Use Redis Cloud or disable caching in development
 
 ## Project Setup
 
@@ -177,12 +177,12 @@ npm run format
 
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-```
-<type>[optional scope]: <description>
+```json
+<type>optional scope: <description>
 
-[optional body]
+optional body
 
-[optional footer(s)]
+optional footer(s)
 ```
 
 **Types**:
@@ -196,7 +196,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 - `chore`: Changes to the build process or auxiliary tools
 
 **Examples**:
-```
+```text
 feat(assets): add texture atlas generation
 fix(logic): resolve API mapping cache invalidation
 docs: update developer setup guide
@@ -205,7 +205,7 @@ test(integration): add conversion pipeline tests
 
 ## Project Structure
 
-```
+```text
 minecraft-mod-converter/
 ├── src/                          # Source code
 │   ├── index.ts                  # Application entry point
@@ -276,26 +276,26 @@ npm run security:scan          # Run comprehensive security scan
 Recommended extensions for optimal development experience:
 
 1. **TypeScript and JavaScript**:
-   - TypeScript Importer
-   - Auto Rename Tag
-   - Bracket Pair Colorizer
+    - TypeScript Importer
+    - Auto Rename Tag
+    - Bracket Pair Colorizer
 
 2. **Code Quality**:
-   - ESLint
-   - Prettier - Code formatter
-   - SonarLint
+    - ESLint
+    - Prettier - Code formatter
+    - SonarLint
 
 3. **Testing**:
-   - Jest Runner
-   - Test Explorer UI
+    - Jest Runner
+    - Test Explorer UI
 
 4. **Git**:
-   - GitLens
-   - Git Graph
+    - GitLens
+    - Git Graph
 
 5. **Documentation**:
-   - Auto Comment Blocks
-   - Document This
+    - Auto Comment Blocks
+    - Document This
 
 ### VS Code Settings
 
@@ -329,14 +329,14 @@ Create `.vscode/launch.json` for debugging configuration:
 ```json
 {
   "version": "0.2.0",
-  "configurations": [
+  "configurations":
     {
       "name": "Debug Application",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/src/index.ts",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "runtimeArgs": ["-r", "ts-node/register"],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js",
+      "runtimeArgs": "-r", "ts-node/register",
       "env": {
         "NODE_ENV": "development"
       },
@@ -348,7 +348,7 @@ Create `.vscode/launch.json` for debugging configuration:
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
-      "args": ["run", "--reporter=verbose"],
+      "args": "run", "--reporter=verbose",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }
@@ -412,7 +412,7 @@ logger.error('Error occurred', { error });
    db.createUser({
      user: "dev-user",
      pwd: "dev-password",
-     roles: ["readWrite"]
+     roles: "readWrite"
    })
    ```
 
@@ -449,9 +449,9 @@ logger.error('Error occurred', { error });
 ### GitHub API
 
 1. **Create a Personal Access Token**:
-   - Go to GitHub Settings > Developer settings > Personal access tokens
-   - Generate a new token with `repo` and `user` scopes
-   - Add to your `.env` file as `GITHUB_TOKEN`
+    - Go to GitHub Settings > Developer settings > Personal access tokens
+    - Generate a new token with `repo` and `user` scopes
+    - Add to your `.env` file as `GITHUB_TOKEN`
 
 ### LLM API (Optional)
 
@@ -562,9 +562,9 @@ npm run test:watch -- tests/unit/services/ConversionService.test.ts
    ```
 
 4. **Database connection issues**:
-   - Check if MongoDB/Redis services are running
-   - Verify connection strings in `.env`
-   - Check firewall settings
+    - Check if MongoDB/Redis services are running
+    - Verify connection strings in `.env`
+    - Check firewall settings
 
 ### Getting Help
 
