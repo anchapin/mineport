@@ -85,7 +85,7 @@ npm ERR! Required: {"node":">=18.0.0","npm":">=8.0.0"}
    # Using nvm (recommended)
    nvm install 18
    nvm use 18
-   
+
    # Or download from nodejs.org
    # Install Node.js 18.x or 20.x
    ```
@@ -177,7 +177,7 @@ npm ERR! errno 134
    # Temporary fix for current session
    export NODE_OPTIONS="--max-old-space-size=4096"
    npm install
-   
+
    # Permanent fix (add to ~/.bashrc or ~/.zshrc)
    echo 'export NODE_OPTIONS="--max-old-space-size=4096"' >> ~/.bashrc
    source ~/.bashrc
@@ -187,7 +187,7 @@ npm ERR! errno 134
    ```bash
    # Reduce concurrent downloads
    npm install --maxsockets 1
-   
+
    # Or use yarn with network concurrency limit
    yarn install --network-concurrency 1
    ```
@@ -198,7 +198,7 @@ npm ERR! errno 134
    npm cache clean --force
    rm -rf ~/.npm
    rm -rf node_modules package-lock.json
-   
+
    # Reinstall with increased memory
    NODE_OPTIONS="--max-old-space-size=6144" npm install
    ```
@@ -208,7 +208,7 @@ npm ERR! errno 134
    # Try with yarn (often more memory efficient)
    npm install -g yarn
    yarn install
-   
+
    # Or use pnpm (uses hard links, saves space)
    npm install -g pnpm
    pnpm install
@@ -230,7 +230,7 @@ Container exits with code 125 or 137
    ```bash
    # Check Docker memory settings
    docker system info | grep -i memory
-   
+
    # Increase Docker memory limit (Docker Desktop)
    # Go to Docker Desktop > Settings > Resources > Memory
    # Set to at least 4GB for mod conversion
@@ -291,15 +291,15 @@ file my-mod.jar
    ```bash
    # Test JAR file
    jar tf my-mod.jar
-   
+
    # Or use unzip
    unzip -t my-mod.jar
    ```
 
 2. **Re-download the mod:**
-   - Download from official source
-   - Verify file size and checksum
-   - Ensure complete download
+    - Download from official source
+    - Verify file size and checksum
+    - Ensure complete download
 
 3. **Check file permissions:**
    ```bash
@@ -322,16 +322,16 @@ file my-mod.jar
 
 **Solutions:**
 1. **Check supported loaders:**
-   - Currently supports: Forge, ModLoader
-   - Fabric support is planned for future releases
+    - Currently supports: Forge, ModLoader
+    - Fabric support is planned for future releases
 
 2. **Convert Fabric to Forge (if possible):**
-   - Some Fabric mods have Forge equivalents
-   - Check mod author's other releases
+    - Some Fabric mods have Forge equivalents
+    - Check mod author's other releases
 
 3. **Request support:**
-   - File an issue for Fabric support
-   - Provide sample Fabric mod for testing
+    - File an issue for Fabric support
+    - Provide sample Fabric mod for testing
 
 ### Memory Exhaustion During Conversion
 
@@ -388,7 +388,7 @@ FATAL ERROR: Reached heap limit Allocation failed
    ```bash
    # Update to latest mappings
    npm run update-mappings
-   
+
    # Or manually update
    curl -o api-mappings.json https://api.example.com/latest-mappings
    ```
@@ -402,7 +402,7 @@ FATAL ERROR: Reached heap limit Allocation failed
        notes: "Direct property access"
      }
    };
-   
+
    await apiMapper.addMappings(customMappings);
    ```
 
@@ -476,9 +476,9 @@ FATAL ERROR: Reached heap limit Allocation failed
    ```
 
 2. **Simplify complex code:**
-   - Break down large methods
-   - Remove complex generics
-   - Simplify inheritance hierarchies
+    - Break down large methods
+    - Remove complex generics
+    - Simplify inheritance hierarchies
 
 3. **Use manual translation:**
    ```javascript
@@ -486,7 +486,7 @@ FATAL ERROR: Reached heap limit Allocation failed
    const manualTranslations = {
      'ComplexClass.java': './manual-translations/ComplexClass.js'
    };
-   
+
    await logicEngine.addManualTranslations(manualTranslations);
    ```
 
@@ -515,10 +515,10 @@ conversionService.on('job:status', (status) => {
 **Solutions:**
 1. **Increase concurrency:**
    ```javascript
-   const jobQueue = new JobQueue({ 
+   const jobQueue = new JobQueue({
      maxConcurrent: 6 // Increase from default 3
    });
-   
+
    const resourceAllocator = new ResourceAllocator({
      maxWorkers: 8 // Increase worker count
    });
@@ -569,7 +569,7 @@ resourceAllocator.on('memory:high', (usage) => {
    ```javascript
    const batchSize = 25; // Reduce from default 100
    const assetBatches = chunkArray(assets, batchSize);
-   
+
    for (const batch of assetBatches) {
      await processAssetBatch(batch);
      // Force garbage collection if available
@@ -610,7 +610,7 @@ resourceAllocator.on('memory:high', (usage) => {
    // Prioritize smaller jobs
    const smallJobPriority = 8;
    const largeJobPriority = 3;
-   
+
    jobQueue.addJob('conversion', smallJobData, { priority: smallJobPriority });
    ```
 
@@ -641,7 +641,7 @@ find output-addon/ -name "*.js" -o -name "*.json"
    ```javascript
    const validator = new AddonValidator();
    const result = await validator.validateManifest('./output-addon/manifest.json');
-   
+
    if (!result.valid) {
      console.log('Manifest errors:', result.errors);
    }
@@ -687,14 +687,14 @@ find output-addon/ -name "*.js" -o -name "*.json"
    // Verify asset references
    const assetValidator = new AssetValidator();
    const missingAssets = await assetValidator.findMissingAssets('./output-addon');
-   
+
    console.log('Missing assets:', missingAssets);
    ```
 
 3. **Regenerate corrupted assets:**
    ```javascript
    const corruptedAssets = await assetValidator.findCorruptedAssets('./output-addon');
-   
+
    for (const asset of corruptedAssets) {
      await assetModule.regenerateAsset(asset);
    }
@@ -717,7 +717,7 @@ find output-addon/ -name "*.js" -o -name "*.json"
    ```javascript
    const jsValidator = new JavaScriptValidator();
    const validationResult = await jsValidator.validate('./output-addon/scripts/');
-   
+
    if (!validationResult.valid) {
      console.log('JavaScript errors:', validationResult.errors);
    }
@@ -750,7 +750,7 @@ find output-addon/ -name "*.js" -o -name "*.json"
    # Check if MongoDB is running
    brew services list | grep mongodb
    sudo systemctl status mongod
-   
+
    # Check if Redis is running
    redis-cli ping
    ```
@@ -866,10 +866,10 @@ find output-addon/ -name "*.js" -o -name "*.json"
    ```typescript
    // Use proper type assertions
    const result = data as ConversionResult;
-   
+
    // Handle undefined values
    const value = config?.conversion?.maxConcurrency ?? 4;
-   
+
    // Use proper async/await types
    const processData = async (input: ConversionInput): Promise<ConversionResult> => {
      // Implementation
@@ -934,7 +934,7 @@ find output-addon/ -name "*.js" -o -name "*.json"
    ```bash
    # Check generated files
    find dist/ -name "*.js" -o -name "*.d.ts"
-   
+
    # Verify main entry point
    node dist/src/index.js --version
    ```
@@ -1041,7 +1041,7 @@ export LOG_LEVEL=trace    # Very detailed tracing
 
 ```javascript
 // Enable structured JSON logging
-const logger = createLogger('MyModule', { 
+const logger = createLogger('MyModule', {
   format: 'json',
   level: 'debug',
   includeTimestamp: true,

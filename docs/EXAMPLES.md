@@ -261,10 +261,10 @@ minecraft-mod-converter convert input.jar
 ### Basic Service Setup
 
 ```typescript
-import { 
-  ConversionService, 
-  JobQueue, 
-  ResourceAllocator, 
+import {
+  ConversionService,
+  JobQueue,
+  ResourceAllocator,
   WorkerPool,
   ConfigurationService,
   ErrorCollector
@@ -295,15 +295,15 @@ const configService = new ConfigurationService({
 const errorCollector = new ErrorCollector();
 
 // Set up job queue with configuration
-const jobQueue = new JobQueue({ 
+const jobQueue = new JobQueue({
   maxConcurrent: 4,
-  configService 
+  configService
 });
 
 // Set up worker pool
-const workerPool = new WorkerPool({ 
+const workerPool = new WorkerPool({
   maxWorkers: 6,
-  minWorkers: 2 
+  minWorkers: 2
 });
 
 // Set up resource allocator
@@ -360,9 +360,9 @@ class ConversionManager {
         job.lastUpdate = Date.now();
         job.progress = status.progress;
         job.currentStage = status.currentStage;
-        
+
         console.log(`Job ${status.jobId}: ${status.progress}% - ${status.currentStage}`);
-        
+
         // Estimate completion time
         if (status.progress > 0) {
           const elapsed = Date.now() - job.startTime;
@@ -377,7 +377,7 @@ class ConversionManager {
       if (job) {
         const duration = Date.now() - job.startTime;
         console.log(`Job ${data.jobId} completed in ${duration}ms`);
-        
+
         // Get detailed results
         const result = this.conversionService.getJobResult(data.jobId);
         if (result) {
@@ -386,7 +386,7 @@ class ConversionManager {
           console.log(`Warnings: ${result.warnings?.length || 0}`);
           console.log(`Errors: ${result.errors?.length || 0}`);
         }
-        
+
         // Clean up after delay
         setTimeout(() => {
           this.activeJobs.delete(data.jobId);
@@ -398,7 +398,7 @@ class ConversionManager {
       const job = this.activeJobs.get(data.jobId);
       if (job) {
         console.error(`Job ${data.jobId} failed:`, data.error);
-        
+
         // Attempt retry for certain error types
         if (this.shouldRetry(data.error)) {
           console.log(`Retrying job ${data.jobId}...`);
@@ -463,14 +463,14 @@ class ConversionManager {
 
   private shouldRetry(error: any): boolean {
     // Retry logic for transient errors
-    const retryableErrors = [
+    const retryableErrors =
       'ECONNRESET',
       'ETIMEDOUT',
       'ENOTFOUND',
       'Memory allocation failed'
-    ];
-    
-    return retryableErrors.some(retryable => 
+    ;
+
+    return retryableErrors.some(retryable =>
       error?.message?.includes(retryable)
     );
   }
@@ -478,7 +478,7 @@ class ConversionManager {
   private async retryJob(job: any): Promise<void> {
     // Wait before retry
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     // Create new job with same parameters
     this.conversionService.createConversionJob(job.input);
   }
@@ -498,7 +498,7 @@ try {
       generateSourceMaps: true
     }
   );
-  
+
   console.log(`Conversion completed: ${jobId}`);
 } catch (error) {
   console.error('Conversion failed:', error);
@@ -527,12 +527,12 @@ Create custom API mappings for specialized mod types:
         },
         "setHealth(double)": {
           "bedrockMethod": "getComponent('health').setCurrentValue($1)",
-          "parameters": ["number"],
+          "parameters": "number",
           "notes": "Use health component"
         },
         "sendMessage(String)": {
           "bedrockMethod": "sendMessage($1)",
-          "parameters": ["string"],
+          "parameters": "string",
           "notes": "Direct equivalent"
         }
       }
@@ -543,7 +543,7 @@ Create custom API mappings for specialized mod types:
       "methods": {
         "spawnEntity(Location, EntityType)": {
           "bedrockMethod": "spawnEntity($2, $1)",
-          "parameters": ["Vector3", "string"],
+          "parameters": "Vector3", "string",
           "notes": "Parameter order reversed in Bedrock"
         }
       }
@@ -570,7 +570,7 @@ export const performanceConfig = {
     gcInterval: 30000,
     enableGCLogging: true
   },
-  
+
   // Concurrency settings
   concurrency: {
     maxConcurrentJobs: 4,
@@ -578,7 +578,7 @@ export const performanceConfig = {
     jobQueueSize: 100,
     workerIdleTimeout: 60000
   },
-  
+
   // Asset processing
   assets: {
     textureProcessing: {
@@ -601,7 +601,7 @@ export const performanceConfig = {
       enableNormalization: true
     }
   },
-  
+
   // Code translation
   logic: {
     enableLLMTranslation: true,
@@ -610,7 +610,7 @@ export const performanceConfig = {
     cacheSize: 1000,
     parallelTranslation: true
   },
-  
+
   // I/O optimization
   io: {
     bufferSize: 64 * 1024,
@@ -634,13 +634,13 @@ export class CustomTextureProcessor extends TextureConverter {
   async convertTexture(texture: TextureAsset): Promise<BedrockTexture> {
     // Custom texture processing logic
     console.log(`Processing custom texture: ${texture.name}`);
-    
+
     // Apply custom filters
     const processedTexture = await this.applyCustomFilters(texture);
-    
+
     // Call parent implementation
     const bedrockTexture = await super.convertTexture(processedTexture);
-    
+
     // Add custom metadata
     bedrockTexture.metadata = {
       ...bedrockTexture.metadata,
@@ -649,56 +649,56 @@ export class CustomTextureProcessor extends TextureConverter {
       originalFormat: texture.format,
       customFiltersApplied: this.getAppliedFilters()
     };
-    
+
     return bedrockTexture;
   }
-  
+
   private async applyCustomFilters(texture: TextureAsset): Promise<TextureAsset> {
     // Example: Apply brightness adjustment
     if (this.shouldAdjustBrightness(texture)) {
       texture = await this.adjustBrightness(texture, 1.2);
     }
-    
+
     // Example: Apply custom color palette
     if (this.shouldApplyCustomPalette(texture)) {
       texture = await this.applyColorPalette(texture, this.getCustomPalette());
     }
-    
+
     return texture;
   }
-  
+
   private shouldAdjustBrightness(texture: TextureAsset): boolean {
     // Custom logic to determine if brightness adjustment is needed
     return texture.name.includes('dark') || texture.averageBrightness < 0.3;
   }
-  
+
   private async adjustBrightness(texture: TextureAsset, factor: number): Promise<TextureAsset> {
     // Implement brightness adjustment
     // This would use image processing libraries like Sharp or Canvas
     return texture; // Placeholder
   }
-  
+
   private shouldApplyCustomPalette(texture: TextureAsset): boolean {
     return texture.name.includes('custom_') || texture.tags?.includes('custom-palette');
   }
-  
+
   private getCustomPalette(): number[][] {
     // Return custom color palette
-    return [
-      [255, 0, 0],    // Red
-      [0, 255, 0],    // Green
-      [0, 0, 255],    // Blue
-      [255, 255, 0]   // Yellow
+    return
+      [255, 0, 0,    // Red
+      0, 255, 0,    // Green
+      0, 0, 255,    // Blue
+      255, 255, 0   // Yellow
     ];
   }
-  
+
   private async applyColorPalette(texture: TextureAsset, palette: number[][]): Promise<TextureAsset> {
     // Implement color palette application
     return texture; // Placeholder
   }
-  
+
   private getAppliedFilters(): string[] {
-    return ['brightness-adjustment', 'custom-palette'];
+    return 'brightness-adjustment', 'custom-palette';
   }
 }
 
@@ -740,16 +740,16 @@ class BatchProcessor {
   async processModDirectory(inputDir: string, outputDir: string): Promise<void> {
     // Find all JAR files
     const modFiles = await glob('**/*.jar', { cwd: inputDir });
-    
+
     console.log(`Found ${modFiles.length} mod files to process`);
-    
+
     // Process mods in batches to avoid overwhelming the system
     const batchSize = 3;
     for (let i = 0; i < modFiles.length; i += batchSize) {
       const batch = modFiles.slice(i, i + batchSize);
       await this.processBatch(batch, inputDir, outputDir);
     }
-    
+
     // Generate summary report
     this.generateBatchReport();
   }
@@ -758,10 +758,10 @@ class BatchProcessor {
     const promises = modFiles.map(async (modFile) => {
       const inputPath = path.join(inputDir, modFile);
       const outputPath = path.join(outputDir, path.basename(modFile, '.jar') + '-addon');
-      
+
       try {
         const startTime = Date.now();
-        
+
         const job = this.conversionService.createConversionJob({
           modFile: inputPath,
           outputPath,
@@ -775,10 +775,10 @@ class BatchProcessor {
 
         // Wait for completion
         await this.waitForJobCompletion(job.id);
-        
+
         const duration = Date.now() - startTime;
         const result = this.conversionService.getJobResult(job.id);
-        
+
         this.results.set(modFile, {
           success: result?.success || false,
           duration,
@@ -786,16 +786,16 @@ class BatchProcessor {
           errors: result?.errors?.length || 0,
           filesProcessed: result?.stats?.filesProcessed || 0
         });
-        
+
         console.log(`✓ Completed: ${modFile} (${duration}ms)`);
-        
+
       } catch (error) {
         this.results.set(modFile, {
           success: false,
           error: error.message,
           duration: 0
         });
-        
+
         console.error(`✗ Failed: ${modFile} - ${error.message}`);
       }
     });
@@ -844,10 +844,10 @@ class BatchProcessor {
     console.log(`Failed conversions: ${failed}`);
     console.log(`Average processing time: ${Math.round(avgDuration)}ms`);
     console.log(`Total processing time: ${Math.round(totalDuration / 1000)}s`);
-    
+
     // Detailed results
     console.log('\n=== Detailed Results ===');
-    for (const [modFile, result] of this.results.entries()) {
+    for (const modFile, result of this.results.entries()) {
       const status = result.success ? '✓' : '✗';
       console.log(`${status} ${modFile}: ${result.duration}ms`);
       if (result.warnings > 0) {
@@ -918,7 +918,7 @@ app.post('/convert', upload.single('modFile'), async (req, res) => {
 // Job status endpoint
 app.get('/status/:jobId', (req, res) => {
   const status = conversionService.getJobStatus(req.params.jobId);
-  
+
   if (!status) {
     return res.status(404).json({ error: 'Job not found' });
   }
@@ -929,7 +929,7 @@ app.get('/status/:jobId', (req, res) => {
 // Download result endpoint
 app.get('/download/:jobId', (req, res) => {
   const result = conversionService.getJobResult(req.params.jobId);
-  
+
   if (!result || !result.success) {
     return res.status(404).json({ error: 'Result not available' });
   }
@@ -950,8 +950,8 @@ app.listen(3000, () => {
 import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
 import { ConversionService } from 'minecraft-mod-converter';
 
-const client = new Client({ 
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] 
+const client = new Client({
+  intents: GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages
 });
 
 const conversionService = new ConversionService({
@@ -963,7 +963,7 @@ conversionService.start();
 client.on('messageCreate', async (message) => {
   if (message.content.startsWith('!convert') && message.attachments.size > 0) {
     const attachment = message.attachments.first();
-    
+
     if (!attachment.name.endsWith('.jar')) {
       return message.reply('Please attach a .jar mod file');
     }
@@ -973,7 +973,7 @@ client.on('messageCreate', async (message) => {
       const response = await fetch(attachment.url);
       const buffer = await response.arrayBuffer();
       const tempPath = `./temp/${attachment.name}`;
-      
+
       await fs.writeFile(tempPath, Buffer.from(buffer));
 
       // Start conversion
@@ -992,15 +992,15 @@ client.on('messageCreate', async (message) => {
       conversionService.once('job:completed', async (data) => {
         if (data.jobId === job.id) {
           const result = conversionService.getJobResult(job.id);
-          
+
           if (result.success) {
             const addonFile = new AttachmentBuilder(result.bedrockAddon.packagePath);
             await message.reply({
               content: '✅ Conversion completed!',
-              files: [addonFile]
+              files: addonFile
             });
           } else {
-            await message.reply(`❌ Conversion failed: ${result.errors[0]?.message}`);
+            await message.reply(`❌ Conversion failed: ${result.errors0?.message}`);
           }
         }
       });
@@ -1020,7 +1020,7 @@ client.on('messageCreate', async (message) => {
 client.login(process.env.DISCORD_TOKEN);
 ```
 
-## Real-World Use Cases
+## Real-World Use Cases {#real-world-use-cases}
 
 ### Minecraft Server Network Integration
 
@@ -1037,14 +1037,14 @@ export class ServerNetworkConverter {
       jobQueue: new JobQueue({ maxConcurrent: 10 }),
       resourceAllocator: new ResourceAllocator({ maxWorkers: 15 })
     });
-    
+
     this.conversionService.start();
     this.loadServerConfigurations();
   }
 
   async convertForServerNetwork(modPath: string, serverType: string): Promise<string> {
     const config = this.serverConfigs.get(serverType);
-    
+
     if (!config) {
       throw new Error(`Unknown server type: ${serverType}`);
     }
@@ -1116,7 +1116,7 @@ export class ServerNetworkConverter {
           clearTimeout(timeout);
           this.conversionService.off('job:completed', handleCompletion);
           this.conversionService.off('job:failed', handleFailure);
-          
+
           const result = this.conversionService.getJobResult(jobId);
           resolve(result.bedrockAddon.packagePath);
         }
@@ -1147,11 +1147,11 @@ export class EducationalConverter {
   private studentProjects: Map<string, any> = new Map();
 
   async convertStudentProject(
-    studentId: string, 
-    projectName: string, 
+    studentId: string,
+    projectName: string,
     modFile: string
   ): Promise<any> {
-    
+
     const job = this.conversionService.createConversionJob({
       modFile,
       outputPath: `./student-projects/${studentId}/${projectName}`,
@@ -1189,10 +1189,10 @@ export class EducationalConverter {
       this.conversionService.once('job:completed', (data) => {
         if (data.jobId === jobId) {
           const result = this.conversionService.getJobResult(jobId);
-          
+
           // Generate educational report
           const educationalReport = this.generateEducationalReport(result);
-          
+
           resolve({
             addon: result.bedrockAddon,
             report: educationalReport,
@@ -1219,11 +1219,11 @@ export class EducationalConverter {
         successfulConversions: result.stats.successfulConversions,
         compromisesApplied: result.stats.compromisesApplied
       },
-      learningObjectives: [
+      learningObjectives:
         'Understanding Java to JavaScript conversion',
         'Learning Bedrock Edition API differences',
         'Exploring compromise strategies for incompatible features'
-      ],
+      ,
       keyConceptsExplored: this.extractKeyConceptsFromResult(result),
       challengesEncountered: result.warnings.map(w => ({
         challenge: w.message,
@@ -1236,36 +1236,36 @@ export class EducationalConverter {
 
   private extractLearningPoints(result: any): string[] {
     const points = [];
-    
+
     if (result.stats.texturesConverted > 0) {
       points.push('Learned about texture format differences between Java and Bedrock');
     }
-    
+
     if (result.stats.modelsConverted > 0) {
       points.push('Explored 3D model conversion and optimization techniques');
     }
-    
+
     if (result.stats.codeTranslated > 0) {
       points.push('Practiced Java to JavaScript code translation');
     }
-    
+
     return points;
   }
 
   private suggestNextSteps(result: any): string[] {
     const suggestions = [];
-    
+
     if (result.warnings.length > 0) {
       suggestions.push('Review the warnings to understand conversion limitations');
     }
-    
+
     if (result.stats.compromisesApplied > 0) {
       suggestions.push('Study the compromise strategies used and their alternatives');
     }
-    
+
     suggestions.push('Test the converted addon in Minecraft Bedrock Edition');
     suggestions.push('Experiment with different compromise strategies');
-    
+
     return suggestions;
   }
 }
@@ -1285,31 +1285,31 @@ class RobustConverter {
 
   async convertWithRetry(input: any): Promise<any> {
     let lastError: Error;
-    
+
     for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
       try {
         console.log(`Conversion attempt ${attempt}/${this.retryAttempts}`);
-        
+
         const job = this.conversionService.createConversionJob(input);
         const result = await this.waitForCompletion(job.id);
-        
+
         console.log('Conversion successful');
         return result;
-        
+
       } catch (error) {
         lastError = error;
         console.error(`Attempt ${attempt} failed:`, error.message);
-        
+
         if (attempt < this.retryAttempts) {
           console.log(`Retrying in ${this.retryDelay}ms...`);
           await this.delay(this.retryDelay);
-          
+
           // Exponential backoff
           this.retryDelay *= 2;
         }
       }
     }
-    
+
     throw new Error(`Conversion failed after ${this.retryAttempts} attempts: ${lastError.message}`);
   }
 
@@ -1379,7 +1379,7 @@ class PerformanceMonitor {
     if (!this.metrics.has(name)) {
       this.metrics.set(name, []);
     }
-    
+
     this.metrics.get(name).push({
       timestamp: new Date(),
       value
@@ -1394,35 +1394,35 @@ class PerformanceMonitor {
 
   generateReport(): any {
     const report = {};
-    
-    for (const [name, entries] of this.metrics.entries()) {
+
+    for (const name, entries of this.metrics.entries()) {
       if (name === 'job_duration') {
         const durations = entries.map(e => e.value);
-        report[name] = {
+        reportname = {
           average: durations.reduce((a, b) => a + b, 0) / durations.length,
           min: Math.min(...durations),
           max: Math.max(...durations),
           count: durations.length
         };
       } else if (name === 'memory_usage') {
-        const latest = entries[entries.length - 1]?.value;
-        report[name] = {
+        const latest = entriesentries.length - 1?.value;
+        reportname = {
           current: latest,
           trend: this.calculateTrend(entries.slice(-10).map(e => e.value.heapUsed))
         };
       }
     }
-    
+
     return report;
   }
 
   private calculateTrend(values: number[]): string {
     if (values.length < 2) return 'stable';
-    
-    const first = values[0];
-    const last = values[values.length - 1];
+
+    const first = values0;
+    const last = valuesvalues.length - 1;
     const change = (last - first) / first;
-    
+
     if (change > 0.1) return 'increasing';
     if (change < -0.1) return 'decreasing';
     return 'stable';

@@ -137,7 +137,7 @@ git commit -m "Emergency fix" --no-verify
    ```bash
    # Check Python version
    python --version
-   
+
    # Set local Python version (if using pyenv)
    echo "3.12.2" > .python-version
    ```
@@ -150,15 +150,15 @@ git commit -m "Emergency fix" --no-verify
    ```
 
 3. **GitLeaks false positives**:
-   - Add patterns to `.gitleaks.toml` allowlist
-   - Use test-specific UUIDs: `00000000-0000-0000-0000-000000000001`
-   - Place test files in `tests/` directory
+    - Add patterns to `.gitleaks.toml` allowlist
+    - Use test-specific UUIDs: `00000000-0000-0000-0000-000000000001`
+    - Place test files in `tests/` directory
 
 4. **ESLint failures**:
    ```bash
    # Fix auto-fixable issues
    npm run lint:fix
-   
+
    # Check specific files
    npx eslint src/path/to/file.ts
    ```

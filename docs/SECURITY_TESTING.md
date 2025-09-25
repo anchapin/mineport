@@ -7,29 +7,29 @@ This document outlines the security testing approach for the Mineport project.
 ### Free Security Tools Implemented
 
 1. **npm audit** - Dependency vulnerability scanning
-   - Scans package.json and package-lock.json for known vulnerabilities
-   - Generates SARIF reports for GitHub Security tab integration
-   - Runs automatically on every PR and push
+    - Scans package.json and package-lock.json for known vulnerabilities
+    - Generates SARIF reports for GitHub Security tab integration
+    - Runs automatically on every PR and push
 
 2. **GitHub Dependabot** - Automated dependency updates
-   - Weekly scans for outdated and vulnerable dependencies
-   - Automatic security patch PRs
-   - Grouped updates to reduce PR noise
+    - Weekly scans for outdated and vulnerable dependencies
+    - Automatic security patch PRs
+    - Grouped updates to reduce PR noise
 
 3. **CodeQL** - Static code analysis
-   - JavaScript/TypeScript security analysis
-   - Detects potential security vulnerabilities in source code
-   - Uploads results to GitHub Security tab
+    - JavaScript/TypeScript security analysis
+    - Detects potential security vulnerabilities in source code
+    - Uploads results to GitHub Security tab
 
 4. **GitLeaks** - Secret detection
-   - Scans for accidentally committed secrets, API keys, tokens
-   - Prevents secret exposure in version control
-   - Blocks PRs containing detected secrets
+    - Scans for accidentally committed secrets, API keys, tokens
+    - Prevents secret exposure in version control
+    - Blocks PRs containing detected secrets
 
 5. **Trivy** - Container security scanning
-   - Scans Docker images for vulnerabilities
-   - OS package vulnerability detection
-   - Integrates with GitHub Security tab
+    - Scans Docker images for vulnerabilities
+    - OS package vulnerability detection
+    - Integrates with GitHub Security tab
 
 ## 🧪 Testing Procedures
 

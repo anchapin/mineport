@@ -53,21 +53,21 @@ graph TD
 ##### Key Workflows
 
 1. **CI Enhanced Workflow** (`.github/workflows/ci-enhanced.yml`)
-   - Runs on every push and pull request
-   - Executes matrix builds across multiple Node.js versions and OS
-   - Runs comprehensive test suites
-   - Generates coverage reports
+    - Runs on every push and pull request
+    - Executes matrix builds across multiple Node.js versions and OS
+    - Runs comprehensive test suites
+    - Generates coverage reports
 
 2. **Security Workflow** (`.github/workflows/security.yml`)
-   - Performs static code analysis
-   - Scans for vulnerabilities in dependencies
-   - Detects secrets and sensitive information
-   - Generates security reports
+    - Performs static code analysis
+    - Scans for vulnerabilities in dependencies
+    - Detects secrets and sensitive information
+    - Generates security reports
 
 3. **Deploy Workflow** (`.github/workflows/deploy.yml`)
-   - Handles automated deployments to staging and production
-   - Implements canary deployment strategy
-   - Performs health checks and rollbacks
+    - Handles automated deployments to staging and production
+    - Implements canary deployment strategy
+    - Performs health checks and rollbacks
 
 #### Hands-on Exercise
 
@@ -75,10 +75,10 @@ graph TD
    ```bash
    # Navigate to workflows directory
    cd .github/workflows
-   
+
    # List all workflow files
    ls -la *.yml
-   
+
    # Examine the CI workflow
    cat ci-enhanced.yml
    ```
@@ -87,7 +87,7 @@ graph TD
    ```bash
    # List recent workflow runs
    gh run list --limit 10
-   
+
    # View details of a specific run
    gh run view [RUN_ID]
    ```
@@ -158,7 +158,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     # ... test steps
-  
+
   deploy:
     needs: test  # Only runs if test job succeeds
     runs-on: ubuntu-latest
@@ -171,21 +171,21 @@ jobs:
    ```bash
    # Find a recent workflow run
    gh run list --workflow=ci-enhanced.yml --limit 1
-   
+
    # View the run details
    gh run view [RUN_ID] --log
    ```
 
 2. **Examine Matrix Build Results**
-   - Navigate to GitHub Actions tab
-   - Click on a recent CI workflow run
-   - Observe how matrix builds are displayed
-   - Compare results across different Node.js versions
+    - Navigate to GitHub Actions tab
+    - Click on a recent CI workflow run
+    - Observe how matrix builds are displayed
+    - Compare results across different Node.js versions
 
 3. **Trace Job Dependencies**
-   - Identify which jobs run in parallel
-   - Find jobs that depend on others
-   - Understand the critical path through the pipeline
+    - Identify which jobs run in parallel
+    - Find jobs that depend on others
+    - Understand the critical path through the pipeline
 
 #### Knowledge Check
 - How many jobs does a 3×3 matrix build create?
@@ -204,19 +204,19 @@ jobs:
 ##### Security Scanning Types
 
 1. **Static Application Security Testing (SAST)**
-   - Analyzes source code for security vulnerabilities
-   - Uses CodeQL for comprehensive analysis
-   - Identifies common security issues (SQL injection, XSS, etc.)
+    - Analyzes source code for security vulnerabilities
+    - Uses CodeQL for comprehensive analysis
+    - Identifies common security issues (SQL injection, XSS, etc.)
 
 2. **Dependency Scanning**
-   - Checks for known vulnerabilities in dependencies
-   - Uses npm audit for built-in vulnerability scanning
-   - Provides remediation suggestions and fix options
+    - Checks for known vulnerabilities in dependencies
+    - Uses npm audit for built-in vulnerability scanning
+    - Provides remediation suggestions and fix options
 
 3. **Secret Scanning**
-   - Detects hardcoded secrets in code
-   - Uses GitLeaks for pattern-based detection
-   - Prevents credential exposure
+    - Detects hardcoded secrets in code
+    - Uses GitLeaks for pattern-based detection
+    - Prevents credential exposure
 
 ##### Security Workflow Example
 
@@ -253,22 +253,22 @@ jobs:
 ##### Security Best Practices
 
 1. **Secret Management**
-   - Never hardcode secrets in code
-   - Use GitHub Secrets for sensitive data
-   - Rotate secrets regularly
-   - Use least privilege principle
+    - Never hardcode secrets in code
+    - Use GitHub Secrets for sensitive data
+    - Rotate secrets regularly
+    - Use least privilege principle
 
 2. **Dependency Management**
-   - Keep dependencies up to date
-   - Review security advisories
-   - Use automated dependency updates
-   - Monitor for new vulnerabilities
+    - Keep dependencies up to date
+    - Review security advisories
+    - Use automated dependency updates
+    - Monitor for new vulnerabilities
 
 3. **Code Security**
-   - Follow secure coding practices
-   - Use static analysis tools
-   - Implement security testing
-   - Regular security reviews
+    - Follow secure coding practices
+    - Use static analysis tools
+    - Implement security testing
+    - Regular security reviews
 
 #### Hands-on Exercise
 
@@ -276,25 +276,25 @@ jobs:
    ```bash
    # Run dependency audit
    npm audit --audit-level high
-   
+
    # Fix vulnerabilities
    npm audit fix
-   
+
    # Scan for secrets
    gitleaks detect --source . --verbose
    ```
 
 2. **Review Security Scan Results**
-   - Navigate to Security tab in GitHub
-   - Review CodeQL alerts
-   - Examine dependency vulnerabilities
-   - Check secret scanning results
+    - Navigate to Security tab in GitHub
+    - Review CodeQL alerts
+    - Examine dependency vulnerabilities
+    - Check secret scanning results
 
 3. **Practice Secret Management**
    ```bash
    # Set a repository secret
    gh secret set API_KEY --body "your-secret-value"
-   
+
    # List repository secrets
    gh secret list
    ```
@@ -317,19 +317,19 @@ jobs:
 ##### Deployment Strategies
 
 1. **Blue-Green Deployment**
-   - Maintains two identical production environments
-   - Switches traffic between environments
-   - Enables instant rollback
+    - Maintains two identical production environments
+    - Switches traffic between environments
+    - Enables instant rollback
 
 2. **Canary Deployment**
-   - Gradually rolls out changes to a subset of users
-   - Monitors metrics during rollout
-   - Reduces risk of widespread issues
+    - Gradually rolls out changes to a subset of users
+    - Monitors metrics during rollout
+    - Reduces risk of widespread issues
 
 3. **Rolling Deployment**
-   - Updates instances one at a time
-   - Maintains service availability
-   - Slower rollout but safer
+    - Updates instances one at a time
+    - Maintains service availability
+    - Slower rollout but safer
 
 ##### Deployment Workflow
 
@@ -381,14 +381,14 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
 ##### Rollback Procedures
 
 1. **Automatic Rollback**
-   - Triggered by health check failures
-   - Based on error rate thresholds
-   - Immediate response to critical issues
+    - Triggered by health check failures
+    - Based on error rate thresholds
+    - Immediate response to critical issues
 
 2. **Manual Rollback**
-   - Initiated by operations team
-   - Used for planned rollbacks
-   - Requires explicit approval
+    - Initiated by operations team
+    - Used for planned rollbacks
+    - Requires explicit approval
 
 #### Hands-on Exercise
 
@@ -396,10 +396,10 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
    ```bash
    # Check deployment readiness
    ./scripts/check-deployment-readiness.sh
-   
+
    # Deploy to staging (dry run)
    ./scripts/deploy-modporter-ai.sh staging --dry-run
-   
+
    # Validate deployment
    ./scripts/validate-deployment.js
    ```
@@ -408,10 +408,10 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
    ```bash
    # Check service health
    curl -f https://staging.modporter.ai/health
-   
+
    # Monitor error rates
    ./scripts/check-error-rates.sh --environment=staging
-   
+
    # View deployment logs
    kubectl logs deployment/modporter-ai --tail=50
    ```
@@ -420,10 +420,10 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
    ```bash
    # Check rollback readiness
    ./scripts/validate-rollback-readiness.sh
-   
+
    # Perform rollback (dry run)
    ./scripts/rollback-deployment.sh --dry-run
-   
+
    # Verify rollback success
    ./scripts/verify-rollback-success.sh
    ```
@@ -449,10 +449,10 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
    ```bash
    # Check build logs
    gh run view [RUN_ID] --log
-   
+
    # Reproduce locally
    npm run build
-   
+
    # Check dependencies
    npm ls --depth=0
    ```
@@ -461,10 +461,10 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
    ```bash
    # Run specific test
    npm test -- --run src/path/to/test.test.ts
-   
+
    # Update snapshots
    npm test -- --run --update-snapshots
-   
+
    # Check for flaky tests
    npm run test:flaky
    ```
@@ -473,7 +473,7 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
    ```bash
    # Clear GitHub Actions cache
    gh cache delete --all
-   
+
    # Verify cache keys
    echo "Cache key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}"
    ```
@@ -481,53 +481,53 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
 ##### Performance Optimization
 
 1. **Build Optimization**
-   - Use appropriate cache strategies
-   - Parallelize independent jobs
-   - Optimize Docker layer caching
+    - Use appropriate cache strategies
+    - Parallelize independent jobs
+    - Optimize Docker layer caching
 
 2. **Test Optimization**
-   - Run tests in parallel
-   - Use test sharding
-   - Optimize test data setup
+    - Run tests in parallel
+    - Use test sharding
+    - Optimize test data setup
 
 3. **Resource Management**
-   - Monitor GitHub Actions usage
-   - Optimize runner selection
-   - Use self-hosted runners when appropriate
+    - Monitor GitHub Actions usage
+    - Optimize runner selection
+    - Use self-hosted runners when appropriate
 
 ##### Maintenance Tasks
 
 1. **Daily Tasks**
-   - Review pipeline status
-   - Check for failures
-   - Monitor performance metrics
+    - Review pipeline status
+    - Check for failures
+    - Monitor performance metrics
 
 2. **Weekly Tasks**
-   - Update dependencies
-   - Review security scans
-   - Optimize cache usage
+    - Update dependencies
+    - Review security scans
+    - Optimize cache usage
 
 3. **Monthly Tasks**
-   - Performance analysis
-   - Cost optimization
-   - Process improvements
+    - Performance analysis
+    - Cost optimization
+    - Process improvements
 
 #### Hands-on Exercise
 
 1. **Diagnose a Build Failure**
-   - Find a failed workflow run
-   - Analyze the logs
-   - Identify the root cause
-   - Propose a solution
+    - Find a failed workflow run
+    - Analyze the logs
+    - Identify the root cause
+    - Propose a solution
 
 2. **Optimize Pipeline Performance**
    ```bash
    # Analyze build times
    ./scripts/analyze-build-times.sh
-   
+
    # Check cache effectiveness
    ./scripts/cache-performance-report.sh
-   
+
    # Identify bottlenecks
    ./scripts/identify-bottlenecks.sh
    ```
@@ -536,10 +536,10 @@ curl -w "@curl-format.txt" -o /dev/null -s https://api.modporter.ai/health
    ```bash
    # Update dependencies
    npm update
-   
+
    # Clean up old caches
    gh cache delete --all --older-than 7d
-   
+
    # Generate performance report
    ./scripts/generate-performance-report.sh
    ```
@@ -611,10 +611,10 @@ Create a deployment pipeline that:
 ### Knowledge Assessment (20 questions)
 
 1. **Multiple Choice:** Which workflow file handles security scanning?
-   - a) ci-enhanced.yml
-   - b) security.yml
-   - c) deploy.yml
-   - d) monitoring.yml
+    - a) ci-enhanced.yml
+    - b) security.yml
+    - c) deploy.yml
+    - d) monitoring.yml
 
 2. **True/False:** Matrix builds run sequentially to save resources.
 

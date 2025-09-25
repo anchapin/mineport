@@ -26,10 +26,10 @@ graph TD
     B --> D[Deploy Workflow]
     C --> D
     D --> E[Monitoring Workflow]
-    
+
     F[Scheduled] --> G[Dependencies Workflow]
     F --> H[Performance Workflow]
-    
+
     I[Manual Trigger] --> J[Artifacts Workflow]
     I --> K[Release Workflow]
 ```
@@ -163,9 +163,9 @@ The security workflow implements multiple scanning layers:
 ### Prerequisites
 
 1. **Repository Setup**:
-   - Ensure all workflow files are in `.github/workflows/`
-   - Configure repository secrets and variables
-   - Set up branch protection rules
+    - Ensure all workflow files are in `.github/workflows/`
+    - Configure repository secrets and variables
+    - Set up branch protection rules
 
 2. **Required Secrets**:
    ```
@@ -285,22 +285,22 @@ The pipeline integrates with existing deployment and validation scripts:
 The pipeline collects comprehensive metrics:
 
 1. **Build Metrics**:
-   - Build duration
-   - Success/failure rates
-   - Cache hit rates
-   - Resource utilization
+    - Build duration
+    - Success/failure rates
+    - Cache hit rates
+    - Resource utilization
 
 2. **Test Metrics**:
-   - Test execution time
-   - Coverage percentages
-   - Flaky test detection
-   - Test reliability scores
+    - Test execution time
+    - Coverage percentages
+    - Flaky test detection
+    - Test reliability scores
 
 3. **Deployment Metrics**:
-   - Deployment frequency
-   - Lead time for changes
-   - Mean time to recovery
-   - Change failure rate
+    - Deployment frequency
+    - Lead time for changes
+    - Mean time to recovery
+    - Change failure rate
 
 ### Alert Configuration
 
@@ -443,53 +443,53 @@ Key log locations and what to look for:
 ### Development Workflow
 
 1. **Branch Strategy**:
-   - Use feature branches for development
-   - Require pull request reviews
-   - Enable branch protection rules
+    - Use feature branches for development
+    - Require pull request reviews
+    - Enable branch protection rules
 
 2. **Commit Practices**:
-   - Write descriptive commit messages
-   - Use conventional commit format
-   - Keep commits focused and atomic
+    - Write descriptive commit messages
+    - Use conventional commit format
+    - Keep commits focused and atomic
 
 3. **Testing Strategy**:
-   - Write tests before code (TDD)
-   - Maintain high test coverage (>80%)
-   - Include integration and security tests
+    - Write tests before code (TDD)
+    - Maintain high test coverage (>80%)
+    - Include integration and security tests
 
 ### Pipeline Optimization
 
 1. **Performance**:
-   - Use appropriate cache strategies
-   - Parallelize independent jobs
-   - Optimize Docker layer caching
+    - Use appropriate cache strategies
+    - Parallelize independent jobs
+    - Optimize Docker layer caching
 
 2. **Security**:
-   - Scan early and often
-   - Use least privilege principles
-   - Rotate secrets regularly
+    - Scan early and often
+    - Use least privilege principles
+    - Rotate secrets regularly
 
 3. **Reliability**:
-   - Implement retry mechanisms
-   - Use health checks and rollbacks
-   - Monitor and alert on failures
+    - Implement retry mechanisms
+    - Use health checks and rollbacks
+    - Monitor and alert on failures
 
 ### Code Quality
 
 1. **Static Analysis**:
-   - Use ESLint and Prettier
-   - Enable TypeScript strict mode
-   - Run security linting
+    - Use ESLint and Prettier
+    - Enable TypeScript strict mode
+    - Run security linting
 
 2. **Code Review**:
-   - Require peer reviews
-   - Use automated code review tools
-   - Check for security issues
+    - Require peer reviews
+    - Use automated code review tools
+    - Check for security issues
 
 3. **Documentation**:
-   - Keep documentation up to date
-   - Document configuration changes
-   - Provide troubleshooting guides
+    - Keep documentation up to date
+    - Document configuration changes
+    - Provide troubleshooting guides
 
 ## Migration Guide
 
@@ -508,9 +508,9 @@ Key log locations and what to look for:
    ```
 
 3. **Update Documentation**:
-   - Review current deployment procedures
-   - Document configuration requirements
-   - Identify integration points
+    - Review current deployment procedures
+    - Document configuration requirements
+    - Identify integration points
 
 #### Phase 2: Gradual Migration
 
@@ -518,7 +518,7 @@ Key log locations and what to look for:
    ```bash
    # Copy enhanced workflow
    cp enhanced-workflows/ci-enhanced.yml .github/workflows/
-   
+
    # Test with feature branch
    git checkout -b test-enhanced-ci
    git push origin test-enhanced-ci
@@ -528,7 +528,7 @@ Key log locations and what to look for:
    ```bash
    # Configure security scanning
    cp enhanced-workflows/security.yml .github/workflows/
-   
+
    # Set up required secrets
    # No external secrets needed for npm audit
    ```
@@ -537,7 +537,7 @@ Key log locations and what to look for:
    ```bash
    # Add deployment workflow
    cp enhanced-workflows/deploy.yml .github/workflows/
-   
+
    # Configure deployment secrets
    gh secret set DEPLOY_KEY
    ```
@@ -548,7 +548,7 @@ Key log locations and what to look for:
    ```bash
    # Remove old workflow
    rm .github/workflows/ci.yml
-   
+
    # Rename enhanced workflow
    mv .github/workflows/ci-enhanced.yml .github/workflows/ci.yml
    ```
@@ -563,7 +563,7 @@ Key log locations and what to look for:
    ```bash
    # Run comprehensive validation
    npm run validate:pipeline
-   
+
    # Test full deployment cycle
    npm run test:deployment
    ```
@@ -571,19 +571,19 @@ Key log locations and what to look for:
 #### Phase 4: Optimization
 
 1. **Monitor Performance**:
-   - Review build times and success rates
-   - Optimize cache configurations
-   - Adjust matrix build strategies
+    - Review build times and success rates
+    - Optimize cache configurations
+    - Adjust matrix build strategies
 
 2. **Fine-tune Security**:
-   - Adjust vulnerability thresholds
-   - Configure custom security rules
-   - Set up security dashboards
+    - Adjust vulnerability thresholds
+    - Configure custom security rules
+    - Set up security dashboards
 
 3. **Enhance Monitoring**:
-   - Configure alerting rules
-   - Set up performance dashboards
-   - Implement SLA monitoring
+    - Configure alerting rules
+    - Set up performance dashboards
+    - Implement SLA monitoring
 
 ### Rollback Procedures
 
@@ -593,7 +593,7 @@ If issues arise during migration:
    ```bash
    # Restore backup workflow
    cp .github/workflows/ci-backup.yml .github/workflows/ci.yml
-   
+
    # Remove enhanced workflows
    rm .github/workflows/ci-enhanced.yml
    rm .github/workflows/security.yml

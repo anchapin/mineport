@@ -512,7 +512,7 @@ if (require.main === module) {
           break;
 
         default:
-          console.log('Usage: node artifact-manager.js <command>');
+          console.log('Usage: node scripts/artifact-manager.cjs <command>');
           console.log('Commands:');
           console.log('  create    - Create build artifacts');
           console.log('  validate  - Validate existing artifacts');

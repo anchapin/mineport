@@ -146,7 +146,9 @@ async function validateFileVersions(filePath) {
 
     console.log(`Checking versions in: ${relativePath}`);
 
-    const versionRefs = extractVersionReferences(content, filePath);
+    // Ignore fenced code blocks (``` ... ```) when scanning for versions
+    const contentNoFences = content.replace(/```[\s\S]*?```/g, '');
+    const versionRefs = extractVersionReferences(contentNoFences, filePath);
 
     for (const ref of versionRefs) {
       validateVersionReference(ref, relativePath);

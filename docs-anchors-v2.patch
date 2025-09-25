@@ -1,0 +1,28 @@
+diff --git a/docs/deployment-runbook.md b/docs/deployment-runbook.md
+index 93df6c8..5eba6a7 100644
+--- a/docs/deployment-runbook.md
++++ b/docs/deployment-runbook.md
+@@ -13,8 +13,7 @@ This runbook provides step-by-step procedures for deploying, monitoring, and tro
+ 5. [Troubleshooting Guide](#troubleshooting-guide)
+ 6. [Emergency Procedures](#emergency-procedures)
+ 
+-## Pre-Deployment Checklist
+-id: pre-deployment-checklist
++## Pre-Deployment Checklist {#pre-deployment-checklist}
+ 
+ ### Prerequisites
+ 
+diff --git a/docs/rollback-plan.md b/docs/rollback-plan.md
+index 692890b..3462632 100644
+--- a/docs/rollback-plan.md
++++ b/docs/rollback-plan.md
+@@ -418,8 +418,7 @@ echo "3. Communicate with stakeholders"
+ echo "4. Plan recovery strategy"
+ ```
+ 
+-## Post-Rollback Procedures
+-id: post-rollback-procedures
++## Post-Rollback Procedures {#post-rollback-procedures}
+ 
+ ### Immediate Post-Rollback (0-30 minutes)
+ 

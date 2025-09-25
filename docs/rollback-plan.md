@@ -124,7 +124,7 @@ const rollbackTriggers = {
    ```bash
    # Monitor metrics
    ./scripts/migration-orchestrator.js monitor
-   
+
    # Automatic trigger evaluation every 5 minutes
    # Immediate action on critical triggers
    ```
@@ -140,7 +140,7 @@ const rollbackTriggers = {
    ```bash
    # Execute appropriate rollback level
    ./scripts/migration-orchestrator.js rollback
-   
+
    # Verify rollback success
    ./scripts/validate-rollback-success.sh
    ```
@@ -192,10 +192,10 @@ graph TD
    ```bash
    # Check current system status
    ./scripts/migration-orchestrator.js status
-   
+
    # Review recent metrics
    ./scripts/check-pipeline-health.sh
-   
+
    # Identify rollback scope
    ./scripts/assess-rollback-scope.sh
    ```
@@ -204,10 +204,10 @@ graph TD
    ```bash
    # Backup current state
    ./scripts/backup-current-state.sh
-   
+
    # Prepare rollback environment
    ./scripts/prepare-rollback-environment.sh
-   
+
    # Notify team of impending rollback
    ./scripts/send-rollback-notification.sh "Manual rollback initiated"
    ```
@@ -215,16 +215,16 @@ graph TD
 3. **Execution Phase (5-15 minutes)**
    ```bash
    # Execute rollback based on level
-   
+
    # Level 1: Feature rollback
    ./scripts/feature-flag-manager.js disable <feature-name>
-   
+
    # Level 2: Phase rollback
    ./scripts/migration-orchestrator.js rollback
-   
+
    # Level 3: Complete rollback
    ./scripts/complete-rollback.sh
-   
+
    # Level 4: Emergency rollback
    ./scripts/emergency-rollback.sh
    ```
@@ -233,10 +233,10 @@ graph TD
    ```bash
    # Verify rollback success
    ./scripts/verify-rollback-success.sh
-   
+
    # Check system health
    curl -f https://api.modporter.ai/health
-   
+
    # Validate core functionality
    ./scripts/validate-core-functionality.sh
    ```
@@ -245,10 +245,10 @@ graph TD
    ```bash
    # Update status page
    ./scripts/update-status-page.sh "System restored to previous version"
-   
+
    # Notify stakeholders
    ./scripts/notify-stakeholders.sh --type=rollback-complete
-   
+
    # Document rollback details
    ./scripts/document-rollback.sh
    ```
@@ -313,7 +313,7 @@ gh workflow list
    ```bash
    # Activate emergency procedures
    ./scripts/declare-emergency.sh
-   
+
    # Send critical alerts
    ./scripts/send-critical-alert.sh "EMERGENCY ROLLBACK IN PROGRESS"
    ```
@@ -322,7 +322,7 @@ gh workflow list
    ```bash
    # Immediate rollback to last known good state
    ./scripts/emergency-rollback.sh
-   
+
    # This script:
    # - Disables all enhanced workflows
    # - Restores original CI workflow
@@ -334,7 +334,7 @@ gh workflow list
    ```bash
    # Check critical systems
    curl -f https://api.modporter.ai/health
-   
+
    # Verify core functionality
    ./scripts/emergency-health-check.sh
    ```
@@ -345,10 +345,10 @@ gh workflow list
    ```bash
    # Ensure all services are running
    ./scripts/verify-all-services.sh
-   
+
    # Check data integrity
    ./scripts/check-data-integrity.sh
-   
+
    # Monitor error rates
    ./scripts/monitor-error-rates.sh
    ```
@@ -357,7 +357,7 @@ gh workflow list
    ```bash
    # Update status page
    ./scripts/update-status-page.sh "Emergency rollback completed, investigating"
-   
+
    # Notify all stakeholders
    ./scripts/emergency-notification.sh
    ```
@@ -366,7 +366,7 @@ gh workflow list
    ```bash
    # Collect incident data
    ./scripts/collect-incident-data.sh
-   
+
    # Preserve logs and metrics
    ./scripts/preserve-incident-logs.sh
    ```
@@ -418,8 +418,7 @@ echo "3. Communicate with stakeholders"
 echo "4. Plan recovery strategy"
 ```
 
-## Post-Rollback Procedures
-id: post-rollback-procedures
+## Post-Rollback Procedures {#post-rollback-procedures}
 
 ### Immediate Post-Rollback (0-30 minutes)
 
@@ -427,10 +426,10 @@ id: post-rollback-procedures
    ```bash
    # Comprehensive health check
    ./scripts/comprehensive-health-check.sh
-   
+
    # Performance validation
    ./scripts/validate-performance.sh
-   
+
    # Security verification
    ./scripts/verify-security-posture.sh
    ```
@@ -439,10 +438,10 @@ id: post-rollback-procedures
    ```bash
    # Send rollback completion notification
    ./scripts/send-rollback-completion.sh
-   
+
    # Update documentation
    ./scripts/update-rollback-documentation.sh
-   
+
    # Schedule post-mortem meeting
    ./scripts/schedule-post-mortem.sh
    ```
@@ -451,7 +450,7 @@ id: post-rollback-procedures
    ```bash
    # Increase monitoring frequency
    ./scripts/enhance-monitoring.sh
-   
+
    # Set up additional alerts
    ./scripts/setup-additional-alerts.sh
    ```
@@ -462,10 +461,10 @@ id: post-rollback-procedures
    ```bash
    # Collect all relevant data
    ./scripts/collect-rollback-data.sh
-   
+
    # Analyze failure patterns
    ./scripts/analyze-failure-patterns.sh
-   
+
    # Generate RCA report
    ./scripts/generate-rca-report.sh
    ```
@@ -474,10 +473,10 @@ id: post-rollback-procedures
    ```bash
    # Monitor system stability
    ./scripts/monitor-system-stability.sh --duration=24h
-   
+
    # Validate all integrations
    ./scripts/validate-all-integrations.sh
-   
+
    # Performance baseline re-establishment
    ./scripts/establish-performance-baseline.sh
    ```
@@ -496,10 +495,10 @@ id: post-rollback-procedures
    ```bash
    # Update rollback procedures
    ./scripts/update-rollback-procedures.sh
-   
+
    # Enhance monitoring and alerting
    ./scripts/enhance-monitoring-alerting.sh
-   
+
    # Improve testing procedures
    ./scripts/improve-testing-procedures.sh
    ```
@@ -508,10 +507,10 @@ id: post-rollback-procedures
    ```bash
    # Develop recovery strategy
    ./scripts/develop-recovery-strategy.sh
-   
+
    # Plan next migration attempt
    ./scripts/plan-next-migration.sh
-   
+
    # Update risk assessment
    ./scripts/update-risk-assessment.sh
    ```
@@ -522,73 +521,73 @@ id: post-rollback-procedures
 
 #### Assessment Phase
 1. **Analyze Rollback Cause**
-   - Technical root cause analysis
-   - Process failure analysis
-   - Communication breakdown analysis
-   - Timeline analysis
+    - Technical root cause analysis
+    - Process failure analysis
+    - Communication breakdown analysis
+    - Timeline analysis
 
 2. **Impact Assessment**
-   - Business impact evaluation
-   - Technical debt assessment
-   - Team morale impact
-   - Stakeholder confidence impact
+    - Business impact evaluation
+    - Technical debt assessment
+    - Team morale impact
+    - Stakeholder confidence impact
 
 3. **Risk Re-evaluation**
-   - Update risk register
-   - Identify new risks
-   - Reassess risk mitigation strategies
-   - Update rollback triggers
+    - Update risk register
+    - Identify new risks
+    - Reassess risk mitigation strategies
+    - Update rollback triggers
 
 #### Planning Phase
 1. **Recovery Timeline**
-   - Immediate fixes (0-7 days)
-   - Short-term improvements (1-4 weeks)
-   - Long-term strategy (1-3 months)
+    - Immediate fixes (0-7 days)
+    - Short-term improvements (1-4 weeks)
+    - Long-term strategy (1-3 months)
 
 2. **Resource Allocation**
-   - Team capacity planning
-   - Budget considerations
-   - External support needs
-   - Training requirements
+    - Team capacity planning
+    - Budget considerations
+    - External support needs
+    - Training requirements
 
 3. **Success Criteria**
-   - Updated success metrics
-   - Enhanced monitoring
-   - Improved testing
-   - Better communication
+    - Updated success metrics
+    - Enhanced monitoring
+    - Improved testing
+    - Better communication
 
 #### Execution Phase
 1. **Gradual Re-introduction**
-   - Start with lowest risk features
-   - Increase monitoring frequency
-   - Smaller rollout phases
-   - More frequent checkpoints
+    - Start with lowest risk features
+    - Increase monitoring frequency
+    - Smaller rollout phases
+    - More frequent checkpoints
 
 2. **Enhanced Validation**
-   - Additional testing phases
-   - Extended monitoring periods
-   - More conservative success criteria
-   - Faster rollback triggers
+    - Additional testing phases
+    - Extended monitoring periods
+    - More conservative success criteria
+    - Faster rollback triggers
 
 ### Recovery Best Practices
 
 1. **Learn from Failure**
-   - Document all lessons learned
-   - Share knowledge across teams
-   - Update training materials
-   - Improve procedures
+    - Document all lessons learned
+    - Share knowledge across teams
+    - Update training materials
+    - Improve procedures
 
 2. **Build Confidence**
-   - Start with small, safe changes
-   - Demonstrate quick wins
-   - Maintain transparent communication
-   - Celebrate incremental progress
+    - Start with small, safe changes
+    - Demonstrate quick wins
+    - Maintain transparent communication
+    - Celebrate incremental progress
 
 3. **Strengthen Foundation**
-   - Improve testing coverage
-   - Enhance monitoring capabilities
-   - Strengthen rollback procedures
-   - Build better safety nets
+    - Improve testing coverage
+    - Enhance monitoring capabilities
+    - Strengthen rollback procedures
+    - Build better safety nets
 
 ## Rollback Testing
 

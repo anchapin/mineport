@@ -1,0 +1,47 @@
+diff --git a/docs/deployment-runbook.md b/docs/deployment-runbook.md
+index 5dc9bef..93df6c8 100644
+--- a/docs/deployment-runbook.md
++++ b/docs/deployment-runbook.md
+@@ -14,6 +14,7 @@ This runbook provides step-by-step procedures for deploying, monitoring, and tro
+ 6. [Emergency Procedures](#emergency-procedures)
+ 
+ ## Pre-Deployment Checklist
++id: pre-deployment-checklist
+ 
+ ### Prerequisites
+ 
+@@ -51,7 +52,7 @@ DB_USER=postgres
+ DB_PASSWORD=your_password
+ 
+ # Monitoring Configuration
+-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
++SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}
+ SMTP_HOST=smtp.example.com
+ 
+ # Feature Flags
+@@ -417,4 +418,4 @@ ps aux | grep mineport
+ 
+ **Document Version:** 1.0  
+ **Last Updated:** 2025-01-08  
+-**Next Review:** 2025-02-08
+\ No newline at end of file
++**Next Review:** 2025-02-08
+diff --git a/docs/rollback-plan.md b/docs/rollback-plan.md
+index 4849596..692890b 100644
+--- a/docs/rollback-plan.md
++++ b/docs/rollback-plan.md
+@@ -419,6 +419,7 @@ echo "4. Plan recovery strategy"
+ ```
+ 
+ ## Post-Rollback Procedures
++id: post-rollback-procedures
+ 
+ ### Immediate Post-Rollback (0-30 minutes)
+ 
+@@ -653,4 +654,4 @@ echo "4. Plan recovery strategy"
+ 
+ ---
+ 
+-*This rollback plan is maintained by the DevOps team and reviewed quarterly. Last updated: $(date)*
+\ No newline at end of file
++*This rollback plan is maintained by the DevOps team and reviewed quarterly. Last updated: $(date)*
