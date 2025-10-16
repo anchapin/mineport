@@ -649,8 +649,8 @@ nc -zv redis-host 6379
 1. **Fix Environment Variables:**
    ```bash
    # Set missing environment variables
-   export DATABASE_URL="postgresql://user:pass@host:5432/db"
-   export REDIS_URL="redis://host:6379"
+   export DATABASE_URL="postgresql://<user>:<pass>@<host>:5432/<db>"
+   export REDIS_URL="redis://<host>:6379"
    
    # Or use .env file
    cp .env.example .env
@@ -942,7 +942,7 @@ gh run view --log | grep -i slack
 2. **Update Webhook URL:**
    ```bash
    # Update secret
-   gh secret set SLACK_WEBHOOK_URL --body "https://hooks.slack.com/services/..."
+   gh secret set SLACK_WEBHOOK_URL --body "<slack-webhook-url>"
    ```
 
 3. **Test Notification Format:**

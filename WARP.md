@@ -118,13 +118,13 @@ REDIS_URL=redis://localhost:6379
 
 # External APIs (optional)
 LLM_API_KEY=your-llm-api-key-here
-GITHUB_TOKEN=your-github-token-here
+GITHUB_TOKEN=<set-in-secret-manager>
 
 # OpenStack Configuration (for deployment)
 OS_AUTH_URL=your-openstack-url
 OS_PROJECT_NAME=your-project
 OS_USERNAME=your-username
-OS_PASSWORD=your-password
+OS_PASSWORD=<set-in-secret-manager>
 OS_REGION_NAME=RegionOne
 OS_IDENTITY_API_VERSION=3
 ```

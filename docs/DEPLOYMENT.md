@@ -418,7 +418,7 @@ jobs:
 
 ```bash
 # Slack notifications
-export SLACK_WEBHOOK_URL="https://hooks.slack.com/..."
+export SLACK_WEBHOOK_URL="<slack-webhook-url>"
 
 # Email alerts
 export SMTP_HOST="smtp.example.com"
