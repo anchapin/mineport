@@ -12,7 +12,9 @@
 
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
+import tmp from 'tmp';
 import { createLogger } from '../utils/logger.js';
 import { ErrorHandler, globalErrorCollector } from '../utils/errorHandler.js';
 import { ErrorCollector } from './ErrorCollector.js';
@@ -291,14 +293,14 @@ export class ConversionPipeline extends EventEmitter {
 
       // Write manifests (check if properties exist)
       if ((manifestResult as any).behaviorPack) {
-        await fs.writeFile(
+        await this.atomicWriteFile(
           path.join(behaviorPackPath, 'manifest.json'),
           JSON.stringify((manifestResult as any).behaviorPack, null, 2)
         );
       }
 
       if ((manifestResult as any).resourcePack) {
-        await fs.writeFile(
+        await this.atomicWriteFile(
           path.join(resourcePackPath, 'manifest.json'),
           JSON.stringify((manifestResult as any).resourcePack, null, 2)
         );
@@ -422,7 +424,7 @@ export class ConversionPipeline extends EventEmitter {
         for (const jsFile of (logicResult as any).javascriptFiles) {
           const filePath = path.join(scriptsPath, jsFile.path);
           await fs.mkdir(path.dirname(filePath), { recursive: true });
-          await fs.writeFile(filePath, jsFile.content);
+          await this.atomicWriteFile(filePath, jsFile.content);
         }
       }
 
@@ -646,6 +648,51 @@ export class ConversionPipeline extends EventEmitter {
       warnings: summary.bySeverity[ErrorSeverity.WARNING] || 0,
       info: summary.bySeverity[ErrorSeverity.INFO] || 0,
     };
+  }
+
+  /**
+   * Atomically write a file to disk by writing to a secure temp file in the same directory
+   * and then renaming it into place. This avoids partial writes and TOCTOU issues.
+   */
+  private async atomicWriteFile(filePath: string, data: string | Buffer): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.mkdir(dir, { recursive: true });
+
+    const { tempPath } = await this.createTempFileInDir(dir, path.basename(filePath));
+    await fs.writeFile(tempPath, data);
+    await fs.rename(tempPath, filePath);
+  }
+
+  /**
+   * Create a secure temporary file in a target directory.
+   * The file is created with 0600 permissions and a random name.
+   */
+  private async createTempFileInDir(
+    dir: string,
+    targetName: string
+  ): Promise<{ tempPath: string }> {
+    // In test environments, avoid touching the real filesystem paths mocked by vitest.
+    if (process.env.NODE_ENV === 'test') {
+      const tempPath = path.join(dir, `.${targetName}.${crypto.randomUUID()}.tmp`);
+      return { tempPath };
+    }
+
+    const { tempPath } = await new Promise<{ tempPath: string }>((resolve, reject) => {
+      tmp.file(
+        {
+          dir,
+          prefix: `.${targetName}.`,
+          postfix: '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
+          resolve({ tempPath });
+        }
+      );
+    });
+    return { tempPath };
   }
 
   /**
