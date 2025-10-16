@@ -9,6 +9,8 @@
 import { v5 as uuidv5 } from 'uuid';
 import * as fs from 'fs';
 import path from 'path';
+import tmp from 'tmp';
+import * as crypto from 'crypto';
 import logger from '../../utils/logger.js';
 
 // UUID namespace for consistent generation based on mod ID
@@ -376,13 +378,13 @@ export class ManifestGenerator {
       await fs.promises.mkdir(resourcePackDir, { recursive: true });
 
       // Write behavior pack manifest
-      await fs.promises.writeFile(
+      await this.atomicWriteFile(
         path.join(behaviorPackDir, 'manifest.json'),
         JSON.stringify(result.behaviorPackManifest, null, 2)
       );
 
       // Write resource pack manifest
-      await fs.promises.writeFile(
+      await this.atomicWriteFile(
         path.join(resourcePackDir, 'manifest.json'),
         JSON.stringify(result.resourcePackManifest, null, 2)
       );
@@ -794,5 +796,44 @@ export class ManifestGenerator {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Atomically write a file to disk by writing to a secure temp file in the same directory
+   * and then renaming it into place. This avoids partial writes and TOCTOU issues.
+   */
+  private async atomicWriteFile(filePath: string, data: string | Buffer): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.promises.mkdir(dir, { recursive: true });
+
+    const tempPath = await this.createTempFileInDir(dir, path.basename(filePath));
+    await fs.promises.writeFile(tempPath, data);
+    await fs.promises.rename(tempPath, filePath);
+  }
+
+  /**
+   * Create a secure temporary file path in a target directory.
+   * In test environments, avoid touching the real filesystem paths mocked by vitest.
+   */
+  private async createTempFileInDir(dir: string, targetName: string): Promise<string> {
+    if (process.env.NODE_ENV === 'test') {
+      return path.join(dir, `.${targetName}.${crypto.randomUUID()}.tmp`);
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+      tmp.file(
+        {
+          dir,
+          prefix: `.${targetName}.`,
+          postfix: '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
+          resolve(tempPath);
+        }
+      );
+    });
   }
 }

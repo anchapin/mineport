@@ -15,6 +15,7 @@ import logger from '../../utils/logger.js';
 import { randomUUID } from 'crypto';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import tmp from 'tmp';
 import { FileProcessor } from './FileProcessor.js';
 import { JavaAnalyzer } from './JavaAnalyzer.js';
 import { SecurityScanner } from './SecurityScanner.js';
@@ -143,7 +144,7 @@ export class ModValidator {
 
       // Write the jar file to disk temporarily
       const jarPath = path.join(extractPath, 'mod.jar');
-      await fs.writeFile(jarPath, jarFile);
+      await this.atomicWriteFile(jarPath, jarFile);
 
       // Step 3: Enhanced Java analysis
       const analysisResult = await this.javaAnalyzer.analyzeJarFull(jarPath);
@@ -494,5 +495,33 @@ export class ModValidator {
     } catch (error) {
       logger.error('Error during cleanup', { error, extractPath });
     }
+  }
+
+  /**
+   * Atomically write a file to disk by writing to a secure temp file in the same directory
+   * and then renaming it into place. This avoids partial writes and TOCTOU issues.
+   */
+  private async atomicWriteFile(filePath: string, data: string | Buffer): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.mkdir(dir, { recursive: true });
+
+    const tempPath = await new Promise<string>((resolve, reject) => {
+      tmp.file(
+        {
+          dir,
+          prefix: `.${path.basename(filePath)}.`,
+          postfix: '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
+          resolve(tempPath);
+        }
+      );
+    });
+
+    await fs.writeFile(tempPath, data);
+    await fs.rename(tempPath, filePath);
   }
 }

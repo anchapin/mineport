@@ -8,6 +8,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import tmp from 'tmp';
+import * as crypto from 'crypto';
 import logger from '../../utils/logger.js';
 
 /**
@@ -325,7 +327,7 @@ export class LicenseEmbedder {
       const licenseContent = this.formatLicenseContent(licenseInfo, attributionInfo);
 
       // Write the license file
-      await fs.writeFile(path.join(outputDir, 'LICENSE.txt'), licenseContent);
+      await this.atomicWriteFile(path.join(outputDir, 'LICENSE.txt'), licenseContent);
 
       logger.info('Created LICENSE.txt file');
     } catch (error) {
@@ -361,7 +363,7 @@ export class LicenseEmbedder {
       };
 
       // Write the attribution file
-      await fs.writeFile(
+      await this.atomicWriteFile(
         path.join(outputDir, 'attribution.json'),
         JSON.stringify(attributionContent, null, 2)
       );
@@ -411,7 +413,7 @@ export class LicenseEmbedder {
       const updatedContent = `${licenseHeader}\n\n${content}`;
 
       // Write the updated content back to the file
-      await fs.writeFile(filePath, updatedContent);
+      await this.atomicWriteFile(filePath, updatedContent);
 
       logger.info(`Added license header to ${filePath}`);
     } catch (error) {
@@ -456,7 +458,7 @@ export class LicenseEmbedder {
       manifest.metadata.sourceVersion = attributionInfo.modVersion;
 
       // Write the updated manifest back to the file
-      await fs.writeFile(filePath, JSON.stringify(manifest, null, 2));
+      await this.atomicWriteFile(filePath, JSON.stringify(manifest, null, 2));
 
       logger.info(`Added license information to manifest ${filePath}`);
     } catch (error) {
@@ -611,5 +613,44 @@ export class LicenseEmbedder {
 
     await scanDir(dir);
     return manifestFiles;
+  }
+
+  /**
+   * Atomically write a file to disk by writing to a secure temp file in the same directory
+   * and then renaming it into place. This avoids partial writes and TOCTOU issues.
+   */
+  private async atomicWriteFile(filePath: string, data: string | Buffer): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.mkdir(dir, { recursive: true });
+
+    const tempPath = await this.createTempFileInDir(dir, path.basename(filePath));
+    await fs.writeFile(tempPath, data);
+    await fs.rename(tempPath, filePath);
+  }
+
+  /**
+   * Create a secure temporary file path in a target directory.
+   * In test environments, avoid touching the real filesystem paths mocked by vitest.
+   */
+  private async createTempFileInDir(dir: string, targetName: string): Promise<string> {
+    if (process.env.NODE_ENV === 'test') {
+      return path.join(dir, `.${targetName}.${crypto.randomUUID()}.tmp`);
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+      tmp.file(
+        {
+          dir,
+          prefix: `.${targetName}.`,
+          postfix: '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
+          resolve(tempPath);
+        }
+      );
+    });
   }
 }

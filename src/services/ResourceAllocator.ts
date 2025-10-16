@@ -10,6 +10,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
+import tmp from 'tmp';
 import logger from '../utils/logger.js';
 
 /**
@@ -327,29 +328,39 @@ export class TempFileManager {
   async createTempFile(
     options: TempFileOptions = {}
   ): Promise<{ path: string; cleanup: () => Promise<void> }> {
-    const id = uuidv4();
-    const filename = `${options.prefix || 'temp'}_${id}${options.suffix || '.tmp'}`;
     const directory = options.directory || this.tempDir;
-    const filePath = path.join(directory, filename);
 
     // Ensure directory exists
     await fs.mkdir(directory, { recursive: true });
 
-    // Create empty file
-    await fs.writeFile(filePath, '');
+    return await new Promise<{ path: string; cleanup: () => Promise<void> }>((resolve, reject) => {
+      tmp.file(
+        {
+          dir: directory,
+          prefix: options.prefix || 'temp',
+          postfix: options.suffix || '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
 
-    const tempFileInfo = {
-      path: filePath,
-      createdAt: new Date(),
-      options,
-    };
+          const id = uuidv4();
+          const tempFileInfo = {
+            path: tempPath,
+            createdAt: new Date(),
+            options,
+          };
 
-    this.tempFiles.set(id, tempFileInfo);
+          this.tempFiles.set(id, tempFileInfo);
 
-    return {
-      path: filePath,
-      cleanup: () => this.cleanupTempFile(id),
-    };
+          resolve({
+            path: tempPath,
+            cleanup: () => this.cleanupTempFile(id),
+          });
+        }
+      );
+    });
   }
 
   /**
