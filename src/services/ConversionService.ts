@@ -89,7 +89,7 @@ export class ConversionService extends EventEmitter implements IConversionServic
   /**
    * Stop the conversion service
    */
-  public stop(): void {
+  public async stop(): Promise<void> {
     logger.info('Stopping conversion service');
 
     if (this.resourceAllocator) {
@@ -380,7 +380,6 @@ export class ConversionService extends EventEmitter implements IConversionServic
 
   private calculateEstimatedTimeRemaining(status: ConversionJobStatus): number {
     const { history, currentStage } = status;
-    const now = Date.now();
     let totalTime = 0;
     let totalWeight = 0;
 
