@@ -16,7 +16,7 @@ class MigrationRunner {
       port: process.env.DB_PORT || 5432,
       database: process.env.DB_NAME || 'mineport',
       user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'password',
+      password: process.env.DB_PASSWORD,
     });
 
     this.migrationsDir = path.join(__dirname, '..', 'src', 'database', 'migrations');

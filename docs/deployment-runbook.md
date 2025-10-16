@@ -48,10 +48,10 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=mineport
 DB_USER=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=<set-in-secret-manager>
 
 # Monitoring Configuration
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+SLACK_WEBHOOK_URL=<slack-webhook-url>
 SMTP_HOST=smtp.example.com
 
 # Feature Flags

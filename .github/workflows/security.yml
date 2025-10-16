@@ -77,6 +77,7 @@ jobs:
         run: npm ci
 
       - name: Run npm audit with severity thresholds
+        id: run-npm-audit-with-severity-thresholds
         run: |
           echo "Running npm audit with different severity levels..."
 
@@ -229,6 +230,8 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         with:
           config-path: .gitleaks.toml
+          report-format: sarif
+          report-path: results.sarif
 
       - name: Process GitLeaks results
         id: process-gitleaks-results

@@ -411,7 +411,7 @@ logger.error('Error occurred', { error });
    // Create user (optional)
    db.createUser({
      user: "dev-user",
-     pwd: "dev-password",
+     pwd: "<dev-password>",
      roles: ["readWrite"]
    })
    ```
