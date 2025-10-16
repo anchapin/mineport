@@ -13,6 +13,7 @@ import { ErrorSeverity, createErrorCode } from '../types/errors';
 import { ConfigurationService } from './ConfigurationService';
 import { promises as fs } from 'fs';
 import path from 'path';
+import tmp from 'tmp';
 import { v4 as uuidv4 } from 'uuid';
 
 const logger = createLogger('APIMapperService');
@@ -136,7 +137,7 @@ export class InMemoryMappingDatabase implements MappingDatabase {
   async persist(): Promise<void> {
     await this.withWriteLock(async () => {
       const data = JSON.stringify(Array.from(this.mappings.values()), null, 2);
-      await fs.writeFile(this.dbPath, data, 'utf-8');
+      await this.atomicWriteFile(this.dbPath, data);
       logger.debug(`Persisted ${this.mappings.size} mappings to ${this.dbPath}`);
     });
   }
@@ -215,6 +216,45 @@ export class InMemoryMappingDatabase implements MappingDatabase {
         : undefined,
       metadata: mapping.metadata ? { ...mapping.metadata } : undefined,
     };
+  }
+
+  /**
+   * Atomically write a file to disk by writing to a secure temp file in the same directory
+   * and then renaming it into place. This avoids partial writes and TOCTOU issues.
+   */
+  private async atomicWriteFile(filePath: string, data: string | Buffer): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.mkdir(dir, { recursive: true });
+
+    const tempPath = await this.createTempFileInDir(dir, path.basename(filePath));
+    await fs.writeFile(tempPath, data);
+    await fs.rename(tempPath, filePath);
+  }
+
+  /**
+   * Create a secure temporary file path in a target directory.
+   * In test environments, avoid touching the real filesystem paths mocked by vitest.
+   */
+  private async createTempFileInDir(dir: string, targetName: string): Promise<string> {
+    if (process.env.NODE_ENV === 'test') {
+      return path.join(dir, `.${targetName}.${uuidv4()}.tmp`);
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+      tmp.file(
+        {
+          dir,
+          prefix: `.${targetName}.`,
+          postfix: '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
+          resolve(tempPath);
+        }
+      );
+    });
   }
 
   async update(

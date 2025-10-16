@@ -12,6 +12,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import AdmZip from 'adm-zip';
+import tmp from 'tmp';
 import { ErrorSeverity } from '../../types/errors.js';
 import {
   SecurityScanResult,
@@ -346,17 +347,44 @@ export class SecurityScanner {
   }
 
   /**
-   * Write buffer to temporary file for analysis
+   * Write buffer to temporary file for analysis using secure tmp.file
    */
   private async writeToTempFile(buffer: Buffer, originalName: string): Promise<TempFileInfo> {
-    const tempDir = process.env.TEMP_DIR || '/tmp';
-    const tempFileName = `scan_${crypto.randomUUID()}_${path.basename(originalName)}`;
-    const tempPath = path.join(tempDir, tempFileName);
+    const tmpdirOverride = process.env.TEMP_DIR;
+    const ext = path.extname(originalName) || '';
+    const pref = 'scan_';
+
+    const { tempPath, cleanup } = await new Promise<{
+      tempPath: string;
+      cleanup: () => void;
+    }>((resolve, reject) => {
+      tmp.file(
+        {
+          prefix: pref,
+          postfix: ext,
+          // don't keep the fd open or expose it
+          discardDescriptor: true,
+          mode: 0o600,
+          // respect custom TEMP_DIR when provided; otherwise use system tmp
+          tmpdir: tmpdirOverride || undefined,
+        },
+        (err, tempPath, _fd, cleanupCallback) => {
+          if (err) return reject(err);
+          resolve({ tempPath, cleanup: cleanupCallback });
+        }
+      );
+    });
 
     try {
       await fs.writeFile(tempPath, buffer);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown temporary file error';
+      // Ensure cleanup is attempted even if writing fails
+      try {
+        cleanup();
+      } catch {
+        // ignore cleanup errors
+      }
       throw new Error(`Failed to create temporary file: ${errorMessage}`);
     }
 
@@ -368,8 +396,13 @@ export class SecurityScanner {
       cleanup: async () => {
         try {
           await fs.unlink(tempPath);
-        } catch (error) {
+        } catch {
           // Ignore cleanup errors
+        }
+        try {
+          cleanup();
+        } catch {
+          // ignore cleanup errors from tmp
         }
       },
     };

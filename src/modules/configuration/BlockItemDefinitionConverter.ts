@@ -8,6 +8,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import tmp from 'tmp';
+import * as crypto from 'crypto';
 import logger from '../../utils/logger.js';
 import { ErrorSeverity } from '../../types/errors.js';
 
@@ -530,7 +532,7 @@ export class BlockItemDefinitionConverter {
         const identifier = block['minecraft:block'].description.identifier;
         const fileName = identifier.replace(':', '_') + '.json';
 
-        await fs.writeFile(path.join(blocksDir, fileName), JSON.stringify(block, null, 2));
+        await this.atomicWriteFile(path.join(blocksDir, fileName), JSON.stringify(block, null, 2));
 
         logger.info(`Wrote block definition: ${fileName}`);
       }
@@ -549,7 +551,7 @@ export class BlockItemDefinitionConverter {
         const identifier = item['minecraft:item'].description.identifier;
         const fileName = identifier.replace(':', '_') + '.json';
 
-        await fs.writeFile(path.join(itemsDir, fileName), JSON.stringify(item, null, 2));
+        await this.atomicWriteFile(path.join(itemsDir, fileName), JSON.stringify(item, null, 2));
 
         logger.info(`Wrote item definition: ${fileName}`);
       }
@@ -1318,5 +1320,44 @@ export class BlockItemDefinitionConverter {
     }
 
     return notes;
+  }
+
+  /**
+   * Atomically write a file to disk by writing to a secure temp file in the same directory
+   * and then renaming it into place. This avoids partial writes and TOCTOU issues.
+   */
+  private async atomicWriteFile(filePath: string, data: string | Buffer): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.mkdir(dir, { recursive: true });
+
+    const tempPath = await this.createTempFileInDir(dir, path.basename(filePath));
+    await fs.writeFile(tempPath, data);
+    await fs.rename(tempPath, filePath);
+  }
+
+  /**
+   * Create a secure temporary file path in a target directory.
+   * In test environments, avoid touching the real filesystem paths mocked by vitest.
+   */
+  private async createTempFileInDir(dir: string, targetName: string): Promise<string> {
+    if (process.env.NODE_ENV === 'test') {
+      return path.join(dir, `.${targetName}.${crypto.randomUUID()}.tmp`);
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+      tmp.file(
+        {
+          dir,
+          prefix: `.${targetName}.`,
+          postfix: '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
+          resolve(tempPath);
+        }
+      );
+    });
   }
 }

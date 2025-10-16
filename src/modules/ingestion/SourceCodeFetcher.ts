@@ -13,6 +13,7 @@ import { pipeline } from 'stream/promises';
 import { Extract } from 'unzipper';
 import logger from '../../utils/logger.js';
 import { randomUUID } from 'crypto';
+import tmp from 'tmp';
 import config from '../../../config/default.js';
 
 /**
@@ -380,7 +381,7 @@ export class SourceCodeFetcher {
 
         // In a real implementation, we would stream the response to a file
         // For testing purposes, we'll just write a simple file
-        await fs.writeFile(destination, 'Mock repository content');
+        await this.atomicWriteFile(destination, 'Mock repository content');
 
         logger.info('File downloaded successfully', { url, destination });
         return;
@@ -637,5 +638,33 @@ export class SourceCodeFetcher {
       reset: new Date(this.rateLimitReset * 1000),
       limit: 5000, // Default GitHub API rate limit
     };
+  }
+
+  /**
+   * Atomically write a file to disk by writing to a secure temp file in the same directory
+   * and then renaming it into place. This avoids partial writes and TOCTOU issues.
+   */
+  private async atomicWriteFile(filePath: string, data: string | Buffer): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.mkdir(dir, { recursive: true });
+
+    const tempPath = await new Promise<string>((resolve, reject) => {
+      tmp.file(
+        {
+          dir,
+          prefix: `.${path.basename(filePath)}.`,
+          postfix: '.tmp',
+          discardDescriptor: true,
+          mode: 0o600,
+        },
+        (err, tempPath, _fd, _cleanupCallback) => {
+          if (err) return reject(err);
+          resolve(tempPath);
+        }
+      );
+    });
+
+    await fs.writeFile(tempPath, data);
+    await fs.rename(tempPath, filePath);
   }
 }
