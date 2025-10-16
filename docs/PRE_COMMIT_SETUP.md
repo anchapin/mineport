@@ -204,9 +204,9 @@ const config = {
 
 // ❌ Bad - Hardcoded secrets
 const config = {
-  apiKey: "sk-1234567890abcdef",
-  dbUrl: "postgres://user:pass@host/db",
-  secretKey: "my-secret-key"
+  apiKey: "sk-EXAMPLE-ONLY",
+  dbUrl: "postgres://<user>:<pass>@<host>/<db>",
+  secretKey: "example-secret-key"
 };
 ```
 
@@ -223,8 +223,8 @@ const testData = {
 // ❌ Bad - Realistic-looking secrets
 const testData = {
   userId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  apiKey: "sk_live_1234567890abcdef",
-  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  apiKey: "sk_LIVE_EXAMPLE_DO_NOT_USE",
+  token: "<jwt-example-token>"
 };
 ```
 

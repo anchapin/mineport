@@ -128,6 +128,7 @@ paths = [
     '''coverage/''',
     '''temp/''',
     '''logs/''',
+    '''tests/''',
     '''\.gitleaks\.toml''',
     '''\.github/workflows/''',
     '''docs/''',
@@ -135,9 +136,135 @@ paths = [
     '''README\.md''',
     '''CHANGELOG\.md''',
     '''LICENSE''',
-    '''\.md$''',
-    '''\.txt$''',
-    '''\.log$''',
+    '''\.md
+
+# Allowlist specific patterns that are known to be safe
+regexes = [
+    '''example[_-]?(key|token|secret)''',
+    '''test[_-]?(key|token|secret)''',
+    '''dummy[_-]?(key|token|secret)''',
+    '''fake[_-]?(key|token|secret)''',
+    '''mock[_-]?(key|token|secret)''',
+    '''placeholder[_-]?(key|token|secret)''',
+    '''your[_-]?(key|token|secret)''',
+    '''insert[_-]?(key|token|secret)''',
+    '''replace[_-]?(key|token|secret)''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+    '''xxxxxxxx''',
+    '''12345''',
+    '''abcdef''',
+    '''sample''',
+    '''demo''',
+]
+
+# Allowlist specific commits (if needed)
+commits = [
+    # Add specific commit hashes here if needed
+]
+
+# Stop words that indicate false positives
+stopwords = [
+    '''example''',
+    '''test''',
+    '''dummy''',
+    '''fake''',
+    '''mock''',
+    '''placeholder''',
+    '''sample''',
+    '''demo''',
+    '''template''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+]'',
+    '''\.txt
+
+# Allowlist specific patterns that are known to be safe
+regexes = [
+    '''example[_-]?(key|token|secret)''',
+    '''test[_-]?(key|token|secret)''',
+    '''dummy[_-]?(key|token|secret)''',
+    '''fake[_-]?(key|token|secret)''',
+    '''mock[_-]?(key|token|secret)''',
+    '''placeholder[_-]?(key|token|secret)''',
+    '''your[_-]?(key|token|secret)''',
+    '''insert[_-]?(key|token|secret)''',
+    '''replace[_-]?(key|token|secret)''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+    '''xxxxxxxx''',
+    '''12345''',
+    '''abcdef''',
+    '''sample''',
+    '''demo''',
+]
+
+# Allowlist specific commits (if needed)
+commits = [
+    # Add specific commit hashes here if needed
+]
+
+# Stop words that indicate false positives
+stopwords = [
+    '''example''',
+    '''test''',
+    '''dummy''',
+    '''fake''',
+    '''mock''',
+    '''placeholder''',
+    '''sample''',
+    '''demo''',
+    '''template''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+]'',
+    '''\.log
+
+# Allowlist specific patterns that are known to be safe
+regexes = [
+    '''example[_-]?(key|token|secret)''',
+    '''test[_-]?(key|token|secret)''',
+    '''dummy[_-]?(key|token|secret)''',
+    '''fake[_-]?(key|token|secret)''',
+    '''mock[_-]?(key|token|secret)''',
+    '''placeholder[_-]?(key|token|secret)''',
+    '''your[_-]?(key|token|secret)''',
+    '''insert[_-]?(key|token|secret)''',
+    '''replace[_-]?(key|token|secret)''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+    '''xxxxxxxx''',
+    '''12345''',
+    '''abcdef''',
+    '''sample''',
+    '''demo''',
+]
+
+# Allowlist specific commits (if needed)
+commits = [
+    # Add specific commit hashes here if needed
+]
+
+# Stop words that indicate false positives
+stopwords = [
+    '''example''',
+    '''test''',
+    '''dummy''',
+    '''fake''',
+    '''mock''',
+    '''placeholder''',
+    '''sample''',
+    '''demo''',
+    '''template''',
+    '''TODO''',
+    '''FIXME''',
+    '''XXX''',
+]'',
 ]
 
 # Allowlist specific patterns that are known to be safe

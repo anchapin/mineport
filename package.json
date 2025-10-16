@@ -101,19 +101,19 @@
     "@babel/traverse": "^7.23.0",
     "@babel/types": "^7.23.0",
     "adm-zip": "^0.5.16",
-    "archiver": "^7.0.1",
+    "archiver": "^7.0.2",
     "axios": "^1.12.2",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "java-parser": "^2.0.4",
-    "jszip": "^3.10.1",
+    "jszip": "^3.11.1",
     "lru-cache": "^10.4.3",
-    "mongodb": "^6.1.0",
-    "octokit": "^5.0.3",
+    "mongodb": "^6.6.0",
+    "octokit": "^5.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "redis": "^4.6.10",
-    "unzipper": "^0.10.14",
+    "redis": "^4.6.14",
+    "unzipper": "^0.10.15",
     "uuid": "^11.1.0",
     "winston": "^3.11.0",
     "zod": "^3.22.4"
@@ -146,5 +146,9 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.2.2",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "follow-redirects": "^1.15.6",
+    "qs": "^6.12.1"
   }
 }

@@ -198,7 +198,7 @@ export class HealthCheckService {
       //   port: process.env.DB_PORT || 5432,
       //   database: process.env.DB_NAME || 'mineport',
       //   user: process.env.DB_USER || 'postgres',
-      //   password: process.env.DB_PASSWORD || 'password',
+      //   password: process.env.DB_PASSWORD,
       //   connectionTimeoutMillis: 3000,
       // });
 
